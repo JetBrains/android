@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleItemResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
@@ -43,6 +44,7 @@ import com.android.tools.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
@@ -921,11 +923,11 @@ public class NlComponent implements NlAttributesHolder {
     }
     // Transfer namespace attributes to the root tag
     Map<String, String> prefixToNamespace = rootTag.getLocalNamespaceDeclarations();
-    Map<String, String> namespaceToPrefix = new HashMap<>();
+    Map<String, String> namespaceToPrefix = Maps.newHashMap();
     for (Map.Entry<String, String> entry : prefixToNamespace.entrySet()) {
       namespaceToPrefix.put(entry.getValue(), entry.getKey());
     }
-    Map<String, String> oldPrefixToPrefix = new HashMap<>();
+    Map<String, String> oldPrefixToPrefix = Maps.newHashMap();
 
     for (Map.Entry<String, String> entry : tag.getLocalNamespaceDeclarations().entrySet()) {
       String namespace = entry.getValue();
@@ -996,7 +998,7 @@ public class NlComponent implements NlAttributesHolder {
     }
   }
 
-  public Set<String> getDependencies() {
+  public Set<GoogleMavenArtifactId> getDependencies() {
     XmlModelComponentMixin mixin = getMixin();
     if (mixin != null) {
       return mixin.getDependencies();
@@ -1035,7 +1037,7 @@ public class NlComponent implements NlAttributesHolder {
       return true;
     }
 
-    public Set<String> getDependencies() {
+    public Set<GoogleMavenArtifactId> getDependencies() {
       return ImmutableSet.of();
     }
 

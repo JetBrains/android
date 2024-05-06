@@ -16,11 +16,11 @@
 package com.android.tools.idea.uibuilder.property
 
 import com.android.SdkConstants
+import com.android.ide.common.resources.parseColor
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.parseColor
 import com.intellij.psi.util.PsiLiteralUtil
-import org.jetbrains.android.dom.converters.DimensionConverter
 import java.util.EnumSet
+import org.jetbrains.android.dom.converters.DimensionConverter
 
 /** Types of a [NlPropertyItem]. */
 enum class NlPropertyType {
@@ -119,7 +119,7 @@ enum class NlPropertyType {
       FONT_SIZE,
       DIMENSION_PIXEL,
       DIMENSION ->
-        error(DimensionConverter.fromString(literal) == null) {
+        error(DimensionConverter.INSTANCE.doFromString(literal) == null) {
           getDimensionError(literal)
         }
       DIMENSION_UNIT_LESS -> checkUnitLessDimension(literal)

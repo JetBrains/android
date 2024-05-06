@@ -32,12 +32,13 @@ import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInsp
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorTab
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR_TAB
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import kotlinx.coroutines.launch
 import javax.swing.Icon
+import kotlinx.coroutines.launch
 
 /** The number of updates per second our simulated object models receive. */
 private const val UPDATES_PER_SECOND = 60
@@ -71,7 +72,8 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
     val componentsProvider = DefaultUiComponentsProvider(project, parentDisposable)
     val codeNavigationProvider = DefaultCodeNavigationProvider(project)
     val scope = AndroidCoroutineScope(parentDisposable)
-    val dataSource = NetworkInspectorDataSourceImpl(messenger, scope)
+    val usageTracker = IdeNetworkInspectorTracker(project)
+    val dataSource = NetworkInspectorDataSourceImpl(messenger, scope, usageTracker)
 
     return object : SingleAppInspectorTab(messenger) {
       private val client = NetworkInspectorClientImpl(messenger)
@@ -82,7 +84,7 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
           FpsTimer(UPDATES_PER_SECOND),
           AndroidDispatchers.workerThread,
           AndroidDispatchers.uiThread,
-          IdeNetworkInspectorTracker(project)
+          usageTracker
         )
       private val networkInspectorTab =
         NetworkInspectorTab(
@@ -98,7 +100,9 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
       init {
         scope.launch {
           messenger.awaitForDisposal()
-          networkInspectorTab.stopInspection()
+          if (!StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
+            networkInspectorTab.stopInspection()
+          }
         }
       }
     }

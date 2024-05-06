@@ -20,7 +20,7 @@ public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
   protected boolean doDownload(File pluginDir, FileDownloader downloader) {
     boolean res = super.doDownload(pluginDir, downloader);
     if (res) {
-      EmbeddedRenderTarget.resetInstance();
+      EmbeddedRenderTarget.resetRenderTarget();
     }
     return res;
   }
@@ -48,7 +48,7 @@ public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
   }
 
   public static AndroidLayoutlibDownloader getInstance() {
-    return AndroidLayoutlibDownloader.Holder.INSTANCE;
+    return Holder.INSTANCE;
   }
 
 }

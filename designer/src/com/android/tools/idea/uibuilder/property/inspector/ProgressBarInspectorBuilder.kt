@@ -15,23 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_INDETERMINATE
-import com.android.SdkConstants.ATTR_INDETERMINATE_DRAWABLE
-import com.android.SdkConstants.ATTR_INDETERMINATE_TINT
-import com.android.SdkConstants.ATTR_MAXIMUM
-import com.android.SdkConstants.ATTR_PROGRESS
-import com.android.SdkConstants.ATTR_PROGRESS_DRAWABLE
-import com.android.SdkConstants.ATTR_PROGRESS_TINT
-import com.android.SdkConstants.ATTR_STYLE
-import com.android.SdkConstants.VALUE_TRUE
+import com.android.SdkConstants.*
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
-import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.InspectorLineModel
-import com.android.tools.property.panel.api.InspectorPanel
-import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.api.*
 
 class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlPropertyItem>) {
 
@@ -125,6 +112,7 @@ class ProgressBarInspectorBuilder(private val editorProvider: EditorProvider<NlP
     private val indeterminateLines: List<InspectorLineModel?>
   ) : ValueChangedListener {
     var previousState: Boolean? = null
+
     override fun valueChanged() {
       val determinateState = indeterminate.resolvedValue != VALUE_TRUE
       if (previousState == determinateState) return

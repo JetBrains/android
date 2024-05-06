@@ -74,6 +74,10 @@ public class FileServer implements AutoCloseable {
     return String.format("http://%s:%d", address.getHostName(), address.getPort());
   }
 
+  public int getPort() {
+    return server.getAddress().getPort();
+  }
+
   @Override
   public void close() {
     server.stop(3);
@@ -158,6 +162,15 @@ public class FileServer implements AutoCloseable {
         byte[] bytes = Files.readAllBytes(path);
 
         exchange.getResponseHeaders().set("Content-Type", "application/java-archive");
+        exchange.sendResponseHeaders(200, bytes.length);
+        OutputStream os = exchange.getResponseBody();
+        os.write(bytes);
+        os.close();
+      }
+      else if (fileName.endsWith(".zip")) {
+        byte[] bytes = Files.readAllBytes(path);
+
+        exchange.getResponseHeaders().set("Content-Type", "application/zip");
         exchange.sendResponseHeaders(200, bytes.length);
         OutputStream os = exchange.getResponseBody();
         os.write(bytes);

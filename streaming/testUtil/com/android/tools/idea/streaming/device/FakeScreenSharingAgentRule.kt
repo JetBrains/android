@@ -24,6 +24,7 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceId
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.MockitoKt.mock
@@ -66,10 +67,6 @@ class FakeScreenSharingAgentRule : TestRule {
   private val testEnvironment = object : ExternalResource() {
 
     override fun before() {
-      if (isFFmpegAvailableToTest()) {
-        // Preload FFmpeg codec native libraries before the test to avoid a race condition when unpacking them.
-        avcodec_find_encoder(AV_CODEC_ID_VP8).close()
-      }
       val binDir = Paths.get(StudioPathManager.getBinariesRoot())
       // Create fake screen-sharing-agent.jar and libscreen-sharing-agent.so files if they don't exist.
       createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME"))
@@ -90,6 +87,11 @@ class FakeScreenSharingAgentRule : TestRule {
 
   val project: ProjectEx
     get() = projectRule.project
+
+  init {
+    // Preload FFmpeg codec native libraries upfront to avoid a race condition when unpacking them.
+    avcodec_find_encoder(AV_CODEC_ID_VP8).close()
+  }
 
   override fun apply(base: Statement, description: Description): Statement {
     return projectRule.apply(
@@ -181,25 +183,33 @@ class FakeScreenSharingAgentRule : TestRule {
     val agent: FakeScreenSharingAgent =
       FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
     var hostPort: Int? = null
-    val configuration: DeviceConfiguration = createDeviceConfiguration(deviceState.properties)
+    val configuration: DeviceConfiguration = DeviceConfiguration(createDeviceProperties())
     val handle: DeviceHandle = FakeDeviceHandle(this)
-  }
 
-  private class FakeDeviceHandle(private val device: FakeDevice) : DeviceHandle {
-    override val scope = AndroidCoroutineScope(device.agent)
-
-    override val stateFlow = MutableStateFlow(createConnectedDeviceState())
-
-    fun createConnectedDeviceState(): ProvisionerDeviceState.Connected {
-      val deviceProperties = DeviceProperties.Builder().apply {
-        readCommonProperties(device.deviceState.properties)
-        icon = when(deviceType) {
+    private fun createDeviceProperties(): DeviceProperties {
+      return DeviceProperties.build {
+        readCommonProperties(deviceState.properties)
+        populateDeviceInfoProto("FakeDevicePlugin", serialNumber, deviceState.properties, "fakeConnectionId")
+        readAdbSerialNumber(serialNumber)
+        icon = when (deviceType) {
           DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
           DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
           DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
           else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }
-      }.buildBase()
+      }
+    }
+  }
+
+  private class FakeDeviceHandle(private val device: FakeDevice) : DeviceHandle {
+    override val id = DeviceId("Fake", false, device.serialNumber)
+
+    override val scope = AndroidCoroutineScope(device.agent)
+
+    override val stateFlow = MutableStateFlow(createConnectedDeviceState())
+
+    fun createConnectedDeviceState(): ProvisionerDeviceState.Connected {
+      val deviceProperties = device.configuration.deviceProperties
       val connectedDevice = mock<ConnectedDevice>().apply {
         whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
       }

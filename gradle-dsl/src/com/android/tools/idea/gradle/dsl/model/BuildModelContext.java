@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.EXT_VERSIONS_TOML;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -49,7 +50,6 @@ import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
@@ -291,7 +291,7 @@ public final class BuildModelContext {
     @SystemIndependent String fromPath = toSystemIndependentName(filePath);
     @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
     @SystemIndependent String path = String.join("/", rootPath, fromPath);
-    VirtualFile versionCatalogFile = findFileByIoFile(new File(FileUtilRt.toSystemDependentName(path)), false);
+    VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
     if (versionCatalogFile == null) return Optional.empty();
     return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
   }
@@ -403,7 +403,7 @@ public final class BuildModelContext {
 
     @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(module);
     if (rootPath == null) return null;
-    File moduleRoot = new File(FileUtilRt.toSystemDependentName(rootPath));
+    File moduleRoot = new File(toSystemDependentName(rootPath));
     return getGradleBuildFile(moduleRoot);
   }
 
@@ -448,7 +448,7 @@ public final class BuildModelContext {
   public VirtualFile getProjectSettingsFile() {
     @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
     if (rootPath == null) return null;
-    return getGradleSettingsFile(new File(FileUtilRt.toSystemDependentName(rootPath)));
+    return getGradleSettingsFile(new File(toSystemDependentName(rootPath)));
   }
 
   public @Nullable VirtualFile getVersionCatalogFile(@NotNull File dirPath, @NotNull String name) {
@@ -460,6 +460,6 @@ public final class BuildModelContext {
   public @Nullable VirtualFile getVersionCatalogFile(@NotNull String name) {
     @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
     if (rootPath == null) return null;
-    return getVersionCatalogFile(new File(FileUtilRt.toSystemDependentName(rootPath), "gradle"), name);
+    return getVersionCatalogFile(new File(toSystemDependentName(rootPath), "gradle"), name);
   }
 }

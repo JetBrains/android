@@ -13,13 +13,13 @@
 // limitations under the License.
 package com.android.tools.idea.navigator.nodes;
 
-import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
 import static com.intellij.util.containers.ContainerUtil.emptyList;
 
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -124,8 +124,8 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
       }
     }
 
-    // TODO(b/156361020): This is relative slow and should be replaces with a better module system based implementation. However, this code
-    //                    is usually invoked on relatively small number of roots of the incoming file-system-change-notification.
+    // This is relative slow and could be replaced with a better module system based implementation. However, this code
+    // is usually invoked on relatively small number of roots of the incoming file-system-change-notification.
     return createSubmoduleNodes().stream().anyMatch(it -> (it instanceof ProjectViewNode) && ((ProjectViewNode<?>)it).contains(file));
   }
 
@@ -133,7 +133,8 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
   @Override
   public String toTestString(@Nullable Queryable.PrintInfo printInfo) {
     Module value = getValue();
-    return (value != null) ? getDisplayNameForModule(value) : "null";
+    if (value == null) return "null";
+    return ProjectSystemUtil.getModuleSystem(value).getDisplayNameForModule();
   }
 
   @Override
@@ -144,7 +145,7 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
       return;
     }
 
-    String moduleShortName = getDisplayNameForModule(module);
+    String moduleShortName = ProjectSystemUtil.getModuleSystem(module).getDisplayNameForModule();
 
     presentation.setPresentableText(moduleShortName);
     presentation.addText(moduleShortName, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);

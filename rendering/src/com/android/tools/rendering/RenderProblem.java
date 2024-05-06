@@ -52,12 +52,12 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   }
 
   @NotNull
-  public static RenderProblem createPlain(@NotNull ProblemSeverity severity,
-                                          @NotNull String message,
-                                          @Nullable Project project,
-                                          @NotNull HtmlLinkManager linkManager,
-                                          @Nullable Throwable throwable,
-                                          @NotNull RunnableFixFactory fixFactory) {
+  public static RenderProblem createHtml(@NotNull ProblemSeverity severity,
+                                         @NotNull String message,
+                                         @Nullable Project project,
+                                         @NotNull HtmlLinkManager linkManager,
+                                         @Nullable Throwable throwable,
+                                         @NotNull RunnableFixFactory fixFactory) {
     Html problem = new Html(severity, ourNextOrdinal++);
     HtmlBuilder builder = problem.getHtmlBuilder();
     builder.add(message);

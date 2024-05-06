@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.actions.HeaderAction
 import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
@@ -183,17 +182,17 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
 /**
  * Action to refresh the previews of a particular type of resources.
  */
-private class RefreshAction(val viewModel: ResourceExplorerToolbarViewModel)
+private class RefreshAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : AnAction("Refresh Previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
-
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-
   override fun actionPerformed(e: AnActionEvent) {
     // TODO: update tracking to support this action.
     viewModel.refreshResourcesPreviewsCallback()
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
   override fun update(e: AnActionEvent) {
+    super.update(e)
     if (viewModel.resourceType.isSlowResource()) {
       e.presentation.text = templatePresentation.text
       e.presentation.description = templatePresentation.description
@@ -297,6 +296,8 @@ private class ResetTypeFiltersAction internal constructor(val viewModel: Resourc
     viewModel.typeFiltersModel.clearAll(viewModel.resourceType)
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = viewModel.typeFiltersModel.getActiveFilters(viewModel.resourceType).isNotEmpty()
   }
@@ -320,7 +321,7 @@ private fun fixFilterDisplayNameForActionText(displayName: String): String {
 private fun DefaultActionGroup.addRelatedTypeFilterActions(viewModel: ResourceExplorerToolbarViewModel) {
   // Group the supported filters by their display name. So that one menu-item applies to the related filters.
   val supportedFilters = viewModel.typeFiltersModel.getSupportedFilters(viewModel.resourceType).groupBy { it.displayName }
-  if (StudioFlags.EXTENDED_TYPE_FILTERS.get() && supportedFilters.isNotEmpty()) {
+  if (supportedFilters.isNotEmpty()) {
     addSeparator()
     val header = "By ${viewModel.resourceType.displayName} Type"
     add(HeaderAction(header, header))

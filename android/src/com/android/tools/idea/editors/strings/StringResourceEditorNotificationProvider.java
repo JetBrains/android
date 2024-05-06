@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.editors.strings;
 
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
+import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
+
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
@@ -27,12 +30,8 @@ import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-
-import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.canViewTranslations;
-import static com.android.tools.idea.editors.strings.StringResourceEditorProvider.openEditor;
-
 public class StringResourceEditorNotificationProvider implements EditorNotificationProvider {
+
   private boolean myHide;
 
   @Override

@@ -71,8 +71,7 @@ enum class TestProject(
     },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT }
   ),
-  // TODO(b/279759255): disabled while https://youtrack.jetbrains.com/issue/IDEA-310919 is active
-  // COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
+  COMPATIBILITY_TESTS_AS_36(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36, patch = { updateProjectJdk(it) }),
   COMPATIBILITY_TESTS_AS_36_NO_IML(TestProjectToSnapshotPaths.COMPATIBILITY_TESTS_AS_36_NO_IML, patch = { updateProjectJdk(it) }),
   ANDROID_KOTLIN_MULTIPLATFORM(
     TestProjectToSnapshotPaths.ANDROID_KOTLIN_MULTIPLATFORM,
@@ -207,12 +206,6 @@ enum class TestProject(
         .replaceInContent("androidTestImplementation project(':lib')", "// androidTestImplementation project(':lib')")
     }
   ),
-  NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL(
-    TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES,
-    testName = "hierarchical",
-    isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true) }
-  ),
   LINKED(TestProjectToSnapshotPaths.LINKED, "/firstapp"),
   KOTLIN_KAPT(TestProjectToSnapshotPaths.KOTLIN_KAPT),
   LINT_CUSTOM_CHECKS(
@@ -236,50 +229,31 @@ enum class TestProject(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_70 }
   ),
-  KOTLIN_MULTIPLATFORM_HIERARCHICAL(
+  KOTLIN_MULTIPLATFORM_WITHJS(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-    testName = "hierarchical",
+    testName = "withjs",
     isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true) }
-  ),
-  KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS(
-    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-    testName = "hierarchical_withjs",
-    isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true, addJsModule = true) }
-  ),
-  KOTLIN_MULTIPLATFORM_IOS(
-    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-    testName = "ios",
-    isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, addIosTo = listOf("module2")) }
+    patch = { patchMppProject(it, addJsModule = true) }
   ),
   KOTLIN_MULTIPLATFORM_JVM(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
     testName = "jvm",
     isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = false, addJvmTo = listOf("module2")) }
+    patch = { patchMppProject(it, addJvmTo = listOf("module2")) }
   ),
-  KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL(
+  KOTLIN_MULTIPLATFORM_JVM_KMPAPP(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-    testName = "jvm_hierarchical",
+    testName = "jvm_kmpapp",
     isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true, addJvmTo = listOf("module2")) }
+    patch = { patchMppProject(it, convertAppToKmp = true, addJvmTo = listOf("app", "module2")) }
   ),
-  KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP(
+  KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE(
     TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-    testName = "jvm_hierarchical_kmpapp",
-    isCompatibleWith = { it == AGP_CURRENT },
-    patch = { patchMppProject(it, enableHierarchicalSupport = true, convertAppToKmp = true, addJvmTo = listOf("app", "module2")) }
-  ),
-  KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE(
-    TestProjectToSnapshotPaths.KOTLIN_MULTIPLATFORM,
-    testName = "jvm_hierarchical_kmpapp_withintermediate",
+    testName = "jvm_kmpapp_withintermediate",
     isCompatibleWith = { it == AGP_CURRENT },
     patch = {
       patchMppProject(
         it,
-        enableHierarchicalSupport = true,
         convertAppToKmp = true,
         addJvmTo = listOf("app", "module2"),
         addIntermediateTo = listOf("module2")
@@ -291,7 +265,7 @@ enum class TestProject(
     testName = "multiple_source_set_per_android_compilation",
     isCompatibleWith = { it == AGP_CURRENT },
     patch = { projectRoot ->
-      patchMppProject(projectRoot, enableHierarchicalSupport = false, convertAppToKmp = true)
+      patchMppProject(projectRoot, convertAppToKmp = true)
       projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
         "android()",
         """

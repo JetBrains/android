@@ -109,7 +109,7 @@ class TreePanel : ToolContent<DesignSurface<*>> {
     val node = componentTreeSelectionModel.currentSelection.singleOrNull() as NlComponent? ?: return
     val actions = designSurface?.actionManager?.getPopupMenuActions(node) ?: return
     // TODO (b/151315668): extract the hardcoded value "NavEditor".
-    showPopup(componentTree, x, y, actions, "NavEditor")
+    showPopup(designSurface, componentTree, x, y, actions, "NavEditor")
   }
 
   private fun activateComponent() {

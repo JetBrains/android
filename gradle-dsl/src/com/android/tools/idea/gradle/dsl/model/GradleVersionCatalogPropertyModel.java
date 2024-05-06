@@ -74,7 +74,7 @@ public class GradleVersionCatalogPropertyModel extends GradlePropertyModelImpl {
                                                  @NotNull String name) {
           if (oldElement == null) {
             GradleVersionCatalogFile.GradleDslVersionLiteral
-              literal = new GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.fake(name), value);
+              literal = new GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.fake(name), value.getClass());
             literal.setValue(value);
             return literal;
           }

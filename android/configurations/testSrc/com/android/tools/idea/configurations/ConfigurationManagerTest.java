@@ -136,7 +136,15 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     });
 
     PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
-    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    // Regression test for b/297028624 by running getConfiguration in a background thread.
+    Configuration config = AppExecutorUtil.getAppExecutorService().submit(() -> {
+      try {
+        return ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+      } catch (Throwable t) {
+        fail("No exception expected calling ConfigurationManager#getConfiguration");
+        throw new IllegalStateException();
+      }
+    }).get();
     assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
   }
 

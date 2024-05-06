@@ -19,47 +19,40 @@ import com.android.tools.idea.logcat.message.LogLevel
 
 internal sealed class FilterHint {
   /**
-   * A [FilterHint] representing a Tag. Note that the length of the hint can be different from the length of the tag. For example, if
-   * the tag is elided, the length will be shorter than the actual tag.
+   * A [FilterHint] representing a Tag. Note that the length of the hint can be different from the
+   * length of the tag. For example, if the tag is elided, the length will be shorter than the
+   * actual tag.
    */
   data class Tag(override val text: String, override val length: Int) : FilterHint() {
     override fun getFilter(): String = "tag:$text"
   }
 
   /**
-   * A [FilterHint] representing an AppName. Note that the length of the hint can be different from the length of the name. For example,
-   * if the name is elided, the length will be shorter than the actual name.
+   * A [FilterHint] representing an AppName. Note that the length of the hint can be different from
+   * the length of the name. For example, if the name is elided, the length will be shorter than the
+   * actual name.
    */
   data class AppName(override val text: String, override val length: Int) : FilterHint() {
     override fun getFilter(): String = "package:$text"
   }
 
-  /**
-   * A [FilterHint] representing a [LogLevel]. The length of this hint is always 3 as in " I ".
-   */
+  /** A [FilterHint] representing a [LogLevel]. The length of this hint is always 3 as in " I ". */
   data class Level(val level: LogLevel) : FilterHint() {
     override val text = " ${level.priorityLetter} "
     override val length = 3
+
     override fun getFilter(): String = "level:${level.name}"
   }
 
-  /**
-   * The text behind the range
-   */
+  /** The text behind the range */
   abstract val text: String
 
-  /**
-   * The length of the range to be created.
-   */
+  /** The length of the range to be created. */
   abstract val length: Int
 
-  /**
-   * True if the range text is elided.
-   */
-  fun isElided() : Boolean = text.length > length
+  /** True if the range text is elided. */
+  fun isElided(): Boolean = text.length > length
 
-  /**
-   * A filter this hint represents.
-   */
+  /** A filter this hint represents. */
   abstract fun getFilter(): String
 }

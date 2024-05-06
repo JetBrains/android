@@ -50,6 +50,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
+import java.util.List;
 import java.util.Locale;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -59,7 +60,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.asJava.classes.KtLightClass;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
-import org.jetbrains.kotlin.idea.core.OldGenerateUtilKt;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
 import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtNamedFunction;
@@ -198,7 +198,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       KtNamedFunction namedFunction = new KtPsiFactory(origin.getProject())
         .createFunction("fun " + methodName + "(" + varName + ": " + methodParamType + ") {}");
       KtDeclaration anchor = Iterables.getLast(origin.getDeclarations(), null);
-      OldGenerateUtilKt.insertMembersAfterAndReformat(null, origin, namedFunction, anchor);
+      GenerateUtilsKt.insertMembersAfterAndReformat(null, origin, namedFunction, anchor);
     }
     return null;
   }

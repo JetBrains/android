@@ -24,7 +24,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
-import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Path
 
@@ -45,18 +44,14 @@ class AndroidProjectTaskRunner : ProjectTaskRunner() {
   }
 
   override fun canRun(projectTask: ProjectTask): Boolean {
-    val isAndroidTaskRunnerRestricted = Registry.`is`("android.task.runner.restricted")
-
-    if (isAndroidTaskRunnerRestricted) {
-      assert(!IdeInfo.getInstance().isAndroidStudio) { "Registry 'android.task.runner.restricted' is not expected in Android Studio" }
+    if (Registry.`is`("android.task.runner.restricted")) {
+      assert(!IdeInfo.getInstance().isAndroidStudio) { "This code is not expected to be executed in Android Studio" }
+      return projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
     }
-
-    return if (isAndroidTaskRunnerRestricted || (projectTask is ModuleBuildTask && projectTask.module.isMultiPlatformModule)) {
-      projectTask is ModuleBuildTask && AndroidFacet.getInstance(projectTask.module) != null
-    } else {
-      projectTask is ModuleBuildTask &&
-      (isAndroidStudio || projectTask.module.project.isAndroidProject) &&
-      ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, projectTask.module)
+    else {
+      return projectTask is ModuleBuildTask &&
+             (isAndroidStudio || projectTask.module.project.isAndroidProject) &&
+             ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, projectTask.module)
     }
   }
 
@@ -111,7 +106,7 @@ private fun GradleMultiInvocationResult.toTaskRunnerResults(): ProjectTaskRunner
   }
 }
 
-private fun <T : Any, R> ListenableFuture<T>.toPromise(transform: (T) -> R): AsyncPromise<R> {
+private fun <T: Any, R> ListenableFuture<T>.toPromise(transform: (T) -> R): AsyncPromise<R> {
   val result = AsyncPromise<R>()
   this.addCallback(
     directExecutor(),

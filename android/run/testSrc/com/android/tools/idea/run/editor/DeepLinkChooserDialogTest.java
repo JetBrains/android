@@ -18,7 +18,7 @@ package com.android.tools.idea.run.editor;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.psi.PsiFile;
@@ -32,10 +32,6 @@ import org.junit.Test;
 
 public class DeepLinkChooserDialogTest {
 
-  private static final String ANDROID_MANIFEST = "AndroidManifest.xml";
-  private static final String TEST_DATA_PATH =
-    TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/deeplink/launch").toString();
-
   @Rule
   public AndroidProjectRule myProjectRule = AndroidProjectRule.onDisk();
 
@@ -44,14 +40,14 @@ public class DeepLinkChooserDialogTest {
 
   @Before
   public void setUp() throws Exception {
-    myProjectRule.getFixture().setTestDataPath(TEST_DATA_PATH);
+    myProjectRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/deeplink/launch").toString());
     TemplateManagerImpl.setTemplateTesting(myProjectRule.getTestRootDisposable());
   }
 
   @Test
   @RunsInEdt
   public void testMatchDeeplink() {
-    PsiFile file = myProjectRule.getFixture().configureByFile(ANDROID_MANIFEST);
+    PsiFile file = myProjectRule.getFixture().configureByFile("AndroidManifest.xml");
 
     XmlFile xmlFile = (XmlFile)file;
 

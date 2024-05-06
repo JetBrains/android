@@ -1,7 +1,6 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.navigation
 
-import com.android.tools.idea.gradle.refactoring.VersionCatalogGoToDeclarationHandler
 import com.intellij.lang.java.beans.PropertyKind
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.runReadAction

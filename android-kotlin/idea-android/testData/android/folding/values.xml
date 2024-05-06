@@ -5,7 +5,7 @@
     <string name="format_string">Hello %s!</string>
     <string name="empty_string" />
     <string name="compex_format_string" formatted="false">Third: %3$s Repeated: %3$s First: %1$s Second: %2$d</string>
-    <string name="invalid_format" formatted="false">Escaped: \%s First: %1$s Invalid: %20$s</string>
+    <string name="invalid_format" formatted="false">Escaped: \\%s %%s First: %1$s Invalid: %20$s</string>
 
     <string name="plural_one">Reference One</string>
     <string name="plural_few">Reference Few</string>
@@ -15,6 +15,11 @@
     <string name="string1">1111</string>
     <string name="string2">2222</string>
     <string name="string3">3333</string>
+
+    <string name="cycle">@string/cycle1</string>
+    <string name="cycle1">@string/cycle2</string>
+    <string name="cycle2">@string/cycle3</string>
+    <string name="cycle3">@string/cycle1</string>
 
     <integer name="some_int">8</integer>
     <integer name="max_action_buttons">2</integer>

@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_MODIFIED;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_QF_REMOVE_UNSUPPORTED_MODULES;
 import static com.intellij.notification.NotificationType.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.openapi.application.ApplicationManager;
@@ -54,9 +53,7 @@ public class SupportedModuleChecker {
    */
   public void checkForSupportedModules(@NotNull Project project) {
     Module[] modules = ModuleManager.getInstance(project).getModules();
-    if (modules.length == 0 || !GradleProjectInfo.getInstance(project).isBuildWithGradle()
-        || !IdeInfo.getInstance().isAndroidStudio()) {
-      // it is allowed to have Android module as a linked Gradle project in JPS project
+    if (modules.length == 0 || !Info.getInstance(project).isBuildWithGradle()) {
       return;
     }
     List<Module> unsupportedModules = new ArrayList<>();
@@ -111,7 +108,7 @@ public class SupportedModuleChecker {
         unsupportedModules.forEach(modifiableModule::disposeModule);
         modifiableModule.commit();
       });
-      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_PROJECT_MODIFIED), null);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, new GradleSyncInvoker.Request(TRIGGER_QF_REMOVE_UNSUPPORTED_MODULES), null);
     }
   }
 }

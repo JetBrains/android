@@ -15,12 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
 import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_HORIZONTAL;
@@ -30,6 +24,12 @@ import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
 import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN;
 import static com.android.SdkConstants.SHERPA_URI;
@@ -47,6 +47,7 @@ import static icons.StudioIcons.LayoutEditor.Toolbar.PACK_HORIZONTAL;
 import com.android.ide.common.rendering.api.AttrResourceValueImpl;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
@@ -60,6 +61,7 @@ import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.NestedViewActionMenu;
@@ -90,7 +92,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.awt.RelativePoint;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import icons.StudioIcons;
 import java.awt.Color;
@@ -107,6 +109,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -1091,7 +1094,7 @@ public class CommonActions {
         XmlTag tag = myComponent.getBackend().getTag();
         assert tag != null;
         ResourceResolver resolver = configurationManager.getConfiguration(tag.getContainingFile().getVirtualFile()).getResourceResolver();
-        ResourceValue unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
+        ResourceValueImpl unresolved = new AttrResourceValueImpl(ResourceNamespace.RES_AUTO, "dimens", null);
         unresolved.setValue(resourceRef);
         ResourceValue resolvedValue = resolver.resolveResValue(unresolved);
         String marginDp = getMarginInDp(resolvedValue);
@@ -1168,7 +1171,7 @@ public class CommonActions {
           @Override
           public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(JBColor.foreground());
-            g.setFont(g.getFont().deriveFont(Font.PLAIN, JBUIScale.scaleFontSize(DEFAULT_ICON_FONT_SIZE)));
+            g.setFont(g.getFont().deriveFont(Font.PLAIN, JBUI.scaleFontSize(DEFAULT_ICON_FONT_SIZE)));
             String m = myPreviousDisplay;
             FontMetrics metrics = g.getFontMetrics();
             int strWidth = metrics.stringWidth(m);
@@ -1184,12 +1187,12 @@ public class CommonActions {
 
           @Override
           public int getIconWidth() {
-            return JBUIScale.scale(DEFAULT_ICON_WIDTH);
+            return JBUI.scale(DEFAULT_ICON_WIDTH);
           }
 
           @Override
           public int getIconHeight() {
-            return JBUIScale.scale(DEFAULT_ICON_HEIGHT);
+            return JBUI.scale(DEFAULT_ICON_HEIGHT);
           }
         };
       }

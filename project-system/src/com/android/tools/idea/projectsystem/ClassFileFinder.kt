@@ -18,10 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
-import com.intellij.openapi.vfs.JarFileSystem
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
-import java.nio.file.Paths
+import java.io.File
 
 /**
  * A [ClassFileFinder] searches build output to find the class file corresponding to a
@@ -33,28 +30,54 @@ import java.nio.file.Paths
  */
 interface ClassFileFinder {
   /**
-   * @return the [VirtualFile] corresponding to the class file for the given
+   * @return the [ClassContent] corresponding to the class file for the given
    * fully-qualified class name, or null if the class file can't be found.
    */
-  fun findClassFile(fqcn: String): VirtualFile?
+  fun findClassFile(fqcn: String): ClassContent?
 }
 
-/**
- * Given a fully-qualified class name, searches the directory contents of the build system
- * [outputRoot] for the corresponding class file.
- *
- * @return the class file where the class referenced by [fqcn] is defined, or null if the
- *         [outputRoot] doesn't exist or doesn't contain such a class file.
- */
-fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): VirtualFile? {
-  if (!outputRoot.exists()) return null
+/** Content of a class. It can be loaded e.g. from a file or a jar or from memory. */
+sealed interface ClassContent {
+  val content: ByteArray
 
-  val pathSegments = fqcn.split(".").toTypedArray()
-  pathSegments[pathSegments.size - 1] += SdkConstants.DOT_CLASS
-  val outputBase = (JarFileSystem.getInstance().getJarRootForLocalFile(outputRoot) ?: outputRoot)
+  /** If [content] is still up-to-date. It can become out of date when e.g. file or jar changes. */
+  fun isUpToDate(): Boolean
 
-  val classFile = VfsUtil.findRelativeFile(outputBase, *pathSegments)
-                  ?: VfsUtil.findFile(Paths.get(outputBase.path, *pathSegments), true)
+  companion object {
+    /** Loads a .class file from a [file]. */
+    @JvmStatic
+    fun loadFromFile(file: File): ClassContent {
+      return FileClassContent(file)
+    }
 
-  return if (classFile != null && classFile.exists()) classFile else null
+    /** Creates a [ClassContent] based on the [jarFile] and [content] of a jar entry (.class file). */
+    @JvmStatic
+    fun fromJarEntryContent(jarFile: File, content: ByteArray): ClassContent {
+      return JarEntryClassContent(jarFile, content)
+    }
+  }
+}
+
+private class FileClassContent(private val file: File) : ClassContent {
+  override val content: ByteArray = file.readBytes()
+  private val timestamp: Long = file.lastModified()
+  private val size: Long = file.length()
+
+  override fun isUpToDate(): Boolean {
+    return timestamp == file.lastModified() && size == file.length()
+  }
+}
+
+private class JarEntryClassContent(private val jarFile: File, override val content: ByteArray) : ClassContent {
+
+  private val jarSize: Long = jarFile.length()
+  private val jarTimestamp: Long = jarFile.lastModified()
+
+  override fun isUpToDate(): Boolean {
+    return jarTimestamp == jarFile.lastModified() && jarSize == jarFile.length()
+  }
+}
+
+fun getPathFromFqcn(fqcn: String): String {
+  return fqcn.replace(".", "/") + SdkConstants.DOT_CLASS
 }

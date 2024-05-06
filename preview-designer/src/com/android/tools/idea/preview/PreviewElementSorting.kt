@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import org.jetbrains.kotlin.psi.psiUtil.startOffset

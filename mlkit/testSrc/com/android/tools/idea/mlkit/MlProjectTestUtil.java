@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
-import static com.android.projectmodel.VariantUtil.ARTIFACT_NAME_MAIN;
+import static com.android.tools.idea.gradle.model.IdeVariantUtilKt.ARTIFACT_NAME_MAIN;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.makeAutoIndexingOnCopy;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static java.util.Collections.emptyList;
@@ -23,6 +23,8 @@ import static java.util.Collections.emptyList;
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
+import com.android.tools.idea.testing.JavaLibraryDependency;
+import com.android.tools.tests.AdtTestKotlinArtifacts;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
@@ -51,6 +53,18 @@ public class MlProjectTestUtil {
           .withMinSdk(it -> minSdk)
           .withMlModelBindingEnabled(it -> true)
           .withNamespace("p1.p2")
+          .withJavaLibraryDependencyList(
+            // TODO(b/300170256): Remove this once 2023.3 merges and we no longer need kotlin-stdlib for every Kotlin test.
+            (it, variant) -> {
+              // NB: yes, this is fragile, depending on test name pattern that ends with "kotlin" suffix.
+              //  But, it's still helpful to avoid unnecessary lib loading for all other tests.
+              if (it.getProjectName().endsWith("kotlin")) {
+                return ImmutableList.of(JavaLibraryDependency.Companion.forJar(AdtTestKotlinArtifacts.INSTANCE.getKotlinStdlib()));
+              } else {
+                return ImmutableList.of();
+              }
+            }
+          )
           .withMainSourceProvider(it -> new IdeSourceProviderImpl(
             ARTIFACT_NAME_MAIN,
             it.getModuleBasePath(),

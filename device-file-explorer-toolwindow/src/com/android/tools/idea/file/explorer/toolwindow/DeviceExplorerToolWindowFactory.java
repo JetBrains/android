@@ -18,14 +18,12 @@ package com.android.tools.idea.file.explorer.toolwindow;
 import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemRenderer;
 import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemService;
 import com.android.tools.idea.file.explorer.toolwindow.ui.DeviceExplorerViewImpl;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
-import com.intellij.util.SystemProperties;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,13 +31,11 @@ import org.jetbrains.annotations.NotNull;
  * [ToolWindowFactory] for the Device File Explorer ToolWindow
  */
 public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
-  private static final String DEVICE_EXPLORER_ENABLED = "android.device.explorer.enabled";
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
 
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return SystemProperties.getBooleanProperty(DEVICE_EXPLORER_ENABLED, true) &&
-           !StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get();
+    return false;
   }
 
   @Override

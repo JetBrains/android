@@ -56,13 +56,18 @@ class BindingScopeEnlarger : ResolveScopeEnlarger() {
 
     return CachedValuesManager.getManager(project).getCachedValue(module) {
       val localScope = facet.getLocalBindingScope()
-      val scopeIncludingDeps = module.getModuleSystem()
-        .getResourceModuleDependencies()
-        .mapNotNull { module -> module.androidFacet }
-        .map(AndroidFacet::getLocalBindingScope)
-        .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
+      val scopeIncludingDeps =
+        module
+          .getModuleSystem()
+          .getResourceModuleDependencies()
+          .mapNotNull { module -> module.androidFacet }
+          .map(AndroidFacet::getLocalBindingScope)
+          .fold(localScope) { scopeAccum, depScope -> scopeAccum.union(depScope) }
 
-      CachedValueProvider.Result.create(scopeIncludingDeps, PsiModificationTracker.MODIFICATION_COUNT)
+      CachedValueProvider.Result.create(
+        scopeIncludingDeps,
+        PsiModificationTracker.MODIFICATION_COUNT
+      )
     }
   }
 }
@@ -100,11 +105,11 @@ private fun AndroidFacet.getLocalBindingScope(): GlobalSearchScope {
  * Therefore, we provide one here that simply delegates to it.
  */
 class BindingKotlinScopeEnlarger : KotlinResolveScopeEnlarger {
-  private val delegateEnlarger = ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(BindingScopeEnlarger::class.java)
+  private val delegateEnlarger =
+    ResolveScopeEnlarger.EP_NAME.findExtensionOrFail(BindingScopeEnlarger::class.java)
 
   override fun getAdditionalResolveScope(module: Module, isTestScope: Boolean): SearchScope? {
     val facet = module.androidFacet?.takeIf { it.isRelevantForScopeEnlarging() } ?: return null
     return delegateEnlarger.getAdditionalResolveScope(facet)
   }
 }
-

@@ -1259,7 +1259,6 @@ abstract class AbstractComposeLowering(
                 origin = IrDeclarationOrigin.IR_BUILTINS_STUB
             }.apply {
                 parent = IrExternalPackageFragmentImpl.createEmptyExternalPackageFragment(
-                    @OptIn(ObsoleteDescriptorBasedAPI::class)
                     context.moduleDescriptor,
                     FqName("kotlin.jvm.internal")
                 )

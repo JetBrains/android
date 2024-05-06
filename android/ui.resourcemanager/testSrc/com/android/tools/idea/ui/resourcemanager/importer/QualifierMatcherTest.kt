@@ -47,7 +47,12 @@ class QualifierMatcherTest {
                 LocaleQualifier("en-rGB", "en", "GB", null),
                 ScreenOrientationQualifier(ScreenOrientation.LANDSCAPE))
     checkResult(qualifierLexer.parsePath("/test/Path-not-qualifiers/file-not-qualifiers.png"), "file_not_qualifiers")
+    // svg is not a valid locale so it should not be returned.
+    checkResult(qualifierLexer.parsePath("/test/Path/svg/file.svg"), "file")
+    checkResult(qualifierLexer.parsePath("/test/Path/en/file.svg"), "file",
+                LocaleQualifier("en", "en", null, null))
   }
+
 
   @Test
   fun parsePathWithFileNameMappers() {

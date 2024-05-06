@@ -17,8 +17,15 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
 import java.awt.BasicStroke;
+import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
 import java.awt.Stroke;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Utility drawing class

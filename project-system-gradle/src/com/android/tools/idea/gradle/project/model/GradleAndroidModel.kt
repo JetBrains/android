@@ -115,8 +115,6 @@ class GradleAndroidModel(
            ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
   }
 
-  val selectedMainCompileDependencies: IdeDependencies get() = this.mainArtifact.compileClasspath
-  val selectedMainRuntimeDependencies: IdeDependencies get() = this.mainArtifact.runtimeClasspath
   val selectedAndroidTestCompileDependencies: IdeDependencies? get() = selectedVariant.androidTestArtifact?.compileClasspath
 
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact

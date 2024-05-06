@@ -33,7 +33,7 @@ import java.io.File
 class GradleModelConverterUtilTest {
 
     @get:Rule
-    val expect = Expect.createAndEnableStackTrace()
+    val expect = Expect.createAndEnableStackTrace();
 
   @Test
   fun testConvertAndroidLibrary() {

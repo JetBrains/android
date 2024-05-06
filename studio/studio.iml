@@ -6,9 +6,8 @@
       <excludeFolder url="file://$MODULE_DIR$/monobuild/out" />
     </content>
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="declarative-gradle.focus-plugin" />
     <orderEntry type="module" module-name="intellij.android.plugin" />
     <orderEntry type="module" module-name="android-apk" />
     <orderEntry type="module" module-name="intellij.android.compose-ide-plugin" />
@@ -19,56 +18,13 @@
     <orderEntry type="module" module-name="firebase" />
     <orderEntry type="module" module-name="directaccess" />
     <orderEntry type="module" module-name="firebase-testing" />
-    <orderEntry type="module" module-name="google-cloud-tools-core-as" />
     <orderEntry type="module" module-name="google-login-as" />
     <orderEntry type="module" module-name="intellij.android.smali" />
     <orderEntry type="module" module-name="test-recorder" />
     <orderEntry type="module" module-name="url-assistant" />
     <orderEntry type="module" module-name="targetsdkversion-upgrade-assistant" />
-    <orderEntry type="library" name="studio-plugin-configurationScript" level="project" />
-    <orderEntry type="library" name="studio-plugin-copyright" level="project" />
-    <orderEntry type="library" name="studio-plugin-java-coverage" level="project" />
-    <orderEntry type="library" name="studio-plugin-editorconfig" level="project" />
-    <orderEntry type="library" name="studio-plugin-gradle-java" level="project" />
-    <orderEntry type="library" name="studio-plugin-Groovy" level="project" />
-    <orderEntry type="library" name="studio-plugin-toml" level="project" />
-    <orderEntry type="library" name="studio-plugin-platform-langInjection" level="project" />
-    <orderEntry type="library" name="studio-plugin-java-decompiler" level="project" />
-    <orderEntry type="library" name="studio-plugin-java-i18n" level="project" />
-    <orderEntry type="library" name="studio-plugin-java-ide-customization" level="project" />
-    <orderEntry type="library" name="studio-plugin-junit" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
-    <orderEntry type="library" name="studio-plugin-maven-model" level="project" />
-    <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
-    <orderEntry type="library" name="studio-plugin-properties" level="project" />
-    <orderEntry type="library" name="studio-plugin-repository-search" level="project" />
-    <orderEntry type="library" name="studio-plugin-sh" level="project" />
-    <orderEntry type="library" name="studio-plugin-tasks" level="project" />
-    <orderEntry type="library" name="studio-plugin-terminal" level="project" />
-    <orderEntry type="library" name="studio-plugin-testng" level="project" />
-    <orderEntry type="library" name="studio-plugin-textmate" level="project" />
-    <orderEntry type="library" name="studio-plugin-yaml" level="project" />
-    <orderEntry type="library" name="studio-plugin-c-clangd" level="project" />
-    <orderEntry type="library" name="studio-plugin-c-plugin" level="project" />
-    <orderEntry type="library" name="studio-plugin-cidr-base-plugin" level="project" />
-    <orderEntry type="library" name="studio-plugin-cidr-debugger-plugin" level="project" />
-    <orderEntry type="library" name="studio-plugin-completionMlRanking" level="project" />
-    <orderEntry type="library" name="studio-plugin-c-clangdBridge" level="project" />
-    <orderEntry type="library" name="studio-plugin-dev" level="project" />
-    <orderEntry type="library" name="studio-plugin-devkit" level="project" />
-    <orderEntry type="library" name="studio-plugin-java-debugger-streams" level="project" />
-    <orderEntry type="library" name="studio-plugin-keymap-eclipse" level="project" />
-    <orderEntry type="library" name="studio-plugin-keymap-netbeans" level="project" />
-    <orderEntry type="library" name="studio-plugin-keymap-visualStudio" level="project" />
-    <orderEntry type="library" name="studio-plugin-markdown" level="project" />
-    <orderEntry type="library" name="studio-plugin-maven-server" level="project" />
-    <orderEntry type="library" name="studio-plugin-settingsSync" level="project" />
-    <orderEntry type="library" name="studio-plugin-vcs-git" level="project" />
-    <orderEntry type="library" name="studio-plugin-vcs-github" level="project" />
-    <orderEntry type="library" name="studio-plugin-vcs-hg" level="project" />
-    <orderEntry type="library" name="studio-plugin-vcs-svn" level="project" />
-    <orderEntry type="library" name="studio-plugin-webp" level="project" />
     <orderEntry type="module" module-name="intellij.android.gmd-code-completion" />
     <orderEntry type="module" module-name="ml.sml-android" />
+    <orderEntry type="module" module-name="studio-sdk-all-plugins" />
   </component>
 </module>

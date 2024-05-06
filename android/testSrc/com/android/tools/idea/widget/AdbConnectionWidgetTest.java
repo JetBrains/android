@@ -78,7 +78,7 @@ public class AdbConnectionWidgetTest {
     Disposer.dispose(adapter);
   }
 
-  private static final class StubStudioAdapter implements AdbConnectionWidget.StudioAdapter {
+  private static class StubStudioAdapter implements AdbConnectionWidget.StudioAdapter {
     public boolean myIsConnected;
     public boolean myIsUserManaged;
     public final StatusBar myStatusBar = Mockito.mock(StatusBar.class);

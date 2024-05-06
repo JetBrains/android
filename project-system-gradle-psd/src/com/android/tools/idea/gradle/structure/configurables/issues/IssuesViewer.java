@@ -23,12 +23,12 @@ import com.android.tools.idea.gradle.structure.configurables.ui.IssuesViewerPane
 import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +67,7 @@ public class IssuesViewer {
       return;
     }
 
-    Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = new HashMap<>();
+    Map<PsIssue.Severity, List<PsIssue>> issuesBySeverity = Maps.newHashMap();
     for (PsIssue issue : newIssues) {
       PsIssue.Severity severity = issue.getSeverity();
       List<PsIssue> currentIssues = issuesBySeverity.computeIfAbsent(severity, k -> new ArrayList<>());

@@ -34,7 +34,6 @@ import org.junit.runners.Parameterized
 /**
  * Tests that ensure that layouts can be found inside custom resource directories, which can be
  * defined like so:
- *
  * ```
  *   android { main { sourceSets { res.srcDirs += ['...'] } } }
  * ```
@@ -46,13 +45,13 @@ class DataBindingCustomResDirTest(private val projectPath: String) {
     @Suppress("unused") // Used by JUnit via reflection
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
-    val projectPaths = listOf(PROJECT_WITH_DATA_BINDING_ANDROID_X, PROJECT_WITH_DATA_BINDING_SUPPORT)
+    val projectPaths =
+      listOf(PROJECT_WITH_DATA_BINDING_ANDROID_X, PROJECT_WITH_DATA_BINDING_SUPPORT)
   }
 
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val chainedRule = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val chainedRule = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Test
   fun canFindBindingsGeneratedFromLayoutsInCustomResourceDirectories() {
@@ -68,9 +67,12 @@ class DataBindingCustomResDirTest(private val projectPath: String) {
     // The following activity references a Binding class generated from
     // `res-alt/layout/activity_res_alt.xml`, which only works if we respected the module's
     // `build.gradle` settings, which defines `res-alt` as a custom resource directory.
-    val file = projectRule
-      .findGradleModule(":app")!!
-      .fileUnderGradleRoot("src/main/java/com/android/example/appwithdatabinding/ResAltActivity.java")!!
+    val file =
+      projectRule
+        .findGradleModule(":app")!!
+        .fileUnderGradleRoot(
+          "src/main/java/com/android/example/appwithdatabinding/ResAltActivity.java"
+        )!!
     fixture.configureFromExistingVirtualFile(file)
     fixture.checkHighlighting(false, false, false)
   }

@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.adaptiveicon;
 
-import static com.android.tools.idea.flags.StudioFlags.NELE_DYNAMIC_THEMING_ACTION;
-
+import com.android.tools.idea.actions.SystemUiModeAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.ShapeMenuAction;
-import com.android.tools.idea.configurations.SystemUiModeAction;
-import com.android.tools.idea.configurations.ThemeMenuAction;
+import com.android.tools.idea.actions.ShapeMenuAction;
+import com.android.tools.idea.actions.ThemeMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.jetbrains.annotations.NotNull;
@@ -41,11 +39,9 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
       group.add(new DensityMenuAction(model));
     }
     // TODO(b/136258816): Update to support multi-model
-    group.add(new ShapeMenuAction(mySurface::getConfiguration));
-    group.add(new ThemeMenuAction(mySurface::getConfiguration));
-    if (NELE_DYNAMIC_THEMING_ACTION.get()) {
-      group.add(new SystemUiModeAction(mySurface::getConfiguration));
-    }
+    group.add(new ShapeMenuAction());
+    group.add(new ThemeMenuAction());
+    group.add(new SystemUiModeAction());
     return group;
   }
 }

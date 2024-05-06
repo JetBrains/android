@@ -1,0 +1,4 @@
+[android.productFlavors.dependent]
+applicationIdSuffix = ".dependent"
+[android.productFlavors.demo]
+initWith = "dependent"

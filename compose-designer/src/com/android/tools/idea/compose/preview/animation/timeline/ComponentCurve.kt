@@ -128,7 +128,7 @@ class ComponentCurve(
     moveComponents(offsetPx)
   }
 
-  var curveOffset = 0
+  private var curveOffset = 0
 
   override fun moveComponents(actualDelta: Int) {
     startDiamond = Diamond(minX + offsetPx, curveBaseY, colorIndex)

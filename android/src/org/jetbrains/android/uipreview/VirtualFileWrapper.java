@@ -5,7 +5,7 @@ import com.android.io.StreamException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -56,7 +56,7 @@ public class VirtualFileWrapper implements IAbstractFile {
 
   @Override
   public String getOsLocation() {
-    return FileUtilRt.toSystemDependentName(myFile.getPath());
+    return FileUtil.toSystemDependentName(myFile.getPath());
   }
 
   @Override

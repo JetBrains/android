@@ -17,17 +17,13 @@ package com.android.tools.idea.apk.viewer.arsc;
 
 import com.android.tools.apk.analyzer.BinaryXmlParser;
 import com.google.common.collect.ImmutableList;
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier;
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceValue;
-import com.google.devrel.gmscore.tools.apk.arsc.PackageChunk;
-import com.google.devrel.gmscore.tools.apk.arsc.StringPoolChunk;
-import com.google.devrel.gmscore.tools.apk.arsc.TypeChunk;
-import com.google.devrel.gmscore.tools.apk.arsc.TypeSpecChunk;
+import com.google.devrel.gmscore.tools.apk.arsc.*;
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.table.AbstractTableModel;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.swing.table.AbstractTableModel;
-import org.jetbrains.annotations.NotNull;
 
 public class ResourceTypeTableModel extends AbstractTableModel {
   private final StringPoolChunk myStringPool;

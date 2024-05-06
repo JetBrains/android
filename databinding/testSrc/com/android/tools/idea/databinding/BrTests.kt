@@ -54,8 +54,7 @@ class BrTests(private val mode: DataBindingMode) {
 
   // We want to run tests on the EDT thread, but we also need to make sure the project rule is not
   // initialized on the EDT.
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -63,9 +62,8 @@ class BrTests(private val mode: DataBindingMode) {
    * We know that the underlying fixture is a [JavaCodeInsightTestFixture] because our
    * [AndroidProjectRule] is initialized to use the disk.
    *
-   * In some cases, using the specific subclass provides us with additional methods we can
-   * use to inspect the state of our parsed files. In other cases, it's just fewer characters
-   * to type.
+   * In some cases, using the specific subclass provides us with additional methods we can use to
+   * inspect the state of our parsed files. In other cases, it's just fewer characters to type.
    */
   private val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture
@@ -78,30 +76,39 @@ class BrTests(private val mode: DataBindingMode) {
     val fixture = fixture
 
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    fixture.addFileToProject("AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test
   fun brClassReferenceAndImportIsFoundWithoutWarnings_Java() {
-    fixture.addFileToProject("res/layout/variables_layout.xml", """
+    fixture.addFileToProject(
+      "res/layout/variables_layout.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name="aStr" type="String" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    val activityWithBr = fixture.addClass(
-      // language=java
-      """
+    val activityWithBr =
+      fixture.addClass(
+        // language=java
+        """
       package test.db;
 
       import android.app.Activity;
@@ -114,7 +121,9 @@ class BrTests(private val mode: DataBindingMode) {
           int brValue = BR.aStr;
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(activityWithBr.containingFile.virtualFile)
     fixture.checkHighlighting() // If BR is found, there will be no "Cannot resolve symbol" warning
@@ -122,19 +131,24 @@ class BrTests(private val mode: DataBindingMode) {
 
   @Test
   fun brClassReferenceAndImportIsFoundWithoutWarnings_Kotlin() {
-    fixture.addFileToProject("res/layout/variables_layout.xml", """
+    fixture.addFileToProject(
+      "res/layout/variables_layout.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name="aStr" type="String" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    val activityWithBr = fixture.addFileToProject(
-      "src/test/db/MainActivity.kt",
-      // language=kotlin
-      """
+    val activityWithBr =
+      fixture.addFileToProject(
+        "src/test/db/MainActivity.kt",
+        // language=kotlin
+        """
       package test.db
 
       import android.app.Activity
@@ -146,16 +160,19 @@ class BrTests(private val mode: DataBindingMode) {
           BR.aStr
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(activityWithBr.containingFile.virtualFile)
     fixture.checkHighlighting() // If BR is found, there will be no "Cannot resolve symbol" warning
   }
 
-
   @Test
   fun codeCompletionOnBrClassesWorks() {
-    fixture.addFileToProject("res/layout/variables_layout.xml", """
+    fixture.addFileToProject(
+      "res/layout/variables_layout.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -164,9 +181,13 @@ class BrTests(private val mode: DataBindingMode) {
           <variable name="anObject" type="Object" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    val activityWithBr = fixture.addClass("""
+    val activityWithBr =
+      fixture.addClass(
+        """
       package test.db;
 
       import test.db.BR;
@@ -179,7 +200,9 @@ class BrTests(private val mode: DataBindingMode) {
           BR.${caret}
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(activityWithBr.containingFile.virtualFile)
     fixture.completeBasic()
@@ -189,7 +212,9 @@ class BrTests(private val mode: DataBindingMode) {
 
   @Test
   fun fieldsCanBeFoundThroughShortNamesCache() {
-    fixture.addFileToProject("res/layout/variables_layout.xml", """
+    fixture.addFileToProject(
+      "res/layout/variables_layout.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -198,7 +223,9 @@ class BrTests(private val mode: DataBindingMode) {
           <variable name="anObject" type="Object" />
         </data>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
     // BrShortNamesCache class.
@@ -206,12 +233,17 @@ class BrTests(private val mode: DataBindingMode) {
 
     val projectScope = projectRule.project.projectScope()
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE
-    val cache = PsiShortNamesCache.getInstance(projectRule.project) // Powered behind the scenes by BrShortNamesCache
+    val cache =
+      PsiShortNamesCache.getInstance(
+        projectRule.project
+      ) // Powered behind the scenes by BrShortNamesCache
 
     assertThat(cache.allFieldNames.asIterable()).containsAllOf("_all", "aStr", "anInt", "anObject")
-    assertThat(cache.getFieldsByName("anInt", projectScope).map { it.name }).containsExactly("anInt")
+    assertThat(cache.getFieldsByName("anInt", projectScope).map { it.name })
+      .containsExactly("anInt")
     assertThat(cache.getFieldsByName("anInt", invalidScope)).isEmpty()
-    assertThat(cache.getFieldsByNameIfNotMoreThan("aStr", projectScope, 10).map { it.name }).containsExactly("aStr")
+    assertThat(cache.getFieldsByNameIfNotMoreThan("aStr", projectScope, 10).map { it.name })
+      .containsExactly("aStr")
     assertThat(cache.getFieldsByNameIfNotMoreThan("aStr", projectScope, 0).asIterable()).isEmpty()
     assertThat(cache.allClassNames.asIterable()).contains(DataBindingUtil.BR)
   }

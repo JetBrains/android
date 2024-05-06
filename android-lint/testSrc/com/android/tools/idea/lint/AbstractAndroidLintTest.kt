@@ -27,6 +27,7 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
@@ -35,6 +36,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.VfsTestUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.annotations.NonNls
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 
 abstract class AbstractAndroidLintTest : AndroidTestCase() {
   init {
@@ -113,7 +115,16 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
       action.invoke(myFixture.project, myFixture.editor, myFixture.file)
     }
 
-    myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
+    var filePath = BASE_PATH + getTestName(true) + "_after." + extension
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      val k2FilePath = BASE_PATH + getTestName(true) + "_after.k2." + extension
+      val path = myFixture.testDataPath + k2FilePath
+      if (FileUtil.exists(path)) {
+        filePath = k2FilePath
+      }
+    }
+
+    myFixture.checkResultByFile(filePath)
   }
 
   private fun doTestHighlightingAndGetQuickfix(

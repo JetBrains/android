@@ -30,24 +30,32 @@ private val builtinTags = listOf(VIEW_INCLUDE, VIEW_MERGE, VIEW_FRAGMENT, VIEW_T
  * Looks for unknown tags, such as unresolved custom layouts
  *
  * TODO: Check other resource types that allows this syntax (check the inflaters)
- * TODO: Enforce built-ins (non custom views) as well. E.g. if you have <NoSuchView/> it should light up red.
+ * TODO: Enforce built-ins (non custom views) as well. E.g. if you have <NoSuchView/> it should
+ *   light up red.
  */
 class AndroidUnresolvableTagInspection : LocalInspectionTool() {
 
   @Nls
-  override fun getGroupDisplayName(): String = AndroidBundle.message("android.inspections.group.name")
+  override fun getGroupDisplayName(): String =
+    AndroidBundle.message("android.inspections.group.name")
 
   @Nls
-  override fun getDisplayName(): String = AndroidBundle.message("android.inspections.unresolvable.tag")
+  override fun getDisplayName(): String =
+    AndroidBundle.message("android.inspections.unresolvable.tag")
 
   override fun getShortName(): String = "AndroidUnresolvableTag"
 
-  override fun checkFile(file: PsiFile, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor>? {
+  override fun checkFile(
+    file: PsiFile,
+    manager: InspectionManager,
+    isOnTheFly: Boolean
+  ): Array<ProblemDescriptor>? {
     if (file !is XmlFile) {
       return ProblemDescriptor.EMPTY_ARRAY
     }
     val facet = AndroidFacet.getInstance(file) ?: return ProblemDescriptor.EMPTY_ARRAY
-    if (!facet.module.getModuleSystem().canRegisterDependency().isSupported()) return ProblemDescriptor.EMPTY_ARRAY
+    if (!facet.module.getModuleSystem().canRegisterDependency().isSupported())
+      return ProblemDescriptor.EMPTY_ARRAY
 
     if (isRelevantFile(facet, file)) {
       val visitor = MyVisitor(manager, isOnTheFly)
@@ -58,15 +66,17 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
   }
 
   private fun isRelevantFile(facet: AndroidFacet, file: XmlFile): Boolean {
-    val resourceType = ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file)
+    val resourceType =
+      ModuleResourceManagers.getInstance(facet).localResourceManager.getFileResourceFolderType(file)
     return if (resourceType != null) {
       resourceType == ResourceFolderType.LAYOUT || resourceType == ResourceFolderType.MENU
-    }
-    else false
+    } else false
   }
 
-  private class MyVisitor(private val myInspectionManager: InspectionManager,
-                          private val myOnTheFly: Boolean) : XmlRecursiveElementVisitor() {
+  private class MyVisitor(
+    private val myInspectionManager: InspectionManager,
+    private val myOnTheFly: Boolean
+  ) : XmlRecursiveElementVisitor() {
     val myResult: MutableList<ProblemDescriptor> = ArrayList()
     val mavenClassRegistryManager = MavenClassRegistryManager.getInstance()
 
@@ -77,13 +87,19 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
         return
       }
 
-      // Make sure the class exists; check only the last reference; that's the class name tag (the rest are for the
+      // Make sure the class exists; check only the last reference; that's the class name tag (the
+      // rest are for the
       // package segments).
       val reference = tag.references.lastOrNull() ?: return
 
       if (reference.resolve() == null && !builtinTags.contains(tag.name)) {
         val className: String = tag.name
-        val fixes = mavenClassRegistryManager.collectFixesFromMavenClassRegistry(className, tag.project, tag.containingFile?.fileType)
+        val fixes =
+          mavenClassRegistryManager.collectFixesFromMavenClassRegistry(
+            className,
+            tag.project,
+            tag.containingFile?.fileType
+          )
         getTagNameRange(tag)?.let {
           myResult.add(
             myInspectionManager.createProblemDescriptor(

@@ -33,13 +33,11 @@ interface AndroidAttributeValue<T> : GenericAttributeValue<T>
  *
  * @see AndroidResourceDomFileDescription.initializeFileDescription
  */
-@Namespace(SdkConstants.APP_PREFIX)
-interface ResAutoAttributeValue<T> : GenericAttributeValue<T>
+@Namespace(SdkConstants.APP_PREFIX) interface ResAutoAttributeValue<T> : GenericAttributeValue<T>
 
 /**
  * Attribute in the tools XML namespace.
  *
  * @see NavigationDomFileDescription.initializeFileDescription
  */
-@Namespace(SdkConstants.TOOLS_PREFIX)
-interface ToolsAttributeValue<T> : GenericAttributeValue<T>
+@Namespace(SdkConstants.TOOLS_PREFIX) interface ToolsAttributeValue<T> : GenericAttributeValue<T>

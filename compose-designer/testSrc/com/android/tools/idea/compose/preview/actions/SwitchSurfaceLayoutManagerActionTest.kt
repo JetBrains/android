@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
+import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
-import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.testFramework.TestActionEvent
@@ -35,20 +33,10 @@ class SwitchSurfaceLayoutManagerActionTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testCanChangeMultiChoiceMode() {
-
-    val switcher =
-      object : LayoutManagerSwitcher {
-        override fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager): Boolean = true
-
-        override fun setLayoutManager(
-          layoutManager: SurfaceLayoutManager,
-          sceneViewAlignment: DesignSurface.SceneViewAlignment
-        ) = Unit
-      }
     val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
 
     var enabled = true
-    val nonMultiChoiceAction = SwitchSurfaceLayoutManagerAction(switcher, option) { enabled }
+    val nonMultiChoiceAction = SwitchSurfaceLayoutManagerAction(option, { enabled }) { _, _ -> }
     val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.
@@ -60,7 +48,7 @@ class SwitchSurfaceLayoutManagerActionTest {
 
     enabled = true
     val multiChoiceAction =
-      SwitchSurfaceLayoutManagerAction(switcher, option) { enabled }
+      SwitchSurfaceLayoutManagerAction(option, { enabled }) { _, _ -> }
         .apply { templatePresentation.isMultiChoice = true }
     // It should always be multi-choice no matter it is enabled or not.
     multiChoiceAction.update(TestActionEvent.createTestToolbarEvent(presentation))

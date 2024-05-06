@@ -42,10 +42,13 @@ internal class ThisObjectNode(
   }
 
   private fun createValueNode(): JavaValue {
-    val nodeManager = context.debugProcess.xdebugProcess?.nodeManager ?: throw IllegalStateException("Missing node manager")
-    val descriptor = object : ThisDescriptorImpl(context.project) {
-      override fun getName() = ComposeBundle.message("recomposition.state.value")
-    }
+    val nodeManager =
+      context.debugProcess.xdebugProcess?.nodeManager
+        ?: throw IllegalStateException("Missing node manager")
+    val descriptor =
+      object : ThisDescriptorImpl(context.project) {
+        override fun getName() = ComposeBundle.message("recomposition.state.value")
+      }
     return JavaValue.create(null, descriptor, context, nodeManager, false)
   }
 }

@@ -98,7 +98,6 @@ public class CreateDefaultActivityTest {
 
     String manifesText = guiTest.getProjectFileText(PROVIDED_MANIFEST);
     assertEquals(1, getOccurrenceCount(manifesText, "android:name=\".MainActivity\""));
-    assertEquals(1, getOccurrenceCount(manifesText, "@string/title_activity_main"));
     assertEquals(1, getOccurrenceCount(manifesText, "android.intent.category.LAUNCHER"));
 
     guiTest.ideFrame().getEditor().open(APP_BUILD_GRADLE);

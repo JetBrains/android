@@ -90,15 +90,15 @@ public class ConstraintLayoutTest {
 
     for (Map.Entry<String, String> entry : widgets.entries()) {
       design.dragComponentToSurface(entry.getKey(), entry.getValue());
-      assertThat(design.getIssuePanel().hasRenderError()).isFalse();
+      assertThat(design.getSurface().hasRenderErrors()).isFalse();
     }
 
     // Testing these separately because the generated tag does not correspond to the
     // displayed name to the code below would fail
     design.dragComponentToSurface("Widgets", "Vertical Divider");
-    assertThat(design.getIssuePanel().hasRenderError()).isFalse();
+    assertThat(design.getSurface().hasRenderErrors()).isFalse();
     design.dragComponentToSurface("Widgets", "Horizontal Divider");
-    assertThat(design.getIssuePanel().hasRenderError()).isFalse();
+    assertThat(design.getSurface().hasRenderErrors()).isFalse();
 
     String layoutXml = ideFrameFixture
       .getEditor()

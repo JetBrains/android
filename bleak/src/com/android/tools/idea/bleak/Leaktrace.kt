@@ -47,7 +47,7 @@ class Leaktrace(val elements: List<LeaktraceElement>) {
 class LeaktraceElement(val type: String, val referenceLabel: String, obj: Any?) {
   val className = if (obj is Class<*>) obj.name else null
   val description = try {
-    obj?.toString()?.take(100)
+    obj?.let { it.toString().take(100) }
   } catch (t: Throwable) {
     "[EXCEPTION in toString]"
   }

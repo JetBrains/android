@@ -32,7 +32,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.flags.StudioFlags.INJECT_DEVICE_SERIAL_ENABLED
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
@@ -50,6 +50,7 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.projectsystem.gradle.getGradleContext
+import com.android.tools.idea.projectsystem.gradle.getGradlePluginVersion
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.run.AndroidDeviceSpec
 import com.android.tools.idea.run.DeviceFutures
@@ -301,7 +302,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       // ModuleBasedConfiguration includes Android and JUnit run configurations, including "JUnit: Rerun Failed Tests",
       // which is AbstractRerunFailedTestsAction.MyRunProfile.
       is ModuleRunProfile -> configuration.modules
-      else -> GradleProjectInfo.getInstance(configuration.project).getModulesToBuildFromSelection(context)
+      else -> Info.getInstance(configuration.project).getModulesToBuildFromSelection(context)
     }
   }
 
@@ -349,7 +350,8 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
         // For the bundle tool, we create a temporary json file with the device spec and
         // pass the file path to the gradle task.
         val collectListOfLanguages = shouldCollectListOfLanguages(modules, configuration, deviceSpec.minVersion)
-        val deviceSpecFile = deviceSpec.writeToJsonTempFile(collectListOfLanguages)
+        val moduleAgpVersions = modules.mapNotNull { it.getGradlePluginVersion() }
+        val deviceSpecFile = deviceSpec.writeToJsonTempFile(collectListOfLanguages, moduleAgpVersions)
         properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.absolutePath))
         if (configuration.deployAsInstant) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true))
@@ -383,7 +385,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
           properties.add(injectedProperty)
         }
         if (configuration.supportsPrivacySandbox) {
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, deviceSpec.supportsPrivacySandbox))
+          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_SUPPORTS_PRIVACY_SANDBOX, deviceSpec.supportsSdkRuntime))
         }
       }
       return properties

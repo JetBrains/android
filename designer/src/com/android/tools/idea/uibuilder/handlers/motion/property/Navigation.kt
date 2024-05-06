@@ -97,8 +97,7 @@ object Navigation {
       val constraints = sourceSet.getChildTags(MotionSceneAttrs.Tags.CONSTRAINT) ?: return null
       val constraint =
         constraints.firstOrNull { attributes.id == Utils.stripID(it.getAttributeValue(ATTR_ID)) }
-          as? MotionSceneTag
-          ?: return null
+          as? MotionSceneTag ?: return null
       if (defined.isCustomAttribute) {
         return findValueFromCustomAttribute(property, selection, constraint)
       } else {

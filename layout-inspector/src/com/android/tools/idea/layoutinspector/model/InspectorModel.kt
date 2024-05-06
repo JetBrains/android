@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.project.Project
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors.newSingleThreadExecutor
@@ -47,31 +48,56 @@ enum class SelectionOrigin {
   COMPONENT_TREE
 }
 
-fun interface InspectorModelModificationListener {
-  fun onModification(
-    oldWindow: AndroidWindow?,
-    newWindow: AndroidWindow?,
-    isStructuralChange: Boolean
-  )
-}
-
 class InspectorModel(
   val project: Project,
   val scheduler: ScheduledExecutorService? = null,
   processesModel: ProcessesModel? = null
 ) : ViewNodeAndResourceLookup {
+
+  fun interface SelectionListener {
+    fun onSelection(oldNode: ViewNode?, newNode: ViewNode?, origin: SelectionOrigin)
+  }
+
+  fun interface ConnectionListener {
+    fun onConnectionChanged(newClient: InspectorClient)
+  }
+
+  fun interface ModificationListener {
+    fun onModification(
+      oldWindow: AndroidWindow?,
+      newWindow: AndroidWindow?,
+      isStructuralChange: Boolean
+    )
+  }
+
+  fun interface HoverListener {
+    fun onHover(oldNode: ViewNode?, newNode: ViewNode?)
+  }
+
+  fun interface AttachStageListener {
+    fun update(state: DynamicLayoutInspectorErrorInfo.AttachErrorState)
+  }
+
   init {
     processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) { clear() }
   }
 
+  @VisibleForTesting
+  val selectionListeners = ListenerCollection.createWithDirectExecutor<SelectionListener>()
+  @VisibleForTesting
+  val modificationListeners = ListenerCollection.createWithDirectExecutor<ModificationListener>()
+  @VisibleForTesting
+  val connectionListeners = ListenerCollection.createWithDirectExecutor<ConnectionListener>()
+  @VisibleForTesting
+  val hoverListeners = ListenerCollection.createWithDirectExecutor<HoverListener>()
+  @VisibleForTesting
+  val attachStageListeners = ListenerCollection.createWithDirectExecutor<AttachStageListener>()
+
+  private var lastInspectorClient: InspectorClient? = null
+  private var lastAttachState: DynamicLayoutInspectorErrorInfo.AttachErrorState? = null
+
   override val resourceLookup = ResourceLookup(project)
-  val selectionListeners = mutableListOf<(ViewNode?, ViewNode?, SelectionOrigin) -> Unit>()
 
-  val modificationListeners =
-    ListenerCollection.createWithDirectExecutor<InspectorModelModificationListener>()
-
-  val connectionListeners =
-    ListenerCollection.createWithDirectExecutor<(InspectorClient?) -> Unit>()
   var lastGeneration = 0
   var updating = false
 
@@ -83,22 +109,21 @@ class InspectorModel(
 
   private val idLookup = ConcurrentHashMap<Long, ViewNode>()
 
-  override var selection: ViewNode? = null
-    private set
+  private data class Selection(val selection: ViewNode?, val origin: SelectionOrigin)
 
-  val hoverListeners = mutableListOf<(ViewNode?, ViewNode?) -> Unit>()
+  private var lastSelection: Selection? = null
+
+  override val selection: ViewNode?
+    get() {
+      return lastSelection?.selection
+    }
+
   var hoveredNode: ViewNode? by
     Delegates.observable(null as ViewNode?) { _, old, new ->
       if (new != old) {
-        hoverListeners.forEach { it(old, new) }
+        hoverListeners.forEach { it.onHover(old, new) }
       }
     }
-
-  // TODO: update all listeners to use ListenerCollection
-  val attachStageListeners =
-    ListenerCollection.createWithDirectExecutor<
-      (DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit
-    >()
 
   val windows = ConcurrentHashMap<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
@@ -108,10 +133,12 @@ class InspectorModel(
     HALF_OPEN,
     FLAT
   }
+
   enum class FoldOrientation {
     VERTICAL,
     HORIZONTAL
   }
+
   class FoldInfo(var angle: Int?, var posture: Posture?, var orientation: FoldOrientation) {
     fun toProto(): LayoutInspectorViewProtocol.FoldEvent =
       LayoutInspectorViewProtocol.FoldEvent.newBuilder()
@@ -193,7 +220,8 @@ class InspectorModel(
     ViewNode.readAccess { root.flatten().find { it.viewId?.name == id } }
 
   fun fireAttachStateEvent(state: DynamicLayoutInspectorErrorInfo.AttachErrorState) {
-    attachStageListeners.forEach { it.invoke(state) }
+    lastAttachState = state
+    attachStageListeners.forEach { it.update(state) }
   }
 
   /**
@@ -245,9 +273,9 @@ class InspectorModel(
   }
 
   fun setSelection(new: ViewNode?, origin: SelectionOrigin) {
-    val old = selection
-    selection = new
-    selectionListeners.forEach { it(old, new, origin) }
+    val previousSelection = lastSelection
+    lastSelection = Selection(new, origin)
+    selectionListeners.forEach { it.onSelection(previousSelection?.selection, new, origin) }
   }
 
   fun resetRecompositionCounts() {
@@ -266,7 +294,8 @@ class InspectorModel(
   }
 
   fun updateConnection(client: InspectorClient) {
-    connectionListeners.forEach { it(client) }
+    lastInspectorClient = client
+    connectionListeners.forEach { it.onConnectionChanged(client) }
   }
 
   /**
@@ -317,7 +346,7 @@ class InspectorModel(
 
         updateRoot(allIds)
         if (selection?.parentSequence?.lastOrNull() !== root) {
-          selection = null
+          lastSelection = null
         }
         if (hoveredNode?.parentSequence?.lastOrNull() !== root) {
           hoveredNode = null
@@ -349,13 +378,57 @@ class InspectorModel(
     modificationListeners.forEach { it.onModification(oldWindow, window, structuralChange) }
   }
 
+  fun addSelectionListener(listener: SelectionListener) {
+    lastSelection?.let { listener.onSelection(it.selection, it.selection, it.origin) }
+    selectionListeners.add(listener)
+  }
+
+  fun removeSelectionListener(listener: SelectionListener) {
+    selectionListeners.remove(listener)
+  }
+
+  fun addModificationListener(listener: ModificationListener) {
+    windows.values.forEach { window -> listener.onModification(window, window, false) }
+    modificationListeners.add(listener)
+  }
+
+  fun removeModificationListener(listener: ModificationListener) {
+    modificationListeners.remove(listener)
+  }
+
+  fun addConnectionListener(listener: ConnectionListener) {
+    lastInspectorClient?.let { listener.onConnectionChanged(it) }
+    connectionListeners.add(listener)
+  }
+
+  fun removeConnectionListener(listener: ConnectionListener) {
+    connectionListeners.remove(listener)
+  }
+
+  fun addHoverListener(listener: HoverListener) {
+    listener.onHover(hoveredNode, hoveredNode)
+    hoverListeners.remove(listener)
+  }
+
+  fun removeHoverListener(listener: HoverListener) {
+    hoverListeners.remove(listener)
+  }
+
+  fun addAttachStageListener(listener: AttachStageListener) {
+    lastAttachState?.let { listener.update(it) }
+    attachStageListeners.add(listener)
+  }
+
+  fun removeAttachStageListener(listener: AttachStageListener) {
+    attachStageListeners.remove(listener)
+  }
+
   private fun decreaseHighlights() {
     ViewNode.writeAccess {
       val max =
         root.flatten().filterIsInstance<ComposeViewNode>().maxOfOrNull {
           it.recompositions.decreaseHighlights()
-        }
-          ?: 0f
+        } ?: 0f
       if (max != 0f) {
         scheduler?.schedule(::decreaseHighlights, DECREASE_DELAY, DECREASE_TIMEUNIT)
       } else {
@@ -499,8 +572,7 @@ class InspectorModel(
       }
       return oldNode?.children?.indices?.all {
         oldNode.children[it].drawId == newNode?.children?.get(it)?.drawId
-      }
-        ?: true
+      } ?: true
     }
   }
 }

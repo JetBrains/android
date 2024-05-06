@@ -15,28 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
-import com.android.tools.idea.gradle.project.sync.requestProjectSync
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenStudioProxySettingsQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
-import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.build.issue.BuildIssueQuickFix
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.io.FileUtil
-import org.gradle.StartParameter
-import org.gradle.wrapper.PathAssembler
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
-import org.jetbrains.plugins.gradle.util.GradleUtil
-import java.io.File
-import java.util.concurrent.CompletableFuture
+import org.jetbrains.plugins.gradle.issue.quickfix.GradleWrapperSettingsOpenQuickFix
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
 import java.util.function.Consumer
 
 @JvmField val COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX = "Could not install Gradle distribution from "
@@ -51,30 +40,26 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
 
     val buildIssueComposer = BuildIssueComposer(message)
-    val wrapperConfiguration = GradleUtil.getWrapperConfiguration(issueData.projectPath)
-    if (wrapperConfiguration != null) {
-
-      val pathAssembler = PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME, File(issueData.projectPath))
-      val localDistribution = pathAssembler.getDistribution(wrapperConfiguration)
-      var stateFile = localDistribution.zipFile
-      if (!stateFile.exists()) {
-        stateFile = File(stateFile.parentFile, "${stateFile.name}.ok")
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    if (issueData.error != rootCause) {
+      buildIssueComposer.addDescription("Reason: $rootCause")
+      if (rootCause is java.net.UnknownHostException || rootCause is java.net.ConnectException) {
+        buildIssueComposer.addQuickFix("Please ensure ", "gradle distribution url", " is correct.",
+                                       GradleWrapperSettingsOpenQuickFix(issueData.projectPath, "distributionUrl"))
+        buildIssueComposer.addQuickFix("If you are behind an HTTP proxy, please ", "configure the proxy settings", ".",
+                                       OpenStudioProxySettingsQuickFix())
       }
-      if (stateFile.exists()) {
-        try {
-          stateFile = stateFile.canonicalFile
-        }
-        catch (e: Exception) {
-        }
-
-        buildIssueComposer.addDescription("The cached Gradle state file $stateFile may be corrupted.")
-        buildIssueComposer.addQuickFix(
-          "Delete file and sync project",
-          DeleteFileAndSyncQuickFix(stateFile, GradleSyncStats.Trigger.TRIGGER_QF_GRADLE_DISTRIBUTION_DELETED))
-        return buildIssueComposer.composeBuildIssue()
+      if (rootCause is java.lang.RuntimeException && rootCause.message?.startsWith("Could not create parent directory for lock file") == true) {
+        buildIssueComposer.addDescription("""
+          Please ensure Android Studio can write to the specified Gradle wrapper distribution directory.
+          You can also change Gradle home directory in Gradle Settings.
+        """.trimIndent())
+        buildIssueComposer.addQuickFix("Open Gradle Settings", UnsupportedGradleVersionIssueChecker.OpenGradleSettingsQuickFix())
+        buildIssueComposer.addQuickFix("Open Gradle wrapper settings", GradleWrapperSettingsOpenQuickFix(issueData.projectPath, null))
       }
     }
-    return null
+
+    return buildIssueComposer.composeBuildIssue()
   }
 
   override fun consumeBuildOutputFailureMessage(message: String,
@@ -84,27 +69,5 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
     return failureCause.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)
-  }
-
-  class DeleteFileAndSyncQuickFix(val file: File, private val syncTrigger: GradleSyncStats.Trigger) : BuildIssueQuickFix {
-    override val id = "delete.file.and.sync"
-
-    override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
-      val future = CompletableFuture<Any>()
-
-      invokeLater {
-        if (Messages.showYesNoDialog(project, "Are you sure you want to delete this file?\n\n" + file.path, "Delete File",
-                                     null) == Messages.YES) {
-          if (FileUtil.delete(file)) {
-            GradleSyncInvoker.getInstance().requestProjectSync(project, syncTrigger)
-          }
-          else {
-            Messages.showErrorDialog(project, "Could not delete " + file.path, "Delete File")
-          }
-        }
-        future.complete(null)
-      }
-      return future
-    }
   }
 }

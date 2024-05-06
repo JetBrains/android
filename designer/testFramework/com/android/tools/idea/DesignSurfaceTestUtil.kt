@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.awt.Dimension
 import java.util.function.Function
@@ -51,7 +50,7 @@ object DesignSurfaceTestUtil {
     val surface = Mockito.mock(surfaceClass)
     Disposer.register(disposableParent, surface)
     val listeners: MutableList<DesignSurfaceListener> = ArrayList()
-    whenever(surface.getData(ArgumentMatchers.any())).thenCallRealMethod()
+    whenever(surface.getData(Mockito.any())).thenCallRealMethod()
     whenever(surface.layeredPane).thenReturn(JPanel())
     val selectionModel: SelectionModel = DefaultSelectionModel()
     whenever(surface.selectionModel).thenReturn(selectionModel)
@@ -70,11 +69,11 @@ object DesignSurfaceTestUtil {
     }
     Mockito.doAnswer { listeners.add(it.getArgument(0)) }
       .whenever(surface)
-      .addListener(ArgumentMatchers.any(DesignSurfaceListener::class.java))
+      .addListener(Mockito.any(DesignSurfaceListener::class.java))
 
     Mockito.doAnswer { listeners.remove(it.getArgument<Any>(0) as DesignSurfaceListener) }
       .whenever(surface)
-      .removeListener(ArgumentMatchers.any(DesignSurfaceListener::class.java))
+      .removeListener(Mockito.any(DesignSurfaceListener::class.java))
 
     selectionModel.addListener { _, selection ->
       listeners.forEach { listener -> listener.componentSelectionChanged(surface, selection) }
@@ -113,7 +112,7 @@ object DesignSurfaceTestUtil {
     val sceneManager = sceneManagerFactory(surface, model)
     whenever(surface.sceneManager).thenReturn(sceneManager)
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
-    whenever(surface.getSceneViewAtOrPrimary(ArgumentMatchers.anyInt(), ArgumentMatchers.anyInt()))
+    whenever(surface.getSceneViewAtOrPrimary(Mockito.anyInt(), Mockito.anyInt()))
       .thenCallRealMethod()
     whenever(surface.focusedSceneView).thenReturn(sceneManager.sceneView)
     val scene = sceneManager.scene

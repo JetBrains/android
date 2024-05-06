@@ -1,6 +1,12 @@
 <component name="libraryTable">
   <library name="kotlin-test" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-test:1.7.10" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.kotlin:kotlin-test:1.7.10">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-test/1.7.10/kotlin-test-1.7.10.jar">
+          <sha256sum>e406e3f820ffa6e60e3fa40788d5fd219122aa4f3ad554432e33890c595fee85</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/kotlin/kotlin-test/1.7.10/kotlin-test-1.7.10.jar!/" />
     </CLASSES>

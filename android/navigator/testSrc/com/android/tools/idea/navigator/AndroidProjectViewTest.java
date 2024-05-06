@@ -34,7 +34,6 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
 import com.intellij.ide.projectView.impl.ProjectViewState;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.idea.IJIgnore;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -80,7 +79,6 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertThat(allNodes).contains(Arrays.asList("app (Android)", "java (generated)", "application", "BuildConfig"));
   }
 
-  @IJIgnore(issue = "IDEA-352843")
   public void testGeneratedResources() throws Exception {
     File projectRoot = prepareProjectForImport(TestProjectPaths.SIMPLE_APPLICATION);
     Files.append(
@@ -168,7 +166,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                                   Stack<String> path,
                                   Set<List<String>> result) {
     for (Object child : structure.getChildElements(node)) {
-      String nodeName = ((AbstractTreeNode<?>)child).toTestString(null);
+      String nodeName = ((AbstractTreeNode)child).toTestString(null);
       if (structure.getChildElements(child).length == 0) {
         ArrayList<String> newPath = new ArrayList<>(path);
         newPath.add(nodeName);

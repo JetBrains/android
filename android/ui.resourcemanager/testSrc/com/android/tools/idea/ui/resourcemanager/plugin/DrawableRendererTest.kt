@@ -35,6 +35,7 @@ import kotlin.test.assertTrue
 
 class DrawableRendererTest {
 
+  @Suppress("MemberVisibilityCanBePrivate")
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk()
 

@@ -20,9 +20,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import org.junit.Test
 
-/**
- * Tests for [ExceptionFolding]
- */
+/** Tests for [ExceptionFolding] */
 class ExceptionFoldingTest {
   private val exceptionFolding = ExceptionFolding()
   private val project = mock<Project>()
@@ -49,6 +47,7 @@ class ExceptionFoldingTest {
 
   @Test
   fun getPlaceholderText() {
-    assertThat(exceptionFolding.getPlaceholderText(project, List(3) { "line" })).isEqualTo("<3 more...>")
+    assertThat(exceptionFolding.getPlaceholderText(project, List(3) { "line" }))
+      .isEqualTo("<3 more...>")
   }
 }

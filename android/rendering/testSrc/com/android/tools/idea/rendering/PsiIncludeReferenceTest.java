@@ -82,7 +82,7 @@ public class PsiIncludeReferenceTest extends AndroidTestCase {
   }
 
   private static void waitForResourceUpdateToPropagate(ResourceRepository repository) throws InterruptedException {
-    LocalResourceRepository localRepo = (LocalResourceRepository)repository;
+    LocalResourceRepository<?> localRepo = (LocalResourceRepository<VirtualFile>)repository;
     CountDownLatch latch = new CountDownLatch(1);
     localRepo.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE, latch::countDown);
     latch.await();

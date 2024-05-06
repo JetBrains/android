@@ -232,6 +232,8 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Layout XML File" -> TemplateRenderer.LAYOUT_XML_FILE
   "Values XML File" -> TemplateRenderer.VALUES_XML_FILE
 
+  "Gemini API Starter" -> TemplateRenderer.EXPERIMENTAL_ACTIVITY
+
   else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
 }
 
@@ -304,6 +306,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.RESPONSIVE_ACTIVITY -> TemplateType.RESPONSIVE_ACTIVITY
     TemplateRenderer.GOOGLE_PAY_ACTIVITY -> TemplateType.GOOGLE_PAY_ACTIVITY
     TemplateRenderer.GOOGLE_WALLET_ACTIVITY -> TemplateType.GOOGLE_WALLET_ACTIVITY
+    TemplateRenderer.EXPERIMENTAL_ACTIVITY -> TemplateType.EXPERIMENTAL_ACTIVITY
 
     TemplateRenderer.BLANK_ACTIVITY,
     TemplateRenderer.ANDROID_MODULE,

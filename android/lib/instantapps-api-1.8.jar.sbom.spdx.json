@@ -1,0 +1,47 @@
+{
+  "SPDXID": "SPDXRef-DOCUMENT",
+  "spdxVersion": "SPDX-2.3",
+  "creationInfo": {
+    "created": "2023-09-07T19:40:03Z",
+    "creators": [
+      "Organization: Google LLC",
+      "Person: alyukhan@google.com"
+    ]
+  },
+  "name": "Android simpleperf binaries",
+  "dataLicense": "CC0-1.0",
+  "documentNamespace": "https://spdx.google/AndroidStudio-f32e45f4-8f14-4752-8773-03ba56c9ea3a",
+  "packages": [
+    {
+      "SPDXID": "SPDXRef-PREBUILT-instantapps-api",
+      "copyrightText": "NOASSERTION",
+      "downloadLocation": "NONE",
+      "checksums": [
+        {
+          "algorithm": "SHA256",
+          "checksumValue": "3ec9058702fb6f989154158d3e08837037bb8f791575ffe1f8854b9ae0c3f9bf"
+        },
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "a0bd55419a5b3f562e86cac9ee4a37d8c7aea057"
+        }
+      ],
+      "packageFileName": "instantapps-api-1.8.jar",
+      "filesAnalyzed": true,
+      "licenseConcluded": "Apache-2.0",
+      "licenseDeclared": "Apache-2.0",
+      "name": "Instant Apps API",
+      "description": "Android Studio specific API for working with Play Install Apps.",
+      "comment": "Has no external dependencies.",
+      "supplier": "Organization: Google LLC",
+      "versionInfo": "1.8"
+    }
+  ],
+  "relationships": [
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-PREBUILT-instantapps-api"
+    }
+  ]
+}

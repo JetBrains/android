@@ -174,7 +174,8 @@ class AppInspectionInspectorRule(
       projectRule.project,
       client.notificationModel,
       ListenerCollection.createWithDirectExecutor(),
-      client.stats
+      client.stats,
+      client.coroutineScope
     )
   }
 

@@ -26,7 +26,7 @@ import perfetto.protos.PerfettoTrace.FrameTimelineEvent.JankType
 import perfetto.protos.PerfettoTrace.FrameTimelineEvent.PresentType
 import kotlin.math.max
 
-class AndroidFrameTimelineModel(events: List<AndroidFrameTimelineEvent>,
+class AndroidFrameTimelineModel constructor(events: List<AndroidFrameTimelineEvent>,
                                 vsyncs: List<SeriesData<Long>>,
                                 val viewRange: Range,
                                 val multiSelectionModel: MultiSelectionModel<CpuAnalyzable<*>>,

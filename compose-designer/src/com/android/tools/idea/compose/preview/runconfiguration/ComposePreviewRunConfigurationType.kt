@@ -30,7 +30,7 @@ class ComposePreviewRunConfigurationType :
     composePreviewRunConfigurationId,
     "Compose Preview",
     "Compose Preview Run Configuration Type",
-    NotNullLazyValue.lazy { StudioIcons.Compose.Toolbar.RUN_CONFIGURATION }
+    NotNullLazyValue.createValue { StudioIcons.Compose.Toolbar.RUN_CONFIGURATION }
   ) {
   override fun createTemplateConfiguration(project: Project) =
     ComposePreviewRunConfiguration(project, this)

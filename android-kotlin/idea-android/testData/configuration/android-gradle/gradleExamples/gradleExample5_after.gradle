@@ -4,6 +4,9 @@ apply plugin: 'org.jetbrains.kotlin.android'
 android {
     compileSdkVersion 15
     buildToolsVersion "17.0"
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 // query for all (non-test) variants and inject a new step in the builds
@@ -44,8 +47,4 @@ buildscript {
         classpath 'com.android.tools.build:gradle:0.5.+'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

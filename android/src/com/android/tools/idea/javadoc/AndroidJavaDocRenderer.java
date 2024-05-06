@@ -51,26 +51,24 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.dom.attrs.AttributeDefinition;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
+import com.android.tools.rendering.HtmlLinkManager;
+import com.android.tools.rendering.RenderLogger;
+import com.android.tools.rendering.RenderService;
+import com.android.tools.rendering.RenderTask;
 import com.android.tools.idea.rendering.ShowFixFactory;
-import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.rendering.RenderLogger;
-import com.android.tools.rendering.RenderService;
-import com.android.tools.rendering.RenderTask;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.ResourceFiles;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -111,6 +109,7 @@ import java.util.concurrent.ExecutionException;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import com.android.tools.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -237,7 +236,7 @@ public class AndroidJavaDocRenderer {
   private static abstract class ResourceValueRenderer implements ResourceItemResolver.ResourceProvider {
     protected final Module myModule;
     protected final Configuration myConfiguration;
-    protected LocalResourceRepository myAppResources;
+    protected ResourceRepository myAppResources;
     protected ResourceResolver myResourceResolver;
     protected boolean mySmall;
 
@@ -307,7 +306,7 @@ public class AndroidJavaDocRenderer {
 
       List<ItemInfo> results = new ArrayList<>();
 
-      LocalResourceRepository resources = getAppResources();
+      ResourceRepository resources = getAppResources();
 
       List<AndroidFacet> dependencies =  AndroidDependenciesCache.getAllAndroidDependencies(myModule, true);
       int rank = 0;
@@ -512,7 +511,7 @@ public class AndroidJavaDocRenderer {
 
     @Override
     @Nullable
-    public LocalResourceRepository getAppResources() {
+    public ResourceRepository getAppResources() {
       if (myAppResources == null) {
         myAppResources = StudioResourceRepositoryManager.getAppResources(myModule);
       }
@@ -600,7 +599,7 @@ public class AndroidJavaDocRenderer {
         if (value != null) {
           ResourceUrl parsed = ResourceUrl.parse(value);
           if (parsed != null) {
-            ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
+            ResourceValueImpl v = new ResourceValueImpl(urlToReference(url), null);
             v.setValue(url.toString());
             ResourceValue resourceValue = resolver.resolveResValue(v);
             if (resourceValue.getValue() != null) {
@@ -609,7 +608,7 @@ public class AndroidJavaDocRenderer {
           }
           return value;
         } else {
-          ResourceValue v = new ResourceValueImpl(urlToReference(url), null);
+          ResourceValueImpl v = new ResourceValueImpl(urlToReference(url), null);
           v.setValue(url.toString());
           ResourceValue resourceValue = resolver.resolveResValue(v);
           if (resourceValue.getValue() != null) {
@@ -642,7 +641,7 @@ public class AndroidJavaDocRenderer {
           // look at the resolution chain and figure out the type of the resolved value,
           // and if appropriate, append a customized rendering.
           if (value.startsWith("#")) {
-            Color color = IdeResourcesUtil.parseColor(value);
+            Color color = ResourcesUtil.parseColor(value);
             if (color != null) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
@@ -676,7 +675,7 @@ public class AndroidJavaDocRenderer {
                     ResourceValueRenderer renderer = create(resourceUrl.type, myModule, myConfiguration);
                     if (renderer != null && renderer.getClass() != this.getClass()) {
                       found = true;
-                      ResourceValue resolved = new ResourceValueImpl(urlToReference(resourceUrl), null);
+                      ResourceValueImpl resolved = new ResourceValueImpl(urlToReference(resourceUrl), null);
                       resolved.setValue(value);
                       renderer.renderToHtml(builder, item, resourceUrl, false, resolved);
                       builder.newline();
@@ -1055,8 +1054,8 @@ public class AndroidJavaDocRenderer {
           AndroidFacet facet = AndroidFacet.getInstance(myModule);
           assert facet != null;
           final RenderService service = StudioRenderService.getInstance(myModule.getProject());
-          RenderLogger logger =
-            new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE, StudioHtmlLinkManager::new);
+          RenderLogger logger = new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE,
+                                                 () -> HtmlLinkManager.NOOP_LINK_MANAGER);
           CompletableFuture<RenderTask> renderTaskFuture = taskBuilder(service, facet, myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {
@@ -1243,7 +1242,7 @@ public class AndroidJavaDocRenderer {
     }
 
     private void renderColorToHtml(@NotNull HtmlBuilder builder, @Nullable String colorString, float alpha) {
-      Color color = IdeResourcesUtil.parseColor(colorString);
+      Color color = ResourcesUtil.parseColor(colorString);
       if (color == null) {
         // user error, they have a value that's not a color
         renderError(builder, colorString);
@@ -1288,7 +1287,7 @@ public class AndroidJavaDocRenderer {
       // vertical-align:middle on divs)
       builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
       builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\" style=\"color:" + foregroundColor + "\">");
-      builder.addHtml(IdeResourcesUtil.colorToString(displayColor));
+      builder.addHtml(ResourcesUtil.colorToString(displayColor));
       builder.addHtml("</td></tr></table>");
     }
   }

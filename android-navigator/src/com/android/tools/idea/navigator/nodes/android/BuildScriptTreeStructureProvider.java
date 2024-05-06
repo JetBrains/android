@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
  * nodes in the Android project view.
  */
 public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
-  @NotNull private final TreeStructureProvider myRealTreeStructureProvider;
+  @NotNull private TreeStructureProvider myRealTreeStructureProvider;
 
   public BuildScriptTreeStructureProvider(@NotNull TreeStructureProvider provider) {
     myRealTreeStructureProvider = provider;

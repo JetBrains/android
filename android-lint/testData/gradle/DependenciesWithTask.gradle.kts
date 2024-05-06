@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    //noinspection GradleDependency
     compileSdkVersion(27)
 
     defaultConfig {

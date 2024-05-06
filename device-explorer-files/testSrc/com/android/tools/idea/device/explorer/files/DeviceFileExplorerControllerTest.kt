@@ -21,6 +21,7 @@ import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutureException
+import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl.Companion.getProjectController
 import com.android.tools.idea.device.explorer.files.DeviceFileExplorerControllerImpl.NodeSorting.CustomComparator
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
@@ -29,6 +30,7 @@ import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerFile
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceExplorerView
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileEntry
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileSystem
+import com.android.tools.idea.device.explorer.files.mocks.MockProjectApplicationIdsProvider
 import com.android.tools.idea.device.explorer.files.ui.TreeUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ThreadingCheckRule
@@ -59,6 +61,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.UIBundle
 import com.intellij.util.Consumer
@@ -131,11 +134,13 @@ class DeviceFileExplorerControllerTest {
   private lateinit var myDevice2: MockDeviceFileSystem
   private lateinit var myFooDir: MockDeviceFileEntry
   private lateinit var myFooDirLink: MockDeviceFileEntry
+  private lateinit var dataDir: MockDeviceFileEntry
   private var myInitialTestDialog: TestDialog? = null
   private var myInitialTestInputDialog: TestInputDialog? = null
   private lateinit var myEdtExecutor: FutureCallbackExecutor
   private lateinit var myTaskExecutor: FutureCallbackExecutor
   private var myTearingDown = false
+  private lateinit var packageNameProvider: MockProjectApplicationIdsProvider
 
   @Before
   fun setUp() {
@@ -171,10 +176,17 @@ class DeviceFileExplorerControllerTest {
     myFile1 = myDevice1.root.addFile("file1.txt")
     myFile2 = myDevice1.root.addFile("file2.txt")
     myDevice1.root.addFile("file3.txt")
+    dataDir = myDevice1.data.addDirectory("testApp")
     myDevice2 = createMockFileSystem("TestDevice-2", myEdtExecutor)
     myDevice2.root.addDirectory("Foo2")
     myDevice2.root.addFile("foo2File1.txt")
     myDevice2.root.addFile("foo2File2.txt")
+    ApplicationManager.getApplication().registerOrReplaceServiceInstance(
+      DeviceExplorerSettings::class.java,
+      DeviceExplorerSettings(),
+      androidProjectRule.testRootDisposable
+    )
+    packageNameProvider = MockProjectApplicationIdsProvider(project)
   }
 
   @After
@@ -207,6 +219,30 @@ class DeviceFileExplorerControllerTest {
   }
 
   @Test
+  fun startControllerWithFilterOn() {
+    // Prepare
+    val controller = createController()
+
+    // Act
+    controller.setPackageFilter(true)
+    packageNameProvider.setApplicationIds("testApp")
+    controller.packageNamesProvider = packageNameProvider
+    controller.setup()
+    controller.setActiveDevice(myDevice1)
+
+    // Assert
+    checkMockViewActiveDevice()
+    val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
+    checkNotNull(rootEntry)
+    assertEquals(myDevice1.data, rootEntry.entry)
+
+    assertEquals(
+      "mock: ${myDevice1.data.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
+      myDevice1.data.mockEntries.size, rootEntry.childCount
+    )
+  }
+
+  @Test
   fun showNoDeviceViewWithNoActiveDevice() {
     // Prepare
     val controller = createController()
@@ -227,7 +263,7 @@ class DeviceFileExplorerControllerTest {
 
     // Act
     controller.setup()
-    controller.setActiveConnectedDevice(myDevice1)
+    controller.setActiveDevice(myDevice1)
     val errorMessage = pumpEventsAndWaitForFuture(myMockView.reportErrorRelatedToDeviceTracker.consume())
 
     // Assert
@@ -410,7 +446,7 @@ class DeviceFileExplorerControllerTest {
     val controller = createControllerAndVerifyViewInitialState()
 
     // Act
-    controller.setActiveConnectedDevice(myDevice2)
+    controller.setActiveDevice(myDevice2)
 
     // Assert
     checkMockViewActiveDevice()
@@ -433,7 +469,7 @@ class DeviceFileExplorerControllerTest {
     myMockView.reportMessageRelatedToNodeTracker.clear()
 
     // Change selected device.
-    controller.setActiveConnectedDevice(myDevice2)
+    controller.setActiveDevice(myDevice2)
 
     // Check that the view shows the second device.
     checkMockViewActiveDevice()
@@ -1355,6 +1391,67 @@ class DeviceFileExplorerControllerTest {
     assertTrue(openPath[0].toString().endsWith("file1.txt"))
   }
 
+  @Test
+  fun verifyDataFolderWhenPackageFilterIsEnabled() {
+    // Prepare
+    val controller = createController()
+    packageNameProvider.setApplicationIds("testApp")
+    controller.packageNamesProvider = packageNameProvider
+    setupControllerAndVerifyViewInitialState(controller)
+
+    // Act
+    controller.setPackageFilter(true)
+
+    // Assert
+    checkMockViewActiveDevice()
+    val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
+    checkNotNull(rootEntry)
+    assertEquals(myDevice1.data, rootEntry.entry)
+
+    assertEquals(
+      "mock: ${myDevice1.data.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
+      myDevice1.data.mockEntries.size, rootEntry.childCount
+    )
+  }
+
+  @Test
+  fun verifyRootIsShownWhenPackageFilterIsDisabled() {
+    // Prepare
+    val controller = createController()
+
+    controller.setPackageFilter(true)
+    packageNameProvider.setApplicationIds("testApp")
+    controller.packageNamesProvider = packageNameProvider
+    controller.setup()
+    controller.setActiveDevice(myDevice1)
+
+    checkMockViewActiveDevice()
+    val rootEntry = DeviceFileEntryNode.fromNode(myMockView.tree.model.root)
+    checkNotNull(rootEntry)
+    assertEquals(myDevice1.data, rootEntry.entry)
+
+    assertEquals(
+      "mock: ${myDevice1.data.mockEntries} rootEntry: " + TreeUtil.getChildren(rootEntry).collect(Collectors.toList()),
+      myDevice1.data.mockEntries.size, rootEntry.childCount
+    )
+
+    // Act
+    controller.setPackageFilter(false)
+
+    // Assert
+    checkMockViewInitialState(myDevice1)
+  }
+
+  @Test
+  fun verifyRootIsShownIfNoApplicationIds() {
+    // Prepare
+    val controller = createController()
+
+    // Act // Assert
+    controller.setPackageFilter(true)
+    setupControllerAndVerifyViewInitialState(controller)
+  }
+
   private fun replaceTestDialog(showFunction: (String) -> Int) {
     val previousDialog = TestDialogManager.setTestDialog(showFunction)
     if (myInitialTestDialog == null) {
@@ -1467,7 +1564,7 @@ class DeviceFileExplorerControllerTest {
 
   private fun setupControllerAndVerifyViewInitialState(controller: DeviceFileExplorerControllerImpl) {
     controller.setup()
-    controller.setActiveConnectedDevice(myDevice1)
+    controller.setActiveDevice(myDevice1)
     checkMockViewInitialState(myDevice1)
   }
 

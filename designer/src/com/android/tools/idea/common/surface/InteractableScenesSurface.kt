@@ -32,8 +32,10 @@ import com.intellij.openapi.actionSystem.DataProvider
  *   different interface. This interface should not extend [DataProvider]. This is only done so
  *   because of [Pannable] can be obtained with [PANNABLE_KEY].
  */
-interface InteractableScenesSurface : Pannable, Zoomable, DataProvider, ScenesOwner {
+interface InteractableScenesSurface : Pannable, DataProvider, ScenesOwner {
 
   /** Informs [this] that a mouse hover is happening at position ([x], [y]). */
   fun onHover(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+
+  val zoomable: Zoomable
 }

@@ -275,7 +275,7 @@ class ResourceExplorerListViewModelImpl(
 
   override val doSelectAssetAction: (asset: Asset) -> Unit = selectAssetAction ?: { asset ->
     val psiElement = dataManager.findPsiElement(asset.resourceItem)
-    psiElement?.let { openFileWithPsiElement(element = it, searchForOpen = true, requestFocus = true) }
+    psiElement?.let { openFileWithPsiElement(it, true, true) }
   }
 
   override val updateSelectedAssetSet: (assetSet: ResourceAssetSet) -> Unit = {

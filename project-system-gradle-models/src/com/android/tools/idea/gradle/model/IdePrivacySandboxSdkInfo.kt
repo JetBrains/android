@@ -25,4 +25,14 @@ interface IdePrivacySandboxSdkInfo : Serializable {
 
   /** The location that the privacy sandbox SDKs will be extracted */
   val outputListingFile: File
+
+  val additionalApkSplitTask: String
+
+  val additionalApkSplitFile: File
+
+  /** The task to invoke to build the privacy sandbox SDK for devices that do not support Privacy Sandbox */
+  val taskLegacy: String
+
+  /** The location of the extracted SDK apk files */
+  val outputListingLegacyFile: File
 }

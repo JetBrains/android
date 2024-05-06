@@ -16,10 +16,10 @@
 package com.android.tools.idea.lang.agsl
 
 import com.intellij.codeInsight.highlighting.BraceMatchingUtil
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.intellij.lang.annotations.Language
 
-class AgslPairMatcherTest : LightJavaCodeInsightFixtureTestCase() {
+class AgslPairMatcherTest : BasePlatformTestCase() {
   @Language("AGSL")
   private val source =
     """

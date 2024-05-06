@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.type
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
@@ -27,7 +28,6 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -71,8 +71,7 @@ fun ConfigurationManager.getPreviewConfig(): Configuration {
 
   val targetApiLevel = configurationManager.target?.version?.apiLevel ?: 1
   val targetDensity =
-    if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY
-    else Density.DPI_560
+    if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY else Density(560)
 
   val device =
     Device.Builder()
@@ -107,8 +106,7 @@ fun ConfigurationManager.getPreviewConfig(): Configuration {
             val height = PREVIEW_CONFIG_Y_DIMENSION / dpi
             diagonalLength = sqrt(width * width + height * height)
             size = ScreenSize.getScreenSize(diagonalLength)
-            ratio =
-              AvdScreenData.getScreenRatio(PREVIEW_CONFIG_X_DIMENSION, PREVIEW_CONFIG_Y_DIMENSION)
+            ratio = ScreenRatio.create(PREVIEW_CONFIG_X_DIMENSION, PREVIEW_CONFIG_Y_DIMENSION)
             screenRound = ScreenRound.NOTROUND
             chin = 0
           }

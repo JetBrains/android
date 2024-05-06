@@ -18,9 +18,7 @@ package com.android.tools.idea.logcat.util
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 
-/**
- * Detects if a given project is an Android Project
- */
+/** Detects if a given project is an Android Project */
 internal interface AndroidProjectDetector {
   fun isAndroidProject(project: Project): Boolean
 

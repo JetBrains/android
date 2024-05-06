@@ -32,6 +32,7 @@ interface IncludeReference {
     val NONE =
       object : IncludeReference {
         override fun getFromXmlFile(project: Project): RenderXmlFile? = null
+
         override val fromPath: File = File("")
         override val fromResourceUrl: String = ""
       }

@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.dagger.concepts.DaggerAnnotations.INJECT
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerAnnotation
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
-import com.android.tools.idea.kotlin.hasAnnotation
+import com.android.tools.idea.dagger.index.psiwrappers.hasAnnotation
+import com.android.tools.idea.dagger.index.readClassId
+import com.android.tools.idea.dagger.index.writeClassId
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
@@ -32,6 +34,7 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtParameter
 import java.io.DataInput
@@ -65,41 +68,46 @@ internal object InjectedConstructorDaggerConcept : DaggerConcept {
 
 private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
   override fun addIndexEntries(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) {
-    if (!wrapper.getIsConstructor() || !wrapper.getIsAnnotatedWith(INJECT)) return
+    if (!wrapper.getIsConstructor() || !wrapper.getIsAnnotatedWith(DaggerAnnotation.INJECT)) return
 
-    val classFqName = wrapper.getContainingClass()?.getFqName() ?: return
-    indexEntries.addIndexValue(classFqName, InjectedConstructorIndexValue(classFqName))
+    val classId = wrapper.getContainingClass()?.getClassId() ?: return
+    indexEntries.addIndexValue(classId.asFqNameString(), InjectedConstructorIndexValue(classId))
 
     for (parameter in wrapper.getParameters()) {
-      val parameterSimpleTypeName = parameter.getType().getSimpleName()
-      val parameterName = parameter.getSimpleName()
+      val parameterSimpleTypeName = parameter.getType()?.getSimpleName() ?: continue
+      val parameterName = parameter.getSimpleName() ?: continue
       indexEntries.addIndexValue(
-        parameterSimpleTypeName ?: "",
-        InjectedConstructorParameterIndexValue(classFqName, parameterName)
+        parameterSimpleTypeName,
+        InjectedConstructorParameterIndexValue(classId, parameterName)
       )
     }
   }
 }
 
 @VisibleForTesting
-internal data class InjectedConstructorIndexValue(val classFqName: String) : IndexValue() {
+internal data class InjectedConstructorIndexValue(val classId: ClassId) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_CONSTRUCTOR
-    override fun read(input: DataInput) = InjectedConstructorIndexValue(input.readString())
+
+    override fun read(input: DataInput) = InjectedConstructorIndexValue(input.readClassId())
   }
 
   companion object {
     private fun identify(psiElement: KtConstructor<*>): DaggerElement? =
-      if (psiElement.hasAnnotation(INJECT)) ProviderDaggerElement(psiElement) else null
+      if (psiElement.hasAnnotation(DaggerAnnotation.INJECT)) {
+        ProviderDaggerElement(psiElement)
+      } else {
+        null
+      }
 
     private fun identify(psiElement: PsiMethod): DaggerElement? =
-      if (psiElement.isConstructor && psiElement.hasAnnotation(INJECT)) {
+      if (psiElement.isConstructor && psiElement.hasAnnotation(DaggerAnnotation.INJECT)) {
         ProviderDaggerElement(psiElement)
       } else {
         null
@@ -113,41 +121,50 @@ internal data class InjectedConstructorIndexValue(val classFqName: String) : Ind
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
-    JavaPsiFacade.getInstance(project).findClass(classFqName, scope)?.constructors?.toList()
-      ?: emptyList()
+    JavaPsiFacade.getInstance(project)
+      .findClass(classId.asFqNameString(), scope)
+      ?.constructors
+      ?.toList() ?: emptyList()
 
   override val daggerElementIdentifiers = identifiers
 }
 
 @VisibleForTesting
 internal data class InjectedConstructorParameterIndexValue(
-  val classFqName: String,
+  val classId: ClassId,
   val parameterName: String
 ) : IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(parameterName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.INJECTED_CONSTRUCTOR_PARAMETER
+
     override fun read(input: DataInput) =
-      InjectedConstructorParameterIndexValue(input.readString(), input.readString())
+      InjectedConstructorParameterIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
     private fun identify(psiElement: KtParameter): DaggerElement? =
-      if (psiElement.parentOfType<KtConstructor<*>>()?.hasAnnotation(INJECT) == true)
+      if (
+        psiElement.parentOfType<KtConstructor<*>>()?.hasAnnotation(DaggerAnnotation.INJECT) == true
+      ) {
         ConsumerDaggerElement(psiElement)
-      else null
+      } else {
+        null
+      }
 
     private fun identify(psiElement: PsiParameter): DaggerElement? {
       val parent = psiElement.parentOfType<PsiMethod>() ?: return null
-      return if (parent.isConstructor && parent.hasAnnotation(INJECT))
+      return if (parent.isConstructor && parent.hasAnnotation(DaggerAnnotation.INJECT)) {
         ConsumerDaggerElement(psiElement)
-      else null
+      } else {
+        null
+      }
     }
 
     internal val identifiers =
@@ -159,7 +176,8 @@ internal data class InjectedConstructorParameterIndexValue(
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
+        ?: return emptyList()
     return psiClass.constructors.flatMap {
       it.parameterList.parameters.filter { p -> p.name == parameterName }
     }

@@ -16,8 +16,7 @@
 package com.android.tools.idea.actions.annotations
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 
 class InferAnnotationsSettingsTest {

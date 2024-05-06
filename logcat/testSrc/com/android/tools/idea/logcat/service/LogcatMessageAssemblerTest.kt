@@ -35,7 +35,6 @@ import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -49,15 +48,12 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.text.Charsets.UTF_8
 
-/**
- * Tests for [LogcatMessageAssembler]
- */
+/** Tests for [LogcatMessageAssembler] */
 @Suppress("OPT_IN_USAGE") // runTest is experimental
 class LogcatMessageAssemblerTest {
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(ProjectRule(), disposableRule)
+  @get:Rule val rule = RuleChain(ProjectRule(), disposableRule)
 
   private val processNameMonitor = FakeProcessNameMonitor()
 
@@ -72,29 +68,45 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun singleCompleteLogMessage() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun singleCompleteLogMessage() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  1: 2000 D/Tag  ]
         Message 1
 
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 123L, "Message 1")))
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag",
+              1619900000L,
+              123L,
+              "Message 1"
+            )
+          )
+        )
+    }
 
   @Test
-  fun multipleCompleteLogMessage() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun multipleCompleteLogMessage() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.101  1: 2000 D/Tag  ]
         Message 1
 
@@ -105,57 +117,129 @@ class LogcatMessageAssemblerTest {
         Message 3
 
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(
-        logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 101L, "Message 1"),
-        logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 102L, "Message 2"),
-      ),
-      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag", 1619900000L, 103L, "Message 3")),
-    )
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag",
+              1619900000L,
+              101L,
+              "Message 1"
+            ),
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag",
+              1619900000L,
+              102L,
+              "Message 2"
+            ),
+          ),
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag",
+              1619900000L,
+              103L,
+              "Message 3"
+            )
+          ),
+        )
+    }
 
   @Test
-  fun twoBatches_messageSplit() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device2", channel)
+  fun twoBatches_messageSplit() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device2", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  2:2000 D/Tag1  ]
         Message 1
 
         [          1619900000.123  2:2000 D/Tag2  ]
         Message 2 Line 1
       """
-    )
-    assembler.processNewLines(
-      """
+      )
+      assembler.processNewLines(
+        """
         Message 2 Line 2
 
         [          1619900000.123  1:2000 D/Tag3  ]
         Message 3
 
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
-      listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2 Line 1\nMessage 2 Line 2")),
-      listOf(logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3")),
-    )
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(
+              DEBUG,
+              2,
+              2000,
+              "app-2.2",
+              "process-2.2",
+              "Tag1",
+              1619900000L,
+              123L,
+              "Message 1"
+            )
+          ),
+          listOf(
+            logcatMessage(
+              DEBUG,
+              2,
+              2000,
+              "app-2.2",
+              "process-2.2",
+              "Tag2",
+              1619900000L,
+              123L,
+              "Message 2 Line 1\nMessage 2 Line 2"
+            )
+          ),
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-2.1",
+              "process-2.1",
+              "Tag3",
+              1619900000L,
+              123L,
+              "Message 3"
+            )
+          ),
+        )
+    }
 
   @Test
-  fun twoBatches_messageNotSplit() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device2", channel)
+  fun twoBatches_messageNotSplit() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device2", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  2:2000 D/Tag1  ]
         Message 1
 
@@ -163,9 +247,9 @@ class LogcatMessageAssemblerTest {
         Message 2
         
       """
-    )
-    assembler.processNewLines(
-      """
+      )
+      assembler.processNewLines(
+        """
         [          1619900000.123  1:2000 D/Tag3  ]
         Message 3
 
@@ -173,26 +257,72 @@ class LogcatMessageAssemblerTest {
         Message 4
 
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag1", 1619900000L, 123L, "Message 1")),
-      listOf(
-        logcatMessage(DEBUG, 2, 2000, "app-2.2", "process-2.2", "Tag2", 1619900000L, 123L, "Message 2"),
-        logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag3", 1619900000L, 123L, "Message 3"),
-      ),
-      listOf(logcatMessage(DEBUG, 1, 2000, "app-2.1", "process-2.1", "Tag4", 1619900000L, 123L, "Message 4")),
-    )
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(
+              DEBUG,
+              2,
+              2000,
+              "app-2.2",
+              "process-2.2",
+              "Tag1",
+              1619900000L,
+              123L,
+              "Message 1"
+            )
+          ),
+          listOf(
+            logcatMessage(
+              DEBUG,
+              2,
+              2000,
+              "app-2.2",
+              "process-2.2",
+              "Tag2",
+              1619900000L,
+              123L,
+              "Message 2"
+            ),
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-2.1",
+              "process-2.1",
+              "Tag3",
+              1619900000L,
+              123L,
+              "Message 3"
+            ),
+          ),
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-2.1",
+              "process-2.1",
+              "Tag4",
+              1619900000L,
+              123L,
+              "Message 4"
+            )
+          ),
+        )
+    }
 
   @Test
-  fun twoBatchesSplitOnUserEmittedEmptyLine() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun twoBatchesSplitOnUserEmittedEmptyLine() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  1:2000 D/Tag1  ]
         Message 1
 
@@ -200,66 +330,128 @@ class LogcatMessageAssemblerTest {
         Message 2 Line 1
 
       """
-    )
-    assembler.processNewLines(
-      """
+      )
+      assembler.processNewLines(
+        """
         Message 2 Line 3
 
         [          1619900000.123  1:2000 D/Tag3  ]
         Message 3
 
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1")),
-      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2 Line 1\n\nMessage 2 Line 3")),
-      listOf(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3")),
-    )
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag1",
+              1619900000L,
+              123L,
+              "Message 1"
+            )
+          ),
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag2",
+              1619900000L,
+              123L,
+              "Message 2 Line 1\n\nMessage 2 Line 3"
+            )
+          ),
+          listOf(
+            logcatMessage(
+              DEBUG,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag3",
+              1619900000L,
+              123L,
+              "Message 3"
+            )
+          ),
+        )
+    }
 
   @Test
-  fun messageSplitAcrossThreeBatches() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun messageSplitAcrossThreeBatches() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  1:2000 I/Tag1  ]
         Message 1 Line 1
       """
-    )
-    assembler.processNewLines(
-      """
+      )
+      assembler.processNewLines("""
         Message 1 Line 2
-      """
-    )
+      """)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         Message 1 Line 3
 
         [          1619900000.123  1:2000 I/Tag2  ]
         Message 2
 
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(logcatMessage(INFO, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1 Line 1\nMessage 1 Line 2\nMessage 1 Line 3")),
-      listOf(logcatMessage(INFO, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2")),
-    )
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(
+              INFO,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag1",
+              1619900000L,
+              123L,
+              "Message 1 Line 1\nMessage 1 Line 2\nMessage 1 Line 3"
+            )
+          ),
+          listOf(
+            logcatMessage(
+              INFO,
+              1,
+              2000,
+              "app-1.1",
+              "process-1.1",
+              "Tag2",
+              1619900000L,
+              123L,
+              "Message 2"
+            )
+          ),
+        )
+    }
 
   @Test
-  fun systemLines() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun systemLines() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         --------- beginning of crash
         [          1619900001.123  1:1000 I/Tag1  ]
         Message 1
@@ -269,52 +461,92 @@ class LogcatMessageAssemblerTest {
         Message 2
         
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(
-        LogcatMessage(SYSTEM_HEADER, "--------- beginning of crash"),
-        LogcatMessage(SYSTEM_HEADER, "--------- beginning of system"),
-        logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag1", 1619900001L, 123L, "Message 1"),
-      ),
-      listOf(logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")),
-    )
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            LogcatMessage(SYSTEM_HEADER, "--------- beginning of crash"),
+            LogcatMessage(SYSTEM_HEADER, "--------- beginning of system"),
+            logcatMessage(
+              INFO,
+              1,
+              1000,
+              "app-1.1",
+              "process-1.1",
+              "Tag1",
+              1619900001L,
+              123L,
+              "Message 1"
+            ),
+          ),
+          listOf(
+            logcatMessage(
+              INFO,
+              1,
+              1000,
+              "app-1.1",
+              "process-1.1",
+              "Tag2",
+              1619900001L,
+              123L,
+              "Message 2"
+            )
+          ),
+        )
+    }
 
   @Test
-  fun linesWithoutHeader_dropped() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun linesWithoutHeader_dropped() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         Message 1
         
         [          1619900001.123  1:1000 I/Tag2  ]
         Message 2
         
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(
-      listOf(logcatMessage(INFO, 1, 1000, "app-1.1", "process-1.1", "Tag2", 1619900001L, 123L, "Message 2")),
-    )
-  }
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(
+              INFO,
+              1,
+              1000,
+              "app-1.1",
+              "process-1.1",
+              "Tag2",
+              1619900001L,
+              123L,
+              "Message 2"
+            )
+          ),
+        )
+    }
 
   /**
-   * This test sends 3 small batches with a small interval between them simulating a running Logcat process that emits data periodically.
+   * This test sends 3 small batches with a small interval between them simulating a running Logcat
+   * process that emits data periodically.
    *
-   * In contrast to the other tests in this file, it asserts the state of the channel after each batch rather than at the end.
+   * In contrast to the other tests in this file, it asserts the state of the channel after each
+   * batch rather than at the end.
    */
   @Test
-  fun multipleBatchesWithIntervals() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun multipleBatchesWithIntervals() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  1:2000 D/Tag1  ]
         Message 1
 
@@ -322,14 +554,41 @@ class LogcatMessageAssemblerTest {
         Message 2
 
       """
-    )
-    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1"))
-    assertThat(channel.isEmpty)
-    advanceTimeBy(100)
-    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2"))
+      )
+      assertThat(channel.receive())
+        .containsExactly(
+          logcatMessage(
+            DEBUG,
+            1,
+            2000,
+            "app-1.1",
+            "process-1.1",
+            "Tag1",
+            1619900000L,
+            123L,
+            "Message 1"
+          )
+        )
+      assertThat(channel.isEmpty)
+      testScheduler.advanceTimeBy(100)
+      testScheduler.runCurrent()
+      assertThat(channel.receive())
+        .containsExactly(
+          logcatMessage(
+            DEBUG,
+            1,
+            2000,
+            "app-1.1",
+            "process-1.1",
+            "Tag2",
+            1619900000L,
+            123L,
+            "Message 2"
+          )
+        )
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  1:2000 D/Tag3  ]
         Message 3
 
@@ -337,14 +596,41 @@ class LogcatMessageAssemblerTest {
         Message 4
 
       """
-    )
-    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3"))
-    assertThat(channel.isEmpty)
-    advanceTimeBy(100)
-    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag4", 1619900000L, 123L, "Message 4"))
+      )
+      assertThat(channel.receive())
+        .containsExactly(
+          logcatMessage(
+            DEBUG,
+            1,
+            2000,
+            "app-1.1",
+            "process-1.1",
+            "Tag3",
+            1619900000L,
+            123L,
+            "Message 3"
+          )
+        )
+      assertThat(channel.isEmpty)
+      testScheduler.advanceTimeBy(100)
+      testScheduler.runCurrent()
+      assertThat(channel.receive())
+        .containsExactly(
+          logcatMessage(
+            DEBUG,
+            1,
+            2000,
+            "app-1.1",
+            "process-1.1",
+            "Tag4",
+            1619900000L,
+            123L,
+            "Message 4"
+          )
+        )
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  1:2000 D/Tag5  ]
         Message 5
 
@@ -352,100 +638,142 @@ class LogcatMessageAssemblerTest {
         Message 6
 
       """
-    )
-    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag5", 1619900000L, 123L, "Message 5"))
-    assertThat(channel.isEmpty)
-    advanceTimeBy(100)
-    assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag6", 1619900000L, 123L, "Message 6"))
-    channel.close()
-    advanceUntilIdle()
-    assertThat(channel.isEmpty)
-  }
+      )
+      assertThat(channel.receive())
+        .containsExactly(
+          logcatMessage(
+            DEBUG,
+            1,
+            2000,
+            "app-1.1",
+            "process-1.1",
+            "Tag5",
+            1619900000L,
+            123L,
+            "Message 5"
+          )
+        )
+      assertThat(channel.isEmpty)
+      testScheduler.advanceTimeBy(100)
+      testScheduler.runCurrent()
+      assertThat(channel.receive())
+        .containsExactly(
+          logcatMessage(
+            DEBUG,
+            1,
+            2000,
+            "app-1.1",
+            "process-1.1",
+            "Tag6",
+            1619900000L,
+            123L,
+            "Message 6"
+          )
+        )
+      channel.close()
+      advanceUntilIdle()
+      assertThat(channel.isEmpty)
+    }
 
   @Test
-  fun realLogcat_oneBatch() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun realLogcat_oneBatch() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLines())
+      assembler.processNewLines(
+        TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLines()
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
-    val expectedLines = TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
-    assertThat(actualLines).hasSize(expectedLines.size)
-    actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
-      assertThat(actual).named("Line $index").isEqualTo(expected)
+      advanceUntilIdle()
+      channel.close()
+      val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
+      val expectedLines =
+        TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
+      assertThat(actualLines).hasSize(expectedLines.size)
+      actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
+        assertThat(actual).named("Line $index").isEqualTo(expected)
+      }
     }
-  }
 
   @Test
-  fun realLogcat_smallBatches() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun realLogcat_smallBatches() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLinesInBatches(50).forEach {
-      assembler.processNewLines(it)
-    }
+      TestResources.getFile("/logcatFiles/real-logcat-from-device.txt")
+        .readLinesInBatches(50)
+        .forEach { assembler.processNewLines(it) }
 
-    advanceUntilIdle()
-    channel.close()
-    val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
-    val expectedLines = TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
-    assertThat(actualLines).hasSize(expectedLines.size)
-    actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
-      assertThat(actual).named("Line $index").isEqualTo(expected)
+      advanceUntilIdle()
+      channel.close()
+      val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
+      val expectedLines =
+        TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
+      assertThat(actualLines).hasSize(expectedLines.size)
+      actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
+        assertThat(actual).named("Line $index").isEqualTo(expected)
+      }
     }
-  }
 
   @Test
-  fun realLogcat_largeBatches() = runTest(dispatchTimeoutMs = 5_000) {
-    val assembler = logcatMessageAssembler("device1", channel)
+  fun realLogcat_largeBatches() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLinesInBatches(8192).forEach {
-      assembler.processNewLines(it)
-    }
+      TestResources.getFile("/logcatFiles/real-logcat-from-device.txt")
+        .readLinesInBatches(8192)
+        .forEach { assembler.processNewLines(it) }
 
-    advanceUntilIdle()
-    channel.close()
-    val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
-    val expectedLines = TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
-    assertThat(actualLines).hasSize(expectedLines.size)
-    actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
-      assertThat(actual).named("Line $index").isEqualTo(expected)
+      advanceUntilIdle()
+      channel.close()
+      val actualLines = channel.toList().flatten().joinToString("\n") { it.toString() }.split('\n')
+      val expectedLines =
+        TestResources.getFile("/logcatFiles/real-logcat-from-device-expected.txt").readLines()
+      assertThat(actualLines).hasSize(expectedLines.size)
+      actualLines.zip(expectedLines).forEachIndexed { index, (actual, expected) ->
+        assertThat(actual).named("Line $index").isEqualTo(expected)
+      }
     }
-  }
 
   @Test
-  fun missingApplicationId_usesProcessName() = runTest(dispatchTimeoutMs = 5_000) {
-    processNameMonitor.addProcessName("device1", 5, "", "processName")
+  fun missingApplicationId_usesProcessName() =
+    runTest(dispatchTimeoutMs = 5_000) {
+      processNameMonitor.addProcessName("device1", 5, "", "processName")
 
-    val assembler = logcatMessageAssembler("device1", channel)
+      val assembler = logcatMessageAssembler("device1", channel)
 
-    assembler.processNewLines(
-      """
+      assembler.processNewLines(
+        """
         [          1619900000.123  5: 2000 D/Tag  ]
         Message 1
 
       """
-    )
+      )
 
-    advanceUntilIdle()
-    channel.close()
-    assertThat(channel.toList()).containsExactly(listOf(logcatMessage(DEBUG, 5, 2000, "", "processName", "Tag", 1619900000L, 123L, "Message 1")))
-  }
-
+      advanceUntilIdle()
+      channel.close()
+      assertThat(channel.toList())
+        .containsExactly(
+          listOf(
+            logcatMessage(DEBUG, 5, 2000, "", "processName", "Tag", 1619900000L, 123L, "Message 1")
+          )
+        )
+    }
 
   private fun TestScope.logcatMessageAssembler(
     serialNumber: String,
     channel: SendChannel<List<LogcatMessage>>,
     processNameMonitor: ProcessNameMonitor = this@LogcatMessageAssemblerTest.processNameMonitor,
   ): LogcatMessageAssembler {
-    val logcatMessageAssembler = LogcatMessageAssembler(
-      serialNumber,
-      EPOCH_FORMAT,
-      channel,
-      processNameMonitor,
-      coroutineContext,
-      lastMessageDelayMs = 100)
+    val logcatMessageAssembler =
+      LogcatMessageAssembler(
+        serialNumber,
+        EPOCH_FORMAT,
+        channel,
+        processNameMonitor,
+        coroutineContext,
+        lastMessageDelayMs = 100
+      )
     Disposer.register(disposableRule.disposable, logcatMessageAssembler)
     return logcatMessageAssembler
   }
@@ -460,11 +788,23 @@ private fun logcatMessage(
   tag: String,
   seconds: Long,
   millis: Long,
-  message: String) =
+  message: String
+) =
   LogcatMessage(
-    LogcatHeader(level, pid, tid, appId, processName, tag, Instant.ofEpochSecond(seconds, MILLISECONDS.toNanos(millis))), message)
+    LogcatHeader(
+      level,
+      pid,
+      tid,
+      appId,
+      processName,
+      tag,
+      Instant.ofEpochSecond(seconds, MILLISECONDS.toNanos(millis))
+    ),
+    message
+  )
 
-private suspend fun LogcatMessageAssembler.processNewLines(lines: String) = processNewLines(lines.replaceIndent().split("\n").toList())
+private suspend fun LogcatMessageAssembler.processNewLines(lines: String) =
+  processNewLines(lines.replaceIndent().split("\n").toList())
 
 /**
  * Reads lines from a file in batches.

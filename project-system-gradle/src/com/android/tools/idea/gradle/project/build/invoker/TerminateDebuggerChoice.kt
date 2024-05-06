@@ -71,7 +71,7 @@ enum class TerminateDebuggerChoice {
         )
         return choice!!
       }
-      getLogger().debug("$propKey: $value")
+      getLogger().debug(propKey + ": " + value)
       return if (value == "true") TerminateDebuggerChoice.TERMINATE_DEBUGGER else TerminateDebuggerChoice.DO_NOT_TERMINATE_DEBUGGER
     }
 

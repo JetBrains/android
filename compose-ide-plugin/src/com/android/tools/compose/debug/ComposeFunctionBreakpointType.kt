@@ -33,29 +33,36 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiUtil
 
-/**
- * A [com.intellij.debugger.ui.breakpoints.JavaMethodBreakpointType] for `@Composable` functions
- */
+/** A [com.intellij.debugger.ui.breakpoints.JavaMethodBreakpointType] for `@Composable` functions */
 internal class ComposeFunctionBreakpointType :
-  KotlinFunctionBreakpointType("compose-function", ComposeBundle.message("compose.breakpoint.description")) {
+  KotlinFunctionBreakpointType(
+    "compose-function",
+    ComposeBundle.message("compose.breakpoint.description")
+  ) {
 
-  override fun createJavaBreakpoint(project: Project, breakpoint: XBreakpoint<JavaMethodBreakpointProperties>): KotlinFunctionBreakpoint =
-    ComposeFunctionBreakpoint(project, breakpoint)
+  override fun createJavaBreakpoint(
+    project: Project,
+    breakpoint: XBreakpoint<JavaMethodBreakpointProperties>
+  ): KotlinFunctionBreakpoint = ComposeFunctionBreakpoint(project, breakpoint)
 
-  override fun isFunctionBreakpointApplicable(file: VirtualFile, line: Int, project: Project): Boolean =
+  override fun isFunctionBreakpointApplicable(
+    file: VirtualFile,
+    line: Int,
+    project: Project
+  ): Boolean =
     isBreakpointApplicable(file, line, project) { element ->
       when (element) {
         is KtFunction ->
           ApplicabilityResult.maybe(
-            !KtPsiUtil.isLocal(element) &&
-            !element.isInlineOnly() &&
-            element.isComposable())
+            !KtPsiUtil.isLocal(element) && !element.isInlineOnly() && element.isComposable()
+          )
         else -> ApplicabilityResult.UNKNOWN
       }
     }
 }
 // TODO Find a proper commit in Ultimate and apply change
 private val COMPOSABLE_CLASS_ID = ClassId.fromString("androidx/compose/runtime/Composable")
+
 
 /**
  * Don't allow method breakpoints on Composable functions because we can't match their signature.

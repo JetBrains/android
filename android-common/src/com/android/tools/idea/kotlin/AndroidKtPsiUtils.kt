@@ -22,17 +22,20 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KtConstantValue.KtErrorConstantValue
-import org.jetbrains.kotlin.analysis.api.calls.KtAnnotationCall
-import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
+import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
@@ -45,7 +48,6 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -68,10 +70,8 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeFe10
 import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
-
 
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
 fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?.contains(offset) ?: false
@@ -109,21 +109,12 @@ fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Bool
 fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
-      typeReference?.getKtType()?.expandedClassSymbol?.classIdIfNonLocal?.asFqNameString()
+      resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
     }
   } else {
     analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
   }
 }
-
-/**
- * K2 version of [getQualifiedName]; computes the qualified name of
- * [ktAnnotationEntry].
- * Prefer to use the (K2 version of) [fqNameMatches], which checks the short
- * name first and thus has better performance.
- */
-fun KtAnalysisSession.getQualifiedName(ktAnnotationEntry: KtAnnotationEntry): String? =
-  (ktAnnotationEntry.resolveCall()?.singleFunctionCallOrNull() as? KtAnnotationCall)?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
 
 /**
  * Determines whether this [KtAnnotationEntry] has the specified qualified name.
@@ -139,16 +130,16 @@ fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KtAnalysisS
 /**
  * Utility method to use [KtAnnotationEntry.fqNameMatches] with a set of names.
  */
-fun KtAnnotationEntry.fqNameMatches(fqName: Set<String>, analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KtAnalysisSession? = null): Boolean {
   val shortName = shortName?.asString() ?: return false
-  val fqNameFiltered = fqName.filter { it.endsWith(shortName) }
-  if (fqNameFiltered.isEmpty()) return false
+  val fqNamesFiltered = fqNames.filter { it.endsWith(shortName) }
+  if (fqNamesFiltered.isEmpty()) return false
 
   // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
   // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
   // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
   val qualifiedName = getQualifiedName(analysisSession)
-  return fqNameFiltered.any { it == qualifiedName }
+  return fqNamesFiltered.any { it == qualifiedName }
 }
 
 /**
@@ -162,7 +153,7 @@ fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName
   // Note that we intentionally defer calling `getQualifiedName(..)` as much as possible because it has a performance intensive workload
   // (analysis). It is important check early returns before calling `getQualifiedName(..)`. Previously, we used `lazy { .. }`, but
   // we dropped it to avoid "Avoid `by lazy` for simple lazy initialization [AvoidByLazy]" lint error.
-  val qualifiedName = getQualifiedName(ktAnnotationEntry)
+  val qualifiedName = ktAnnotationEntry.getQualifiedName(this)
   return fqName == qualifiedName
 }
 
@@ -279,21 +270,52 @@ val KtParameter.psiType get() = toLightElements().filterIsInstance(PsiParameter:
 val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnType
 fun KtClassOrObject.toPsiType() =
   toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }
-fun KtAnnotated.hasAnnotation(fqn: String) = findAnnotation(FqName(fqn)) != null
 
-// TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
-@OptIn(KtAllowAnalysisOnEdt::class)
-fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
+fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
-    allowAnalysisOnEdt {
-      analyze(this) {
-        val annotatedSymbol =
-          (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
-        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
-        annotations?.singleOrNull()?.psi as? KtAnnotationEntry
-      }
-    }
+    mapOnDeclarationSymbol { it.hasAnnotation(classId) } ?: (findAnnotationEntryByClassId(classId) != null)
   } else {
-    findAnnotationK1(fqName)
+    findAnnotationK1(classId) != null
   }
 
+fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
+  if (KotlinPluginModeProvider.isK2Mode()) {
+    findAnnotationK2(classId)
+  } else {
+    findAnnotationK1(classId)
+  }
+
+private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? = mapOnDeclarationSymbol {
+  it.annotationsByClassId(classId).singleOrNull()?.psi as? KtAnnotationEntry
+} ?: findAnnotationEntryByClassId(classId)
+
+@OptIn(KtAllowAnalysisOnEdt::class)
+private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSession.(KtDeclarationSymbol) -> T?): T? =
+  allowAnalysisOnEdt {
+    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    allowAnalysisFromWriteAction {
+      analyze(this) {
+        val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
+        declaration?.getSymbol()?.let { block(it) }
+      }
+    }
+  }
+
+/**
+ * Fallback of [mapOnDeclarationSymbol] in the case the given [KtAnnotated] is not [KtDeclaration]. One example is [KtTypeReference].
+ * This function resolves [annotationEntries] and finds a symbol (a constructor symbol in the [KtTypeReference] case) whose class symbol
+ * is [classId].
+ */
+@OptIn(KtAllowAnalysisOnEdt::class)
+private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): KtAnnotationEntry? =
+  allowAnalysisOnEdt {
+    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    allowAnalysisFromWriteAction {
+      analyze(this) {
+        annotationEntries.find { annotationEntry ->
+          val annotationConstructorCall = annotationEntry.resolveCall()?.singleConstructorCallOrNull() ?: return null
+          annotationConstructorCall.symbol.containingClassIdIfNonLocal == classId
+        }
+      }
+    }
+  }

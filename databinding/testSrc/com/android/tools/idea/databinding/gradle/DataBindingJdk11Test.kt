@@ -21,9 +21,9 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
@@ -42,8 +42,7 @@ class DataBindingJdk11Test {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -67,13 +66,14 @@ class DataBindingJdk11Test {
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
     // Make sure that all file system events up to this point have been processed.
-    VfsTestUtil.syncRefresh()
+    VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    val mainActivityFile = fixture.findClass("com.android.example.viewbinding.MainActivity").containingFile.virtualFile
+    val mainActivityFile =
+      fixture.findClass("com.android.example.viewbinding.MainActivity").containingFile.virtualFile
 
     fixture.configureFromExistingVirtualFile(mainActivityFile)
     fixture.checkHighlighting(false, false, false)

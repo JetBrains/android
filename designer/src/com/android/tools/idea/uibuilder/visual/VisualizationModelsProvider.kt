@@ -28,7 +28,8 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 interface VisualizationModelsProvider {
   /** The actions shown in ActionBar for this models provider. */
-  fun createActions(file: PsiFile, facet: AndroidFacet): ActionGroup = DefaultActionGroup()
+  fun createActions(): ActionGroup = DefaultActionGroup()
+
   fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,

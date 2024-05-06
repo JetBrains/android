@@ -33,6 +33,7 @@ class UnsupportedAnimationManager(animation: ComposeAnimation, title: String) :
    */
   override val elementState = ElementState(title)
   override val card = LabelCard(elementState)
+
   override fun loadProperties() {}
 
   override fun setup(callback: () -> Unit) {

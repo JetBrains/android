@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RubidumConsumer</string>
+    <string name="title_dynamic_feature">DynamicFeature</string>
 </resources>

@@ -26,6 +26,7 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.getFullApiName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.IdDisplay
@@ -33,10 +34,9 @@ import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.sdklib.repository.meta.DetailsTypes.AddonDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.npw.invokeLater
+import com.android.tools.idea.npw.platform.GradleBuildSettings.getRecommendedBuildToolsRevision
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
 import com.android.tools.idea.sdk.AndroidSdks
@@ -289,10 +289,10 @@ private fun FormFactor.isAvailable(sdkLevelRange: IntRange, targetSdkLevel: Int)
   doFilter(this, sdkLevelRange, defaultTag(), targetSdkLevel)
 
 private fun FormFactor.defaultTag() = when (this) {
-  FormFactor.MOBILE -> SystemImage.DEFAULT_TAG
-  FormFactor.WEAR -> SystemImage.WEAR_TAG
-  FormFactor.TV -> SystemImage.ANDROID_TV_TAG
-  FormFactor.AUTOMOTIVE -> SystemImage.AUTOMOTIVE_TAG
+  FormFactor.MOBILE -> SystemImageTags.DEFAULT_TAG
+  FormFactor.WEAR -> SystemImageTags.WEAR_TAG
+  FormFactor.TV -> SystemImageTags.ANDROID_TV_TAG
+  FormFactor.AUTOMOTIVE -> SystemImageTags.AUTOMOTIVE_TAG
 }
 
 private fun getAndroidVersion(repoPackage: RepoPackage): AndroidVersion = (repoPackage.typeDetails as ApiDetailsType).androidVersion

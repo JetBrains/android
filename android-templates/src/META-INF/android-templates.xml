@@ -24,14 +24,6 @@
     <defaultLiveTemplates file="liveTemplates/AndroidParcelable"/>
     <defaultLiveTemplates file="liveTemplates/AndroidXML"/>
     <liveTemplateContext contextId="XML_ATTRIBUTE" implementation="com.android.tools.idea.templates.live.XmlAttributeContextType"/>
-    <liveTemplateContext contextId="ANDROID" implementation="com.android.tools.idea.templates.live.AndroidSourceSetTemplateContextType" />
-    <liveTemplateContext contextId="ANDROID_KOTLIN" baseContextId="ANDROID" implementation="com.android.tools.idea.templates.live.AndroidKotlinTemplateContextType$Generic"/>
-    <liveTemplateContext contextId="ANDROID_KOTLIN_TOP_LEVEL" baseContextId="ANDROID_KOTLIN" implementation="com.android.tools.idea.templates.live.AndroidKotlinTemplateContextType$TopLevel"/>
-    <liveTemplateContext contextId="ANDROID_KOTLIN_STATEMENT" baseContextId="ANDROID_KOTLIN" implementation="com.android.tools.idea.templates.live.AndroidKotlinTemplateContextType$Statement"/>
-    <liveTemplateContext contextId="ANDROID_KOTLIN_CLASS" baseContextId="ANDROID_KOTLIN" implementation="com.android.tools.idea.templates.live.AndroidKotlinTemplateContextType$Class"/>
-    <liveTemplateContext contextId="ANDROID_KOTLIN_EXPRESSION" baseContextId="ANDROID_KOTLIN" implementation="com.android.tools.idea.templates.live.AndroidKotlinTemplateContextType$Expression"/>
-    <liveTemplateContext contextId="ANDROID_KOTLIN_COMMENT" baseContextId="ANDROID_KOTLIN" implementation="com.android.tools.idea.templates.live.AndroidKotlinTemplateContextType$Comment"/>
-    <liveTemplateContext contextId="ANDROID_KOTLIN_OBJECT_DECLARATION" baseContextId="ANDROID_KOTLIN" implementation="com.android.tools.idea.templates.live.AndroidKotlinTemplateContextType$ObjectDeclaration"/>
   </extensions>
 
   <extensionPoints>

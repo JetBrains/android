@@ -28,9 +28,6 @@ import com.android.tools.idea.compose.pickers.common.property.FloatPsiCallParame
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
 import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
-import com.android.tools.idea.compose.preview.PARAMETER_RATIO
-import com.android.tools.idea.compose.preview.PARAMETER_STIFFNESS
-import com.android.tools.idea.compose.preview.PARAMETER_THRESHOLD
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.intellij.openapi.application.runReadAction
@@ -48,6 +45,10 @@ import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+
+private const val PARAMETER_RATIO = "dampingRatio"
+private const val PARAMETER_STIFFNESS = "stiffness"
+private const val PARAMETER_THRESHOLD = "visibilityThreshold"
 
 internal class SpringPickerPropertiesModel(
   project: Project,
@@ -79,7 +80,8 @@ internal class SpringPickerPropertiesModel(
  * [PsiPropertiesProvider] for the Preview annotation. Provides specific implementations for known
  * parameters of the annotation.
  */
-internal class SpringPropertiesProvider(val resolvedCall: ResolvedCall<*>) : PsiPropertiesProvider {
+internal class SpringPropertiesProvider(private val resolvedCall: ResolvedCall<*>) :
+  PsiPropertiesProvider {
   private fun addNewValueArgument(
     newValueArgument: KtValueArgument,
     psiFactory: KtPsiFactory
@@ -125,7 +127,8 @@ internal class SpringPropertiesProvider(val resolvedCall: ResolvedCall<*>) : Psi
   }
 }
 
-internal class SpringPropertiesProviderK2(val callElement: KtCallElement) : PsiPropertiesProvider {
+internal class SpringPropertiesProviderK2(private val callElement: KtCallElement) :
+  PsiPropertiesProvider {
   private fun addNewValueArgument(
     newValueArgument: KtValueArgument,
     psiFactory: KtPsiFactory

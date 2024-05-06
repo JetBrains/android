@@ -153,6 +153,7 @@ class ParametersBindingDialogViewImpl(
     val sqliteParameter: SqliteParameter
     val component: JComponent
     val preferredFocusedComponent: JComponent
+
     fun getValue(): SqliteParameterValue
 
     val parameterNameLabel: JLabel

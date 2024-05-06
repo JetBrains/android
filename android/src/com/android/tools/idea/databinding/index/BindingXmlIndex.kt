@@ -59,12 +59,13 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
     @JvmField
     val NAME = ID.create<Int, BindingXmlData>("BindingXmlIndex")
 
-    fun acceptsFile(file: VirtualFile): Boolean =
-      "xml" == file.extension &&
-      ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.LAYOUT
-
     private fun getDataForFile(file: VirtualFile, project: Project): BindingXmlData? {
-      return FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project)
+      val data = FileBasedIndex.getInstance().getSingleEntryIndexData(NAME, file, project) ?: return null
+
+      val parentFolderName = file.parent?.name ?: return null
+      if (ResourceFolderType.getFolderType(parentFolderName) != ResourceFolderType.LAYOUT) return null
+
+      return data
     }
 
     fun getDataForFile(project: Project, file: VirtualFile) = getDataForFile(file, project)
@@ -75,13 +76,10 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
      *
      * This may return multiple entries as a layout may have multiple configurations.
      */
-    private fun getEntriesForLayout(project: Project, layoutName: String, scope: GlobalSearchScope): Collection<Entry> {
-      val entries = mutableListOf<Entry>()
-      FilenameIndex.getVirtualFilesByName("$layoutName.xml", scope).forEach { file ->
-        getDataForFile(file, project)?.let { data -> entries.add(Entry(file, data)) }
+    private fun getEntriesForLayout(project: Project, layoutName: String, scope: GlobalSearchScope) =
+      FilenameIndex.getVirtualFilesByName("$layoutName.xml", scope).mapNotNull { file ->
+        getDataForFile(file, project)?.let { data -> Entry(file, data) }
       }
-      return entries
-    }
 
     @JvmStatic
     fun getEntriesForLayout(project: Project, layoutName: String) = getEntriesForLayout(project, layoutName, project.projectScope())
@@ -164,7 +162,20 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
 
   override fun getIndexer(): SingleEntryIndexer<BindingXmlData> {
     return object : SingleEntryIndexer<BindingXmlData>(false) {
-      override fun computeValue(inputData: FileContent): BindingXmlData {
+
+      // Quick heuristic to avoid indexing non-layout files. We can't determine for sure at indexing time whether this is a layout file,
+      // as that relies on the parent directory which can't be accessed during indexing (see [FileBasedIndexExtension] docs). But layout
+      // files must contain the Android namespace declaration (see https://developer.android.com/guide/topics/resources/layout-resource),
+      // and so this indexer can skip processing any files that don't contain the declaration.
+      // This is checked with a text search rather than in the XML parsing below, since NanoXmlBuilder doesn't get directly called when
+      // the parser sees the namespace.
+      private val xmlNamespaceRegex = Regex("""xmlns:android\s*=\s*"http://schemas.android.com/apk/res/android"""")
+
+      override fun computeValue(inputData: FileContent): BindingXmlData? {
+        val inputAsText = inputData.contentAsText
+
+        if (!inputAsText.contains(xmlNamespaceRegex)) return null
+
         var bindingLayoutType = PLAIN_LAYOUT
         var customBindingName: String? = null
         var viewBindingIgnore = false
@@ -186,7 +197,7 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
           var viewTypeOverride: String? = null
         }
 
-        NanoXmlUtil.parse(EscapingXmlReader(inputData.contentAsText), object : NanoXmlBuilder {
+        NanoXmlUtil.parse(EscapingXmlReader(inputAsText), object : NanoXmlBuilder {
           val tags = mutableListOf<TagData>()
 
           override fun startElement(name: String, nsPrefix: String?, nsURI: String?, systemID: String, lineNr: Int) {
@@ -298,13 +309,9 @@ class BindingXmlIndex : SingleEntryFileBasedIndexExtension<BindingXmlData>() {
     }
   }
 
-  override fun getInputFilter(): FileBasedIndex.InputFilter {
-    return object : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
-      override fun acceptInput(file: VirtualFile): Boolean = acceptsFile(file)
-    }
-  }
+  override fun getInputFilter() = DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE)
 
-  override fun getVersion() = 11
+  override fun getVersion() = 12
 }
 
 private const val COMMENT_START = "<!--"

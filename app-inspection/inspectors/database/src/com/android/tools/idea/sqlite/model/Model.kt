@@ -56,6 +56,7 @@ sealed class SqliteDatabaseId {
     override val name: String,
     val connectionId: Int
   ) : SqliteDatabaseId()
+
   data class FileSqliteDatabaseId(
     override val path: String,
     override val name: String,
@@ -226,5 +227,6 @@ sealed class SqliteValue {
   }
 
   data class StringValue(val value: String) : SqliteValue()
+
   object NullValue : SqliteValue()
 }

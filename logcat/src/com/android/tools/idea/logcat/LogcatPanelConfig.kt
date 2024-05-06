@@ -42,7 +42,8 @@ private const val PROPERTY_NAME_CUSTOM = "custom"
 /**
  * Configuration for a logcat panel.
  *
- * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by [SplittingTabsToolWindowFactory].
+ * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by
+ * [SplittingTabsToolWindowFactory].
  */
 internal data class LogcatPanelConfig(
   val device: Device?,
@@ -54,23 +55,24 @@ internal data class LogcatPanelConfig(
 ) {
 
   companion object {
-    /**
-     * Decodes a JSON string into a [LogcatPanelConfig].
-     */
+    /** Decodes a JSON string into a [LogcatPanelConfig]. */
     fun fromJson(json: String?): LogcatPanelConfig? {
       return try {
         if (json?.contains("ro.product.manufacturer") == true) {
           fromOldFormat(json)
-        }
-        else {
+        } else {
           val config = gson.fromJson(json, LogcatPanelConfig::class.java)
-          when (config?.device?.model) {
-            null -> config?.copy(device = config.device?.copy(model = ""))
+          when {
+            config?.device?.model == null ->
+              config?.copy(
+                device = config.device?.copy(model = "", featureLevel = config.device.sdk)
+              )
+            config.device.featureLevel == 0 ->
+              config.copy(device = config.device.copy(featureLevel = config.device.sdk))
             else -> config
           }
         }
-      }
-      catch (e: JsonSyntaxException) {
+      } catch (e: JsonSyntaxException) {
         LOGGER.warn("Invalid state JSON string: '$json'")
         null
       }
@@ -80,29 +82,28 @@ internal data class LogcatPanelConfig(
     private fun fromOldFormat(json: String): LogcatPanelConfig? {
       return try {
         val oldDevice = gson.fromJson(json, OldConfigObject::class.java).device
-        val device = if (oldDevice.isEmulator) {
-          Device.createEmulator(
-            oldDevice.serialNumber,
-            isOnline = false,
-            oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
-            oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
-            oldDevice.avdName,
-          )
-        }
-        else {
-          Device.createPhysical(
-            oldDevice.serialNumber,
-            isOnline = false,
-            oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
-            oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
-            oldDevice.properties[RO_PRODUCT_MANUFACTURER] ?: "",
-            oldDevice.properties[RO_PRODUCT_MODEL] ?: "",
-          )
-        }
+        val device =
+          if (oldDevice.isEmulator) {
+            Device.createEmulator(
+              oldDevice.serialNumber,
+              isOnline = false,
+              oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
+              oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
+              oldDevice.avdName,
+            )
+          } else {
+            Device.createPhysical(
+              oldDevice.serialNumber,
+              isOnline = false,
+              oldDevice.properties[RO_BUILD_VERSION_RELEASE] ?: "",
+              oldDevice.properties[RO_BUILD_VERSION_SDK]?.toIntOrNull() ?: 0,
+              oldDevice.properties[RO_PRODUCT_MANUFACTURER] ?: "",
+              oldDevice.properties[RO_PRODUCT_MODEL] ?: "",
+            )
+          }
 
-        gson.fromJson(json, LogcatPanelConfig::class.java).copy(device= device)
-      }
-      catch (e: JsonSyntaxException) {
+        gson.fromJson(json, LogcatPanelConfig::class.java).copy(device = device)
+      } catch (e: JsonSyntaxException) {
         LOGGER.warn("Invalid state", e)
         null
       }
@@ -111,16 +112,19 @@ internal data class LogcatPanelConfig(
     /**
      * Encodes a [LogcatPanelConfig] into a JSON string.
      *
-     * We replace all double quotes with single quotes because the XML serializer will replace double quotes with `@quot;` while single
-     * quotes seem to be fine. This makes the JSON string more human-readable.
+     * We replace all double quotes with single quotes because the XML serializer will replace
+     * double quotes with `@quot;` while single quotes seem to be fine. This makes the JSON string
+     * more human-readable.
      *
      * GSON can handle single quoted JSON strings.
      */
-    fun toJson(config: LogcatPanelConfig): String = gson.toJson(config).replace(Regex("(?<!\\\\)\""), "'")
+    fun toJson(config: LogcatPanelConfig): String =
+      gson.toJson(config).replace(Regex("(?<!\\\\)\""), "'")
   }
 
   sealed class FormattingConfig {
     internal data class Preset(val style: FormattingOptions.Style) : FormattingConfig()
+
     internal data class Custom(val formattingOptions: FormattingOptions) : FormattingConfig()
 
     fun toFormattingOptions(): FormattingOptions {
@@ -131,8 +135,13 @@ internal data class LogcatPanelConfig(
     }
 
     // This is required since Gson can't deal with the sealed base class.
-    internal class Serializer : JsonSerializer<FormattingConfig>, JsonDeserializer<FormattingConfig> {
-      override fun serialize(src: FormattingConfig, type: Type, context: JsonSerializationContext): JsonElement {
+    internal class Serializer :
+      JsonSerializer<FormattingConfig>, JsonDeserializer<FormattingConfig> {
+      override fun serialize(
+        src: FormattingConfig,
+        type: Type,
+        context: JsonSerializationContext
+      ): JsonElement {
         val obj = JsonObject()
         when (src) {
           is Preset -> obj.addProperty(PROPERTY_NAME_PRESET, src.style.name)
@@ -141,11 +150,17 @@ internal data class LogcatPanelConfig(
         return obj
       }
 
-      override fun deserialize(element: JsonElement, type: Type, context: JsonDeserializationContext): FormattingConfig {
+      override fun deserialize(
+        element: JsonElement,
+        type: Type,
+        context: JsonDeserializationContext
+      ): FormattingConfig {
         return element.asJsonObject.run {
           when {
-            has(PROPERTY_NAME_PRESET) -> Preset(FormattingOptions.Style.valueOf(get(PROPERTY_NAME_PRESET).asString))
-            has(PROPERTY_NAME_CUSTOM) -> Custom(Gson().fromJson(get(PROPERTY_NAME_CUSTOM), FormattingOptions::class.java))
+            has(PROPERTY_NAME_PRESET) ->
+              Preset(FormattingOptions.Style.valueOf(get(PROPERTY_NAME_PRESET).asString))
+            has(PROPERTY_NAME_CUSTOM) ->
+              Custom(Gson().fromJson(get(PROPERTY_NAME_CUSTOM), FormattingOptions::class.java))
             else -> throw IllegalStateException("Invalid FormattingConfig element: $element")
           }
         }
@@ -159,10 +174,12 @@ internal data class LogcatPanelConfig(
       val name: String,
       val isEmulator: Boolean,
       val avdName: String,
-      val properties: Map<String, String>)
+      val properties: Map<String, String>
+    )
   }
 }
 
-private val gson = GsonBuilder()
-  .registerTypeAdapter(FormattingConfig::class.java, FormattingConfig.Serializer())
-  .create()
+private val gson =
+  GsonBuilder()
+    .registerTypeAdapter(FormattingConfig::class.java, FormattingConfig.Serializer())
+    .create()

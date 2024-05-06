@@ -3,8 +3,6 @@ package org.jetbrains.android.database;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.intellij.CommonBundle;
 import com.intellij.database.psi.DbDataSource;
 import com.intellij.database.view.DatabaseContextFun;
@@ -16,20 +14,23 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.util.concurrency.EdtExecutorService;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.intellij.util.io.DigestUtil;
+import org.jetbrains.android.sdk.AndroidSdkUtils;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.*;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.ide.PooledThreadExecutor;
+
+import static com.intellij.database.view.DatabaseView.getSelectedElements;
 
 public class AndroidUploadDatabaseAction extends AnAction {
-  private static final Logger LOG = Logger.getInstance(AndroidUploadDatabaseAction.class);
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidUploadDatabaseAction");
 
   @Override
   public void update(@NotNull AnActionEvent e) {
@@ -46,10 +47,10 @@ public class AndroidUploadDatabaseAction extends AnAction {
     final AndroidDebugBridge debugBridge = AndroidSdkUtils.getDebugBridge(project);
 
     if (debugBridge == null) {
-      Messages.showErrorDialog(project, AndroidUltimateBundle.message("cannot.connect.to.adb.error"), CommonBundle.getErrorTitle());
+      Messages.showErrorDialog(project, AndroidBundle.message("cannot.connect.to.adb.error"), CommonBundle.getErrorTitle());
       return;
     }
-    ProgressManager.getInstance().run(new Task.Backgroundable(project, AndroidUltimateBundle.message("android.db.uploading.progress.title"), true) {
+    ProgressManager.getInstance().run(new Task.Backgroundable(project, AndroidBundle.message("android.db.uploading.progress.title"), true) {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         for (final AndroidDataSource dataSource : dataSources) {
@@ -85,10 +86,10 @@ public class AndroidUploadDatabaseAction extends AnAction {
 
   private static void uploadDatabase(@NotNull Project project,
                                      @NotNull AndroidDataSource dataSource,
-                                     @NotNull ProgressIndicator progress,
+                                     @NotNull ProgressIndicator indicator,
                                      @NotNull AndroidDebugBridge debugBridge) {
-    final Path localDbFilePath = Paths.get(dataSource.buildLocalDbFileOsPath());
-    final AndroidDbErrorReporter errorReporter = new AndroidDbErrorReporter(project, dataSource, true);
+    final String localDbFilePath = dataSource.buildLocalDbFileOsPath();
+    final AndroidDbErrorReporterImpl errorReporter = new AndroidDbErrorReporterImpl(project, dataSource, true);
     final AndroidDbConnectionInfo dbConnectionInfo = AndroidDbUtil.checkDataSource(dataSource, debugBridge, errorReporter);
 
     if (dbConnectionInfo == null) {
@@ -97,42 +98,55 @@ public class AndroidUploadDatabaseAction extends AnAction {
     final IDevice device = dbConnectionInfo.getDevice();
     final String packageName = dbConnectionInfo.getPackageName();
     final String dbName = dbConnectionInfo.getDbName();
+    final String localFileMd5Hash = getLocalFileMd5Hash(new File(localDbFilePath));
     final String deviceId = AndroidDbUtil.getDeviceId(device);
     final boolean external = dbConnectionInfo.isExternal();
 
-    if (!Files.isRegularFile(localDbFilePath) || deviceId == null) {
+    if (localFileMd5Hash == null || deviceId == null) {
       return;
     }
+    if (AndroidDbUtil.uploadDatabase(device, packageName, dbName, external, localDbFilePath, indicator, errorReporter)) {
+      final Long modificationTime = AndroidDbUtil.getModificationTime(device, packageName, dbName, external, errorReporter, indicator);
 
-    String databaseRemoteDirPath = AndroidDbUtil.getDatabaseRemoteDirPath(packageName, external);
-    String databaseRemoteFilePath = AndroidDbUtil.getDatabaseRemoteFilePath(packageName, dbName, external);
-    AdbDeviceFileSystem fileSystem = new AdbDeviceFileSystem(device, EdtExecutorService.getInstance(), PooledThreadExecutor.INSTANCE);
+      if (modificationTime != null) {
+        AndroidRemoteDataBaseManager.MyDatabaseInfo dbInfo = AndroidRemoteDataBaseManager.
+          getInstance().getDatabaseInfo(deviceId, packageName, dbName, external);
 
-    try {
-      progress.setIndeterminate(false);
-      DeviceFileEntry remoteDbDir = fileSystem.getEntry(databaseRemoteDirPath).get();
-      remoteDbDir.uploadFile(localDbFilePath, AndroidDbUtil.wrapAsFileTransferProgress(progress)).get();
-
-      DeviceFileEntry remoteDbFile = fileSystem.getEntry(databaseRemoteFilePath).get();
-      final String dbFingerprint = AndroidDbUtil.getFingerprint(remoteDbFile);
-
-      AndroidRemoteDataBaseManager.MyDatabaseInfo dbInfo = AndroidRemoteDataBaseManager.
-        getInstance().getDatabaseInfo(deviceId, packageName, dbName, external);
-
-      if (dbInfo == null) {
-        dbInfo = new AndroidRemoteDataBaseManager.MyDatabaseInfo();
+        if (dbInfo == null) {
+          dbInfo = new AndroidRemoteDataBaseManager.MyDatabaseInfo();
+        }
+        dbInfo.modificationTime = modificationTime;
+        AndroidRemoteDataBaseManager.getInstance().setDatabaseInfo(deviceId, packageName, dbName, dbInfo, external);
       }
-      dbInfo.fingerprint = dbFingerprint;
-      AndroidRemoteDataBaseManager.getInstance().setDatabaseInfo(deviceId, packageName, dbName, dbInfo, external);
     }
-    catch (Exception e) {
-      String message = "Failed to upload local file " + localDbFilePath.toString() +
-                       " to device " + deviceId +
-                       ", remote path: " + databaseRemoteFilePath +
-                       ", reason: " + e.getMessage();
+  }
 
-      errorReporter.reportError(message);
-      LOG.warn(message, e);
+  @Nullable
+  private static String getLocalFileMd5Hash(@NotNull File file) {
+    try {
+      final byte[] buffer = new byte[1024];
+      final MessageDigest md5 = DigestUtil.md5();
+      final InputStream fis = new BufferedInputStream(new FileInputStream(file));
+      try {
+        int read;
+
+        while ((read = fis.read(buffer)) > 0) {
+          md5.update(buffer, 0, read);
+        }
+      }
+      finally {
+        fis.close();
+      }
+      final StringBuilder builder = new StringBuilder();
+
+      for (byte b : md5.digest()) {
+        builder.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+      }
+      return builder.toString();
+    }
+    catch (IOException e) {
+      LOG.error(e);
+      return null;
     }
   }
 }

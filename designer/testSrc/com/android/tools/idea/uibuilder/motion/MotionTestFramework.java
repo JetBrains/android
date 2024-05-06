@@ -21,6 +21,7 @@ import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
 import com.android.tools.idea.uibuilder.motion.adapters.MTagImp;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.layout_16_xml;
 import com.android.tools.idea.uibuilder.motion.adapters.samples.motion_scene_16_xml;
+
 import com.android.tools.idea.uibuilder.motion.adapters.samples.simple_scene_xml;
 import java.io.InputStream;
 

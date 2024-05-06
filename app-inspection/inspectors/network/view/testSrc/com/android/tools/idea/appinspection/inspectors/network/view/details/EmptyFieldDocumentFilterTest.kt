@@ -17,9 +17,9 @@ package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBTextField
+import javax.swing.text.AbstractDocument
 import org.junit.Before
 import org.junit.Test
-import javax.swing.text.AbstractDocument
 
 class EmptyFieldDocumentFilterTest {
 

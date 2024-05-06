@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
-import java.nio.charset.StandardCharsets;
+import com.google.common.base.Charsets;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -93,7 +93,7 @@ public class MultiUserUtilsTest {
         fail(String.format("This mock device only supports the '%s' shell command)", cmd));
       }
 
-      byte[] bytes = amCurrentUserOutput.getBytes(StandardCharsets.UTF_8);
+      byte[] bytes = amCurrentUserOutput.getBytes(Charsets.UTF_8);
 
       IShellOutputReceiver receiver = (IShellOutputReceiver)invocation.getArguments()[1];
       receiver.addOutput(bytes, 0, bytes.length);

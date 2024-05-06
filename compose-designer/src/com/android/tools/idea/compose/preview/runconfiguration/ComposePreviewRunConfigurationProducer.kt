@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.runconfiguration
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.isValidComposePreview
+import com.android.tools.idea.compose.preview.util.isValidComposePreview
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.android.tools.idea.projectsystem.getHolderModule
@@ -144,8 +144,7 @@ private fun KtAnnotationEntry.providerClassName(): String? {
   val argument =
     annotationDescriptor.allValueArguments.entries
       .firstOrNull { it.key.asString() == "provider" }
-      ?.value
-      ?: return null
+      ?.value ?: return null
   return (argument.value as? KClassValue.Value.NormalClass)?.classId?.asSingleFqName()?.asString()
 }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutlib;
 
-import org.jetbrains.annotations.NotNull;
+import com.android.annotations.NonNull;
 
 public class RenderingException extends Exception {
   private final String myPresentableMessage;
@@ -33,12 +33,12 @@ public class RenderingException extends Exception {
     myCauses = causes;
   }
 
-  public RenderingException(@NotNull Throwable... causes) {
+  public RenderingException(@NonNull Throwable... causes) {
     myPresentableMessage = null;
     myCauses = causes;
   }
 
-  @NotNull
+  @NonNull
   public Throwable[] getCauses() {
     return myCauses;
   }

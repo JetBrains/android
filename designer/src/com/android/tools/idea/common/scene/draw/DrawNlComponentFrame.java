@@ -17,7 +17,7 @@ package com.android.tools.idea.common.scene.draw;
 
 import static com.android.tools.idea.common.scene.SceneComponent.DrawState.HOVER;
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import java.awt.BasicStroke;

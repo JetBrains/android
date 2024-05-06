@@ -28,7 +28,6 @@ import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Severity
-import com.android.utils.NullLogger
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LintAction
 import com.google.wireless.android.sdk.stats.LintIssueId
@@ -40,7 +39,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import java.io.File
-import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -279,7 +277,7 @@ class LintIdeAnalytics(private val project: Project) {
                 }
             }
           }
-      issueBuilder.count += 1
+      issueBuilder.count = issueBuilder.count + 1
     }
   }
 
@@ -307,11 +305,7 @@ class LintIdeAnalytics(private val project: Project) {
   private fun computeProjectId(projectPath: Path?): String? {
     projectPath ?: return null
 
-    return try {
-      Anonymizer.anonymizeUtf8(NullLogger(), projectPath.toAbsolutePath().toString())
-    } catch (e: IOException) {
-      "*ANONYMIZATION_ERROR*"
-    }
+    return Anonymizer.anonymize(projectPath.toAbsolutePath().toString()) ?: "*ANONYMIZATION_ERROR*"
   }
 
   /**

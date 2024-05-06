@@ -50,7 +50,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.wireless.android.sdk.stats.SigningWizardEvent;
-import com.google.wireless.android.vending.developer.signing.tools.extern.export.ExportEncryptedPrivateKeyTool;
 import com.intellij.ide.wizard.AbstractWizard;
 import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.compiler.CompileScope;
@@ -72,7 +71,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -83,35 +81,27 @@ import org.jetbrains.annotations.Nullable;
 public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackageWizardStep> {
   public static final String BUNDLE = "bundle";
   public static final String APK = "apk";
-  private static final String ENCRYPTED_PRIVATE_KEY_FILE = "private_key.pepk";
-  private static final String GOOGLE_PUBLIC_KEY =
-    "eb10fe8f7c7c9df715022017b00c6471f8ba8170b13049a11e6c09ffe3056a104a3bbe4ac5a955f4ba4fe93fc8cef27558a3eb9d2a529a2092761fb833b656cd48b9de6a";
   @NotNull private final Project myProject;
   private final boolean mySigned;
   // build variants and gradle signing info are valid only for Gradle projects
-  @NotNull private final ExportEncryptedPrivateKeyTool myEncryptionTool;
   private AndroidFacet myFacet;
   private PrivateKey myPrivateKey;
   private X509Certificate myCertificate;
   private CompileScope myCompileScope;
   private String myApkPath;
-  private String myExportKeyPath;
   @NotNull private String myTargetType = APK;
-  private boolean myExportPrivateKey;
   private List<String> myBuildVariants;
   private GradleSigningInfo myGradleSigningInfo;
 
   public ExportSignedPackageWizard(@NotNull Project project,
                                    @NotNull List<AndroidFacet> facets,
                                    boolean signed,
-                                   Boolean showBundle,
-                                   @NotNull ExportEncryptedPrivateKeyTool encryptionTool) {
+                                   Boolean showBundle) {
     super(AndroidBundle.message(showBundle ? "android.export.package.wizard.bundle.title" : "android.export.package.wizard.title"),
           project);
 
     myProject = project;
     mySigned = signed;
-    myEncryptionTool = encryptionTool;
     assert !facets.isEmpty();
     myFacet = facets.get(0);
     if (showBundle) {
@@ -166,51 +156,21 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         List<Module> modules = ImmutableList.of(myFacet.getMainModule());
-        AtomicReference<Boolean> isKeyExported = new AtomicReference<>(false);
-        Consumer<ListenableFuture<AssembleInvocationResult>> buildHandler = prepareBuildResultHandler(modules, isKeyExported);
+        Consumer<ListenableFuture<AssembleInvocationResult>> buildHandler = prepareBuildResultHandler(modules);
         if (buildHandler == null) {
           // Nothing to do, there was an error detected while generating the result handler (and was already logged)
           return;
         }
         doBuildAndSignGradleProject(myProject, myFacet, myBuildVariants, modules, myGradleSigningInfo, myApkPath, myTargetType,
                                     buildHandler);
-        trackWizardGradleSigning(myProject, toSigningTargetType(myTargetType), modules.size(), myBuildVariants.size(), isKeyExported.get());
+        trackWizardGradleSigning(myProject, toSigningTargetType(myTargetType), modules.size(), myBuildVariants.size());
       }
     });
   }
 
-  private Consumer<ListenableFuture<AssembleInvocationResult>> prepareBuildResultHandler(@NotNull List<Module> modules,
-                                                                                 @NotNull AtomicReference<Boolean> isKeyExported) {
-    isKeyExported.set(false);
+  private Consumer<ListenableFuture<AssembleInvocationResult>> prepareBuildResultHandler(@NotNull List<Module> modules) {
     if (myTargetType.equals(BUNDLE)) {
-      File exportedKeyFile = null;
-      if (myExportPrivateKey) {
-        isKeyExported.set(true);
-        exportedKeyFile = generatePrivateKeyPath();
-        try {
-          myEncryptionTool.run(myGradleSigningInfo.keyStoreFilePath,
-                               myGradleSigningInfo.keyAlias,
-                               GOOGLE_PUBLIC_KEY,
-                               exportedKeyFile.getPath(),
-                               myGradleSigningInfo.keyStorePassword,
-                               myGradleSigningInfo.keyPassword
-          );
-
-          final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myProject);
-          //We want to only export the private key once. Anymore would be redundant.
-          settings.EXPORT_PRIVATE_KEY = false;
-        }
-        catch (Exception e) {
-          getLog().error("Something went wrong with the encryption tool", e);
-          invokeLaterIfNeeded(() -> Messages.showErrorDialog(
-            getProject(), AndroidBundle.message("android.export.package.bundle.key.export.error.description", e.getMessage()),
-            AndroidBundle.message("android.export.package.bundle.key.export.error.title")));
-          trackWizardGradleSigningFailed(myProject, SigningWizardEvent.SigningWizardFailureCause.FAILURE_CAUSE_ENCRYPTION_ERROR);
-          return null;
-        }
-      }
-      return new GoToBundleLocationTask(myProject, modules, "Generate Signed Bundle", myBuildVariants,
-                                        exportedKeyFile)::executeWhenBuildFinished;
+      return new GoToBundleLocationTask(myProject, modules, "Generate Signed Bundle", myBuildVariants)::executeWhenBuildFinished;
     }
     else {
       return new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants)::executeWhenBuildFinished;
@@ -255,8 +215,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   protected void updateStep() {
     int step = getCurrentStep();
     final ExportSignedPackageWizardStep currentStep = mySteps.get(step);
-
-    // API REMOVED
 
     super.updateStep();
 
@@ -328,21 +286,8 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     myTargetType = targetType;
   }
 
-  @NotNull
-  private File generatePrivateKeyPath() {
-    return new File(myExportKeyPath, ENCRYPTED_PRIVATE_KEY_FILE);
-  }
-
   public void setGradleSigningInfo(GradleSigningInfo gradleSigningInfo) {
     myGradleSigningInfo = gradleSigningInfo;
-  }
-
-  public void setExportPrivateKey(boolean exportPrivateKey) {
-    myExportPrivateKey = exportPrivateKey;
-  }
-
-  public void setExportKeyPath(@NotNull String exportKeyPath) {
-    myExportKeyPath = exportKeyPath;
   }
 
   private static Logger getLog() {

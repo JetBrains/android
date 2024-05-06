@@ -1,8 +1,8 @@
 package com.android.example.viewbinding;
 
-import android.app.Activity;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
+import android.app.Activity;
 import com.android.example.viewbinding.databinding.ActivityMainBinding;
 
 class MainActivity extends Activity {

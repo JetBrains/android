@@ -17,12 +17,12 @@ package com.android.tools.idea.common.surface.layout
 
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.surface.SceneView
-import org.junit.Assert
-import org.junit.Test
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import org.junit.Assert
+import org.junit.Test
 
 class ReferencePointScrollerTest {
   @Test
@@ -47,7 +47,8 @@ class ReferencePointScrollerTest {
         oldViewSize,
         viewRect.location,
         oldMousePosition,
-        scaleChange = 2.0,
+        oldScale = 1.0,
+        newScale = 2.0,
         mapOf(sceneViewMock to oldSceneViewRectangle)
       ) {
         newSceneViewRectangle
@@ -76,7 +77,8 @@ class ReferencePointScrollerTest {
         oldViewSize,
         viewRect.location,
         oldMousePosition,
-        scaleChange = 2.0,
+        oldScale = 1.0,
+        newScale = 2.0,
         mapOf(sceneViewMock to null)
       ) {
         null
@@ -107,7 +109,8 @@ class ReferencePointScrollerTest {
         oldViewSize,
         viewRect.location,
         oldMousePosition,
-        scaleChange = 2.0,
+        oldScale = 1.0,
+        newScale = 2.0,
         mapOf(sceneViewMock to oldSceneViewRectangle)
       ) {
         newSceneViewRectangle
@@ -138,7 +141,8 @@ class ReferencePointScrollerTest {
         oldViewSize,
         viewRect.location,
         oldMousePosition,
-        scaleChange = 0.5,
+        oldScale = 2.0,
+        newScale = 1.0,
         mapOf(sceneViewMock to oldSceneViewRectangle)
       ) {
         newSceneViewRectangle
@@ -167,7 +171,8 @@ class ReferencePointScrollerTest {
         oldViewSize,
         viewRect.location,
         oldMousePosition,
-        scaleChange = 0.5,
+        oldScale = 2.0,
+        newScale = 1.0,
         mapOf(sceneViewMock to null)
       ) {
         null
@@ -198,7 +203,8 @@ class ReferencePointScrollerTest {
         oldViewSize,
         viewRect.location,
         oldMousePosition,
-        scaleChange = 0.5,
+        oldScale = 2.0,
+        newScale = 1.0,
         mapOf(sceneViewMock to oldSceneViewRectangle)
       ) {
         newSceneViewRectangle

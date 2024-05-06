@@ -20,45 +20,25 @@ import com.android.tools.idea.gradle.model.IdeUnresolvedDependency
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 
-internal sealed class SyncVariantResultCore(
+internal sealed class SyncVariantResult(
   val moduleConfiguration: ModuleConfiguration,
   val module: AndroidModule
 )
 
-internal class SyncVariantResultCoreSuccess(
+internal class SyncVariantResultSuccess(
   moduleConfiguration: ModuleConfiguration,
   module: AndroidModule,
   val ideVariant: IdeVariantWithPostProcessor,
   val nativeVariantAbi: NativeVariantAbiResult,
   val unresolvedDependencies: List<IdeUnresolvedDependency>
-) : SyncVariantResultCore(moduleConfiguration, module)
-
-internal class SyncVariantResultCoreFailure(
-  moduleConfiguration: ModuleConfiguration,
-  module: AndroidModule,
-) : SyncVariantResultCore(moduleConfiguration, module)
-
-internal sealed class SyncVariantResult(
-  val core: SyncVariantResultCore,
-) {
-  val moduleConfiguration: ModuleConfiguration get() = core.moduleConfiguration
-  val module: AndroidModule get() = core.module
-}
-
-internal class SyncVariantResultSuccess(
-  val coreSuccess: SyncVariantResultCoreSuccess,
-  val moduleDependencies: List<ModuleConfiguration>
-) : SyncVariantResult(coreSuccess) {
-  val ideVariant: IdeVariantWithPostProcessor get() = coreSuccess.ideVariant
-  val nativeVariantAbi: NativeVariantAbiResult get() = coreSuccess.nativeVariantAbi
-  val unresolvedDependencies: List<IdeUnresolvedDependency> get() = coreSuccess.unresolvedDependencies
-}
+) : SyncVariantResult(moduleConfiguration, module)
 
 internal class SyncVariantResultFailure(
-  core: SyncVariantResultCoreFailure,
-) : SyncVariantResult(core)
+  moduleConfiguration: ModuleConfiguration,
+  module: AndroidModule,
+) : SyncVariantResult(moduleConfiguration, module)
 
-internal fun SyncVariantResultCoreSuccess.getModuleDependencyConfigurations(
+internal fun SyncVariantResultSuccess.getModuleDependencyConfigurations(
   selectedVariants: SelectedVariants,
   androidModulesById: Map<String, AndroidModule>,
   libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary

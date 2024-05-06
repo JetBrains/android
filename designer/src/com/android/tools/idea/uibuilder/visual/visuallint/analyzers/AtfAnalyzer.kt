@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.viewInfo
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
@@ -39,18 +39,25 @@ object AtfAnalyzer : VisualLintAnalyzer() {
     renderResult: RenderResult,
     model: NlModel
   ): List<VisualLintIssueContent> {
-    if (!StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
-      return emptyList()
-    }
     val atfAnalyzer = VisualLintAtfAnalysis(model)
     val atfIssues = atfAnalyzer.validateAndUpdateLint(renderResult)
     return atfIssues.map { createVisualLintIssueContent(it) }.toList()
   }
 
-  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue): VisualLintIssueContent {
-    val content = { _: Int -> HtmlBuilder().addHtml(issue.description) }
-    return VisualLintIssueContent(issue.component.viewInfo, issue.summary, content)
-  }
+  private fun createVisualLintIssueContent(issue: VisualLintAtfIssue) =
+    if (issue.appliedColorBlindFilter() != ColorBlindMode.NONE && issue.isLowContrast()) {
+      VisualLintIssueContent(
+        issue.component.viewInfo,
+        COLOR_BLIND_ISSUE_SUMMARY,
+        VisualLintErrorType.ATF_COLORBLIND
+      ) { count: Int ->
+        colorBLindModeDescriptionProvider(issue, count)
+      }
+    } else {
+      VisualLintIssueContent(issue.component.viewInfo, issue.summary) { _: Int ->
+        HtmlBuilder().addHtml(issue.description)
+      }
+    }
 }
 
 class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
@@ -58,3 +65,26 @@ class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atf
     var atfBackground = true
   }
 }
+
+private const val COLOR_BLIND_ISSUE_SUMMARY = "Insufficient color contrast for color blind users"
+
+private val colorBLindModeDescriptionProvider: (VisualLintAtfIssue, Int) -> HtmlBuilder =
+  { issue, count ->
+    val colorBlindFilter = issue.appliedColorBlindFilter().displayName
+    val description = issue.description
+    val contentDescription =
+      StringBuilder()
+        .append("Color contrast check fails for $colorBlindFilter ")
+        .append(
+          when (count) {
+            0,
+            1 -> "colorblind configuration"
+            2 -> "and 1 other colorblind configuration"
+            else -> "and ${count - 1} other colorblind configurations"
+          },
+        )
+        .append(".<br>")
+        .append(description)
+        .toString()
+    HtmlBuilder().addHtml(contentDescription)
+  }

@@ -1,8 +1,14 @@
 <component name="libraryTable">
   <library name="android-test-plugin-host-device-info-proto" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-device-info-proto:231.0.26.0" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-device-info-proto:232.1.23.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-device-info-proto/232.1.23.0/libstudio.android-test-plugin-host-device-info-proto-232.1.23.0.jar">
+          <sha256sum>e3528be383901f7c6c613491a61a1f73794b98649ea5e006d71fe11a0aa17888</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-device-info-proto/231.0.26.0/libstudio.android-test-plugin-host-device-info-proto-231.0.26.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-device-info-proto/232.1.23.0/libstudio.android-test-plugin-host-device-info-proto-232.1.23.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

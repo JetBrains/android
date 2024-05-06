@@ -21,15 +21,16 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
-import java.util.Map;
+import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
-public final class SubProjectsDslElement extends GradleDslBlockElement {
+public class SubProjectsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<SubProjectsDslElement> SUBPROJECTS =
     new PropertiesElementDescription<>("subprojects", SubProjectsDslElement.class, SubProjectsDslElement::new);
 
+  @NotNull
   @Override
-  protected @NotNull Map<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
     return GradleBlockModelMap.getElementMap(GradleBuildFile.class);
   }
 

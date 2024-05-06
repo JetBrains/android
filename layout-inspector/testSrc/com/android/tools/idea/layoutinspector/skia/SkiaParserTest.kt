@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.skia
 import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.FakeSdkRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.InspectorView
@@ -275,7 +275,9 @@ class SkiaParserIntegrationTest {
     init {
       System.loadLibrary("skiaparser-test")
     }
+
     @JvmStatic private external fun generateBoxes(): ByteArray
+
     @JvmStatic private external fun runServer(port: Int)
   }
 }

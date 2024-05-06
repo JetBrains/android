@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorModelModificationListener
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
@@ -111,7 +110,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private var toolWindowCallback: ToolWindowCallback? = null
   private var filter = ""
   private val modelModifiedListener =
-    InspectorModelModificationListener { oldWindow, newWindow, isStructuralChange ->
+    InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
       modelModified(oldWindow, newWindow, isStructuralChange)
       componentTreePanel.repaint()
     }
@@ -240,14 +239,14 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   private fun createCountsHeader(): TableCellRenderer {
     return createIconHeader(
-      StudioIcons.LayoutInspector.RECOMPOSITION_COUNT,
+      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_COUNT,
       toolTipText = "Number of times this composable has been recomposed"
     )
   }
 
   private fun createSkipsHeader(): TableCellRenderer {
     return createIconHeader(
-      StudioIcons.LayoutInspector.RECOMPOSITION_SKIPPED,
+      StudioIcons.LayoutInspector.Toolbar.RECOMPOSITION_SKIPPED,
       toolTipText = "Number of times recomposition for this component has been skipped"
     )
   }
@@ -295,8 +294,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   fun updateRecompositionColumnVisibility() {
     invokeLater {
       val show =
-        layoutInspector?.treeSettings?.showRecompositions
-          ?: false && layoutInspector?.currentClient?.isConnected ?: false
+        layoutInspector?.treeSettings?.showRecompositions ?: false &&
+          layoutInspector?.currentClient?.isConnected ?: false
       interactions.setHeaderVisibility(show)
       interactions.setColumnVisibility(1, show)
       interactions.setColumnVisibility(2, show)
@@ -325,9 +324,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     // register listeners on new layout inspector
     nodeType.model = inspectorModel
     componentTreeModel.treeRoot = root
-    inspectorModel?.modificationListeners?.add(modelModifiedListener)
-    inspectorModel?.selectionListeners?.add(selectionChangedListener)
-    inspectorModel?.connectionListeners?.add(connectionListener)
+    inspectorModel?.addModificationListener(modelModifiedListener)
+    inspectorModel?.addSelectionListener(selectionChangedListener)
+    inspectorModel?.addConnectionListener(connectionListener)
     inspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
     rootPanel.layoutInspector = toolContext
 
@@ -336,9 +335,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   /** Remove all listeners registered on Layout Inspector */
   private fun cleanUp() {
-    inspectorModel?.modificationListeners?.remove(modelModifiedListener)
-    inspectorModel?.selectionListeners?.remove(selectionChangedListener)
-    inspectorModel?.connectionListeners?.remove(connectionListener)
+    inspectorModel?.removeModificationListener(modelModifiedListener)
+    inspectorModel?.removeSelectionListener(selectionChangedListener)
+    inspectorModel?.removeConnectionListener(connectionListener)
   }
 
   override fun getAdditionalActions() = additionalActions

@@ -17,6 +17,7 @@ package org.jetbrains.android.dom.animator;
 
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.SubTagList;
+
 import java.util.List;
 
 @DefinesXml

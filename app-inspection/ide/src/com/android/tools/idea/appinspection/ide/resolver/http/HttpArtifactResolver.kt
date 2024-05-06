@@ -23,7 +23,7 @@ import com.android.tools.idea.appinspection.ide.resolver.createRandomTempDir
 import com.android.tools.idea.appinspection.ide.resolver.extractZipIfNeeded
 import com.android.tools.idea.appinspection.ide.resolver.resolveExistsOrNull
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
@@ -39,7 +39,7 @@ class HttpArtifactResolver(
   private val artifactPaths: AppInspectorArtifactPaths,
   private val downloader: Downloader = StudioDownloader()
 ) : ArtifactResolver {
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate) =
+  override suspend fun resolveArtifact(artifactCoordinate: RunningArtifactCoordinate) =
     artifactPaths.getInspectorArchive(artifactCoordinate)
       ?: run {
         val tmpArtifactDir = fileService.createRandomTempDir()
@@ -51,7 +51,10 @@ class HttpArtifactResolver(
         }
       }
 
-  private suspend fun downloadLibrary(targetDir: Path, artifactCoordinate: ArtifactCoordinate) =
+  private suspend fun downloadLibrary(
+    targetDir: Path,
+    artifactCoordinate: RunningArtifactCoordinate
+  ) =
     withContext(AndroidDispatchers.diskIoThread) {
       try {
         val targetPath = targetDir.resolve(artifactCoordinate.fileName)
@@ -74,7 +77,7 @@ class HttpArtifactResolver(
   private suspend fun extractInspector(
     targetDir: Path,
     libraryPath: Path,
-    artifactCoordinate: ArtifactCoordinate
+    artifactCoordinate: RunningArtifactCoordinate
   ): Path {
     val artifactDir =
       try {
@@ -93,10 +96,13 @@ class HttpArtifactResolver(
       )
   }
 
+  private val RunningArtifactCoordinate.type
+    get() = "aar"
+
   /** The file name of the artifact in question. */
-  private val ArtifactCoordinate.fileName
+  private val RunningArtifactCoordinate.fileName
     get() = "${artifactId}-${version}.${type}"
 
-  private fun ArtifactCoordinate.toGMavenUrl() =
+  private fun RunningArtifactCoordinate.toGMavenUrl() =
     URL("http://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
 }

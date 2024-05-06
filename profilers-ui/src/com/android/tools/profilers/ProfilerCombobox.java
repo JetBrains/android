@@ -69,12 +69,12 @@ public class ProfilerCombobox<T> extends ComboBox<T> {
       // Unset the JComboBox.isTableCellEditor before calling parent's paintBorder because it checks for this property and doesn't draw the
       // line around the border if it's set. We need this line to be drawn, and the reason to set this property to true afterwards is
       // explained below.
-      comboBox.putClientProperty(IS_TABLE_CELL_EDITOR_PROPERTY, Boolean.FALSE);
+      comboBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.FALSE);
       super.paintBorder(c, g, x, y, width, height);
       // This disables firing actions like setSelectedItem when the user is using keyboard to navigate through the combobox menu.
       // That's the behavior of IntelliJ comboboxes. For instance, if we have a combobox entry that triggers a popup (e.g. "Settings..."),
       // we shouldn't trigger it while navigating with the keyboard, but only when actually selecting it.
-      comboBox.putClientProperty(IS_TABLE_CELL_EDITOR_PROPERTY, Boolean.TRUE);
+      comboBox.putClientProperty("JComboBox.isTableCellEditor", Boolean.TRUE);
     }
 
     private static class ProfilerCustomComboPopup extends CustomComboPopup {

@@ -25,7 +25,7 @@ import com.android.tools.idea.compose.pickers.common.inspector.PsiEditorProvider
 import com.android.tools.idea.compose.pickers.common.inspector.PsiPropertyItemControlTypeProvider
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.InspectorPanel

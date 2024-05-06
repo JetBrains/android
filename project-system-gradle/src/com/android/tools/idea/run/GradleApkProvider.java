@@ -32,6 +32,7 @@ import com.android.builder.model.ProjectBuildOutput;
 import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.build.GenericBuiltArtifact;
 import com.android.ide.common.build.GenericBuiltArtifacts;
 import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.build.GenericBuiltArtifactsSplitOutputMatcher;
@@ -46,7 +47,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBasicVariant;
-import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -155,19 +155,34 @@ public final class GradleApkProvider implements ApkProvider {
       getLogger().warn("Android model is null. Sync might have failed");
       return Collections.emptyList();
     }
-    return getApks(device.getAbis(),
-                   device.getVersion(),
-                   androidModel,
-                   androidModel.getSelectedVariant(),
-                   getOutputKind(myFacet.getModule(), myAlwaysDeployApkFromBundle, myTest, device.getVersion()));
+
+    boolean deviceSupportsPrivacySandbox = deviceSupportsPrivacySandbox(device);
+
+    return getApks(
+      device.getAbis(),
+      device.getVersion(),
+      deviceSupportsPrivacySandbox,
+      androidModel,
+      androidModel.getSelectedVariant(), getOutputKind(
+        myFacet.getModule(),
+        myAlwaysDeployApkFromBundle,
+        myTest,
+        device.getVersion()));
+  }
+
+  private static boolean deviceSupportsPrivacySandbox(@NotNull IDevice device) {
+    return device.getVersion().isGreaterOrEqualThan(34) && device.services().containsKey("sdk_sandbox");
   }
 
   @NotNull
-  public List<ApkInfo> getApks(@NotNull List<String> deviceAbis,
-                               @NotNull AndroidVersion deviceVersion,
-                               @NotNull GradleAndroidModel androidModel,
-                               @NotNull IdeVariant variant,
-                               @NotNull OutputKind outputKind) throws ApkProvisionException {
+  public List<ApkInfo> getApks(
+    @NotNull List<String> deviceAbis,
+    @NotNull AndroidVersion deviceVersion,
+    boolean deviceSupportsPrivacySandbox,
+    @NotNull GradleAndroidModel androidModel,
+    @NotNull IdeVariant variant,
+    @NotNull OutputKind outputKind)
+    throws ApkProvisionException {
     List<ApkInfo> apkList = new ArrayList<>();
 
     IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
@@ -198,13 +213,32 @@ public final class GradleApkProvider implements ApkProvider {
                                           )));
           apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
           if (variant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
-            apkList.addAll(getApksForPrivacySandboxSdks(
-              variant.getName(),
-              variant.getMainArtifact().getPrivacySandboxSdkInfo(),
-              variant.getMainArtifact().getAbiFilters(),
-              deviceAbis
-            ));
+            if (deviceSupportsPrivacySandbox) {
+              // Each Privacy Sandbox SDK must be installed independently.
+              apkList.addAll(
+                getApksForPrivacySandboxSdks(
+                  variant.getName(),
+                  variant.getMainArtifact()
+                    .getPrivacySandboxSdkInfo()
+                    .getOutputListingFile(),
+                  variant.getMainArtifact().getAbiFilters(),
+                  deviceAbis));
+              // Add the additional split containing the use-sdk-library manifest element
+              apkFileList.addAll(getSplitApksForPrivacySandbox(androidModel.getModuleName(),
+                                                            variant.getMainArtifact().getPrivacySandboxSdkInfo()
+                                                              .getAdditionalApkSplitFile()));
+            } else {
+              // Legacy Privacy Sandbox APKs need to be installed together and with
+              // the base APK.
+              apkFileList.addAll(
+                getSplitApksForPrivacySandbox(
+                  androidModel.getModuleName(),
+                  variant.getMainArtifact()
+                    .getPrivacySandboxSdkInfo()
+                    .getOutputListingLegacyFile()));
+            }
           }
+
           apkList.add(new ApkInfo(apkFileList, pkgName));
           break;
 
@@ -223,15 +257,23 @@ public final class GradleApkProvider implements ApkProvider {
             else {
               // Privacy sandbox SDKs should be installed before the app itself.
               IdeVariant baseVariant = baseAndroidModel.getSelectedVariant();
-              if (baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
-                apkList.addAll(getApksForPrivacySandboxSdks(
-                  baseVariant.getName(),
-                  baseVariant.getMainArtifact().getPrivacySandboxSdkInfo(),
-                  baseVariant.getMainArtifact().getAbiFilters(),
-                  deviceAbis
-                ));
+              if (deviceSupportsPrivacySandbox && baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
+                apkList.addAll(
+                  getApksForPrivacySandboxSdks(
+                    baseVariant.getName(),
+                    baseVariant
+                      .getMainArtifact()
+                      .getPrivacySandboxSdkInfo()
+                      .getOutputListingFile(),
+                    baseVariant.getMainArtifact().getAbiFilters(),
+                    deviceAbis));
               }
-              ApkInfo apkInfo = collectAppBundleOutput(baseAndroidModel, baseAppModule, myOutputModelProvider, pkgName);
+
+              ApkInfo apkInfo = collectAppBundleOutput(
+                  baseAndroidModel,
+                  baseAppModule,
+                  myOutputModelProvider,
+                  pkgName);
               if (apkInfo != null) {
                 apkList.add(apkInfo);
               }
@@ -265,7 +307,7 @@ public final class GradleApkProvider implements ApkProvider {
     for (ApkInfo info : apkList) {
       logger.info(String.format("  %s =>", info.getApplicationId()));
       for (ApkFileUnit file : info.getFiles()) {
-        logger.info(String.format("    %s : %s", file.getModuleName(), file.getApkFile()));
+        logger.info(String.format("    apk from %s : %s", file.getModuleName(), file.getApkFile()));
       }
     }
 
@@ -392,26 +434,45 @@ public final class GradleApkProvider implements ApkProvider {
   }
 
   @NotNull
-  private List<ApkInfo> getApksForPrivacySandboxSdks(
+  List<ApkInfo> getApksForPrivacySandboxSdks(
     @NotNull String variantName,
-    @NotNull IdePrivacySandboxSdkInfo privacySandboxSdkInfo,
+    @NotNull File outputListingFile,
     @NotNull Set<String> abiFilters,
-    @NotNull List<String> deviceAbis) throws ApkProvisionException {
+    @NotNull List<String> deviceAbis)
+    throws ApkProvisionException {
 
-    File outputFile = privacySandboxSdkInfo.getOutputListingFile();
-    List<GenericBuiltArtifacts> builtArtifacts = GenericBuiltArtifactsLoader.loadListFromFile(outputFile, new LogWrapper(getLogger()));
-    if (builtArtifacts.isEmpty()) {
-      throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
-    }
+    List<GenericBuiltArtifacts> builtArtifacts =
+      GenericBuiltArtifactsLoader.loadListFromFile(
+        outputListingFile, new LogWrapper(getLogger()));
 
     List<ApkInfo> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
-      ApkInfo unit = new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId(), ImmutableSet.of(), true);
+      ApkInfo unit =
+        new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId(), ImmutableSet.of(),
+                    true);
       list.add(unit);
     }
     return list;
   }
 
+  @NotNull
+  static List<ApkFileUnit> getSplitApksForPrivacySandbox(
+    @NotNull String moduleName,
+    @NotNull File builtArtifactMetadataFile
+  ) {
+    List<GenericBuiltArtifacts> builtArtifacts =
+      GenericBuiltArtifactsLoader.loadListFromFile(
+        builtArtifactMetadataFile, new LogWrapper(getLogger()));
+
+    List<ApkFileUnit> list = new ArrayList<>();
+    for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
+      for (GenericBuiltArtifact element : builtArtifact.getElements()) {
+        list.add(
+          new ApkFileUnit(moduleName, new File(element.getOutputFile())));
+      }
+    }
+    return list;
+  }
 
   @NotNull
   public static IdeAndroidArtifact getAndroidTestArtifact(@NotNull IdeVariant variant) throws ApkProvisionException {
@@ -552,7 +613,8 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   public static ImmutableList<ValidationError> doValidate(@NotNull AndroidFacet androidFacet,
                                                           boolean isTest,
-                                                          boolean alwaysDeployApkFromBundle) {
+                                                          boolean alwaysDeployApkFromBundle,
+                                                          @Nullable Runnable quickFixCallback) {
     ImmutableList.Builder<ValidationError> result = ImmutableList.builder();
 
     GradleAndroidModel gradleAndroidModel = GradleAndroidModel.get(androidFacet);
@@ -595,20 +657,23 @@ public final class GradleApkProvider implements ApkProvider {
 
     final String message =
       AndroidBundle.message("run.error.apk.not.signed", gradleAndroidModel.getSelectedVariant().getDisplayName());
-    ConfigurationQuickFix quickFix = new UnsignedApkQuickFix(module, gradleAndroidModel.getSelectedVariant().getBuildType());
-    result.add(ValidationError.fatal(message, quickFix));
+    UnsignedApkQuickFix quickfix = UnsignedApkQuickFix.create(module,
+                                                              gradleAndroidModel.getSelectedVariant().getBuildType(),
+                                                              quickFixCallback);
+    result.add(ValidationError.fatal(message, quickfix));
     return result.build();
   }
 
   /**
-   * Returns an {@link ApkInfo} instance containing all the APKS generated by the "select apks from bundle" Gradle task, or {@code null}
-   * in case of unexpected error.
+   * Returns an {@link ApkInfo} instance containing all the APKS generated by the "select apks
+   * from bundle" Gradle task, or {@code null} in case of unexpected error.
    */
   @Nullable
-  private static ApkInfo collectAppBundleOutput(@NotNull GradleAndroidModel androidModel,
-                                                @NotNull Module module,
-                                                @NotNull PostBuildModelProvider outputModelProvider,
-                                                @NotNull String pkgName) {
+  private static ApkInfo collectAppBundleOutput(
+    @NotNull GradleAndroidModel androidModel,
+    @NotNull Module module,
+    @NotNull PostBuildModelProvider outputModelProvider,
+    @NotNull String pkgName) {
     List<File> apkFiles;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       String outputListingFile = BuildOutputUtil
@@ -626,11 +691,15 @@ public final class GradleApkProvider implements ApkProvider {
       getLogger().warn("Could not find apk files.");
       return null;
     }
-
     // List all files in the folder
-    List<ApkFileUnit> apks = apkFiles.stream()
-      .map(path -> new ApkFileUnit(getFeatureNameFromPathHack(path.toPath()), path))
-      .collect(Collectors.toList());
+
+    List<ApkFileUnit> apks =
+      apkFiles.stream()
+        .map(
+          path ->
+            new ApkFileUnit(
+              getFeatureNameFromPathHack(path.toPath()), path))
+        .collect(Collectors.toList());
     return new ApkInfo(apks, pkgName);
   }
 

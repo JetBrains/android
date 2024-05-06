@@ -48,9 +48,9 @@ import icons.StudioIcons.LayoutEditor.Properties.TEXT_ALIGN_RIGHT
 import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_BOLD
 import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_ITALIC
 import icons.StudioIcons.LayoutEditor.Properties.TEXT_STYLE_UPPERCASE
+import javax.swing.Icon
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.Icon
 
 @RunsInEdt
 class TextViewInspectorBuilderTest {

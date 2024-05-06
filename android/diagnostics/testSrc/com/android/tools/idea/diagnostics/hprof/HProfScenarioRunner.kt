@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.hprof
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisConfig
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisContext
+import com.android.tools.idea.diagnostics.hprof.analysis.AnalysisReport
 import com.android.tools.idea.diagnostics.hprof.analysis.AnalyzeGraph
 import com.android.tools.idea.diagnostics.hprof.analysis.ClassNomination
 import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
@@ -49,21 +50,29 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
     return clazz.name.replace(regex, "")
   }
 
+  fun createReport(scenario: HProfBuilder.() -> Unit,
+                   nominatedClassNames: List<String>?,
+                   shouldMapClassNames: Boolean = true,
+                   config: AnalysisConfig? = null): AnalysisReport {
+    val hprofFile = tmpFolder.newFile()
+    HProfTestUtils.createHProfOnFile(hprofFile,
+                                     scenario) { c -> if (shouldMapClassNames) mapClassName(c) else c.name }
+    return createReport(hprofFile, nominatedClassNames, config)
+  }
+
   fun run(scenario: HProfBuilder.() -> Unit,
           baselineFileName: String,
           nominatedClassNames: List<String>?,
           shouldMapClassNames: Boolean = true,
-          config: AnalysisConfig? = null) {
-    val hprofFile = tmpFolder.newFile()
-    HProfTestUtils.createHProfOnFile(hprofFile,
-                                     scenario) { c -> if (shouldMapClassNames) mapClassName(c) else c.name }
-    compareReportToBaseline(hprofFile, baselineFileName, nominatedClassNames, config)
+          config: AnalysisConfig? = null,
+          summaryBaselineFileName: String? = null) {
+    val report = createReport(scenario, nominatedClassNames, shouldMapClassNames, config)
+    compareReportToBaseline(report, baselineFileName, summaryBaselineFileName)
   }
 
-  private fun compareReportToBaseline(hprofFile: File,
-                                      baselineFileName: String,
-                                      nominatedClassNames: List<String>? = null,
-                                      config: AnalysisConfig? = null) {
+  fun createReport(hprofFile: File,
+                   nominatedClassNames: List<String>? = null,
+                   config: AnalysisConfig? = null): AnalysisReport {
     FileChannel.open(hprofFile.toPath(), StandardOpenOption.READ).use { hprofChannel ->
 
       val progress = object : AbstractProgressIndicatorBase() {
@@ -81,8 +90,9 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         RemapIDsVisitor.createFileBased(openTempEmptyFileChannel(), histogram.instanceCount)
 
       parser.accept(remapIDsVisitor, "id mapping")
-      parser.setIdRemappingFunction(remapIDsVisitor.getRemappingFunction())
-      hprofMetadata.remapIds(remapIDsVisitor.getRemappingFunction())
+      val idMapper = remapIDsVisitor.getIDMapper()
+      parser.setIDMapper(idMapper)
+      hprofMetadata.remapIds(idMapper)
 
       val navigator = ObjectNavigator.createOnAuxiliaryFiles(
         parser,
@@ -133,15 +143,24 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         histogram
       )
 
-      val analysisReport = AnalyzeGraph(analysisContext, memoryBackedListProvider).analyze(progress).mainReport.toString()
+      return AnalyzeGraph(analysisContext, memoryBackedListProvider).analyze(progress)
+    }
+  }
 
+  fun compareReportToBaseline(analysisResult: AnalysisReport, baselineFileName: String, summaryBaselineFileName: String?) {
       val baselinePath = getBaselinePath(baselineFileName)
       val baseline = getBaselineContents(baselinePath)
       Assert.assertEquals("Report doesn't match the baseline from file:\n$baselinePath",
                           baseline,
-                          analysisReport)
+                          analysisResult.mainReport.toString())
+      if (summaryBaselineFileName != null) {
+        val summaryBaselinePath = getBaselinePath(summaryBaselineFileName)
+        val summaryBaseline = getBaselineContents(summaryBaselinePath)
+        Assert.assertEquals("Report summary doesn't match the baseline from file:\n$summaryBaselinePath",
+                            summaryBaseline,
+                            analysisResult.summary.toString())
+      }
     }
-  }
 
   /**
    * Get the contents of the baseline file, with system-dependent line endings

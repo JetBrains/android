@@ -50,9 +50,9 @@ internal class ModuleClassLoaderOverlaysTest {
     Files.write(classFilePath, loadClassBytes(TestClass::class.java))
     assertNotNull(ModuleClassLoaderOverlays.getInstance(projectRule.module).classLoaderLoader.loadClass(testClassName))
 
-    val modificationCount = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationCount
+    val modificationCount = ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount
     ModuleClassLoaderOverlays.getInstance(projectRule.module).invalidateOverlayPaths()
-    assertTrue(modificationCount != ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationCount)
+    assertTrue(modificationCount != ModuleClassLoaderOverlays.getInstance(projectRule.module).modificationTracker.modificationCount)
   }
 
   @Test

@@ -579,7 +579,8 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   }
   */
 
-  @IgnoreJUnit3(reason = "Needs to be run with Android platforms;android-34")
+  @IgnoreJUnit3(reason = "This test is run with Android SDK platform 33 which as no android.intent.action.LAUNCH_CAPTURE_CONTENT_ACTIVITY_FOR_NOTE." +
+                         "Upgrade Android SDK platform in tests to version 34 and unmute the test.")
   public void testIntentActionCompletion1() throws Throwable {
     doTestCompletionVariants(getTestName(false) + ".xml",
                              "android.intent.action.CALL",

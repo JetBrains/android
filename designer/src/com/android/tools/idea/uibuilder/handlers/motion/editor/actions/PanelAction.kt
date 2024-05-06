@@ -33,6 +33,6 @@ open class PanelAction(private val panel: BaseCreatePanel, private val motionEdi
   var context: Component? = null
 
   override fun actionPerformed(e: AnActionEvent) {
-    panel.doAction((context ?: e.inputEvent?.component) as JComponent, motionEditor)
+    panel.doAction((context ?: e.inputEvent!!.component) as JComponent, motionEditor)
   }
 }

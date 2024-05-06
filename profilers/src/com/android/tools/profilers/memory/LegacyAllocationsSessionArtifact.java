@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profilers.ExportableArtifact;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import java.io.OutputStream;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A session artifact representation of a memory allocation recording (legacy).
  */
-public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.AllocationsInfo> {
+public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.AllocationsInfo>, ExportableArtifact {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
@@ -136,5 +137,17 @@ public class LegacyAllocationsSessionArtifact implements SessionArtifact<Memory.
   public void export(@NotNull OutputStream outputStream) {
     assert getCanExport();
     saveLegacyAllocationToFile(myProfilers.getClient(), mySession, myInfo, outputStream, myProfilers.getIdeServices().getFeatureTracker());
+  }
+
+  @NotNull
+  @Override
+  public String getExportableName() {
+    return MemoryProfiler.generateCaptureFileName();
+  }
+
+  @NotNull
+  @Override
+  public String getExportExtension() {
+    return "alloc";
   }
 }

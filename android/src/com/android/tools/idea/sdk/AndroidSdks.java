@@ -22,12 +22,12 @@ import static com.android.SdkConstants.FD_SOURCES;
 import static com.android.SdkConstants.FN_FRAMEWORK_LIBRARY;
 import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
-import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshAndFindFileByIoFile;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -45,12 +45,11 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.Annotations;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -61,7 +60,6 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -76,8 +74,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -142,7 +142,7 @@ public class AndroidSdks {
         // TODO fix circular dependency between IdeSdks and AndroidSdks
         File path = IdeSdks.getInstance().getAndroidSdkPath();
         if (path != null) {
-          mySdkData = getSdkData(path);
+          mySdkData = AndroidSdkData.getSdkData(path);
           if (mySdkData != null) {
             return mySdkData;
           }
@@ -150,7 +150,7 @@ public class AndroidSdks {
       }
 
       for (File path : getAndroidSdkPathsFromExistingPlatforms()) {
-        mySdkData = getSdkData(path);
+        mySdkData = AndroidSdkData.getSdkData(path);
         if (mySdkData != null) {
           break;
         }
@@ -183,13 +183,12 @@ public class AndroidSdks {
 
   @NotNull
   public List<Sdk> getAllAndroidSdks() {
-    return ReadAction.nonBlocking(() -> ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()))
-      .executeSynchronously();
+    return ReadAction.compute(() -> ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()));
   }
 
   @Nullable
   public Sdk tryToCreate(@NotNull File sdkPath, @NotNull String targetHashString) {
-    AndroidSdkData sdkData = getSdkData(sdkPath);
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdkPath);
     if (sdkData != null) {
       sdkData.getSdkHandler().getSdkManager(new StudioLoggerProgressIndicator(AndroidSdks.class)).markInvalid();
       IAndroidTarget target = sdkData.findTargetByHashString(targetHashString);
@@ -266,7 +265,7 @@ public class AndroidSdks {
                                  boolean addRoots) {
     AndroidSdkAdditionalData data = (AndroidSdkAdditionalData)sdkModificator.getSdkAdditionalData();
     assert data != null;
-    AndroidSdkData androidSdkData = getSdkData(sdkModificator.getHomePath());
+    AndroidSdkData androidSdkData = AndroidSdkData.getSdkData(sdkModificator.getHomePath());
     assert androidSdkData != null;
     IAndroidTarget target = data.getBuildTarget(androidSdkData);
     assert target != null;
@@ -285,7 +284,7 @@ public class AndroidSdks {
       // TODO move this method to Jdks.
       attachJdkAnnotations(sdkModificator);
     }
-    ApplicationManager.getApplication().runWriteAction(() -> sdkModificator.commitChanges());
+    WriteAction.run(() -> sdkModificator.commitChanges());
   }
 
   public void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
@@ -374,7 +373,7 @@ public class AndroidSdks {
 
     // Explicitly add annotations.jar unless the target platform already provides it (API16+).
     if (sdkPath != null && Annotations.needsAnnotationsJarInClasspath(target)) {
-      File annotationsJarPath = new File(sdkPath, FileUtilRt.toSystemDependentName(ANNOTATIONS_JAR_RELATIVE_PATH));
+      File annotationsJarPath = new File(sdkPath, toSystemDependentName(ANNOTATIONS_JAR_RELATIVE_PATH));
       VirtualFile annotationsJar = findFileInJarFileSystem(annotationsJarPath.getPath());
       if (annotationsJar != null) {
         result.add(new OrderRoot(annotationsJar, CLASSES));
@@ -503,7 +502,7 @@ public class AndroidSdks {
     for (VirtualFile library : libraries) {
       sdkModificator.addRoot(library, CLASSES);
     }
-    ApplicationManager.getApplication().runWriteAction(() -> sdkModificator.commitChanges());
+    WriteAction.run(() -> sdkModificator.commitChanges());
   }
 
   public boolean isInAndroidSdk(@NonNull PsiElement element) {
@@ -533,5 +532,14 @@ public class AndroidSdks {
   private static VirtualFile getVirtualFile(@NotNull PsiElement element) {
     PsiFile file = element.getContainingFile();
     return file != null ? file.getVirtualFile() : null;
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull Sdk sdk) {
+    String sdkHomePath = sdk.getHomePath();
+    if (sdkHomePath != null) {
+      return AndroidSdkData.getSdkData(sdk.getHomePath());
+    }
+    return null;
   }
 }

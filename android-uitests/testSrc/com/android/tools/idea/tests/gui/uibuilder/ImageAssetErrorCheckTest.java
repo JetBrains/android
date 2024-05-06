@@ -19,9 +19,13 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,12 +35,25 @@ import java.util.concurrent.TimeUnit;
 @RunWith(GuiTestRemoteRunner.class)
 public class ImageAssetErrorCheckTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   private final static String IMAGE_FOLDER = "tools/adt/idea/android-uitests/testData/TestImages";
   private final static String CORRECT_IMAGE = (GuiTests.getTestDataDir() + IMAGE_FOLDER + "/call.svg").replaceAll("null","");
   private final static String INCORRECT_IMAGE = (GuiTests.getTestDataDir() + IMAGE_FOLDER + "/android_wrong.svg").replaceAll("null","");
+
+  private static ProjectViewFixture.PaneFixture myPaneFixture;
+  @Before
+  public void setUp() throws Exception {
+    IdeFrameFixture ideFrame =
+      guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(240));
+
+    myPaneFixture = ideFrame.getProjectView()
+      .selectAndroidPane();
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
+
   /**
    * Verifies that SVG images can be loaded in Asset Studio
    * <p>
@@ -59,10 +76,7 @@ public class ImageAssetErrorCheckTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void imageAssetErrorCheck() throws Exception {
-    guiTest.importSimpleApplication()
-      .getProjectView()
-      .selectAndroidPane()
-      .clickPath(MouseButton.RIGHT_BUTTON, "app")
+    myPaneFixture.clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromContextualMenu(AssetStudioWizardFixture::find, "New", "Vector Asset")
       .useLocalFile(CORRECT_IMAGE)
       .waitUntilStepErrorMessageIsGone()

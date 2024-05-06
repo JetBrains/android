@@ -58,7 +58,7 @@ class ConvertToWebpActionTest : AndroidTestCase() {
     waitForCondition(2, TimeUnit.SECONDS) { notifications.isNotEmpty() }
     assertThat(notifications).hasSize(1)
     assertThat(notifications[0].content).isEqualTo(
-        "1 file was converted<br/>55 bytes saved<br>1 file was skipped because there was no net space saving")
+      "1 file was converted<br/>55 bytes saved<br>1 file was skipped because there was no net space saving")
     // Check that we only converted the xhdpi image (the mdpi image encodes to a larger image)
     assertThat(xhdpiFolder.findChild("ic_action_name.png")).isNull()
     assertThat(xhdpiFolder.findChild("ic_action_name.webp")).isNotNull()

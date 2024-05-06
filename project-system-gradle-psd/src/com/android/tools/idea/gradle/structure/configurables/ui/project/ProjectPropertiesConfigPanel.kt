@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.project
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.projectPropertiesModel
 import com.android.tools.idea.gradle.structure.configurables.ui.ModelPanel
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ConfigPanel
 import com.android.tools.idea.gradle.structure.model.PsProject
-import com.android.tools.idea.structure.dialog.VersionCatalogWarningHeader
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.navigation.History
 import com.intellij.ui.navigation.Place
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
 import java.awt.Dimension
 
 class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
@@ -47,11 +43,6 @@ class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
     (uiComponent.components[0] as? JBScrollPane)?.border = JBUI.Borders.empty()
     uiComponent.minimumSize = Dimension(500, 300)
     uiComponent.preferredSize = Dimension(1050, 440)
-    if (GradleVersionCatalogDetector.getInstance(project.ideProject).isVersionCatalogProject) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
-        uiComponent.add(VersionCatalogWarningHeader(), BorderLayout.NORTH)
-      }
-    }
   }
 
   override val title = "Properties"

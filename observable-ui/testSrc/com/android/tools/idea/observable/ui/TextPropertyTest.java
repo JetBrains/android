@@ -19,11 +19,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.idea.observable.CountListener;
+import com.intellij.testFramework.ApplicationRule;
 import com.intellij.ui.EditorComboBox;
 import com.intellij.ui.EditorTextField;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 /**
@@ -39,6 +41,9 @@ import org.junit.Test;
  * won't break).
  */
 public final class TextPropertyTest {
+
+  @ClassRule
+  public static ApplicationRule appRule = new ApplicationRule();
 
   @Test
   public void textPropertyCanWrapLabel() {

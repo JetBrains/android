@@ -1,12 +1,28 @@
 <component name="libraryTable">
   <library name="google-baksmali" type="repository">
-    <properties include-transitive-deps="false" maven-id="com.android.tools.smali:smali-baksmali:3.0.3" />
+    <properties include-transitive-deps="false" maven-id="com.android.tools.smali:smali-baksmali:3.0.3">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-baksmali/3.0.3/smali-baksmali-3.0.3.jar">
+          <sha256sum>be873c3d4af40ed1f5ba64e07f42e62c9d8224506a9fbe4f13700ed514b54483</sha256sum>
+        </artifact>
+        <artifact url="file://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-util/3.0.3/smali-util-3.0.3.jar">
+          <sha256sum>35b30aa17417951ca670e60f2e74a36a9e59a16409553911fd44d00341dd9a3a</sha256sum>
+        </artifact>
+      </verification>
+      <exclude>
+        <dependency maven-id="com.android.tools.smali:smali-dexlib2" />
+        <dependency maven-id="com.google.guava:guava" />
+        <dependency maven-id="com.beust:jcommander" />
+      </exclude>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-baksmali/3.0.3/smali-baksmali-3.0.3.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-util/3.0.3/smali-util-3.0.3.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
       <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-baksmali/3.0.3/smali-baksmali-3.0.3-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/smali/smali-util/3.0.3/smali-util-3.0.3-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

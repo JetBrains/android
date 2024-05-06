@@ -17,12 +17,12 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.testutils.MockitoKt.whenever
 import com.intellij.ui.JreHiDpiUtil
-import org.mockito.ArgumentMatchers.argThat
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyFloat
 import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.argThat
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.times
 import java.awt.BasicStroke

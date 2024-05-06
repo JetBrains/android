@@ -473,9 +473,13 @@ public final class StudioFeatureTracker implements FeatureTracker {
       case CaptureObject.NATIVE_HEAP_NAME:
         heapType = AndroidProfilerEvent.MemoryHeap.NATIVE_HEAP;
         break;
+      case CaptureObject.ALL_HEAP_NAME:
+        heapType = AndroidProfilerEvent.MemoryHeap.ALL_HEAP;
+        break;
       default:
-        getLogger().error("Attempt to report selection of unknown heap name: " + heapName);
-        return;
+        getLogger().warn("Attempt to report selection of unknown heap name: " + heapName);
+        heapType = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
+        break;
     }
     newTracker(AndroidProfilerEvent.Type.SELECT_MEMORY_HEAP).setMemoryHeapId(heapType).track();
   }

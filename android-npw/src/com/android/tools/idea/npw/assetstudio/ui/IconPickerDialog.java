@@ -37,7 +37,6 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.hover.TableHoverListener;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StatusText;
@@ -71,7 +70,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
 
   private static final String MATERIAL_ICONS_PREFIX = "Material Icons";
   private static final int COLUMN_NUMBER = 6;
-  private static final int ICON_ROW_HEIGHT = JBUIScale.scale(48 + 16);
+  private static final int ICON_ROW_HEIGHT = JBUI.scale(48 + 16);
   /**
    * Approximate number of icons bundled in images/material/icons/.
    */

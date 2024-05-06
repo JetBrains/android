@@ -39,23 +39,28 @@ class BrClassFinder(project: Project) : PsiElementFinder() {
   private val classByPackageCache: CachedValue<Map<String, PsiClass>>
 
   init {
-    classByPackageCache = CachedValuesManager.getManager(bindingFacetsProvider.project).createCachedValue(
-      {
-        val classes: Map<String, LightBrClass> = bindingFacetsProvider.getDataBindingEnabledFacets()
-          .asSequence()
-          .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
-          .associateBy { it.qualifiedName }
+    classByPackageCache =
+      CachedValuesManager.getManager(bindingFacetsProvider.project)
+        .createCachedValue(
+          {
+            val classes =
+              bindingFacetsProvider
+                .getDataBindingEnabledFacets()
+                .asSequence()
+                .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
+                .associateBy { it.qualifiedName }
 
-        CachedValueProvider.Result.create(classes, bindingFacetsProvider)
-      }, false)
+            CachedValueProvider.Result.create<Map<String, PsiClass>>(classes, bindingFacetsProvider)
+          },
+          false
+        )
   }
 
   override fun getClasses(psiPackage: PsiPackage, scope: GlobalSearchScope): Array<PsiClass> {
     val qualifiedPackage = psiPackage.qualifiedName
     return if (qualifiedPackage.isNotEmpty()) {
       findClasses("$qualifiedPackage.${DataBindingUtil.BR}", scope)
-    }
-    else {
+    } else {
       PsiClass.EMPTY_ARRAY
     }
   }

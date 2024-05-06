@@ -301,6 +301,7 @@ class ResourcePasteProvider : PasteProvider {
  *
  * @param kotlinElement The specific class of the supported Kotlin [PsiElement]
  */
+@Suppress("unused")
 private enum class SupportedKotlinElement(val kotlinElement: Class<out PsiElement>,
                                           val processElement: (PsiElement, Caret, String) -> Unit) {
   /**

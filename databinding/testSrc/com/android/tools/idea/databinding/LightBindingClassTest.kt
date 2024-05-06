@@ -51,16 +51,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-/**
- * Tests that verify that navigating between data binding components.
- */
+/** Tests that verify that navigating between data binding components. */
 @RunsInEdt
 class LightBindingClassTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
-  // We want to run tests on EDT, but we also need to make sure the project rule is not initialized on EDT.
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  // We want to run tests on EDT, but we also need to make sure the project rule is not initialized
+  // on EDT.
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -107,49 +105,70 @@ class LightBindingClassTest {
     projectRule.waitForResourceRepositoryUpdates()
   }
 
-  private inline fun <reified X : XmlElement> findChild(psiFile: PsiFile, predicate: (X) -> Boolean): X {
+  private inline fun <reified X : XmlElement> findChild(
+    psiFile: PsiFile,
+    predicate: (X) -> Boolean
+  ): X {
     return findChildren(psiFile, predicate).first()
   }
 
-  private inline fun <reified X : XmlElement> findChildren(psiFile: PsiFile, predicate: (X) -> Boolean): Array<X> {
-    return PsiTreeUtil.findChildrenOfType(psiFile, X::class.java).filterIsInstance<X>().filter(predicate).toTypedArray()
+  private inline fun <reified X : XmlElement> findChildren(
+    psiFile: PsiFile,
+    predicate: (X) -> Boolean
+  ): Array<X> {
+    return PsiTreeUtil.findChildrenOfType(psiFile, X::class.java)
+      .filterIsInstance<X>()
+      .filter(predicate)
+      .toTypedArray()
   }
 
   private fun verifyLightFieldsMatchXml(fields: List<PsiField>, vararg tags: XmlTag) {
     val fieldIds = fields.map(PsiField::getName).toList()
-    val tagIds = tags
-      .map { tag -> tag.getAttribute("android:id")!!.value!! }
-      .map { id -> DataBindingUtil.convertAndroidIdToJavaFieldName(ResourceUrl.parse(id)!!.name) }
-      .toList()
+    val tagIds =
+      tags
+        .map { tag -> tag.getAttribute("android:id")!!.value!! }
+        .map { id -> DataBindingUtil.convertAndroidIdToJavaFieldName(ResourceUrl.parse(id)!!.name) }
+        .toList()
     assertThat(fieldIds).isEqualTo(tagIds)
   }
 
   @Before
   fun setUp() {
-    fixture.addFileToProject("AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    // Add fake "View" and "ViewDataBinding" classes to this project so the light binding class can resolve its super class
+    // Add fake "View" and "ViewDataBinding" classes to this project so the light binding class can
+    // resolve its super class
     val mode = DataBindingMode.ANDROIDX
-    with(fixture.addFileToProject("src/android/view/View.java",
-      // language=java
-      """
+    with(
+      fixture.addFileToProject(
+        "src/android/view/View.java",
+        // language=java
+        """
         package android.view;
 
         public abstract class View {}
-      """.trimIndent())) {
+      """
+          .trimIndent()
+      )
+    ) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
 
     val databindingPackage = mode.packageName.removeSuffix(".") // Without trailing '.'
-    with(fixture.addFileToProject(
-      "src/${databindingPackage.replace('.', '/')}/ViewDataBinding.java",
-      // language=java
-      """
+    with(
+      fixture.addFileToProject(
+        "src/${databindingPackage.replace('.', '/')}/ViewDataBinding.java",
+        // language=java
+        """
         package $databindingPackage;
 
         import android.view.View;
@@ -158,7 +177,10 @@ class LightBindingClassTest {
           void executePendingBindings() { }
           View getRoot() { return null; }
         }
-      """.trimIndent())) {
+      """
+          .trimIndent()
+      )
+    ) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = mode
@@ -166,22 +188,31 @@ class LightBindingClassTest {
 
   @Test
   fun lightClassConstructorIsPrivate() {
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.constructors).hasLength(1)
     assertThat(binding.constructors.first().hasModifier(JvmModifier.PRIVATE))
   }
 
   @Test
   fun lightClassContainsFieldByIndex() {
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -191,10 +222,13 @@ class LightBindingClassTest {
             android:layout_height="fill_parent">
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     val tags = findChildren<XmlTag>(file) { it.localName == "LinearLayout" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
@@ -202,7 +236,10 @@ class LightBindingClassTest {
 
   @Test
   fun androidIdsWithDotSyntaxAreSupported() {
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -212,50 +249,69 @@ class LightBindingClassTest {
             android:layout_height="fill_parent">
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val field = binding.fields.first { it.name == "testId" }
-    assertThat(field.type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.LinearLayout", context))
+    assertThat(field.type)
+      .isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.LinearLayout", context))
   }
 
   @Test
   fun addingAndRemovingLayoutFilesUpdatesTheCache() {
-    val firstFile = fixture.addFileToProject("res/layout/activity_first.xml", """
+    val firstFile =
+      fixture.addFileToProject(
+        "res/layout/activity_first.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class FirstActivity {}")
 
     // This find forces a cache to be initialized
     fixture.findClass("test.db.databinding.ActivityFirstBinding", context) as LightBindingClass
 
-    fixture.addFileToProject("res/layout/activity_second.xml", """
+    fixture.addFileToProject(
+      "res/layout/activity_second.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     projectRule.waitForResourceRepositoryUpdates()
 
     // This second file should be findable, meaning the cache was updated
     fixture.findClass("test.db.databinding.ActivitySecondBinding", context) as LightBindingClass
 
     // Make sure alternate layouts are found by searching for its BindingImpl
-    assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNull()
+    assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context))
+      .isNull()
 
-    fixture.addFileToProject("res/layout-land/activity_second.xml", """
+    fixture.addFileToProject(
+      "res/layout-land/activity_second.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     projectRule.waitForResourceRepositoryUpdates()
 
-    assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context)).isNotNull()
+    assertThat(fixture.findClass("test.db.databinding.ActivitySecondBindingLandImpl", context))
+      .isNotNull()
 
     WriteCommandAction.runWriteCommandAction(project) { firstFile.delete() }
     projectRule.waitForResourceRepositoryUpdates()
@@ -264,15 +320,18 @@ class LightBindingClassTest {
 
   @Test
   fun changingIncludedLayoutIsReflectedInIncludingLayoutField() {
-    val includedLayoutFile = fixture.addFileToProject(
-      "res/layout/included_layout.xml",
-      // language=XML
-      """
+    val includedLayoutFile =
+      fixture.addFileToProject(
+        "res/layout/included_layout.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <EditText android:id="@+id/inner_value" />
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     fixture.addFileToProject(
       "res/layout/activity_main.xml",
@@ -284,16 +343,20 @@ class LightBindingClassTest {
           android:id="@+id/outer_value"
           layout="@layout/included_layout" />
       </layout>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val context = fixture.addClass("public class ActivityMain {}")
 
     // Sanity check initial state
 
-    val includedLayoutV1 = fixture.findClass("test.db.databinding.IncludedLayoutBinding", context) as LightBindingClass
-    val mainLayoutV1 = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
-    val outerValueTypeV1 = mainLayoutV1.findFieldByName("outerValue", false)!!.type as PsiClassReferenceType
+    val includedLayoutV1 =
+      fixture.findClass("test.db.databinding.IncludedLayoutBinding", context) as LightBindingClass
+    val mainLayoutV1 =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val outerValueTypeV1 =
+      mainLayoutV1.findFieldByName("outerValue", false)!!.type as PsiClassReferenceType
     assertThat(outerValueTypeV1.reference.resolve()).isEqualTo(includedLayoutV1)
 
     // Modify inner layout and sanity check that outer layout is affected
@@ -301,19 +364,25 @@ class LightBindingClassTest {
     val attr = findChild<XmlAttribute>(includedLayoutFile) { it.localName == "id" }
     updateXml(includedLayoutFile, attr.valueElement!!.valueTextRange, "@+id/inner_value_modified")
 
-    val includedLayoutV2 = fixture.findClass("test.db.databinding.IncludedLayoutBinding", context) as LightBindingClass
-    val mainLayoutV2 = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val includedLayoutV2 =
+      fixture.findClass("test.db.databinding.IncludedLayoutBinding", context) as LightBindingClass
+    val mainLayoutV2 =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(includedLayoutV2.findFieldByName("innerValueModified", false)).isNotNull()
     assertThat(includedLayoutV2.findFieldByName("innerValue", false)).isNull()
 
-    val outerValueTypeV2 = mainLayoutV2.findFieldByName("outerValue", false)!!.type as PsiClassReferenceType
+    val outerValueTypeV2 =
+      mainLayoutV2.findFieldByName("outerValue", false)!!.type as PsiClassReferenceType
     assertThat(outerValueTypeV2.reference.resolve()).isEqualTo(includedLayoutV2)
     assertThat(outerValueTypeV2.reference.resolve()).isNotEqualTo(includedLayoutV1)
   }
 
   @Test
   fun addViewRefreshesLightClassFields() {
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -323,32 +392,44 @@ class LightBindingClassTest {
             android:layout_height="fill_parent">
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      assertThat(binding.fields).hasLength(1)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        assertThat(binding.fields).hasLength(1)
 
-      val tag = findChild<XmlTag>(file) { it.localName == "LinearLayout" }
-      insertXml(file, tag.textRange.endOffset, """
+        val tag = findChild<XmlTag>(file) { it.localName == "LinearLayout" }
+        insertXml(
+          file,
+          tag.textRange.endOffset,
+          """
         <LinearLayout
               android:id="@+id/test_id2"
               android:orientation="vertical"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent">
           </LinearLayout>
-      """.trimIndent())
-    }
+      """
+            .trimIndent()
+        )
+      }
 
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      val tags = findChildren<XmlTag>(file) { it.name == "LinearLayout" }
-      verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
-    }
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        val tags = findChildren<XmlTag>(file) { it.name == "LinearLayout" }
+        verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
+      }
   }
 
   @Test
   fun removeViewRefreshesLightClassFields() {
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -358,24 +439,29 @@ class LightBindingClassTest {
             android:layout_height="fill_parent">
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      assertThat(binding.fields).hasLength(1)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        assertThat(binding.fields).hasLength(1)
 
-      val tag = findChild<XmlTag>(file) { it.localName == "LinearLayout" }
-      deleteXml(file, tag.textRange)
-    }
+        val tag = findChild<XmlTag>(file) { it.localName == "LinearLayout" }
+        deleteXml(file, tag.textRange)
+      }
 
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      assertThat(binding.fields).isEmpty()
-    }
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding -> assertThat(binding.fields).isEmpty() }
   }
 
   @Test
   fun updateIdRefreshesLightClassFields() {
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -385,106 +471,137 @@ class LightBindingClassTest {
             android:layout_height="fill_parent">
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      assertThat(binding.fields).hasLength(1)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        assertThat(binding.fields).hasLength(1)
 
-      val attribute = findChild<XmlAttribute>(file) { it.localName == "id" }
-      updateXml(file, attribute.valueElement!!.valueTextRange, "@+id/updated_id")
-    }
+        val attribute = findChild<XmlAttribute>(file) { it.localName == "id" }
+        updateXml(file, attribute.valueElement!!.valueTextRange, "@+id/updated_id")
+      }
 
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      val tags = findChildren<XmlTag>(file) { it.localName == "LinearLayout" }
-      verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
-    }
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        val tags = findChildren<XmlTag>(file) { it.localName == "LinearLayout" }
+        verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
+      }
   }
 
   @Test
   fun updateVariablesRefreshesLightClassFields_withSingleLayout() {
-    val file = fixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      // language=XML
-      """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name='obsolete' type='String'/>
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      assertThat(binding.methods.map { it.name }).containsAllOf("getObsolete", "setObsolete")
-    }
-    val tag = findChild<XmlTag>(file) { it.localName == "variable" }
-    updateXml(file, tag.textRange,
-      // language=XML
-              "<variable name='first' type='Integer'/> <variable name='second' type='String'/>")
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      binding.methods.map { it.name }.let { methodNames ->
-        assertThat(methodNames).containsAllOf("getFirst", "setFirst", "getSecond", "setSecond")
-        assertThat(methodNames).containsNoneOf("getObsolete", "setObsolete")
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        assertThat(binding.methods.map { it.name }).containsAllOf("getObsolete", "setObsolete")
       }
-    }
+    val tag = findChild<XmlTag>(file) { it.localName == "variable" }
+    updateXml(
+      file,
+      tag.textRange,
+      // language=XML
+      "<variable name='first' type='Integer'/> <variable name='second' type='String'/>"
+    )
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        binding.methods
+          .map { it.name }
+          .let { methodNames ->
+            assertThat(methodNames).containsAllOf("getFirst", "setFirst", "getSecond", "setSecond")
+            assertThat(methodNames).containsNoneOf("getObsolete", "setObsolete")
+          }
+      }
   }
 
   @Test
   fun updateVariablesRefreshesLightClassFields_withMultipleLayoutConfigurations() {
-    val mainLayout = fixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      // language=XML
-      """
+    val mainLayout =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name='first' type='String'/>
         </data>
       </layout>
-    """.trimIndent())
-    val landscapeLayout = fixture.addFileToProject(
-      "res/layout-land/activity_main.xml",
-      // language=XML
-      """
+    """
+          .trimIndent()
+      )
+    val landscapeLayout =
+      fixture.addFileToProject(
+        "res/layout-land/activity_main.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
           <variable name='second' type='String'/>
         </data>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
-    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-      assertThat(binding.methods.map { it.name }).containsAllOf("getFirst", "getSecond", "setFirst", "setSecond")
-    }
-    (fixture.findClass("test.db.databinding.ActivityMainBindingImpl", context) as LightBindingClass).let { binding ->
-      assertThat(binding.methods.map { it.name }).containsAllOf("setFirst", "setSecond")
-    }
-    (fixture.findClass("test.db.databinding.ActivityMainBindingLandImpl", context) as LightBindingClass).let { binding ->
-      assertThat(binding.methods.map { it.name }).containsAllOf("setFirst", "setSecond")
-    }
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+      .let { binding ->
+        assertThat(binding.methods.map { it.name })
+          .containsAllOf("getFirst", "getSecond", "setFirst", "setSecond")
+      }
+    (fixture.findClass("test.db.databinding.ActivityMainBindingImpl", context) as LightBindingClass)
+      .let { binding ->
+        assertThat(binding.methods.map { it.name }).containsAllOf("setFirst", "setSecond")
+      }
+    (fixture.findClass("test.db.databinding.ActivityMainBindingLandImpl", context)
+        as LightBindingClass)
+      .let { binding ->
+        assertThat(binding.methods.map { it.name }).containsAllOf("setFirst", "setSecond")
+      }
     // Update first XML file
     run {
       val tag = findChild<XmlTag>(mainLayout) { it.localName == "variable" }
       updateXml(mainLayout, tag.textRange, "<variable name='third' type='String'/>")
-      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-        binding.methods.map { it.name }.let { methodNames ->
-          assertThat(methodNames).containsAllOf("getSecond", "getThird")
-          assertThat(methodNames).doesNotContain("getFirst")
+      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+        .let { binding ->
+          binding.methods
+            .map { it.name }
+            .let { methodNames ->
+              assertThat(methodNames).containsAllOf("getSecond", "getThird")
+              assertThat(methodNames).doesNotContain("getFirst")
+            }
         }
-      }
     }
     // Update the second XML file
     run {
       val tag = findChild<XmlTag>(landscapeLayout) { it.localName == "variable" }
       updateXml(landscapeLayout, tag.textRange, "<variable name='fourth' type='String'/>")
-      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-        binding.methods.map { it.name }.let { methodNames ->
-          assertThat(methodNames).containsAllOf("getThird", "getFourth")
-          assertThat(methodNames).containsNoneOf("getFirst", "getSecond")
+      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+        .let { binding ->
+          binding.methods
+            .map { it.name }
+            .let { methodNames ->
+              assertThat(methodNames).containsAllOf("getThird", "getFourth")
+              assertThat(methodNames).containsNoneOf("getFirst", "getSecond")
+            }
         }
-      }
     }
     // Update both files at the same time
     run {
@@ -492,32 +609,46 @@ class LightBindingClassTest {
       updateXml(mainLayout, tagMain.textRange, "<variable name='fifth' type='String'/>")
       val tagLand = findChild<XmlTag>(landscapeLayout) { it.localName == "variable" }
       updateXml(landscapeLayout, tagLand.textRange, "<variable name='sixth' type='String'/>")
-      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
-        binding.methods.map { it.name }.let { methodNames ->
-          assertThat(methodNames).containsAllOf("getFifth", "getSixth")
-          assertThat(methodNames).containsNoneOf("getFirst", "getSecond", "getThird", "getFourth")
+      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass)
+        .let { binding ->
+          binding.methods
+            .map { it.name }
+            .let { methodNames ->
+              assertThat(methodNames).containsAllOf("getFifth", "getSixth")
+              assertThat(methodNames)
+                .containsNoneOf("getFirst", "getSecond", "getThird", "getFourth")
+            }
         }
-      }
     }
   }
 
   @Test
   fun createViewFieldWithJavaType() {
-    fixture.addFileToProject("src/java/com/example/Test.java", """
+    fixture.addFileToProject(
+      "src/java/com/example/Test.java",
+      """
       package com.example;
       class Test {}
-    """.trimIndent())
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    """
+        .trimIndent()
+    )
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <view
             android:id="@+id/test_id"
             class="com.example.Test"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
     fields[0].let { field ->
@@ -530,7 +661,8 @@ class LightBindingClassTest {
     val tags = findChildren<XmlTag>(file) { it.localName == "view" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("com.example.Test", context))
+    assertThat(fields[0].type)
+      .isEqualTo(LayoutBindingTypeUtil.parsePsiType("com.example.Test", context))
   }
 
   @Test
@@ -556,7 +688,9 @@ class LightBindingClassTest {
             android:layout_height="wrap_content" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val context = fixture.addClass("public class MainActivity {}")
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
@@ -565,165 +699,239 @@ class LightBindingClassTest {
 
   @Test
   fun createMergeFieldWithTargetLayoutType() {
-    fixture.addFileToProject("res/layout/other_activity.xml", """
+    fixture.addFileToProject(
+      "res/layout/other_activity.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
       </layout>
-    """.trimIndent())
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    """
+        .trimIndent()
+    )
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <merge
             android:id="@+id/test_id"
             layout="@layout/other_activity"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
     StudioResourceRepositoryManager.getAppResources(facet)
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
     val tags = findChildren<XmlTag>(file) { it.localName == "merge" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
-    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context))
+    assertThat(fields[0].type)
+      .isEqualTo(
+        LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context)
+      )
   }
 
   @Test
   fun createIncludeFieldWithTargetLayoutType() {
-    fixture.addFileToProject("res/layout/other_activity.xml", """
+    fixture.addFileToProject(
+      "res/layout/other_activity.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
       </layout>
-    """.trimIndent())
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    """
+        .trimIndent()
+    )
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <include
             android:id="@+id/test_id"
             layout="@layout/other_activity"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
     StudioResourceRepositoryManager.getAppResources(facet)
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
     val tags = findChildren<XmlTag>(file) { it.localName == "include" }
     verifyLightFieldsMatchXml(fields.toList(), *tags)
 
     assertThat(fields[0].name).isEqualTo("testId")
-    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context))
+    assertThat(fields[0].type)
+      .isEqualTo(
+        LayoutBindingTypeUtil.parsePsiType("test.db.databinding.OtherActivityBinding", context)
+      )
   }
 
   @Test
   fun createIncludeFieldWithPlainType() {
-    assertThat(facet.isViewBindingEnabled()).isFalse() // Behavior of includes is slightly different if view binding is enabled
+    assertThat(facet.isViewBindingEnabled())
+      .isFalse() // Behavior of includes is slightly different if view binding is enabled
 
-    fixture.addFileToProject("res/layout/simple_text.xml", """
+    fixture.addFileToProject(
+      "res/layout/simple_text.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <TextView xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-    """.trimIndent())
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    """
+        .trimIndent()
+    )
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <include
             android:id="@+id/included"
             layout="@layout/simple_text"/>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
     StudioResourceRepositoryManager.getAppResources(facet)
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
     assertThat(fields).hasLength(1)
     assertThat(fields[0].name).isEqualTo("included")
-    assertThat(fields[0].type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.TextView", context))
+    assertThat(fields[0].type)
+      .isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.TextView", context))
   }
 
   @Test
   fun expectedStaticMethodsAreGenerated() {
-    fixture.addFileToProject("res/layout/view_root_activity.xml", """
+    fixture.addFileToProject(
+      "res/layout/view_root_activity.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <view />
       </layout>
-    """.trimIndent())
-    fixture.addFileToProject("res/layout/merge_root_activity.xml", """
+    """
+        .trimIndent()
+    )
+    fixture.addFileToProject(
+      "res/layout/merge_root_activity.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <merge />
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val context = fixture.addClass("public class ViewRootActivity {}")
 
     // Same API for regardless of view root or merge root
     // Compare with LightViewBindingClassTest#expectedStaticMethodsAreGenerated
-    listOf("test.db.databinding.ViewRootActivityBinding", "test.db.databinding.MergeRootActivityBinding").forEach { classPath ->
-      (fixture.findClass(classPath, context) as LightBindingClass).let { binding ->
-        val methods = binding.methods.filter { it.hasModifier(JvmModifier.STATIC) }
-        assertThat(methods.map { it.presentation!!.presentableText to it.isDeprecated }).containsExactly(
-          "inflate(LayoutInflater)" to false,
-          "inflate(LayoutInflater, Object)" to true,
-          "inflate(LayoutInflater, ViewGroup, boolean)" to false,
-          "inflate(LayoutInflater, ViewGroup, boolean, Object)" to true,
-          "bind(View)" to false,
-          "bind(View, Object)" to true
-        )
+    listOf(
+        "test.db.databinding.ViewRootActivityBinding",
+        "test.db.databinding.MergeRootActivityBinding"
+      )
+      .forEach { classPath ->
+        (fixture.findClass(classPath, context) as LightBindingClass).let { binding ->
+          val methods = binding.methods.filter { it.hasModifier(JvmModifier.STATIC) }
+          assertThat(methods.map { it.presentation!!.presentableText to it.isDeprecated })
+            .containsExactly(
+              "inflate(LayoutInflater)" to false,
+              "inflate(LayoutInflater, Object)" to true,
+              "inflate(LayoutInflater, ViewGroup, boolean)" to false,
+              "inflate(LayoutInflater, ViewGroup, boolean, Object)" to true,
+              "bind(View)" to false,
+              "bind(View, Object)" to true
+            )
+        }
       }
-    }
   }
 
   @Test
   fun bindingsNotGeneratedForNonDataBindingLayouts() {
-    fixture.addFileToProject("res/layout/activity_view.xml", """
+    fixture.addFileToProject(
+      "res/layout/activity_view.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <view />
       </layout>
-    """.trimIndent())
-    fixture.addFileToProject("res/layout/plain_view.xml", """
+    """
+        .trimIndent()
+    )
+    fixture.addFileToProject(
+      "res/layout/plain_view.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <view xmlns:android="http://schemas.android.com/apk/res/android" />
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val context = fixture.addClass("public class ViewActivity {}")
 
-    assertThat(fixture.findClass("test.db.databinding.ActivityViewBinding", context) as? LightBindingClass).isNotNull()
-    assertThat(fixture.findClass("test.db.databinding.PlainViewBinding", context) as? LightBindingClass).isNull()
+    assertThat(
+        fixture.findClass("test.db.databinding.ActivityViewBinding", context) as? LightBindingClass
+      )
+      .isNotNull()
+    assertThat(
+        fixture.findClass("test.db.databinding.PlainViewBinding", context) as? LightBindingClass
+      )
+      .isNull()
   }
 
   @Test
   fun fieldsAreAnnotatedNonNullAndNullableCorrectly() {
-    fixture.addFileToProject("res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout android:id="@+id/always_present">
           <TextView android:id="@+id/sometimes_present" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    fixture.addFileToProject("res/layout-land/activity_main.xml", """
+    fixture.addFileToProject(
+      "res/layout-land/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout android:id="@+id/always_present">
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields).hasLength(2)
     val alwaysPresentField = binding.fields.first { it.name == "alwaysPresent" }
     val sometimesPresentField = binding.fields.first { it.name == "sometimesPresent" }
@@ -735,7 +943,9 @@ class LightBindingClassTest {
 
   @Test
   fun inconsistentTypesAcrossLayoutsDefaultsToView() {
-    fixture.addFileToProject("res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout>
@@ -743,9 +953,13 @@ class LightBindingClassTest {
           <TextView android:id="@+id/inconsistent_type" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    fixture.addFileToProject("res/layout-land/activity_main.xml", """
+    fixture.addFileToProject(
+      "res/layout-land/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout>
@@ -753,15 +967,20 @@ class LightBindingClassTest {
           <Button android:id="@+id/inconsistent_type" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields).hasLength(2)
     val consistentField = binding.fields.first { it.name == "consistentType" }
     val inconsistentField = binding.fields.first { it.name == "inconsistentType" }
-    assertThat(consistentField.type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.TextView", context))
-    assertThat(inconsistentField.type).isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.View", context))
+    assertThat(consistentField.type)
+      .isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.TextView", context))
+    assertThat(inconsistentField.type)
+      .isEqualTo(LayoutBindingTypeUtil.parsePsiType("android.view.View", context))
   }
 
   /** Compare with [LightViewBindingClassTest.fieldTypesCanBeOverridden] */
@@ -777,11 +996,14 @@ class LightBindingClassTest {
          xmlns:tools="http://schemas.android.com/tools">
           <EditText android:id="@+id/ignored_type_override" tools:viewBindingType="TextView" />
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields).hasLength(1)
     val field = binding.fields.first()
 
@@ -790,63 +1012,118 @@ class LightBindingClassTest {
 
   @Test
   fun methodsAreAnnotatedNonNullAndNullableCorrectly() {
-    fixture.addFileToProject("res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val context = fixture.addClass("public class MainActivity {}")
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
 
-    binding.methods.filter { it.name == "inflate" }.let { inflateMethods ->
-      assertThat(inflateMethods).hasSize(4)
-      inflateMethods.first { it.parameters.size == 4 }.let { inflateMethod ->
-        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
-        (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "root", isNullable = true)
-        (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
-        (inflateMethod.parameters[3] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
-        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+    binding.methods
+      .filter { it.name == "inflate" }
+      .let { inflateMethods ->
+        assertThat(inflateMethods).hasSize(4)
+        inflateMethods
+          .first { it.parameters.size == 4 }
+          .let { inflateMethod ->
+            (inflateMethod.parameters[0] as PsiParameter).assertExpected(
+              "LayoutInflater",
+              "inflater"
+            )
+            (inflateMethod.parameters[1] as PsiParameter).assertExpected(
+              "ViewGroup",
+              "root",
+              isNullable = true
+            )
+            (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
+            (inflateMethod.parameters[3] as PsiParameter).assertExpected(
+              "Object",
+              "bindingComponent",
+              isNullable = true
+            )
+            inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+          }
+
+        inflateMethods
+          .first { it.parameters.size == 3 }
+          .let { inflateMethod ->
+            (inflateMethod.parameters[0] as PsiParameter).assertExpected(
+              "LayoutInflater",
+              "inflater"
+            )
+            (inflateMethod.parameters[1] as PsiParameter).assertExpected(
+              "ViewGroup",
+              "root",
+              isNullable = true
+            )
+            (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
+            inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+          }
+
+        inflateMethods
+          .first { it.parameters.size == 2 }
+          .let { inflateMethod ->
+            (inflateMethod.parameters[0] as PsiParameter).assertExpected(
+              "LayoutInflater",
+              "inflater"
+            )
+            (inflateMethod.parameters[1] as PsiParameter).assertExpected(
+              "Object",
+              "bindingComponent",
+              isNullable = true
+            )
+            inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+          }
+
+        inflateMethods
+          .first { it.parameters.size == 1 }
+          .let { inflateMethod ->
+            (inflateMethod.parameters[0] as PsiParameter).assertExpected(
+              "LayoutInflater",
+              "inflater"
+            )
+            inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+          }
       }
 
-      inflateMethods.first { it.parameters.size == 3 }.let { inflateMethod ->
-        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
-        (inflateMethod.parameters[1] as PsiParameter).assertExpected("ViewGroup", "root", isNullable = true)
-        (inflateMethod.parameters[2] as PsiParameter).assertExpected("boolean", "attachToRoot")
-        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
-      }
+    binding.methods
+      .filter { it.name == "bind" }
+      .let { bindMethods ->
+        assertThat(bindMethods).hasSize(2)
+        bindMethods
+          .first { it.parameters.size == 2 }
+          .let { bindMethod ->
+            (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
+            (bindMethod.parameters[1] as PsiParameter).assertExpected(
+              "Object",
+              "bindingComponent",
+              isNullable = true
+            )
+            bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+          }
 
-      inflateMethods.first { it.parameters.size == 2 }.let { inflateMethod ->
-        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
-        (inflateMethod.parameters[1] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
-        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+        bindMethods
+          .first { it.parameters.size == 1 }
+          .let { bindMethod ->
+            (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
+            bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
+          }
       }
-
-      inflateMethods.first { it.parameters.size == 1 }.let { inflateMethod ->
-        (inflateMethod.parameters[0] as PsiParameter).assertExpected("LayoutInflater", "inflater")
-        inflateMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
-      }
-    }
-
-    binding.methods.filter { it.name == "bind" }.let { bindMethods ->
-      assertThat(bindMethods).hasSize(2)
-      bindMethods.first { it.parameters.size == 2 }.let { bindMethod ->
-        (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
-        (bindMethod.parameters[1] as PsiParameter).assertExpected("Object", "bindingComponent", isNullable = true)
-        bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
-      }
-
-      bindMethods.first { it.parameters.size == 1 }.let { bindMethod ->
-        (bindMethod.parameters[0] as PsiParameter).assertExpected("View", "view")
-        bindMethod.returnType!!.assertExpected(project, "ActivityMainBinding")
-      }
-    }
   }
 
   @Test
   fun viewStubProxyClassGeneratedForViewStubs() {
-    fixture.addFileToProject("res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <ViewStub
@@ -855,7 +1132,9 @@ class LightBindingClassTest {
             android:layout_height="fill_parent">
         </ViewStub>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val context = fixture.addClass("public class MainActivity {}")
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
@@ -877,7 +1156,9 @@ class LightBindingClassTest {
             android:layout_height="fill_parent"
         />
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val context = fixture.addClass("public class MainActivity {}")
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
@@ -887,7 +1168,10 @@ class LightBindingClassTest {
 
   @Test
   fun noFieldsAreGeneratedForMergeTags() {
-    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+    val file =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -899,10 +1183,13 @@ class LightBindingClassTest {
           <TextView android:id="@+id/test_text" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     assertThat(binding.fields.map { field -> field.name }).containsExactly("testButton", "testText")
   }
 
@@ -919,16 +1206,19 @@ class LightBindingClassTest {
         <resources>
           <string name="app_name">SampleAppName</string>
         </resources>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // language=XML
-    val sampleXml = """
+    val sampleXml =
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val noResourcesGroups = bindingCache.bindingLayoutGroups
     assertThat(noResourcesGroups.size).isEqualTo(0)
@@ -955,36 +1245,54 @@ class LightBindingClassTest {
   @Test
   fun bindingCacheRecoversAfterExitingDumbMode() {
     // language=XML
-    val sampleXml = """
+    val sampleXml =
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout />
       </layout>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     fixture.addFileToProject("res/layout/activity_first.xml", sampleXml)
 
     // initialize app resources
     StudioResourceRepositoryManager.getAppResources(facet)
 
-    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+    assertThat(
+        LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
+          group.mainLayout.className
+        }
+      )
       .containsExactly("ActivityFirstBinding")
 
     DumbModeTestUtils.runInDumbModeSynchronously(project) {
       // First, verify that dumb mode doesn't prevent us from accessing the previous cache
-      assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      assertThat(
+          LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
+            group.mainLayout.className
+          }
+        )
         .containsExactly("ActivityFirstBinding")
 
       // XML updates are ignored in dumb mode
       fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
       projectRule.waitForResourceRepositoryUpdates()
-      assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+      assertThat(
+          LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
+            group.mainLayout.className
+          }
+        )
         .containsExactly("ActivityFirstBinding")
     }
-    // XML updates should catch up after dumb mode is exited (in other words, we didn't save a snapshot of the stale
+    // XML updates should catch up after dumb mode is exited (in other words, we didn't save a
+    // snapshot of the stale
     // cache from before)
-
-    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+    assertThat(
+        LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group ->
+          group.mainLayout.className
+        }
+      )
       .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
   }
 
@@ -992,8 +1300,8 @@ class LightBindingClassTest {
   fun superClassMethodsCanBeFound() {
     fixture.addFileToProject(
       "res/layout/activity_main.xml",
-       // language=XML
-     """
+      // language=XML
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -1001,14 +1309,18 @@ class LightBindingClassTest {
             android:layout_height="fill_parent">
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val context = fixture.addClass("public class MainActivity {}")
 
     run {
       val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context)!!
-      assertThat(binding.supers.mapNotNull { it.qualifiedName }).containsExactly("androidx.databinding.ViewDataBinding")
-      assertThat(binding.findMethodsByName("getRoot", true)[0].returnType!!.canonicalText).isEqualTo("android.view.View")
+      assertThat(binding.supers.mapNotNull { it.qualifiedName })
+        .containsExactly("androidx.databinding.ViewDataBinding")
+      assertThat(binding.findMethodsByName("getRoot", true)[0].returnType!!.canonicalText)
+        .isEqualTo("android.view.View")
       assertThat(binding.findMethodsByName("executePendingBindings", true)).isNotEmpty()
       assertThat(binding.findMethodsByName("getRoot", false)).isEmpty()
       assertThat(binding.findMethodsByName("executePendingBindings", false)).isEmpty()
@@ -1025,12 +1337,15 @@ class LightBindingClassTest {
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
          <LinearLayout android:id="@+id/tést_íd" />
       </layout>
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val context = fixture.addClass("public class ActivityMain {}")
-    val mainLayout = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
-    // It's ugly, but this is what the variable looks like after stripping é and í before capitalizing parts
+    val mainLayout =
+      fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    // It's ugly, but this is what the variable looks like after stripping é and í before
+    // capitalizing parts
     assertThat(mainLayout.fields.first().name).isEqualTo("tStD")
   }
 }

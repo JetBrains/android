@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -67,7 +67,7 @@ class SystemPropertyInjectionForSyncTest {
         """.trimIndent()
     )
 
-    val listener = object : ExternalSystemTaskNotificationListener {
+    val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
       var successDetected = false
       var taskOutput = StringBuilder()
 

@@ -44,7 +44,9 @@ object NopNlDiagnosticsImpl : NlDiagnosticsRead, NlDiagnosticsWrite {
   override fun lastRenderImageSize(): Long = -1
 
   override fun renderTime(percentile: Int): Long = -1
+
   override fun recordRender(timeMs: Long, lastRenderSizeBytes: Long) {}
+
   override fun lastRenders(): List<Long> = emptyList()
 }
 

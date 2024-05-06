@@ -57,7 +57,7 @@ class ArtifactRepositorySearchFormKtTest : PsdGradleFileModelTestCase() {
       versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.1.1"), DslText.Literal)),
       equalTo("org.example.group.id:artifact-name:1.1.1".asParsed()))
     // References.
-    assertThat(
+    assertThat<ParsedValue<String>>(
       versionToLibrary(foundArtifact, ParsedValue.Set.Parsed(Version.parse("1.0"), DslText.Reference("artifactVer"))),
       equalTo(ParsedValue.Set.Parsed(
         "org.example.group.id:artifact-name:1.0",

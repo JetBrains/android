@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -50,7 +51,6 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiUtil;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,7 +88,7 @@ public class LightDataBindingComponentClass extends AndroidLightClassBase implem
     myMethodCache =
       CachedValuesManager.getManager(project).createCachedValue(
         () -> {
-          Map<String, Set<String>> instanceAdapterClasses = new HashMap<>();
+          Map<String, Set<String>> instanceAdapterClasses = Maps.newHashMap();
           JavaPsiFacade facade = JavaPsiFacade.getInstance(myFacet.getModule().getProject());
           GlobalSearchScope moduleScope = ProjectSystemUtil.getModuleSystem(myFacet).getResolveScope(ScopeType.MAIN);
           PsiClass aClass = facade.findClass(myMode.bindingAdapter, moduleScope);

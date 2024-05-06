@@ -38,12 +38,22 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
   private val classes: CachedValue<List<PsiClass>>
 
   init {
-    classes = CachedValuesManager.getManager(project).createCachedValue(
-      {
-        val classes: List<PsiClass> = enabledFacetsProvider.getDataBindingEnabledFacets()
-          .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightDataBindingComponentClass }
-        CachedValueProvider.Result.create(classes, enabledFacetsProvider, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project))
-      }, false)
+    classes =
+      CachedValuesManager.getManager(project)
+        .createCachedValue(
+          {
+            val classes: List<PsiClass> =
+              enabledFacetsProvider.getDataBindingEnabledFacets().mapNotNull { facet ->
+                LayoutBindingModuleCache.getInstance(facet).lightDataBindingComponentClass
+              }
+            CachedValueProvider.Result.create(
+              classes,
+              enabledFacetsProvider,
+              AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(project)
+            )
+          },
+          false
+        )
   }
 
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
@@ -55,6 +65,8 @@ class DataBindingComponentClassFinder(project: Project) : PsiElementFinder() {
   }
 
   private fun check(psiClass: PsiClass?, qualifiedName: String, scope: GlobalSearchScope): Boolean {
-    return psiClass != null && qualifiedName == psiClass.qualifiedName && PsiSearchScopeUtil.isInScope(scope, psiClass)
+    return psiClass != null &&
+      qualifiedName == psiClass.qualifiedName &&
+      PsiSearchScopeUtil.isInScope(scope, psiClass)
   }
 }

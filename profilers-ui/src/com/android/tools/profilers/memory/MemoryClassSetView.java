@@ -24,7 +24,6 @@ import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeCondit
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeIntColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeSizeColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass;
-import static com.intellij.ui.ExperimentalUI.isNewUI;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
@@ -48,6 +47,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -501,7 +501,7 @@ public final class MemoryClassSetView extends AspectObserver {
         if (myIsLeaked) {
           int width = getWidth();
           int height = getHeight();
-          Icon i = mySelected && isFocused() && !isNewUI()
+          Icon i = mySelected && isFocused() && !ExperimentalUI.isNewUI()
                    ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
                    : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
@@ -523,10 +523,10 @@ public final class MemoryClassSetView extends AspectObserver {
                                         boolean hasFocus) {
         super.customizeCellRenderer(tree, value, selected, expanded, leaf, row, hasFocus);
         if (value instanceof MemoryObjectTreeNode &&
-            ((MemoryObjectTreeNode<?>)value).getAdapter() instanceof InstanceObject) {
+            ((MemoryObjectTreeNode)value).getAdapter() instanceof InstanceObject) {
           CaptureObjectInstanceFilter leakFilter = myCaptureObject.getActivityFragmentLeakFilter();
           myIsLeaked = leakFilter != null &&
-                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode<?>)value).getAdapter());
+                       leakFilter.getInstanceTest().invoke((InstanceObject)((MemoryObjectTreeNode)value).getAdapter());
           String msg = "To investigate leak, select instance and see \"References\"";
           setToolTipText(myIsLeaked ? msg : null);
         }

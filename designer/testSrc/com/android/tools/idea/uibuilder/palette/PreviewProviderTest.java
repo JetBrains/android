@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.io.Images;
 import com.android.testutils.ImageDiffUtil;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.rendering.NoSecurityManagerRenderService;
@@ -93,6 +93,7 @@ public class PreviewProviderTest extends LayoutTestCase {
     try {
       StudioRenderService.setForTesting(getProject(), null);
       IconLoader.deactivate();
+      IconLoader.INSTANCE.clearCacheInTests();
       myPreviewProvider = null;
       myTextViewItem = null;
       myComponent = null;

@@ -87,6 +87,7 @@ internal open class TestClock {
       val Exit = AnimatedVisibilityState("Exit")
     }
   }
+
   open fun getAnimatedProperties(animation: Any) =
     listOf<ComposeAnimatedProperty>(
       ComposeAnimatedProperty("Int", 1),
@@ -96,11 +97,17 @@ internal open class TestClock {
     )
 
   fun getMaxDuration() = 1000L
+
   fun getMaxDurationPerIteration() = 1000L
+
   fun updateAnimationStates() {}
+
   fun updateSeekableAnimation(animation: Any, fromState: Any, toState: Any) {}
+
   fun setClockTime(time: Long) {}
+
   open fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
+
   open fun `getAnimatedVisibilityState-xga21d`(animation: Any): Any = "Enter"
 
   open fun updateFromAndToStates(animation: ComposeAnimation, fromState: Any, toState: Any) {}

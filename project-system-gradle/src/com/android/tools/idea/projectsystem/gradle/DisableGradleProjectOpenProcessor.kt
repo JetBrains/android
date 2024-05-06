@@ -20,7 +20,7 @@ import com.intellij.projectImport.ProjectOpenProcessor
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectOpenProcessor
 
-private class DisableGradleProjectOpenProcessor : ApplicationInitializedListener {
+class DisableGradleProjectOpenProcessor : ApplicationInitializedListener {
   override suspend fun execute(asyncScope: CoroutineScope) {
     ProjectOpenProcessor.EXTENSION_POINT_NAME.point.unregisterExtension(GradleProjectOpenProcessor::class.java)
   }

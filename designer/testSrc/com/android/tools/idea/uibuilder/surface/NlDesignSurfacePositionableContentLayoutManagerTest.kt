@@ -19,11 +19,11 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
+import java.awt.Point
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyInt
-import java.awt.Point
 
 class NlDesignSurfacePositionableContentLayoutManagerTest {
 
@@ -52,6 +52,7 @@ class NlDesignSurfacePositionableContentLayoutManagerTest {
     assertEquals(0, position.y)
   }
 
+  @Test
   fun testMeasurePosition() {
     val mockedSurface = mock<NlDesignSurface>()
     whenever(mockedSurface.setSceneViewAlignment(any())).then {} // Do nothing

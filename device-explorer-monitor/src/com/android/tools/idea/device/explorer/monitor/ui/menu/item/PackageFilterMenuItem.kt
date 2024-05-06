@@ -18,6 +18,10 @@ package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.Toggleable
 import javax.swing.Icon
 
 class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuItem(listener) {
@@ -31,6 +35,28 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuIte
       "<html>$buttonText<br>Disabled due to no application IDs found</html>"
     else
       buttonText
+  }
+
+  override val action: AnAction = object : ToggleAction() {
+    override fun update(e: AnActionEvent) {
+      val presentation = e.presentation
+      presentation.text = text
+      presentation.isEnabled = isEnabled
+      presentation.isVisible = isVisible
+      presentation.icon = icon
+      Toggleable.setSelected(presentation, isSelected(e))
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      run()
+      setSelected(e, !isSelected(e))
+    }
+
+    override fun isSelected(e: AnActionEvent): Boolean {
+      return isActionSelected
+    }
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {}
   }
 
   override val icon: Icon
@@ -57,12 +83,6 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuIte
     }
 
   override fun run() {
-    listener.setPackageFilter(!isActionSelected)
+    listener.packageFilterToggled(!isActionSelected)
   }
-
-  override fun isSelected(): Boolean {
-    return isActionSelected
-  }
-
-  override fun setSelected(selected: Boolean) {}
 }

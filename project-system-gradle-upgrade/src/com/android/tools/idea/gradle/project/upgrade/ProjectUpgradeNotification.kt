@@ -23,7 +23,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PR
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.UPGRADE_ASSISTANT_CTA_OLD_AGP_DISMISSED
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -33,12 +32,15 @@ import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 
-val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
+// These values should match with the ones used to register the notification group in android-plugin.xml
+val AGP_UPGRADE_DEFAULT_NOTIFICATION_TYPE = NotificationDisplayType.STICKY_BALLOON
+const val AGP_UPGRADE_NOTIFICATION_GROUP_ID = "Android Gradle Upgrade Notification"
+const val AGP_UPGRADE_NOTIFICATION_SHOULD_LOG = true
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 sealed class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
-  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
+  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP_ID, title, content, type) {
   var callToActionDismissed = false
   var studioEventSent = false
   abstract val project: Project

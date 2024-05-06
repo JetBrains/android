@@ -33,6 +33,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.PathUtil
 import java.io.File
 import java.time.Duration
@@ -112,8 +113,9 @@ class ExportAndroidTestResultsAction :
   private fun getOutputFile(exportConfig: ExportTestResultsConfiguration,
                             project: Project,
                             filename: String): File {
+    val outputFolder: File
     val outputFolderPath = exportConfig.outputFolder
-    val outputFolder = if (!outputFolderPath.isNullOrBlank()) {
+    outputFolder = if (!StringUtil.isEmptyOrSpaces(outputFolderPath)) {
       if (FileUtil.isAbsolute(outputFolderPath)) {
         File(outputFolderPath)
       } else {

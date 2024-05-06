@@ -260,7 +260,7 @@ class DaggerElementTest {
     val psiElement =
       myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -291,7 +291,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -324,7 +324,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtFunctionIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -356,7 +356,7 @@ class DaggerElementTest {
     val psiElement =
       myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtConstructorIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -388,7 +388,7 @@ class DaggerElementTest {
     val psiElement =
       myFixture.elementAtCaret.parentOfType<KtConstructor<*>>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtFunctionIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -421,7 +421,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtParameterIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -456,7 +456,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockKtPropertyIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -487,7 +487,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -522,7 +522,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiFieldIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -557,7 +557,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiMethodIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
@@ -592,7 +592,7 @@ class DaggerElementTest {
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf = */ true)!!
 
-    val mockDaggerElement: DaggerElement = mock()
+    val mockDaggerElement: AssistedFactoryMethodDaggerElement = mock()
     whenever(mockPsiParameterIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
 
     assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)

@@ -18,7 +18,7 @@ package org.jetbrains.android;
 import static org.jetbrains.android.UndisposedAndroidObjectsCheckerRule.checkUndisposedAndroidRelatedObjects;
 
 import com.android.testutils.MockitoThreadLocalsCleaner;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.Sdks;

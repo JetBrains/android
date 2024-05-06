@@ -22,27 +22,14 @@ import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper
+import com.android.tools.idea.gradle.dependencies.GroupNameDependencyMatcher
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_IMPLEMENTATION
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.API
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.APK
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.PROVIDED
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.RUNTIME
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_API
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_COMPILE
-import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.TEST_IMPLEMENTATION
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -52,8 +39,6 @@ import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencySpecImpl
 import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
-import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.templates.TemplateUtils.checkDirectoryIsWriteable
 import com.android.tools.idea.templates.TemplateUtils.checkedCreateDirectoryIfMissing
@@ -120,62 +105,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       else -> null
     }
   }
-  private val versionCatalogModel: GradleVersionCatalogModel? by lazy {
-    projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
-  }
-
-  override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean {
-    val buildModel =
-      if (moduleDir != null) {
-        projectBuildModel?.getModuleBuildModel(moduleDir)
-      }
-      else {
-        moduleGradleBuildModel
-      } ?: return false
-
-    if (buildModel.getDependencyConfiguration(mavenCoordinate) != null) {
-      return true
-    }
-
-    return GradleCoordinate.parseCoordinateString(mavenCoordinate)
-      ?.let { gradleCoordinate -> context.module?.getModuleSystem()?.getRegisteredDependency(gradleCoordinate) } != null
-  }
-
-  /**
-   * Identifies a configuration that the given maven coordinate is used in, or null if none does.
-   * Returns [OTHER_CONFIGURATION] if it is used in an unknown configuration.
-   */
-  private fun GradleBuildModel.getDependencyConfiguration(mavenCoordinate: String): String? {
-    val configurationsToCheck = listOf(
-        ANDROID_TEST_API,
-        ANDROID_TEST_COMPILE,
-        ANDROID_TEST_IMPLEMENTATION,
-        API,
-        APK,
-        CLASSPATH,
-        COMPILE,
-        IMPLEMENTATION,
-        PROVIDED,
-        RUNTIME,
-        TEST_API,
-        TEST_COMPILE,
-        TEST_IMPLEMENTATION
-    )
-
-    fun checkForConfiguration(configuration: String?): Boolean {
-      val artifacts = dependencies().run { if (configuration == null) artifacts() else artifacts(configuration) }
-
-      val existingArtifacts = artifacts.map {
-        ArtifactDependencySpec.create(it.name().toString(), it.group().toString(), it.version().toString())
-      }
-
-      val artifactToAdd = ArtifactDependencySpec.create(mavenCoordinate)!!
-
-      return existingArtifacts.any { it.equalsIgnoreVersion(artifactToAdd) }
-    }
-
-    return configurationsToCheck.firstOrNull { checkForConfiguration(it) } ?: OTHER_CONFIGURATION.takeIf { checkForConfiguration(null) }
-  }
 
   /**
    * Merges the given XML file into the given destination file (or copies it over if the destination file does not exist).
@@ -223,10 +152,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
+    val projectModel = projectBuildModel ?: return
+    val dependenciesHelper = DependenciesHelper(projectModel)
     if (revision == null) {
       // When the revision is null, just apply the plugin without a revision.
       // Version catalogs don't support the plugins without versions.
-      buildModel.applyPluginIfNone(plugin)
+      dependenciesHelper.addPlugin(plugin, buildModel)
       return
     }
 
@@ -240,27 +171,15 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (pluginsBlockToModify == null) {
       // When the revision is specified, but plugins block isn't defined in the settings nor the project level build file,
       // just apply the plugin without a revision.
-      buildModel.applyPluginIfNone(plugin)
+      dependenciesHelper.addPlugin(plugin, buildModel)
       return
     }
 
     val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
     val component = repositoryUrlManager.resolveDependency(Dependency.parse(pluginCoordinate), null, null)
     val resolvedVersion = component?.version?.toString() ?: minRev ?: revision
-    val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
-    if (versionCatalogModel != null) {
-      val referenceToPlugin = getOrAddPluginToVersionCatalog(versionCatalogModel, plugin, resolvedVersion)
-      if (targetPluginModel == null && referenceToPlugin != null) {
-        pluginsBlockToModify.applyPlugin(referenceToPlugin, applyFlag)
-      }
-      buildModel.applyPluginIfNone(plugin, referenceToPlugin)
-    } else {
-      if (targetPluginModel == null) {
-        pluginsBlockToModify.applyPlugin(plugin, resolvedVersion, applyFlag)
-      }
-      buildModel.applyPluginIfNone(plugin)
-    }
+    dependenciesHelper.addPlugin(plugin, resolvedVersion, applyFlag, pluginsBlockToModify, buildModel)
   }
 
   override fun addClasspathDependency(mavenCoordinate: String, minRev: String?, forceAdding: Boolean) {
@@ -283,8 +202,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     val targetDependencyModel = buildscriptDependencies.artifacts(CLASSPATH_CONFIGURATION_NAME).firstOrNull {
       toBeAddedDependency.equalsIgnoreVersion(it.spec)
     }
-    if (targetDependencyModel == null) {
-      buildscriptDependencies.addArtifact(CLASSPATH_CONFIGURATION_NAME, toBeAddedDependency)
+    projectBuildModel?.let {
+      if (targetDependencyModel == null) {
+        DependenciesHelper(it).addClasspathDependency(toBeAddedDependency.compactNotation())
+      }
     }
   }
 
@@ -300,9 +221,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
    * Add a library dependency into the project.
    */
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
-    // Translate from "compile" to "implementation" based on the parameter map context
-    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
-    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev, moduleDir, toBase)
+    referencesExecutor.addDependency(configuration, mavenCoordinate, minRev, moduleDir, toBase)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
 
@@ -318,8 +237,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       }
     } ?: return
 
-    var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
-
     val resolvedMavenCoordinate =
       when {
         // For coordinates that don't specify a version, we expect that version to be supplied by a platform dependency (i.e. a BOM).
@@ -330,27 +247,20 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
 
     // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
     // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
-    if (baseFeature != null && toBase && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
-        resolvedConfiguration = GRADLE_API_CONFIGURATION
-    }
+    val resolvedConfiguration = if (baseFeature != null && toBase && configuration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
+        GRADLE_API_CONFIGURATION
+    } else configuration
 
-    if (versionCatalogModel != null) {
-      val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
-      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null && referenceToDepToAdd != null) {
-        buildModel.dependencies().addArtifact(resolvedConfiguration, referenceToDepToAdd)
-      }
-    } else {
-      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
-        buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
-      }
+    projectBuildModel?.let {
+      DependenciesHelper(it).addDependency(resolvedConfiguration,
+                                           resolvedMavenCoordinate,
+                                           listOf(),
+                                           buildModel,
+                                           GroupNameDependencyMatcher(resolvedConfiguration, resolvedMavenCoordinate))
     }
   }
 
   override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
-    // TODO: Delete this once we no longer support ancient Gradle plugins
-    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
-    require(configuration == newConfiguration) { "Platform dependencies are not supported in Gradle plugin < 3.0" }
-
     referencesExecutor.addPlatformDependency(configuration, mavenCoordinate, enforced)
 
     val buildModel = moduleGradleBuildModel ?: return
@@ -359,13 +269,12 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     // Note that unlike in addDependency, we allow adding a dependency to multiple configurations,
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
     // to dependencies in each configuration.
-    if (versionCatalogModel != null) {
-      val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
-      if (referenceToDepToAdd != null) {
-        buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
-      }
-    } else {
-      buildModel.dependencies().addPlatformArtifact(configuration, resolvedMavenCoordinate, enforced)
+    projectBuildModel?.let {
+      DependenciesHelper(it).addPlatformDependency(configuration,
+                                                   resolvedMavenCoordinate,
+                                                   enforced,
+                                                   buildModel,
+                                                   GroupNameDependencyMatcher(configuration, resolvedMavenCoordinate))
     }
   }
 
@@ -373,10 +282,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     require(moduleName.isNotEmpty() && moduleName.first() != ':') {
       "incorrect module name (it should not be empty or include first ':')"
     }
-    val resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
-
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
-    buildModel.dependencies().addModule(resolvedConfiguration, ":$moduleName")
+    buildModel.dependencies().addModule(configuration, ":$moduleName")
   }
 
   /**
@@ -425,6 +332,13 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     }
     io.writeFile(this, content, targetFile, project)
     referencesExecutor.addTargetFile(targetFile)
+  }
+
+  override fun append(source: String, to: File) {
+    val targetFile = getTargetFile(to)
+    val targetText = readTargetText(targetFile) ?: ""
+    val contents = targetText + (if (targetText.endsWith('\n')) "" else "\n") + source
+    writeTargetFile(this, contents, targetFile)
   }
 
   override fun createDirectory(at: File) {
@@ -545,6 +459,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
       "mlModelBinding" -> buildModel.android().buildFeatures().mlModelBinding()
       "viewBinding" -> buildModel.android().buildFeatures().viewBinding()
       "prefab" -> buildModel.android().buildFeatures().prefab()
+      "buildConfig" -> buildModel.android().buildFeatures().buildConfig()
       else -> throw IllegalArgumentException("$name is not a supported build feature.")
     }
 
@@ -626,6 +541,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     buildModel.android().dynamicFeatures().addListValue()?.setValue(gradleName)
   }
 
+  override fun getJavaVersion(defaultVersion: String): String {
+    return TemplateUtils.getJavaVersion(project, defaultVersion)
+  }
+
   fun applyChanges() {
     if (!context.dryRun) {
       projectBuildModel?.applyChanges()
@@ -636,28 +555,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
     if (valueType == ValueType.NONE) {
       if (value.startsWith('$')) ReferenceTo.createReferenceFromText(value.substring(1), this)?.let { setValue(it) }
       else setValue(value)
-    }
-  }
-
-  private fun GradleBuildModel.applyPluginIfNone(plugin: String, referenceTo: ReferenceTo? = null) {
-    // b/193012182 - Some plugins have different names but are identical and we don't want to apply them more than once
-    fun defaultPluginName(name: String) = when (name) {
-      "kotlin-android" -> "org.jetbrains.kotlin.android"
-      "kotlin" -> "org.jetbrains.kotlin.jvm"
-      else -> name
-    }
-
-    val defaultName = defaultPluginName(plugin)
-    if (plugins().none { defaultPluginName(it.name().forceString()) == defaultName }) {
-      if (versionCatalogModel != null && referenceTo != null) {
-        applyPlugin(referenceTo, null)
-      } else {
-        applyPlugin(plugin)
-      }
-
-      if (versionCatalogModel == null && referenceTo != null) {
-        LOG.error("No Version Catalog model found, but we're trying to add a reference to a plugin: $referenceTo")
-      }
     }
   }
 

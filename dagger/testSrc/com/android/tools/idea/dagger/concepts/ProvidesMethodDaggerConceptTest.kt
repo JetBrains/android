@@ -31,6 +31,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
@@ -162,19 +163,11 @@ class ProvidesMethodDaggerConceptTest {
     assertThat(entries)
       .containsExactly(
         "Heater",
-        setOf(ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")),
+        setOf(ProvidesMethodIndexValue(HEATER_MODULE_ID, "provideHeater")),
         "ElectricHeater",
         setOf(
-          ProvidesMethodParameterIndexValue(
-            "com.example.HeaterModule",
-            "provideHeater",
-            "electricHeater"
-          ),
-          ProvidesMethodParameterIndexValue(
-            "com.example.HeaterModule",
-            "provideHeater",
-            "electricHeater2"
-          )
+          ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater"),
+          ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater2")
         ),
       )
   }
@@ -206,14 +199,10 @@ class ProvidesMethodDaggerConceptTest {
     assertThat(entries)
       .containsExactly(
         "Heater",
-        setOf(ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")),
+        setOf(ProvidesMethodIndexValue(HEATER_MODULE_ID, "bindHeater")),
         "ElectricHeater",
         setOf(
-          ProvidesMethodParameterIndexValue(
-            "com.example.HeaterModule",
-            "bindHeater",
-            "electricHeater"
-          ),
+          ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater"),
         ),
       )
   }
@@ -247,16 +236,16 @@ class ProvidesMethodDaggerConceptTest {
     assertThat(entries)
       .containsExactly(
         "Heater",
-        setOf(ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "provideHeater")),
+        setOf(ProvidesMethodIndexValue(HEATER_MODULE_COMPANION_ID, "provideHeater")),
         "ElectricHeater",
         setOf(
           ProvidesMethodParameterIndexValue(
-            "com.example.HeaterModule.Companion",
+            HEATER_MODULE_COMPANION_ID,
             "provideHeater",
             "electricHeater"
           ),
           ProvidesMethodParameterIndexValue(
-            "com.example.HeaterModule.Companion",
+            HEATER_MODULE_COMPANION_ID,
             "provideHeater",
             "electricHeater2"
           )
@@ -320,7 +309,7 @@ class ProvidesMethodDaggerConceptTest {
 
   @Test
   fun providesMethodIndexValue_serialization() {
-    val indexValue = ProvidesMethodIndexValue("a", "b")
+    val indexValue = ProvidesMethodIndexValue(HEATER_MODULE_ID, "b")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -355,9 +344,9 @@ class ProvidesMethodDaggerConceptTest {
         .trimIndent()
     )
 
-    val indexValue1 = ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")
-    val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
-    val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")
+    val indexValue1 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "provideHeater")
+    val indexValue2 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "dontProvideHeater")
+    val indexValue3 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "bindHeater")
 
     val provideHeaterFunction: KtFunction = myFixture.findParentElement("fun provideHe|ater")
     val bindHeaterFunction: KtFunction = myFixture.findParentElement("fun bindHe|ater")
@@ -402,11 +391,9 @@ class ProvidesMethodDaggerConceptTest {
         .trimIndent()
     )
 
-    val indexValue1 =
-      ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "provideHeater")
-    val indexValue2 =
-      ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "dontProvideHeater")
-    val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "bindHeater")
+    val indexValue1 = ProvidesMethodIndexValue(HEATER_MODULE_COMPANION_ID, "provideHeater")
+    val indexValue2 = ProvidesMethodIndexValue(HEATER_MODULE_COMPANION_ID, "dontProvideHeater")
+    val indexValue3 = ProvidesMethodIndexValue(HEATER_MODULE_COMPANION_ID, "bindHeater")
 
     val provideHeaterFunction: KtFunction = myFixture.findParentElement("fun provideHe|ater")
     val bindHeaterFunction: KtFunction = myFixture.findParentElement("fun bindHe|ater")
@@ -449,9 +436,9 @@ class ProvidesMethodDaggerConceptTest {
         .trimIndent()
     )
 
-    val indexValue1 = ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")
-    val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
-    val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")
+    val indexValue1 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "provideHeater")
+    val indexValue2 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "dontProvideHeater")
+    val indexValue3 = ProvidesMethodIndexValue(HEATER_MODULE_ID, "bindHeater")
 
     val provideHeaterFunction: PsiMethod = myFixture.findParentElement("Heater provideHe|ater")
     val bindHeaterFunction: PsiMethod = myFixture.findParentElement("Heater bindHe|ater")
@@ -465,7 +452,7 @@ class ProvidesMethodDaggerConceptTest {
 
   @Test
   fun providesMethodParameterIndexValue_serialization() {
-    val indexValue = ProvidesMethodParameterIndexValue("a", "b", "c")
+    val indexValue = ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "b", "c")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -501,19 +488,11 @@ class ProvidesMethodDaggerConceptTest {
     )
 
     val indexValue1 =
-      ProvidesMethodParameterIndexValue(
-        "com.example.HeaterModule",
-        "provideHeater",
-        "electricHeater"
-      )
+      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater")
     val indexValue2 =
-      ProvidesMethodParameterIndexValue(
-        "com.example.HeaterModule",
-        "dontProvideHeater",
-        "electricHeater"
-      )
+      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "dontProvideHeater", "electricHeater")
     val indexValue3 =
-      ProvidesMethodParameterIndexValue("com.example.HeaterModule", "bindHeater", "electricHeater")
+      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater")
 
     val electricHeaterProvidesParameter: KtParameter =
       myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
@@ -563,22 +542,18 @@ class ProvidesMethodDaggerConceptTest {
 
     val indexValue1 =
       ProvidesMethodParameterIndexValue(
-        "com.example.HeaterModule.Companion",
+        HEATER_MODULE_COMPANION_ID,
         "provideHeater",
         "electricHeater"
       )
     val indexValue2 =
       ProvidesMethodParameterIndexValue(
-        "com.example.HeaterModule.Companion",
+        HEATER_MODULE_COMPANION_ID,
         "dontProvideHeater",
         "electricHeater"
       )
     val indexValue3 =
-      ProvidesMethodParameterIndexValue(
-        "com.example.HeaterModule.Companion",
-        "bindHeater",
-        "electricHeater"
-      )
+      ProvidesMethodParameterIndexValue(HEATER_MODULE_COMPANION_ID, "bindHeater", "electricHeater")
 
     val electricHeaterProvidesParameter: KtParameter =
       myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
@@ -625,19 +600,11 @@ class ProvidesMethodDaggerConceptTest {
     )
 
     val indexValue1 =
-      ProvidesMethodParameterIndexValue(
-        "com.example.HeaterModule",
-        "provideHeater",
-        "electricHeater"
-      )
+      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "provideHeater", "electricHeater")
     val indexValue2 =
-      ProvidesMethodParameterIndexValue(
-        "com.example.HeaterModule",
-        "dontProvideHeater",
-        "electricHeater"
-      )
+      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "dontProvideHeater", "electricHeater")
     val indexValue3 =
-      ProvidesMethodParameterIndexValue("com.example.HeaterModule", "bindHeater", "electricHeater")
+      ProvidesMethodParameterIndexValue(HEATER_MODULE_ID, "bindHeater", "electricHeater")
 
     val electricHeaterProvidesParameter: PsiParameter =
       myFixture.findParentElement("provideHeater(ElectricHeater elec|tricHeater")
@@ -650,5 +617,11 @@ class ProvidesMethodDaggerConceptTest {
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
     assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
+  }
+
+  companion object {
+    private val HEATER_MODULE_ID = ClassId.fromString("com/example/HeaterModule")
+    private val HEATER_MODULE_COMPANION_ID =
+      ClassId.fromString("com/example/HeaterModule.Companion")
   }
 }

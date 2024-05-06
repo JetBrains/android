@@ -21,7 +21,9 @@ interface AnimationController {
   var forceElapsedReset: Boolean
 
   fun play()
+
   fun pause()
+
   fun stop()
 
   /** Get the current [PlayStatus] of the controlled animation. */
@@ -32,13 +34,16 @@ interface AnimationController {
    * will be truncated to be within the range.
    */
   fun setFrameMs(frameMs: Long)
+
   fun getFrameMs(): Long
 
   /** Note: Set max time as -1 means it is an unlimited animation. */
   fun setMaxTimeMs(maxTimeMs: Long)
+
   fun getMaxTimeMs(): Long
 
   fun setLooping(enabled: Boolean)
+
   fun isLooping(): Boolean
 
   fun registerAnimationControllerListener(listener: AnimationControllerListener)
@@ -57,7 +62,10 @@ enum class PlayStatus {
 
 interface AnimationControllerListener {
   fun onPlayStatusChanged(newStatus: PlayStatus) = Unit
+
   fun onCurrentFrameMsChanged(newFrameMs: Long) = Unit
+
   fun onMaxTimeMsChanged(newMaxTimeMs: Long) = Unit
+
   fun onLoopingChanged(enabled: Boolean) = Unit
 }

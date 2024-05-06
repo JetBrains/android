@@ -24,9 +24,9 @@ import com.android.tools.idea.validator.ValidatorUtil
 import com.android.tools.rendering.RenderResult
 import com.android.tools.res.FrameworkResourceRepositoryManager
 import com.google.common.util.concurrent.Futures
-import org.jetbrains.android.AndroidTestCase
 import java.util.EnumSet
 import java.util.stream.Collectors
+import org.jetbrains.android.AndroidTestCase
 
 class AccessibilityTestingFrameworkValidatorTest : AndroidTestCase() {
 

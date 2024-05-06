@@ -17,15 +17,12 @@ package com.android.tools.idea.tests.gui.projectstructure;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +30,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class AddAppCompatLibTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
@@ -58,8 +55,7 @@ public class AddAppCompatLibTest {
   public void addAppCompatLib() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("NoAppCompatLibApp");
 
-    DependenciesTestUtil.addLibraryDependency(ideFrame, "com.android.support:appcompat-v7", "app", "implementation");
-
+    DependenciesTestUtil.addLibraryDependency(guiTest, ideFrame, "com.android.support:appcompat-v7", "app", "implementation");
     // Here, only verify the main part of the library, the exact revision number will vary.
     // As default, it's implementation type.
     assertThat(guiTest.getProjectFileText("app/build.gradle")).contains("implementation 'com.android.support:appcompat-v7");

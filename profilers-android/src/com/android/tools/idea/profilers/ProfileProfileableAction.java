@@ -16,9 +16,9 @@
 package com.android.tools.idea.profilers;
 
 import com.android.tools.idea.run.profiler.ProfilingMode;
-import com.intellij.execution.actions.ExecutorAction;
+import com.intellij.execution.ExecutorRegistryImpl;
 
-public class ProfileProfileableAction extends ExecutorAction {
+public class ProfileProfileableAction extends ExecutorRegistryImpl.ExecutorAction {
   ProfileProfileableAction() {
     super(ProfileRunExecutorGroup.getInstance().getChildExecutor(ProfilingMode.PROFILEABLE));
   }

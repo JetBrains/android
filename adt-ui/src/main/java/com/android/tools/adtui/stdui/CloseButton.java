@@ -18,7 +18,7 @@ package com.android.tools.adtui.stdui;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.popup.IconButton;
 import com.intellij.ui.InplaceButton;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CloseButton extends InplaceButton {
 
-  private static final int CLOSE_BUTTON_SIZE = JBUIScale.scale(24); // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
+  private static final int CLOSE_BUTTON_SIZE = JBUI.scale(24); // Icon is 16x16. This gives it some padding, so it doesn't touch the border.
 
   public CloseButton(@Nullable ActionListener actionListener) {
     super(new IconButton("Close", AllIcons.Ide.Notification.Close, AllIcons.Ide.Notification.CloseHover), actionListener);

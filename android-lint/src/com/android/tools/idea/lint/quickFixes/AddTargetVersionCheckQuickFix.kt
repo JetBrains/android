@@ -41,8 +41,10 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
@@ -220,7 +222,10 @@ class AddTargetVersionCheckQuickFix(
   @OptIn(KtAllowAnalysisOnEdt::class)
   private fun getKotlinSurrounder(element: KtElement, todoText: String?): KotlinIfSurrounder {
     val used = allowAnalysisOnEdt {
-      analyze(element) { (element as? KtExpression)?.isUsedAsExpression() ?: false }
+      @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+      allowAnalysisFromWriteAction {
+        analyze(element) { (element as? KtExpression)?.isUsedAsExpression() ?: false }
+      }
     }
     return if (used) {
       object : KotlinIfSurrounder() {
@@ -246,6 +251,7 @@ class AddTargetVersionCheckQuickFix(
   companion object {
     fun getVersionField(api: Int, fullyQualified: Boolean): String =
       ExtensionSdk.getAndroidVersionField(api, fullyQualified)
+
     fun getSdkExtensionField(project: Project, sdkId: Int, fullyQualified: Boolean): String {
       val apiLookup = LintIdeClient.getApiLookup(project)
       if (apiLookup != null) {

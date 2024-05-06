@@ -15,12 +15,39 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
+import com.android.ide.common.resources.LocaleManager
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.ide.common.resources.configuration.ResourceQualifier
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.ui.resourcemanager.model.Mapper
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
+
+/**
+ * Returns true if the [LocaleQualifier] has a valid region and language. Not having region or language
+ * are both acceptable and this method will return true.
+ */
+private fun LocaleQualifier.hasValidLanguageAndRegion(): Boolean {
+  val validRegion = !hasRegion() || LocaleManager.isValidRegionCode(region!!)
+  val validLanguage = !hasLanguage() || LocaleManager.isValidLanguageCode(language!!)
+
+  return validLanguage && validRegion
+}
+
+/**
+ * Returns the set of [ResourceQualifier] that are in the specified [names] when parsed as a folder.
+ * Returning null means that [names] did not form a valid folder name.
+ */
+private fun getQualifiersFromFolder(names: Iterable<String>): Set<ResourceQualifier>? {
+  return FolderConfiguration.getConfigFromQualifiers(names)?.qualifiers
+    ?.filter {
+      // LocaleQualifier parsing is very leaning and might return values that are not actual
+      // languages. Just in case, do not suggest those.
+      it !is LocaleQualifier || it.hasValidLanguageAndRegion()
+    }
+    ?.toSet()
+}
 
 /**
  * Lexer that parses a file path and matches tokens to a list of [ResourceQualifier].
@@ -90,7 +117,7 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
     val nameSplit = fileName.split("-").filter { it.isNotBlank() }
     if (nameSplit.size > 1) {
       val resourceName = FileUtil.sanitizeFileName(nameSplit[0])
-      val qualifiers = FolderConfiguration.getConfigFromQualifiers(nameSplit.drop(1))?.qualifiers?.toSet()
+      val qualifiers = getQualifiersFromFolder(nameSplit.drop(1))
       if (qualifiers != null) {
         return Result(resourceName, qualifiers)
       }
@@ -98,9 +125,8 @@ class QualifierMatcher(private val mappers: Set<Mapper<ResourceQualifier>> = emp
     val resourceName = FileUtil.sanitizeFileName(fileName)
     val parent = PathUtil.getFileName(PathUtil.getParentPath(path))
     val parentSplit = parent.split("-").filter { it.isNotBlank() }
-    val folderConfiguration =
-      FolderConfiguration.getConfigFromQualifiers(parentSplit) ?: FolderConfiguration.getConfigFromQualifiers(parentSplit.drop(1))
-    val qualifiers = folderConfiguration?.qualifiers?.toSet() ?: emptySet()
+    val qualifiers =
+      getQualifiersFromFolder(parentSplit) ?: getQualifiersFromFolder(parentSplit.drop(1)) ?: emptySet()
     return Result(resourceName, qualifiers)
   }
 

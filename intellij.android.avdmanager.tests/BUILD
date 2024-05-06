@@ -9,6 +9,7 @@ iml_module(
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/artwork:device-art-resources",
     ],
     test_srcs = ["src"],
     visibility = ["//visibility:public"],

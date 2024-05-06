@@ -48,7 +48,7 @@ import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.Alarm
 import com.intellij.util.PlatformIcons.LIBRARY_ICON
-import com.intellij.util.text.DateFormatUtil
+import com.intellij.util.text.JBDateFormat
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.UIUtil.getListBackground
@@ -197,7 +197,10 @@ class JetifierWarningDetailsView(
           actionHandlers.turnJetifierOffInProperties { RelativePoint(this, pointBelowCenter) }
         }
       }
-      else -> { }
+
+      AnalyzerNotRun,
+      JetifierNotUsed,
+      is JetifierRequiredForLibraries -> {}
     }
     installResultsTableActions(this)
     ListSpeedSearch.installOn(this)
@@ -306,7 +309,7 @@ class JetifierWarningDetailsView(
       }
     }.run()
     // Also refresh right away on page reopening, otherwise there will be 30s lag until next alarm triggers.
-    UiNotifyConnector(pagePanel, object : Activatable {
+    UiNotifyConnector.installOn(pagePanel, object : Activatable {
       override fun showNotify() {
         refreshUi()
       }
@@ -317,7 +320,7 @@ class JetifierWarningDetailsView(
     tableHeader.let {
       it.clear()
       val lastUpdatedSuffix = data.lastCheckJetifierBuildTimestamp?.let {
-        val lastUpdatedTime = StringUtil.decapitalize(DateFormatUtil.formatPrettyDateTime(it))
+        val lastUpdatedTime = StringUtil.decapitalize(JBDateFormat.getFormatter().formatPrettyDateTime(it))
         " (updated $lastUpdatedTime)"
       } ?: ""
       it.append("Declared Dependencies Requiring Jetifier$lastUpdatedSuffix")

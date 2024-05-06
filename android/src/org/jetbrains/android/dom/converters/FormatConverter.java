@@ -15,18 +15,18 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.ide.common.rendering.api.AttributeFormat;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.converters.DelimitedListConverter;
+import com.android.ide.common.rendering.api.AttributeFormat;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.Nullable;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   public FormatConverter() {
@@ -35,7 +35,7 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
 
   @Override
   @Nullable
-  protected AttributeFormat convertString(@Nullable String string, @NotNull ConvertContext context) {
+  protected AttributeFormat convertString(@Nullable String string, ConvertContext context) {
     return string == null ? null : AttributeFormat.fromXmlName(string);
   }
 
@@ -45,7 +45,7 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   }
 
   @Override
-  protected Object[] getReferenceVariants(@NotNull ConvertContext context, GenericDomValue<? extends List<AttributeFormat>> value) {
+  protected Object[] getReferenceVariants(ConvertContext context, GenericDomValue<? extends List<AttributeFormat>> value) {
     List<AttributeFormat> variants = new ArrayList<>(AttributeFormat.values().length);
     Collections.addAll(variants, AttributeFormat.values());
     filterVariants(variants, value);
@@ -57,7 +57,7 @@ public class FormatConverter extends DelimitedListConverter<AttributeFormat> {
   }
 
   @Override
-  protected PsiElement resolveReference(@Nullable AttributeFormat s, @NotNull ConvertContext context) {
+  protected PsiElement resolveReference(@Nullable AttributeFormat s, ConvertContext context) {
     return s == null ? null : context.getReferenceXmlElement();
   }
 

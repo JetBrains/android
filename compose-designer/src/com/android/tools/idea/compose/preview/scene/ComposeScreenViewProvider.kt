@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.scene
 
 import com.android.flags.ifEnabled
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
@@ -25,6 +24,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
@@ -34,10 +34,11 @@ import com.android.tools.idea.uibuilder.surface.layer.BorderColor
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
 import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer
-import com.android.tools.idea.uibuilder.surface.layer.WarningLayer
+import com.android.tools.idea.uibuilder.surface.layer.UiCheckWarningLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 
 class ComposeScreenViewProvider(private val previewManager: ComposePreviewManager) :
   ScreenViewProvider {
@@ -69,21 +70,20 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
               SceneLayer(surface, it, false).apply {
                 isShowOnHover = true
                 setShowOnHoverFilter { sceneView ->
-                  previewManager.isInNormalMode &&
+                  (previewManager.mode.value.isNormal ||
+                    previewManager.mode.value is PreviewMode.UiCheck) &&
                     (!StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
                       sceneView.isRootComponentSelected())
                 }
-              }
+              },
             )
             add(
-              WarningLayer(it) {
-                if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-                  listOfNotNull(surface.issuePanel.selectedIssue)
-                } else if (previewManager.isUiCheckPreview) {
-                  IssuePanelService.getInstance(surface.project).getSelectedIssues()
-                } else {
-                  emptyList()
-                }
+              UiCheckWarningLayer(it) {
+                previewManager.mode.value is PreviewMode.UiCheck &&
+                  ProblemsView.getToolWindow(surface.project)
+                    ?.contentManager
+                    ?.selectedContent
+                    ?.tabName == surface.visualLintIssueProvider.uiCheckInstanceId
               }
             )
             StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {

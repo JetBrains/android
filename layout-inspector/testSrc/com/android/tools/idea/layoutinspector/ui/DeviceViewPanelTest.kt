@@ -23,7 +23,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.actions.ZoomType
@@ -98,7 +98,6 @@ import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
@@ -185,7 +184,7 @@ class DeviceViewPanelWithFullInspectorTest {
     val renderModel =
       panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     delegateDataProvider(panel)
-    panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { PlatformTestUtil.waitForFuture(it.updateActionsAsync()) }
+    panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
     val toggle =
       panel.flatten(false).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
     (toggle.action as Toggle3dAction).executorFactory = { scheduler }
@@ -823,6 +822,7 @@ class DeviceViewPanelTest {
   fun testDragWithMiddleButtonFromSnapshot() {
     testPan({ _, _ -> }, { _, _ -> }, Button.MIDDLE, fromSnapshot = true)
   }
+
   private fun testPan(
     startPan: (FakeUi, DeviceViewPanel) -> Unit,
     endPan: (FakeUi, DeviceViewPanel) -> Unit,

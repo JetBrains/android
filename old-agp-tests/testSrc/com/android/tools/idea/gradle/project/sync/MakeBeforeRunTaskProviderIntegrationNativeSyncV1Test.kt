@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
@@ -54,7 +55,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
       fun attemptRunningOn(abi: Abi) {
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(23, listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
         }
       }
 
@@ -87,7 +88,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
 
       fun runOn(abi: Abi) {
         val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-        runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(23, listOf(abi)))))
+        runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
       }
 
       runOn(Abi.ARMEABI_V7A)
@@ -100,7 +101,7 @@ class MakeBeforeRunTaskProviderIntegrationNativeSyncV1Test {
       fun attemptRunningOn(abi: Abi) {
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(23, listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
         }
       }
 

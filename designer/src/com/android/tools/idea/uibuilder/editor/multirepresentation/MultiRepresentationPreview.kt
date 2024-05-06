@@ -25,6 +25,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -48,6 +49,13 @@ import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.MapAnnotation
 import com.intellij.util.xmlb.annotations.Tag
 import icons.StudioIcons
+import java.awt.BorderLayout
+import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
+import javax.swing.BorderFactory
+import javax.swing.JComponent
+import kotlin.concurrent.withLock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
@@ -57,13 +65,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.BorderLayout
-import java.util.concurrent.CancellationException
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.locks.ReentrantLock
-import javax.swing.BorderFactory
-import javax.swing.JComponent
-import kotlin.concurrent.withLock
 
 /** Tag name used to persist the multi preview state. */
 internal const val MULTI_PREVIEW_STATE_TAG = "multi-preview-state"
@@ -262,7 +263,7 @@ open class MultiRepresentationPreview(
   private suspend fun updateRepresentationsImpl() {
     if (Disposer.isDisposed(this@MultiRepresentationPreview)) return
     val file = readAction { psiFilePointer.element }
-    if (file == null || !file.isValid) return
+    if (file == null || !readAction { file.isValid }) return
 
     val providers = providers.filter { it.accept(project, file) }.toList()
     val currentRepresentationsNames = synchronized(representations) { representations.keys.toSet() }
@@ -300,7 +301,7 @@ open class MultiRepresentationPreview(
       representations.putAll(newRepresentations)
     }
     toDispose.forEach { representation ->
-      invokeAndWaitIfNeeded { Disposer.dispose(representation) }
+      withContext(uiThread) { Disposer.dispose(representation) }
     }
 
     if (!hadAnyRepresentationsInitialized) {

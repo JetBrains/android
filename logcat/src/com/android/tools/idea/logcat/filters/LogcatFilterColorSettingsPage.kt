@@ -21,27 +21,28 @@ import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
 
-private val DESCRIPTORS = arrayOf(
-  AttributesDescriptor("Key", LogcatFilterTextAttributes.KEY.key),
-  AttributesDescriptor("Value", LogcatFilterTextAttributes.KVALUE.key),
-  AttributesDescriptor("String value", LogcatFilterTextAttributes.STRING_KVALUE.key),
-  AttributesDescriptor("Regex value", LogcatFilterTextAttributes.REGEX_KVALUE.key),
-  AttributesDescriptor("Text", LogcatFilterTextAttributes.VALUE.key),
-)
+private val DESCRIPTORS =
+  arrayOf(
+    AttributesDescriptor("Key", LogcatFilterTextAttributes.KEY.key),
+    AttributesDescriptor("Value", LogcatFilterTextAttributes.KVALUE.key),
+    AttributesDescriptor("String value", LogcatFilterTextAttributes.STRING_KVALUE.key),
+    AttributesDescriptor("Regex value", LogcatFilterTextAttributes.REGEX_KVALUE.key),
+    AttributesDescriptor("Text", LogcatFilterTextAttributes.VALUE.key),
+  )
 
-/**
- * A [ColorSettingsPage] for the Logcat Filter Language.
- */
+/** A [ColorSettingsPage] for the Logcat Filter Language. */
 internal class LogcatFilterColorSettingsPage : ColorSettingsPage {
   override fun getIcon() = LogcatFilterFileType.icon
 
   override fun getHighlighter() = LogcatFilterSyntaxHighlighter()
 
-  override fun getDemoText() = """
+  override fun getDemoText() =
+    """
     // Note that the selected line does not show background color
 
     tag:foo bar line~:Foo|Bar level:DEBUG
-  """.trimIndent()
+  """
+      .trimIndent()
 
   override fun getAttributeDescriptors() = DESCRIPTORS
 
@@ -49,6 +50,6 @@ internal class LogcatFilterColorSettingsPage : ColorSettingsPage {
 
   override fun getDisplayName() = "Logcat Filter"
 
-
-  override fun getAdditionalHighlightingTagToDescriptorMap(): MutableMap<String, TextAttributesKey>? = null
+  override fun getAdditionalHighlightingTagToDescriptorMap():
+    MutableMap<String, TextAttributesKey>? = null
 }

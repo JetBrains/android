@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
@@ -25,7 +26,6 @@ import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -40,12 +40,18 @@ class ComposeHideFilterActionTest {
   fun testHideFilter() {
     val surface = mock<DesignSurface<*>>()
     val manager = TestComposePreviewManager()
-    whenever(surface.getData(COMPOSE_PREVIEW_MANAGER.name)).thenReturn(manager)
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of())
     manager.isFilterEnabled = true
 
-    val action = ComposeHideFilterAction(surface)
-    action.actionPerformed(TestActionEvent.createTestEvent(DataContext.EMPTY_CONTEXT))
+    val dataContext = DataContext {
+      when {
+        DESIGN_SURFACE.`is`(it) -> surface
+        COMPOSE_PREVIEW_MANAGER.`is`(it) -> manager
+        else -> null
+      }
+    }
+    val action = ComposeHideFilterAction()
+    action.actionPerformed(TestActionEvent.createTestEvent(dataContext))
 
     assertFalse(manager.isFilterEnabled)
   }
@@ -54,7 +60,6 @@ class ComposeHideFilterActionTest {
   fun testShowVisibleCount() {
     val surface = mock<DesignSurface<*>>()
     val manager = TestComposePreviewManager()
-    whenever(surface.getData(COMPOSE_PREVIEW_MANAGER.name)).thenReturn(manager)
     val sceneManager = mock<SceneManager>()
     val sceneView1 = mock<SceneView>()
     val sceneView2 = mock<SceneView>()
@@ -62,23 +67,35 @@ class ComposeHideFilterActionTest {
     whenever(surface.sceneManagers).thenReturn(ImmutableList.of(sceneManager))
     manager.isFilterEnabled = true
 
-    val presentation = Presentation()
-    val action = ComposeHideFilterAction(surface)
+    val dataContext = DataContext {
+      when {
+        DESIGN_SURFACE.`is`(it) -> surface
+        COMPOSE_PREVIEW_MANAGER.`is`(it) -> manager
+        else -> null
+      }
+    }
+    val action = ComposeHideFilterAction()
 
-    whenever(sceneView1.isVisible).thenReturn(false)
-    whenever(sceneView2.isVisible).thenReturn(false)
-    val eventOne = TestActionEvent.createTestToolbarEvent(presentation)
-    action.update(eventOne)
-    assertEquals("no result", eventOne.presentation.text)
+    run {
+      whenever(sceneView1.isVisible).thenReturn(false)
+      whenever(sceneView2.isVisible).thenReturn(false)
+      val event = TestActionEvent.createTestEvent(dataContext)
+      action.update(event)
+      assertEquals("no result", event.presentation.text)
+    }
 
-    val eventTwo = TestActionEvent.createTestEvent()
-    whenever(sceneView1.isVisible).thenReturn(true)
-    action.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertEquals("1 result", eventTwo.presentation.text)
+    run {
+      whenever(sceneView1.isVisible).thenReturn(true)
+      val event = TestActionEvent.createTestEvent(dataContext)
+      action.update(event)
+      assertEquals("1 result", event.presentation.text)
+    }
 
-    val eventThree = TestActionEvent.createTestEvent()
-    whenever(sceneView2.isVisible).thenReturn(true)
-    action.update(TestActionEvent.createTestToolbarEvent(presentation))
-    assertEquals("2 results", eventThree.presentation.text)
+    run {
+      whenever(sceneView2.isVisible).thenReturn(true)
+      val event = TestActionEvent.createTestEvent(dataContext)
+      action.update(event)
+      assertEquals("2 results", event.presentation.text)
+    }
   }
 }

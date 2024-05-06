@@ -50,7 +50,6 @@ import com.intellij.ide.DataManager
 import com.intellij.ide.DefaultTreeExpander
 import com.intellij.ide.OccurenceNavigator
 import com.intellij.ide.actions.EditSourceAction
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -161,7 +160,7 @@ class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener,
     val testRow = myModel.addTestResultsRow(device, testCase)
     refreshTable()
     myTableView.tree.expandPath(TreeUtil.getPath(myModel.myRootAggregationRow, testRow.parent))
-    return sequence {
+    return sequence<AndroidTestResults> {
       yield(testRow)
       var parent = testRow.parent
       while (parent != null) {
@@ -308,8 +307,6 @@ interface AndroidTestResultsTableListener {
 }
 
 private class FailedTestsNavigator(private val treetableView: AndroidTestResultsTableViewComponent) : OccurenceNavigator {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-
   override fun getNextOccurenceActionName(): String = ExecutionBundle.message("next.faled.test.action.name")
   override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("prev.faled.test.action.name")
 
@@ -343,7 +340,7 @@ private class FailedTestsNavigator(private val treetableView: AndroidTestResults
   }
 
   private fun getSequence(next: DefaultMutableTreeNode.() -> DefaultMutableTreeNode?): Sequence<AndroidTestResultsRow> {
-    return sequence {
+    return sequence<AndroidTestResultsRow> {
       if (treetableView.rowCount == 0) {
         return@sequence
       }
@@ -1208,6 +1205,7 @@ private open class FilterableTreeNode : DefaultMutableTreeNode() {
     get() = sequence {
       // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
       // and this assignment is no longer unchecked.
+      @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
       children?.let { yieldAll(it as Vector<TreeNode>) }
       yieldAll(invisibleNodes)
     }
@@ -1229,6 +1227,7 @@ private open class FilterableTreeNode : DefaultMutableTreeNode() {
     }
     // In JDK 8 DefaultMutableTreeNode.children() returns a raw Vector but as of JDK 11 the generic type matches
     // and this assignment is no longer unchecked.
+    @Suppress("UNCHECKED_CAST") // In JDK 11 the cast is no longer needed.
     invisibleNodes = children.filterNot(filter) as List<TreeNode>
     children.retainAll(filter)
   }

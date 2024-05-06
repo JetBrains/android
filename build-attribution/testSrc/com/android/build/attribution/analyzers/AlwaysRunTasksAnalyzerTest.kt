@@ -44,7 +44,7 @@ class AlwaysRunTasksAnalyzerTest {
 
     FileUtil.appendToFile(
       File(preparedProject.root, FN_GRADLE_PROPERTIES),
-      "org.gradle.unsafe.configuration-cache=true"
+      "org.gradle.unsafe.configuration-cache=true\n"
     )
 
     preparedProject.runTest {
@@ -54,7 +54,7 @@ class AlwaysRunTasksAnalyzerTest {
       val results = buildAnalyzerStorageManager.getSuccessfulResult()
       var alwaysRunTasks = results.getAlwaysRunTasks().sortedBy { it.taskData.taskName }
 
-      assertThat(alwaysRunTasks).hasSize(3)
+      assertThat(alwaysRunTasks).hasSize(4)
 
       assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:alwaysRunningBuildSrcTask")
       assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("org.example.buildsrc.AlwaysRunningBuildSrcTask")
@@ -71,6 +71,11 @@ class AlwaysRunTasksAnalyzerTest {
       assertThat(alwaysRunTasks[2].taskData.originPlugin.toString()).isEqualTo("binary plugin AlwaysRunTasksPlugin")
       assertThat(alwaysRunTasks[2].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
 
+      assertThat(alwaysRunTasks[3].taskData.getTaskPath()).isEqualTo(":lib:checkKotlinGradlePluginConfigurationErrors")
+      assertThat(alwaysRunTasks[3].taskData.taskType).isEqualTo("org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors")
+      assertThat(alwaysRunTasks[3].taskData.originPlugin.toString()).isEqualTo("binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper")
+      assertThat(alwaysRunTasks[3].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
+
 
       // configuration cached run
       invokeTasks("clean", "lintDebug")
@@ -79,7 +84,7 @@ class AlwaysRunTasksAnalyzerTest {
         buildAnalyzerStorageManager.getSuccessfulResult().getAlwaysRunTasks().sortedBy { it.taskData.taskName }
 
       // lint analysis runs on every task intentionally, it should be filtered out at this point even in a config-cached run
-      assertThat(alwaysRunTasks).hasSize(3)
+      assertThat(alwaysRunTasks).hasSize(4)
 
       assertThat(alwaysRunTasks[0].taskData.getTaskPath()).isEqualTo(":app:alwaysRunningBuildSrcTask")
       assertThat(alwaysRunTasks[0].taskData.taskType).isEqualTo("org.example.buildsrc.AlwaysRunningBuildSrcTask")
@@ -95,11 +100,16 @@ class AlwaysRunTasksAnalyzerTest {
       assertThat(alwaysRunTasks[2].taskData.taskType).isEqualTo("AlwaysRunTask")
       assertThat(alwaysRunTasks[2].taskData.originPlugin.toString()).isEqualTo("unknown plugin")
       assertThat(alwaysRunTasks[2].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE)
+
+      assertThat(alwaysRunTasks[3].taskData.getTaskPath()).isEqualTo(":lib:checkKotlinGradlePluginConfigurationErrors")
+      assertThat(alwaysRunTasks[3].taskData.taskType).isEqualTo("org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors")
+      assertThat(alwaysRunTasks[3].taskData.originPlugin.toString()).isEqualTo("unknown plugin")
+      assertThat(alwaysRunTasks[3].rerunReason).isEqualTo(AlwaysRunTaskData.Reason.NO_OUTPUTS_WITH_ACTIONS)
     }
   }
 
   @Test
-  @Ignore("b/179137380")
+  @Ignore("b/303117971")
   fun testAlwaysRunTasksAnalyzerWithSuppressedWarning() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.BUILD_ANALYZER_CHECK_ANALYZERS)
 

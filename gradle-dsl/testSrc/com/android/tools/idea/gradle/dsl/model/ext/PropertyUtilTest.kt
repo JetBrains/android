@@ -110,7 +110,7 @@ class PropertyUtilTest : TransformTestCase() {
     literal.setValue("hello")
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME)
+    verifyFileContents(myBuildFile, PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME);
 
     val applicationId = buildModel.android().defaultConfig().applicationId()
     if (isGroovy) {

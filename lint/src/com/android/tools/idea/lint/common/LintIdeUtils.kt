@@ -16,18 +16,18 @@
 package com.android.tools.idea.lint.common
 
 import com.android.tools.lint.detector.api.Context
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
@@ -61,10 +61,13 @@ fun Context.getPsiFile(): PsiFile? {
 @OptIn(KtAllowAnalysisOnEdt::class)
 internal fun KtProperty.hasBackingField(): Boolean {
   allowAnalysisOnEdt {
-    analyze(this) {
-      val propertySymbol =
-        this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
-      return propertySymbol.hasBackingField
+    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    allowAnalysisFromWriteAction {
+      analyze(this) {
+        val propertySymbol =
+          this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
+        return propertySymbol.hasBackingField
+      }
     }
   }
 }
@@ -137,20 +140,16 @@ fun KtModifierListOwner.addAnnotation(
 fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
-      analyze(this) {
-        val annotatedSymbol =
-          (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
-        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
-        annotations?.singleOrNull()?.psi as? KtAnnotationEntry
+      @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+      allowAnalysisFromWriteAction {
+        analyze(this) {
+          val annotatedSymbol =
+            (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
+          val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
+          annotations?.singleOrNull()?.psi as? KtAnnotationEntry
+        }
       }
     }
   } else {
     findAnnotationK1(fqName)
   }
-
-fun preparedToWrite(element: PsiElement): Boolean {
-  // TODO: When we've merged more recent version of IntelliJ and the following API is available,
-  // (via 7748e0104bba4a1cef42afee2edf4856f18b5a62), switch to it here:
-  //  return IntentionPreviewUtils.prepareElementForWrite(element)
-  return !element.isPhysical || IntentionPreviewUtils.prepareElementForWrite(element)
-}

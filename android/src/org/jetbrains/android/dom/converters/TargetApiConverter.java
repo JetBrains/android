@@ -78,12 +78,12 @@ public class TargetApiConverter extends ResolvingConverter<Integer> {
 
   @Nullable
   @Override
-  public PsiElement resolve(Integer o, @NotNull ConvertContext context) {
+  public PsiElement resolve(Integer o, ConvertContext context) {
     return super.resolve(o, context);
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, ConvertContext context) {
     if (Strings.isNullOrEmpty(s)) {
       return "Value shouldn't be empty";
     }
@@ -106,7 +106,7 @@ public class TargetApiConverter extends ResolvingConverter<Integer> {
 
   @Nullable
   @Override
-  public Integer fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public Integer fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) {
       return null;
     }
@@ -148,7 +148,7 @@ public class TargetApiConverter extends ResolvingConverter<Integer> {
 
   @Nullable
   @Override
-  public String toString(@Nullable Integer s, @NotNull ConvertContext context) {
+  public String toString(@Nullable Integer s, ConvertContext context) {
     if (s == null) {
       return null;
     }
@@ -158,7 +158,7 @@ public class TargetApiConverter extends ResolvingConverter<Integer> {
 
   @NotNull
   @Override
-  public Collection<Integer> getVariants(@NotNull ConvertContext context) {
+  public Collection<Integer> getVariants(ConvertContext context) {
     return myAllVariants;
   }
 }

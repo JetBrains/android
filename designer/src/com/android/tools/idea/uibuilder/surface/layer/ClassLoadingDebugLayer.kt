@@ -21,10 +21,10 @@ import com.android.tools.idea.uibuilder.surface.LAYER_FONT
 import com.android.tools.idea.uibuilder.surface.drawMultilineString
 import com.intellij.openapi.module.Module
 import com.intellij.ui.JBColor
-import org.jetbrains.android.uipreview.HATCHERY
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
+import org.jetbrains.android.uipreview.HATCHERY
 
 private const val PROGRESS_HEIGHT = 20
 private const val PROGRESS_WIDTH = 100

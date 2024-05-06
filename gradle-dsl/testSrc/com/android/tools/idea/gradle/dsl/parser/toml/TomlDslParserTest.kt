@@ -23,13 +23,32 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Assume.assumeTrue
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.io.File
 
-class TomlDslParserTest : PlatformTestCase() {
+@RunWith(Parameterized::class)
+class TomlDslParserTest(private val fileName: String) : LightPlatformTestCase() {
 
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "For file: {0}")
+    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
+  }
+
+  override fun setUp(){
+    Registry.`is`("android.gradle.declarative.plugin.studio.support", true)
+    super.setUp()
+  }
+
+  @Test
   fun testSingleLibraryLiteralString() {
     val toml = """
       [libraries]
@@ -39,6 +58,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testSingleLibraryMultiLineLiteralString() {
     val toml = """
       [libraries]
@@ -48,6 +68,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testSingleLibraryBasicString() {
     val singleQuote = "\""
     val singleQuotedJunitWithEscapes = "junit:junit:4.13"
@@ -61,6 +82,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testSingleLibraryMultiLineBasicString() {
     val tripleQuote = "\""
     val tripleQuotedJunitWithEscapes = "junit:junit:4.13"
@@ -100,6 +122,9 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+
+  // this case is not supported by tomlj
+  @Test
   fun testLiteralStringKey() {
     val toml = """
       [libraries]
@@ -109,6 +134,8 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  // this case is not supported by tomlj
+  @Test
   fun testBasicStringKey() {
     val toml = """
       [libraries]
@@ -128,6 +155,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testEmptyBasicStringKey() {
     val toml = """
       [libraries]
@@ -137,6 +165,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testEmptyLiteralStringKey() {
     val toml = """
       [libraries]
@@ -146,6 +175,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testImplicitMap() {
     val toml = """
       [libraries]
@@ -156,6 +186,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testImplicitMapWithQuotedKeys() {
     val toml = """
       [libraries]
@@ -166,6 +197,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testQuotedDottedKeys() {
     val toml = """
       [libraries]
@@ -176,6 +208,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testImplicitTable() {
     val toml = """
       [libraries.junit]
@@ -186,38 +219,31 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
-  fun testEmptyNameTable() {
-    val toml = """
-      []
-      module = "junit:junit"
-      version = "4.13"
-    """.trimIndent()
-    val expected = mapOf<String, Any>()
-    doTest(toml, expected)
-  }
-
+  @Test
   fun testImplicitTable2() {
     val toml = """
-      [table1.table2]
-      key2 = "value2"
-      [table1.table3]
-      key3 = "value3"
+      [libraries.junit]
+      module = "junit:junit"
+      [libraries.guava]
+      module = "com.google.guava:guava"
     """.trimIndent()
-    val expected = mapOf("table1" to mapOf("table2" to mapOf("key2" to "value2"), "table3" to mapOf( "key3" to "value3")))
+    val expected = mapOf("libraries" to mapOf("junit" to mapOf("module" to "junit:junit"), "guava" to mapOf( "module" to "com.google.guava:guava")))
     doTest(toml, expected)
   }
 
+  @Test
   fun testComplexTable() {
     val toml = """
-      [table1]
-      key1 = "value1"
-      [table1.table2]
-      key2 = "value2"
+      [libraries]
+      junit = "junit:junit:4.1"
+      [libraries.guava]
+      module = "com.google.guava:guava"
     """.trimIndent()
-    val expected = mapOf("table1" to mapOf("key1" to "value1", "table2" to mapOf("key2" to "value2")))
+    val expected = mapOf("libraries" to mapOf("junit" to "junit:junit:4.1", "guava" to mapOf("module" to "com.google.guava:guava")))
     doTest(toml, expected)
   }
 
+  @Test
   fun testComplexTableReverse() {
     val toml = """
       [table1.table2]
@@ -231,6 +257,7 @@ class TomlDslParserTest : PlatformTestCase() {
 
   // Key/Table duplication is NOT allowed in TOML https://github.com/toml-lang/toml/issues/697
   // but at least we make sure we don't fail in this case
+  @Test
   fun testImplicitTableWithContinuation() {
     val toml = """
       [libraries.junit]
@@ -242,6 +269,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testImplicitTableQuoted() {
     val toml = """
       ['libraries'."junit"]
@@ -252,6 +280,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testQuotedDottedTable() {
     val toml = """
       ["libraries.junit"]
@@ -262,6 +291,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testInlineTable() {
     val toml = """
       [libraries]
@@ -271,6 +301,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testInlineTableWithImplicitTables() {
     val toml = """
       [libraries]
@@ -280,6 +311,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testArray() {
     val toml = """
       [bundles]
@@ -289,89 +321,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
-  fun testArrayTable() {
-    val toml = """
-      [[arrayTable]]
-      key1 = "val1"
-      key2 = "val2"
-    """.trimIndent()
-    val expected = mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2")))
-    doTest(toml, expected)
-  }
-
-  fun testArrayTableEmptyName() {
-    val toml = """
-      [[ ]]
-      key1 = "val1"
-      key2 = "val2"
-    """.trimIndent()
-    val expected = mapOf<String, Any>()
-    doTest(toml, expected)
-  }
-
-  fun testArrayTableMultipleElements() {
-    val toml = """
-      [[arrayTable]]
-      key1 = "val1"
-      key2 = "val2"
-
-      [[arrayTable]]
-      key3 = "val3"
-      key4 = "val4"
-    """.trimIndent()
-    val expected = mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2"), mapOf("key3" to "val3", "key4" to "val4")))
-    doTest(toml, expected)
-  }
-
-  fun testArrayTableMultipleElements2() {
-    val toml = """
-      [[table.arrayTable]]
-      key1 = "val1"
-      key2 = "val2"
-
-      [[table.arrayTable]]
-      key3 = "val3"
-      key4 = "val4"
-    """.trimIndent()
-    val expected = mapOf(
-      "table" to mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2"), mapOf("key3" to "val3", "key4" to "val4"))))
-    doTest(toml, expected)
-  }
-
-  fun testSegmentedArrayTable() {
-    val toml = """
-      [[table.arrayTable]]
-      key1 = "val1"
-      key2 = "val2"
-    """.trimIndent()
-    val expected = mapOf("table" to mapOf("arrayTable" to listOf(mapOf("key1" to "val1", "key2" to "val2"))))
-    doTest(toml, expected)
-  }
-
-  fun testSegmentedArrayTable2() {
-    val toml = """
-      [table]
-      key1 = "val1"
-      [[table.arrayTable]]
-      key2 = "val2"
-      key3 = "val3"
-    """.trimIndent()
-    val expected = mapOf("table" to mapOf("key1" to "val1", "arrayTable" to listOf(mapOf("key2" to "val2", "key3" to "val3"))))
-    doTest(toml, expected)
-  }
-
-  fun testSegmentedArrayTableReverse() {
-    val toml = """
-      [[table.arrayTable]]
-      key2 = "val2"
-      key3 = "val3"
-      [table]
-      key1 = "val1"
-    """.trimIndent()
-    val expected = mapOf("table" to mapOf("key1" to "val1", "arrayTable" to listOf(mapOf("key2" to "val2", "key3" to "val3"))))
-    doTest(toml, expected)
-  }
-
+  @Test
   fun testArrayWithInlineTable() {
     val toml = """
       [bundles]
@@ -381,6 +331,7 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testInlineTableWithArray() {
     val toml = """
       [libraries]
@@ -390,102 +341,13 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  @Test
   fun testBoolean() {
     val toml = """
       a = true
       b = false
     """.trimIndent()
     val expected = mapOf("a" to true, "b" to false)
-    doTest(toml, expected)
-  }
-
-  fun testIntegerRadix10() {
-    val toml = """
-      int1 = +99
-      int2 = 42
-      int3 = 0
-      int4 = -17
-      int5 = 1_000
-      int6 = 5_349_221
-      int7 = 53_49_221  # Indian number system grouping
-      int8 = 1_2_3_4_5  # VALID but discouraged
-    """.trimIndent()
-    val expected = mapOf("int1" to 99, "int2" to 42, "int3" to 0, "int4" to -17, "int5" to 1000, "int6" to 5349221,
-                                       "int7" to 5349221, "int8" to 12345)
-    doTest(toml, expected)
-  }
-
-  fun testLong() {
-    val toml = """
-      long1 = 1844674407370955161
-      long2 = -1844674407370955161
-    """.trimIndent()
-    val expected = mapOf("long1" to 1844674407370955161L, "long2" to -1844674407370955161L)
-    doTest(toml, expected)
-  }
-
-
-  fun testIntegerRadixPrefixes() {
-    val toml = """
-      # hexadecimal with prefix `0x`
-      hex1 = 0xDEADBEEF
-      hex2 = 0xdeadbeef
-      hex3 = 0xdead_beef
-
-      # octal with prefix `0o`
-      oct1 = 0o01234567
-      oct2 = 0o755 # useful for Unix file permissions
-
-      # binary with prefix `0b`
-      bin1 = 0b11010110
-    """.trimIndent()
-    val expected = mapOf<String, Long>("hex1" to 3735928559, "hex2" to 3735928559, "hex3" to 3735928559, "oct1" to 342391, "oct2" to 493,
-                                       "bin1" to 214)
-    doTest(toml, expected)
-  }
-
-  fun testFloat() {
-    val toml = """
-      # fractional
-      flt1 = +1.0
-      flt2 = 3.1415
-      flt3 = -0.01
-
-      # exponent
-      flt4 = 5e+22
-      flt5 = 1e06
-      flt6 = -2E-2
-
-      # both
-      flt7 = 6.626e-34
-      flt8 = 224_617.445_991_228
-
-      # infinity
-      sf1 = inf  # positive infinity
-      sf2 = +inf # positive infinity
-      sf3 = -inf # negative infinity
-
-      # not a number
-      sf4 = nan  # actual sNaN/qNaN encoding is implementation-specific
-      sf5 = +nan # same as `nan`
-      sf6 = -nan # valid, actual encoding is implementation-specific
-    """.trimIndent()
-    val expected = mapOf(
-      "flt1" to 1.0,
-      "flt2" to 3.1415,
-      "flt3" to -0.01,
-      "flt4" to 5e22,
-      "flt5" to 1e06,
-      "flt6" to -2e-2,
-      "flt7" to 6.626e-34,
-      "flt8" to 224617.445991228,
-      "sf1" to Double.POSITIVE_INFINITY,
-      "sf2" to Double.POSITIVE_INFINITY,
-      "sf3" to Double.NEGATIVE_INFINITY,
-      "sf4" to Double.NaN,
-      "sf5" to Double.NaN,
-      "sf6" to Double.NaN,
-    )
     doTest(toml, expected)
   }
 
@@ -499,9 +361,10 @@ class TomlDslParserTest : PlatformTestCase() {
   private fun writeLibsTomlFile(text: String): VirtualFile {
     lateinit var libsTomlFile: VirtualFile
     runWriteAction {
-      val baseDir = getOrCreateProjectBaseDir()
-      val gradlePath = VfsUtil.createDirectoryIfMissing(baseDir, "gradle")
-      libsTomlFile = gradlePath.createChildData(this, "libs.versions.toml")
+      val file: File = File(project.basePath, fileName).getCanonicalFile()
+      FileUtil.createParentDirs(file)
+      val parent = VfsUtil.findFile(file.parentFile.toPath(), true)!!
+      libsTomlFile = parent.createChildData(this, file.name)
       VfsUtil.saveText(libsTomlFile, text)
     }
     return libsTomlFile

@@ -17,7 +17,9 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.DOT_VERSIONS_DOT_TOML;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.android.SdkConstants.FD_GRADLE_CACHE;
 import static com.android.SdkConstants.FD_RES_RAW;
+import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES;
 
@@ -252,6 +254,18 @@ public class AndroidFileChangeListener implements Disposable {
       return true;
     }
 
+    if (fileType == PropertiesFileType.INSTANCE) {
+      String psiFileName = psiFile.getName();
+      if (FN_GRADLE_PROPERTIES.equals(psiFileName) || FN_GRADLE_WRAPPER_PROPERTIES.equals(psiFileName)) {
+        return true;
+      }
+
+      PsiDirectory psiParent = psiFile.getParent();
+      if (FN_GRADLE_CONFIG_PROPERTIES.equals(psiFileName) && psiParent != null && FD_GRADLE_CACHE.equals(psiParent.getName())) {
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -293,7 +307,7 @@ public class AndroidFileChangeListener implements Disposable {
           onFileOrDirectoryRemoved(((VFileDeleteEvent)event).getFile());
         }
         else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
+                 ((VFilePropertyChangeEvent)event).isRename()) {
           onFileOrDirectoryRemoved(((VFilePropertyChangeEvent)event).getFile());
         }
       }
@@ -315,7 +329,7 @@ public class AndroidFileChangeListener implements Disposable {
           onFileOrDirectoryCreated(moveEvent.getNewParent(), moveEvent.getFile().getName());
         }
         else if (event instanceof VFilePropertyChangeEvent &&
-                 ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
+                 ((VFilePropertyChangeEvent)event).isRename()) {
           VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
           VirtualFile parentFile = renameEvent.getFile().getParent();
           if (parentFile != null) {

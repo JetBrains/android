@@ -135,7 +135,7 @@ fun <T : Any> makeParsedValue(parsed: T?, dslText: DslText?): ParsedValue<T> = w
 }
 
 private val notSetAnnotated = Annotated(ParsedValue.NotSet)
-@Suppress("UnusedReceiverParameter")
+@Suppress("unused")
 fun ParsedValue.NotSet.annotated() = notSetAnnotated
 fun <T> T.annotated() = annotateWith(null)
 fun <T> T.annotateWith(annotation: ValueAnnotation?) = Annotated(this, annotation)

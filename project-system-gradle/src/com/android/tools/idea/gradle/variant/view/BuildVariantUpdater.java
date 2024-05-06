@@ -32,7 +32,6 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.ExtensionPoint;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalProjectInfo;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
@@ -47,8 +46,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.MessageType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.gradleJava.compilerPlugin.AbstractAnnotationBasedCompilerPluginGradleImportHandler;
-import org.jetbrains.kotlin.idea.gradleJava.configuration.GradleProjectImportHandler;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -134,7 +131,6 @@ public class BuildVariantUpdater {
 
     if (data != null && variantProjectDataNode != null) {
       VariantSwitcher.findAndSetupSelectedCachedVariantData(data, variantProjectDataNode);
-      disableKotlinCompilerPluginImportHandlers(myProject); // TODO(b/215522894)
       setupCachedVariant(myProject, variantProjectDataNode);
       return;
     }
@@ -142,19 +138,6 @@ public class BuildVariantUpdater {
     // Build file is not changed, the cached variants should be cached and reused.
     AndroidGradleProjectResolver.saveCurrentlySyncedVariantsForReuse(myProject);
     requestGradleSync(myProject, variantAndAbi, false);
-  }
-
-  // TODO(b/215522894): Unfortunately, some Kotlin resolvers stash non-persisted data into the user data of data notes.
-  //  The non-persisted data disappears when switching cached build variants, leading to NPEs in the corresponding data importers.
-  //  This currently only affects certain Kotlin compiler plugins, e.g. the all-open plugin. For now we disable them.
-  private static void disableKotlinCompilerPluginImportHandlers(Project project) {
-    ExtensionPoint<GradleProjectImportHandler> importHandlerEP =
-      project.getExtensionArea().getExtensionPoint(GradleProjectImportHandler.Companion.getExtensionPointName());
-    for (GradleProjectImportHandler importHandler : importHandlerEP.getExtensionList()) {
-      if (importHandler instanceof AbstractAnnotationBasedCompilerPluginGradleImportHandler) {
-        importHandlerEP.unregisterExtension(importHandler.getClass());
-      }
-    }
   }
 
   @NotNull

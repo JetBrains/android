@@ -24,23 +24,23 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.isVal
 import static com.android.tools.idea.rendering.classloading.ClassConverter.jdkToClassVersion;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.rewriteClass;
 import static com.google.common.truth.Truth.assertThat;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PROTECTED;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_SUPER;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ALOAD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ASM9;
-import static org.jetbrains.org.objectweb.asm.Opcodes.GETFIELD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_0;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_1;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ICONST_2;
-import static org.jetbrains.org.objectweb.asm.Opcodes.ILOAD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.jetbrains.org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.jetbrains.org.objectweb.asm.Opcodes.IRETURN;
-import static org.jetbrains.org.objectweb.asm.Opcodes.PUTFIELD;
-import static org.jetbrains.org.objectweb.asm.Opcodes.RETURN;
-import static org.jetbrains.org.objectweb.asm.Opcodes.V1_6;
-import static org.jetbrains.org.objectweb.asm.Opcodes.V1_7;
+import static org.objectweb.asm.Opcodes.ACC_PROTECTED;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ASM9;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.ICONST_0;
+import static org.objectweb.asm.Opcodes.ICONST_1;
+import static org.objectweb.asm.Opcodes.ICONST_2;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.V1_6;
+import static org.objectweb.asm.Opcodes.V1_7;
 
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.ClassVisitorUniqueIdProvider;
@@ -201,7 +201,7 @@ public class ClassConverterTest extends TestCase {
   //}
   //
   // The binary dump was created by using ASMifier running:
-  // java -classpath asm-debug-all-5.0.2.jar:. org.jetbrains.org.objectweb.asm.util.ASMifier TestView.class
+  // java -classpath asm-debug-all-5.0.2.jar:. org.objectweb.asm.util.ASMifier TestView.class
   private static byte[] dumpTestViewClass() {
     ClassWriter cw = new ClassWriter(0);
     MethodVisitor mv;

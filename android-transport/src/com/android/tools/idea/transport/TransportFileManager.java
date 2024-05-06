@@ -94,8 +94,8 @@ public final class TransportFileManager implements TransportFileCopier {
       .build();
 
     @NotNull static final DeployableFile TRACED = new DeployableFile.Builder("traced")
-      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
-      .setDevDir(Constants.PERFETTO_RELEASE_DIR)
+      .setReleaseDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
+      .setDevDir(androidPluginDir(Constants.PERFETTO_RELEASE_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_%s") // e.g traced_arm64
       .build();
@@ -143,9 +143,9 @@ public final class TransportFileManager implements TransportFileCopier {
   public void copyFilesToDevice()
     throws AdbCommandRejectedException, IOException, ShellCommandUnresponsiveException, SyncException, TimeoutException {
     myDevice.executeShellCommand("rm -rf " + DEVICE_DIR, new NullOutputReceiver());
+    if (!AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()) return;
     // Copy resources into device directory, all resources need to be included in profiler-artifacts target to build and
     // in AndroidStudioProperties.groovy to package in release.
-    if (!AndroidProfilerDownloader.getInstance().makeSureComponentIsInPlace()) return;
     copyFileToDevice(HostFiles.TRANSPORT);
     if (isAtLeastO(myDevice)) {
       copyFileToDevice(HostFiles.PERFA);
@@ -160,7 +160,8 @@ public final class TransportFileManager implements TransportFileCopier {
         copyFileToDevice(HostFiles.TRACEBOX);
       }
     }
-    else if (isAtLeastP(myDevice)) {
+    else if (myDevice.getVersion().getFeatureLevel() == AndroidVersion.VersionCodes.P) {
+      // Profiler is side-loading Perfetto on P. On Q+, the system image's Perfetto is used.
       copyFileToDevice(HostFiles.PERFETTO);
       copyFileToDevice(HostFiles.PERFETTO_SO);
       copyFileToDevice(HostFiles.TRACED);
@@ -201,10 +202,6 @@ public final class TransportFileManager implements TransportFileCopier {
     return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.O;
   }
 
-  private static boolean isAtLeastP(IDevice device) {
-    return device.getVersion().getFeatureLevel() >= AndroidVersion.VersionCodes.P;
-  }
-
   /**
    * Whether the device is running version between M and P with both ends (M and P) inclusive
    */
@@ -226,6 +223,7 @@ public final class TransportFileManager implements TransportFileCopier {
     configBuilder.build().writeTo(oStream);
     myDevice.executeShellCommand("rm -f " + DEVICE_DIR + DAEMON_CONFIG_FILE, new NullOutputReceiver());
     myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + DAEMON_CONFIG_FILE);
+    myDevice.executeShellCommand("chown shell:shell " + DEVICE_DIR + DAEMON_CONFIG_FILE, new NullOutputReceiver());
   }
 
   /**
@@ -241,6 +239,7 @@ public final class TransportFileManager implements TransportFileCopier {
     agentConfigBuilder.build().writeTo(oStream);
     myDevice.executeShellCommand("rm -f " + DEVICE_DIR + configName, new NullOutputReceiver());
     myDevice.pushFile(configFile.getAbsolutePath(), DEVICE_DIR + configName);
+    myDevice.executeShellCommand("chown shell:shell " + DEVICE_DIR + configName, new NullOutputReceiver());
   }
 
   @NotNull
@@ -309,9 +308,11 @@ public final class TransportFileManager implements TransportFileCopier {
       // Make the directory not writable for the group or the world. Otherwise, any unprivileged app running on device can replace the
       // content of file in this directory and archive escalation of privileges when Android Studio will decide to launch the
       // corresponding functionality.
-      myDevice.executeShellCommand("mkdir -p -m 755 " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')),
-                                   new NullOutputReceiver());
+      // "chown shell:shell" ensures proper ownership of DEVICE_DIR if adb is rooted.
+      String folder = deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/'));
+      myDevice.executeShellCommand("mkdir -p -m 755 " + folder + "; chown shell:shell " + folder, new NullOutputReceiver());
       myDevice.pushFile(localPath.toString(), deviceFilePath);
+      myDevice.executeShellCommand("chown shell:shell " + deviceFilePath, new NullOutputReceiver());
 
       if (executable) {
         /*
@@ -329,7 +330,7 @@ public final class TransportFileManager implements TransportFileCopier {
          * Starting with API 34 there is an additional check that a dex cannot be writable (see dalvik_system_DexFile.cc).
          */
         if (fileName.endsWith(".jar")) {
-          String cmd = "chmod 555 " + deviceFilePath;
+          String cmd = "chmod 444 " + deviceFilePath;
           myDevice.executeShellCommand(cmd, new NullOutputReceiver());
         }
       }

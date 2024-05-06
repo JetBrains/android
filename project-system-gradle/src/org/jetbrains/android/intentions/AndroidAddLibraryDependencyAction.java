@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -83,7 +84,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
    */
   @NotNull
   private static ImmutableCollection<String> findAllDependencies(@NotNull GradleBuildModel buildModel) {
-    HashSet<String> existingDependencies = new HashSet<>();
+    HashSet<String> existingDependencies = Sets.newHashSet();
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts()) {
       ProgressManager.checkCanceled();
       existingDependencies.add(dependency.group() + ":" + dependency.name());
@@ -140,7 +141,8 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
 
     WriteCommandAction.runWriteCommandAction(project, () -> {
       DependenciesHelper helper = new DependenciesHelper(projectModel);
-      helper.addDependency(CommonConfigurationNames.IMPLEMENTATION, newDependency.compactNotation(), buildModel);
+      String compactNotation = newDependency.compactNotation();
+      helper.addDependency(CommonConfigurationNames.IMPLEMENTATION, compactNotation, buildModel);
       projectModel.applyChanges();
     });
   }
@@ -168,15 +170,12 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     }
 
     final JList list = new JBList(dependencies);
-    JBPopup popup = new PopupChooserBuilder(list).setItemChosenCallback(new Runnable() {
-      @Override
-      public void run() {
-        for (Object selectedValue : list.getSelectedValues()) {
-          if (selectedValue == null) {
-            return;
-          }
-          addDependency(project, projectModel, buildModel, (String)selectedValue);
+    JBPopup popup = new PopupChooserBuilder(list).setItemChosenCallback(() -> {
+      for (Object selectedValue : list.getSelectedValues()) {
+        if (selectedValue == null) {
+          return;
         }
+        addDependency(project, projectModel, buildModel, (String)selectedValue);
       }
     }).createPopup();
     popup.showInBestPositionFor(editor);

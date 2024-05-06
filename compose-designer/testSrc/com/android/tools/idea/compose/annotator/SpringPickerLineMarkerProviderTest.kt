@@ -22,7 +22,8 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
-import com.intellij.codeInsight.daemon.impl.LineMarkersPass
+import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
@@ -76,10 +77,12 @@ internal class SpringPickerLineMarkerProviderTest {
   @Test
   fun gutterIconOnSpringDeclarations() {
     Dependencies.add(rule.fixture, "compose/animation/animation-core")
-    val psiFile = fixture.findPsiFile(FILE_PATH)
+    val file = checkNotNull(fixture.findFileInTempDir(FILE_PATH))
+    val document = checkNotNull(FileDocumentManager.getInstance().getDocument(file))
+    fixture.openFileInEditor(file)
     val springLineMarkerInfos = allowAnalysisOnEdt {
-      LineMarkersPass.queryLineMarkers(psiFile, psiFile.viewProvider.document!!).filter {
-        lineMarkerInfo ->
+      fixture.doHighlighting()
+      DaemonCodeAnalyzerImpl.getLineMarkers(document, fixture.project).filter { lineMarkerInfo ->
         lineMarkerInfo.lineMarkerTooltip == "SpringSpec configuration picker"
       }
     }

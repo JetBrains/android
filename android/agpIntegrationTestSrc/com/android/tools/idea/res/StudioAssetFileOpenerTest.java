@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.res;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
-import com.intellij.openapi.util.io.FileUtilRt;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -108,12 +109,12 @@ public class StudioAssetFileOpenerTest extends AndroidGradleTestCase {
   }
 
   public void testOpenNonAsset() throws IOException {
-    File imageFileInApp = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/src/main/res/drawable/app.png"));
-    File imageFileInLib = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("lib/src/main/res/drawable/lib.png"));
-    File nonAssetFileInApp = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/src/main/res/assets/app_asset.txt"));
-    File nonAssetFileInLib = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("lib/src/main/res/assets/lib_asset.txt"));
-    File nonExistingFile = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/src/main/res/drawable/non_existing.png"));
-    File sampleDataPng = new File(getProjectFolderPath(), FileUtilRt.toSystemDependentName("app/sampledata/test/sample.png"));
+    File imageFileInApp = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/drawable/app.png"));
+    File imageFileInLib = new File(getProjectFolderPath(), toSystemDependentName("lib/src/main/res/drawable/lib.png"));
+    File nonAssetFileInApp = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/assets/app_asset.txt"));
+    File nonAssetFileInLib = new File(getProjectFolderPath(), toSystemDependentName("lib/src/main/res/assets/lib_asset.txt"));
+    File nonExistingFile = new File(getProjectFolderPath(), toSystemDependentName("app/src/main/res/drawable/non_existing.png"));
+    File sampleDataPng = new File(getProjectFolderPath(), toSystemDependentName("app/sampledata/test/sample.png"));
 
     assertTrue(imageFileInApp.isFile());
     assertTrue(imageFileInLib.isFile());

@@ -116,8 +116,7 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
         val matchingEvent =
           cachedIssue.sampleEvents.firstOrNull { event ->
             event.matchInterval(request.filters.interval)
-          }
-            ?: return@mapNotNull null
+          } ?: return@mapNotNull null
         if (
           cachedIssue.issueDetails.matchErrorType(request.filters.eventTypes) &&
             cachedIssue.issueDetails.matchSignalType(request.filters.signal)
@@ -166,8 +165,7 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
         .getIfPresent(issueRequest.connection)
         ?.getIfPresent(issueId)
         ?.issueDetails
-        ?.sampleEvents
-        ?: return null
+        ?.sampleEvents ?: return null
     return cachedEvents.firstOrNull {
       it.matchInterval(issueRequest.filters.interval) &&
         it.eventData.device in issueRequest.filters.devices &&

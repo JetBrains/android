@@ -24,15 +24,15 @@ import org.junit.Rule
 import org.junit.Test
 
 class ComposePositionManagerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val project: Project
     get() = projectRule.project
 
   @Test
   fun testComposeSingletonClasses() {
-    val source = """
+    val source =
+      """
       package a;
       import androidx.compose.runtime.Composable
 
@@ -45,21 +45,23 @@ class ComposePositionManagerTest {
 
         fun g(@Composable () -> Unit) {}
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val file = projectRule.fixture.addFileToProject("src/a/test.kt", source)
 
-    val debugProcess = mockDebugProcess(project, projectRule.testRootDisposable) {
-      classType("a.A") {
-        method("f", lines = listOf(4, 5, 6, 7, 8))
-        method("g", lines = listOf(10))
-      }
+    val debugProcess =
+      mockDebugProcess(project, projectRule.testRootDisposable) {
+        classType("a.A") {
+          method("f", lines = listOf(4, 5, 6, 7, 8))
+          method("g", lines = listOf(10))
+        }
 
-      classType("a.ComposableSingletons\$TestKt")
+        classType("a.ComposableSingletons\$TestKt")
 
-      classType("a.ComposableSingletons\$TestKt\$lambda-1") {
-        method("invoke", lines = listOf(5, 6, 7))
+        classType("a.ComposableSingletons\$TestKt\$lambda-1") {
+          method("invoke", lines = listOf(5, 6, 7))
+        }
       }
-    }
     val composePositionManager =
       ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
 
@@ -75,7 +77,8 @@ class ComposePositionManagerTest {
 
   @Test
   fun testComposeSingletonClassesJvmName() {
-    val source = """
+    val source =
+      """
       @file:JvmName("FileClass")
       package a;
       import androidx.compose.runtime.Composable
@@ -87,21 +90,23 @@ class ComposePositionManagerTest {
       }
 
       fun g(@Composable () -> Unit) {}
-    """.trimIndent()
+    """
+        .trimIndent()
     val file = projectRule.fixture.addFileToProject("src/a/test2.kt", source)
 
-    val debugProcess = mockDebugProcess(project, projectRule.testRootDisposable) {
-      classType("a.FileClass") {
-        method("f", lines = listOf(4, 5, 6, 7, 8))
-        method("g", lines = listOf(10))
-      }
+    val debugProcess =
+      mockDebugProcess(project, projectRule.testRootDisposable) {
+        classType("a.FileClass") {
+          method("f", lines = listOf(4, 5, 6, 7, 8))
+          method("g", lines = listOf(10))
+        }
 
-      classType("a.ComposableSingletons\$Test2Kt")
+        classType("a.ComposableSingletons\$Test2Kt")
 
-      classType("a.ComposableSingletons\$Test2Kt\$lambda-1") {
-        method("invoke", lines = listOf(5, 6, 7))
+        classType("a.ComposableSingletons\$Test2Kt\$lambda-1") {
+          method("invoke", lines = listOf(5, 6, 7))
+        }
       }
-    }
     val composePositionManager =
       ComposePositionManagerFactory().createPositionManager(debugProcess) as ComposePositionManager
 

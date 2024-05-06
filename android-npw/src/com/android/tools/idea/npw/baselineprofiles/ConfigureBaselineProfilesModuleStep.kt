@@ -16,45 +16,52 @@
 package com.android.tools.idea.npw.baselineprofiles
 
 import com.android.AndroidProjectTypes
+import com.android.ide.common.gradle.Version
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.UsedFeatureRawText
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.projectsystem.getSyncManager
+import com.android.tools.idea.run.configuration.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.util.androidFacet
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
-import com.intellij.ui.ContextHelpLabel
+import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
+import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
 
-private const val GMD_LINK = "https://d.android.com/r/studio-ui/testing/gradle-managed-devices"
-
 private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
   "android.hardware.type.automotive",
   "android.hardware.type.watch",
   "android.software.leanback"
 )
+
+private val ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION = Version.parse("1.2.0")
+private const val ANDROIDX_BENCHMARK_LIBRARY_GROUP = "androidx.benchmark"
 
 class ConfigureBaselineProfilesModuleStep(
   model: NewBaselineProfilesModuleModel,
@@ -73,14 +80,16 @@ class ConfigureBaselineProfilesModuleStep(
 
   @VisibleForTesting
   @Suppress("DialogTitleCapitalization")
-  val useGmdCheck = JBCheckBox("Use Gradle Managed Device")
+  val useGmdCheck = JBCheckBox("Use Gradle Managed Device", false)
 
   init {
     bindTargetModule()
-    validateMinAgpVersion()
+    validateAgpVersion()
+    validateTargetModule()
+    validatePackageName()
+    validateAndroidXBenchmarkDependencyVersion()
 
     bindings.bind(model.useGmd, SelectedProperty(useGmdCheck))
-    bindings.bind(model.agpVersion, agpVersion)
   }
 
   private fun bindTargetModule() {
@@ -101,10 +110,8 @@ class ConfigureBaselineProfilesModuleStep(
     }
 
     targetModuleCombo.addItemListener { itemEvent ->
-      appModules[itemEvent.item]?.usesFeatureAutomotiveOrWearOrTv()?.let {
-        useGmdCheck.isEnabled = !it
-        useGmdCheck.isSelected = !it
-      }
+      useGmdCheck.isEnabled = appModules[itemEvent.item]?.usesFeatureAutomotiveOrWearOrTv() == false
+      useGmdCheck.isSelected = false
     }
 
     // Tries to select the first non automotive, tv, wear project
@@ -115,12 +122,12 @@ class ConfigureBaselineProfilesModuleStep(
       ?.let {
         model.targetModule.value = it
         useGmdCheck.isEnabled = true
-        useGmdCheck.isSelected = true
+        useGmdCheck.isSelected = false
       }
 
     // If nothing was selected, then select the first of the list and set `use gmd` false
     if (!model.targetModule.isPresent.get()) {
-      appModules.entries.firstOrNull()?.let { model.targetModule.value = it.key }
+      appModules.firstOrNull()?.let { model.targetModule.value = it.key }
       useGmdCheck.isEnabled = false
       useGmdCheck.isSelected = false
     }
@@ -133,18 +140,135 @@ class ConfigureBaselineProfilesModuleStep(
     })
   }
 
-  private fun validateMinAgpVersion() {
-    validatorPanel.registerValidator(agpVersion, createValidator { version ->
-      if (version.isPresent && version.get().compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
-        Validator.Result.fromNullableMessage(
-          AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BP_PLUGIN_MIN_SUPPORTED.toString())
+  private fun validateAgpVersion() =
+    validatorPanel.registerValidator(
+      model.agpVersion,
+      createValidator { version ->
+        if (version.compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
+          Validator.Result.fromNullableMessage(
+            AndroidBundle.message(
+              "android.wizard.validate.module.needs.new.agp.baseline.profiles",
+              BP_PLUGIN_MIN_SUPPORTED.toString()
+            )
+          )
+        } else {
+          Validator.Result.OK
+        }
+      }
+    )
+
+  private fun validateTargetModule() =
+    validatorPanel.registerValidator(
+      model.targetModule,
+      createValidator {
+        if (model.project.getSyncManager().isSyncNeeded()) {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.sync.needed.baseline.profiles")
+          )
+        }
+        if (it.isEmpty) {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.not.present.baseline.profiles")
+          )
+        }
+        val module = it.get()
+        val androidModel =
+          GradleAndroidModel.get(module)
+            ?: return@createValidator Validator.Result.fromNullableMessage(
+              AndroidBundle.message(
+                "android.wizard.validate.module.invalid.application.baseline.profiles"
+              )
+            )
+        if (
+          androidModel.applicationId.isEmpty() ||
+            androidModel.applicationId == AndroidModel.UNINITIALIZED_APPLICATION_ID
+        ) {
+          Validator.Result.fromNullableMessage(
+            AndroidBundle.message(
+              "android.wizard.validate.module.invalid.application.id.baseline.profiles"
+            )
+          )
+        } else {
+          Validator.Result.OK
+        }
+      },
+      model.packageName
+    )
+
+  private fun validatePackageName() =
+    validatorPanel.registerValidator(
+      model.packageName,
+      createValidator {
+        val packageName =
+          it.ifEmpty {
+            return@createValidator Validator.Result.fromNullableMessage(
+              AndroidBundle.message(
+                "android.wizard.validate.module.empty.package.name.baseline.profiles"
+              )
+            )
+          }
+        val module =
+          model.targetModule.get().let { optionalModule ->
+            if (optionalModule.isEmpty) {
+              return@createValidator Validator.Result.fromNullableMessage(
+                AndroidBundle.message(
+                  "android.wizard.validate.module.not.present.baseline.profiles"
+                )
+              )
+            } else {
+              optionalModule.get()
+            }
+          }
+        val androidModel =
+          GradleAndroidModel.get(module)
+            ?: return@createValidator Validator.Result.fromNullableMessage(
+              AndroidBundle.message(
+                "android.wizard.validate.module.invalid.application.baseline.profiles"
+              )
+            )
+        if (androidModel.applicationId == packageName) {
+          Validator.Result.fromNullableMessage(
+            AndroidBundle.message(
+              "android.wizard.validate.module.same.package.name.baseline.profiles"
+            )
+          )
+        } else {
+          Validator.Result.OK
+        }
+      },
+      model.targetModule
+    )
+
+  private fun validateAndroidXBenchmarkDependencyVersion() =
+    validatorPanel.registerValidator(
+      model.targetModule,
+      createValidator {
+        if (model.project.getSyncManager().isSyncNeeded()) {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.sync.needed.baseline.profiles")
+          )
+        }
+        if (it.isEmpty) {
+          return@createValidator Validator.Result.fromNullableMessage(
+            AndroidBundle.message("android.wizard.validate.module.not.present.baseline.profiles")
+          )
+        }
+        val module = it.get()
+        GradleAndroidModel.get(module) ?: return@createValidator Validator.Result.fromNullableMessage(
+          AndroidBundle.message("android.wizard.validate.module.invalid.application.baseline.profiles")
         )
-      }
-      else {
-        Validator.Result.OK
-      }
-    })
-  }
+
+        if (getBenchmarkLibrariesInTestModulesLessThanMinVersion(module.project).isNotEmpty()) {
+          return@createValidator Validator.Result(
+            Validator.Severity.WARNING,
+            AndroidBundle.message("android.wizard.module.help.baselineprofiles.minversionrequired")
+          )
+        } else {
+          return@createValidator Validator.Result.OK
+        }
+      },
+      model.targetModule
+    )
 
   override fun createMainPanel(): JPanel = panel {
     row {
@@ -177,14 +301,9 @@ class ConfigureBaselineProfilesModuleStep(
     }
 
     row {
+      topGap(TopGap.SMALL)
       cell(useGmdCheck)
-      cell(
-        ContextHelpLabel.createWithLink(
-          null,
-          AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"),
-          "Learn more"
-        ) { BrowserUtil.browse(GMD_LINK) }
-      ).align(AlignX.LEFT)
+      rowComment(AndroidBundle.message("android.wizard.module.help.baselineprofiles.usegmd.description"))
     }
   }
 
@@ -206,5 +325,19 @@ class ConfigureBaselineProfilesModuleStep(
       ?.let { selectedIndex = it }
   }
 }
+
+fun getBenchmarkLibrariesInTestModulesLessThanMinVersion(project: Project) =
+  AndroidProjectInfo
+    .getInstance(project)
+    .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_TEST)
+    .asSequence()
+    .filter { it.androidFacet != null }
+    .mapNotNull { GradleAndroidModel.get(it) }
+    .flatMap { it.variants }
+    .flatMap { v -> v.mainArtifact.compileClasspath.libraries }
+    .filterIsInstance<IdeArtifactLibrary>()
+    .filter { it.name.startsWith(ANDROIDX_BENCHMARK_LIBRARY_GROUP) }
+    .filter { it.component?.let { c -> c.version <= ANDROIDX_BENCHMARK_MIN_LIBRARY_VERSION } ?: false }
+    .toList()
 
 fun List<UsedFeatureRawText>.usesFeatureAutomotiveOrWearOrTv() = any { it.name in USES_FEATURE_OTHER_FORM_FACTORS && it.required?.toBooleanStrictOrNull() ?: true }

@@ -48,11 +48,11 @@ private fun extractRelevant(message: String): String {
  * We want to pick the best one.
  *
  * Rethrows makes this a little tricky. If an app is rethrowing an exception, it's the caused-by
- * exception that's interesting. But we don't necessarily just want to go the very innermost
- * caused by.
+ * exception that's interesting. But we don't necessarily just want to go the very innermost caused
+ * by.
  *
- * This will find the *first* exception where the first (innermost) stack frame appears to be in
- * the system.
+ * This will find the *first* exception where the first (innermost) stack frame appears to be in the
+ * system.
  */
 private fun pickStack(message: String): String {
   if (!isCrashFrame(message)) {
@@ -66,11 +66,11 @@ private fun pickStack(message: String): String {
       val start = stack + 4
       if (
         trace.startsWith("java.", start) ||
-        trace.startsWith("android.", start) ||
-        trace.startsWith("org.apache.", start) ||
-        trace.startsWith("org.json.", start) ||
-        trace.startsWith("com.google.", start) ||
-        trace.startsWith("com.android.internal", start)
+          trace.startsWith("android.", start) ||
+          trace.startsWith("org.apache.", start) ||
+          trace.startsWith("org.json.", start) ||
+          trace.startsWith("com.google.", start) ||
+          trace.startsWith("com.android.internal", start)
       ) {
         return trace
       }

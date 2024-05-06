@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import static com.android.tools.idea.uibuilder.model.TextDirection.LEFT_TO_RIGHT;
-import static com.android.tools.idea.uibuilder.model.TextDirection.RIGHT_TO_LEFT;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.tools.configurations.Configuration;
 import junit.framework.TestCase;
+
+import static com.android.tools.idea.uibuilder.model.TextDirection.LEFT_TO_RIGHT;
+import static com.android.tools.idea.uibuilder.model.TextDirection.RIGHT_TO_LEFT;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TextDirectionTest extends TestCase {
   public void test() {

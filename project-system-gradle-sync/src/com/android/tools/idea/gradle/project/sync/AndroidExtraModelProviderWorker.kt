@@ -27,7 +27,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
+import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 
 internal class BuildInfo(
@@ -66,7 +66,7 @@ internal class AndroidExtraModelProviderWorker(
   private val syncCounters: SyncCounters,
   private val syncOptions: SyncActionOptions,
   private val buildInfo: BuildInfo,
-  private val consumer: GradleModelConsumer
+  private val consumer: ProjectImportModelProvider.GradleModelConsumer
 ) {
   private val safeActionRunner =
     SyncActionRunner.create(controller, syncCounters, syncOptions.flags.studioFlagParallelSyncEnabled)
@@ -129,11 +129,12 @@ internal class AndroidExtraModelProviderWorker(
       consumer.consumeBuildModel(
         buildInfo.rootBuild,
         IdeAndroidSyncError(
+          type = e.type,
           message = e.message.orEmpty(),
           stackTrace = e.stackTrace.map { it.toString() },
-          buildPath = e.myBuildPath,
-          modulePath = e.myModulePath,
-          syncIssues = e.mySyncIssues
+          buildPath = e.buildPath,
+          modulePath = e.modulePath,
+          syncIssues = e.syncIssues
         ),
         IdeAndroidSyncError::class.java
       )
@@ -143,7 +144,9 @@ internal class AndroidExtraModelProviderWorker(
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
     return safeActionRunner.runActions(
       buildInfo.projects.map { gradleProject ->
-        val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
+        // org.gradle.tooling.model.BuildIdentifier.getRootDir does not return canonical path, so we need to convert it to one
+        // as other Gradle APIs e.g. Project.projectDir does return canonical paths.
+        val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir.canonicalFile)
         val buildPath = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId \n" +
                                                                "available builds ${buildInfo.buildIdMap}")
         ActionToRun(

@@ -17,7 +17,11 @@ package com.android.tools.idea.res
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.moveCaret
+import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 
 class TestResourcesTest : AndroidGradleTestCase() {
@@ -27,9 +31,27 @@ class TestResourcesTest : AndroidGradleTestCase() {
 
     val projectBaseDir = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project)
     myFixture.openFileInEditor(projectBaseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
-    myFixture.checkHighlighting()
+    val manifestHighlightErrors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    assertThat(manifestHighlightErrors).hasSize(1)
+    assertThat(manifestHighlightErrors.single().description).isEqualTo("Cannot resolve symbol '@string/made_up'")
 
+    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
+    val stringsXmlHighlightErrors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    assertThat(stringsXmlHighlightErrors).hasSize(1)
+    assertThat(stringsXmlHighlightErrors.single().description).isEqualTo("Cannot resolve symbol '@string/made_up'")
+  }
+
+  fun testGoToDefinition_referenceInsideSameFile() {
+    loadProject(TestProjectPaths.TEST_RESOURCES)
+
+    val projectBaseDir = PlatformTestUtil.getOrCreateProjectBaseDir(myFixture.project)
     myFixture.openFileInEditor(projectBaseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
-    myFixture.checkHighlighting()
+    myFixture.moveCaret("@string/androidTest|AppString")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Validate that the cursor moved to the correct location.
+    assertThat(myFixture.editor.document.text.substring(myFixture.editor.caretModel.offset))
+      .startsWith("androidTestAppString\">String defined in Application androidTest</string>")
   }
 }

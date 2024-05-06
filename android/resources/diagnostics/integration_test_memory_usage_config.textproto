@@ -13,6 +13,7 @@ categories: {
     label: "resourceRepository_main"
     package_names: "org.jetbrains.android.facet"
     package_names: "com.android.tools.idea.res"
+    package_names: "com.android.resources"
   }
 }
 categories: {
@@ -188,10 +189,6 @@ categories: {
   label: "intellij:platform"
 
   components: {
-    label: "kotlin"
-    package_names: "org.jetbrains.kotlin"
-  }
-  components: {
     label: "project"
     package_names: "com.intellij.openapi.project"
   }
@@ -235,6 +232,62 @@ categories: {
     class_names: "com.intellij.ide.plugins.cl.PluginClassLoader"
     class_names: "com.intellij.util.lang.JdkZipResourceFile"
     class_names: "com.intellij.util.lang.ZipResourceFile"
+  }
+  components: {
+    label: "indexing"
+    package_names: "com.intellij.util.indexing"
+  }
+  components: {
+    label: "actions"
+    package_names: "com.intellij.openapi.actionSystem"
+  }
+}
+categories {
+  label: "kotlin"
+
+  components: {
+    label: "kotlin_rest"
+    package_names: "org.jetbrains.kotlin"
+  }
+  components: {
+    label: "kotlin_completion"
+    package_names: "org.jetbrains.kotlin.idea.completion"
+  }
+  components: {
+    label: "kotlin_caches"
+    package_names: "org.jetbrains.kotlin.idea.caches"
+  }
+  components: {
+    label: "kotlin_codeInsight"
+    package_names: "org.jetbrains.kotlin.idea.codeInsight"
+  }
+  components: {
+    label: "kotlin_inspections"
+    package_names: "org.jetbrains.kotlin.idea.inspections"
+  }
+  components: {
+    label: "kotlin_intentions"
+    package_names: "org.jetbrains.kotlin.idea.intentions"
+  }
+  components: {
+    label: "kotlin_refactoring"
+    package_names: "org.jetbrains.kotlin.idea.refactoring"
+  }
+  components: {
+    label: "kotlin_debugger"
+    package_names: "org.jetbrains.kotlin.idea.debugger"
+  }
+  components: {
+    label: "kotlin_resolve"
+    package_names: "org.jetbrains.kotlin.idea.resolve"
+  }
+  components: {
+    label: "kotlin_stubs"
+    package_names: "org.jetbrains.kotlin.psi.stubs"
+  }
+  components: {
+    label: "kotlin_findUsages"
+    package_names: "org.jetbrains.kotlin.findUsages"
   }
 }
 shared_components_limit: 200

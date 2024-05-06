@@ -258,19 +258,6 @@ public class AndroidConfigurationProgramRunnerTest {
       public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment)
         throws ExecutionException {
         final AndroidConfigurationExecutor executor1 = new AndroidConfigurationExecutor() {
-
-          @NotNull
-          @Override
-          public RunContentDescriptor applyCodeChanges(@NotNull ProgressIndicator indicator) throws ExecutionException {
-            return null;
-          }
-
-          @NotNull
-          @Override
-          public RunContentDescriptor applyChanges(@NotNull ProgressIndicator indicator) throws ExecutionException {
-            return null;
-          }
-
           @NotNull
           @Override
           public RunContentDescriptor debug(@NotNull ProgressIndicator indicator) throws ExecutionException {

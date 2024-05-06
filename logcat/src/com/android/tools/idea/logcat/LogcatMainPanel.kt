@@ -56,6 +56,7 @@ import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.Devi
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
 import com.android.tools.idea.logcat.files.LogcatFileData
 import com.android.tools.idea.logcat.files.LogcatFileIo
+import com.android.tools.idea.logcat.files.safeGetFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatFilter.Companion.MY_PACKAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
@@ -133,6 +134,7 @@ import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
+import com.intellij.openapi.keymap.impl.ui.ActionsTreeUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
@@ -180,34 +182,41 @@ private val handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
 private val textCursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 
 /**
- * To make the logcat window accessible to Game Tools while not changing the protection level of the logcat window, we use this factory
- * that'll return a JComponent. Game Tools just needs a UI component, so a JComponent is enough. If we were to change LogcatMainPanel
- * to public, a lot more classes would need to become public - and it's not worth it.
+ * To make the logcat window accessible to Game Tools while not changing the protection level of the
+ * logcat window, we use this factory that'll return a JComponent. Game Tools just needs a UI
+ * component, so a JComponent is enough. If we were to change LogcatMainPanel to public, a lot more
+ * classes would need to become public - and it's not worth it.
  */
 class LogcatMainPanelFactory {
   companion object {
     /**
-     * This HyperlinkDetector detector is to work around a null-pointer exception that will break the logcat when running in game tools.
-     * Right now Game Tools can't do anything with hyperlinks, so there is no need to detect them. The failure was coming from resolving
-     * PSI links, which is not something Game Tools needs to handle since AGDE doesn't focus on Java development.
+     * This HyperlinkDetector detector is to work around a null-pointer exception that will break
+     * the logcat when running in game tools. Right now Game Tools can't do anything with
+     * hyperlinks, so there is no need to detect them. The failure was coming from resolving PSI
+     * links, which is not something Game Tools needs to handle since AGDE doesn't focus on Java
+     * development.
      */
     class NoopHyperlinkDetector : HyperlinkDetector {
-      override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) { }
+      override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {}
     }
 
     fun create(project: Project): JComponent {
       if (!IdeInfo.isGameTool()) {
-        throw IllegalAccessException("LogcatMainPanelFactory can only be used by GameTools. Please use LogcatMainPanel directly.");
+        throw IllegalAccessException(
+          "LogcatMainPanelFactory can only be used by GameTools. Please use LogcatMainPanel directly."
+        )
       }
 
-      return LogcatMainPanel(project = project,
-                             splitterPopupActionGroup = DefaultActionGroup(),
-                             logcatColors = LogcatColors(),
-                             state = null,
-                             AndroidLogcatSettings.getInstance(),
-                             AndroidProjectDetectorImpl(),
-                             hyperlinkDetector = NoopHyperlinkDetector(),
-                             foldingDetector = null)
+      return LogcatMainPanel(
+        project = project,
+        splitterPopupActionGroup = DefaultActionGroup(),
+        logcatColors = LogcatColors(),
+        state = null,
+        AndroidLogcatSettings.getInstance(),
+        AndroidProjectDetectorImpl(),
+        hyperlinkDetector = NoopHyperlinkDetector(),
+        foldingDetector = null
+      )
     }
   }
 }
@@ -216,14 +225,17 @@ class LogcatMainPanelFactory {
  * The top level Logcat panel.
  *
  * @param project the [Project]
- * @param splitterPopupActionGroup An [ActionGroup] to add to the right-click menu of the panel and the toolbar
+ * @param splitterPopupActionGroup An [ActionGroup] to add to the right-click menu of the panel and
+ *   the toolbar
  * @param logcatColors Provides colors for rendering messages
  * @param state State to restore or null to use the default state
  * @param hyperlinkDetector A [HyperlinkDetector] or null to create the default one. For testing.
  * @param foldingDetector A [FoldingDetector] or null to create the default one. For testing.
  * @param zoneId A [ZoneId] or null to create the default one. For testing.
  */
-internal class LogcatMainPanel @TestOnly constructor(
+internal class LogcatMainPanel
+@TestOnly
+constructor(
   private val project: Project,
   private val splitterPopupActionGroup: ActionGroup,
   logcatColors: LogcatColors,
@@ -253,12 +265,9 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   private var isLogcatPaused: Boolean = false
 
-  private var isSoftWrapEnabled: Boolean = false
-
   private var caretLine = 0
 
-  @VisibleForTesting
-  internal val editor: EditorEx = createLogcatEditor(project)
+  @VisibleForTesting internal val editor: EditorEx = createLogcatEditor(project)
   private val pausedBanner = WarningNotificationPanel()
   private val noApplicationIdsBanner = WarningNotificationPanel()
   private val noLogsBanner = WarningNotificationPanel()
@@ -279,82 +288,102 @@ internal class LogcatMainPanel @TestOnly constructor(
   private val tags = MostRecentlyAddedSet<String>(MAX_TAGS)
   private val packages = MostRecentlyAddedSet<String>(MAX_PACKAGE_NAMES)
   private val processNames = MostRecentlyAddedSet<String>(MAX_PROCESS_NAMES)
-  private val packageNamesProvider: ProjectApplicationIdsProvider = ProjectApplicationIdsProvider.getInstance(project)
-  private val logcatFilterParser = LogcatFilterParser(project, packageNamesProvider, androidProjectDetector)
+  private val packageNamesProvider: ProjectApplicationIdsProvider =
+    ProjectApplicationIdsProvider.getInstance(project)
+  private val logcatFilterParser =
+    LogcatFilterParser(project, packageNamesProvider, androidProjectDetector)
 
   @VisibleForTesting
-  val headerPanel = LogcatHeaderPanel(
-    project,
-    logcatPresenter = this,
-    logcatFilterParser,
-    state?.filter ?: getDefaultFilter(project, androidProjectDetector),
-    state?.filterMatchCase ?: false,
-    state?.getInitialItem()
-  )
+  val headerPanel =
+    LogcatHeaderPanel(
+      project,
+      logcatPresenter = this,
+      logcatFilterParser,
+      state?.filter ?: getDefaultFilter(project, androidProjectDetector),
+      state?.filterMatchCase ?: false,
+      state?.getInitialItem()
+    )
 
   private val deviceComboBox = headerPanel.deviceComboBox
 
-
   @VisibleForTesting
-  internal val messageProcessor = MessageProcessor(
-    this,
-    ::formatMessages,
-    logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase))
+  internal val messageProcessor =
+    MessageProcessor(
+      this,
+      ::formatMessages,
+      logcatFilterParser.parse(headerPanel.filter, headerPanel.filterMatchCase)
+    )
 
-  private val toolbar = ActionManager.getInstance().createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
+  private val toolbar =
+    ActionManager.getInstance()
+      .createActionToolbar("LogcatMainPanel", createToolbarActions(project), false)
   private val hyperlinkDetector = hyperlinkDetector ?: EditorHyperlinkDetector(project, editor)
   private val foldingDetector = foldingDetector ?: EditorFoldingDetector(project, editor)
   private val logcatService = LogcatService.getInstance(project)
-  private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
+  private var ignoreCaretAtBottom =
+    false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
   private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
-  private val projectAppMonitor = ProjectAppMonitor(project.getService(ProcessNameMonitor::class.java), packageNamesProvider)
+  private val projectAppMonitor =
+    ProjectAppMonitor(project.getService(ProcessNameMonitor::class.java), packageNamesProvider)
 
-  @VisibleForTesting
-  internal var logcatServiceJob: Job? = null
+  @VisibleForTesting internal var logcatServiceJob: Job? = null
   private var editorWidth = 0
 
   init {
     editor.apply {
-      installPopupHandler(object : ContextMenuPopupHandler() {
-        override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
-      })
+      installPopupHandler(
+        object : ContextMenuPopupHandler() {
+          override fun getActionGroup(event: EditorMouseEvent): ActionGroup =
+            getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
+        }
+      )
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
         addFilterHintHandlers()
       }
 
-      // Keep track of the caret because calling caretModel.getOffset() is not reliable (b/239095674).
-      caretModel.addCaretListener(object : CaretListener {
-        override fun caretPositionChanged(event: CaretEvent) {
-          caretLine = event.newPosition.line
-        }
-      }, this@LogcatMainPanel)
+      // Keep track of the caret because calling caretModel.getOffset() is not reliable
+      // (b/239095674).
+      caretModel.addCaretListener(
+        object : CaretListener {
+          override fun caretPositionChanged(event: CaretEvent) {
+            caretLine = event.newPosition.line
+          }
+        },
+        this@LogcatMainPanel
+      )
 
       scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
       UserInputHandlers(this).install()
+      editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
     }
 
-    isSoftWrapEnabled = state?.isSoftWrap ?: false
-    addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent) {
-        val width = editor.scrollingModel.visibleArea.width
-        val column = editor.xyToLogicalPosition(Point(width, 0)).column
-        if (editorWidth != column) {
-          editorWidth = column
-          if (messageBacklog.get().messages.isNotEmpty()) {
-            reloadMessages()
+    editor.settings.isUseSoftWraps = state?.isSoftWrap ?: false
+    addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) {
+          val width = editor.scrollingModel.visibleArea.width
+          val column = editor.xyToLogicalPosition(Point(width, 0)).column
+          if (editorWidth != column) {
+            editorWidth = column
+            if (messageBacklog.get().messages.isNotEmpty()) {
+              reloadMessages()
+            }
           }
         }
       }
-    })
+    )
 
     toolbar.targetComponent = this
 
-    // TODO(aalbert): Ideally, we would like to be able to select the connected device and client in the header from the `state` but this
-    //  might be challenging both technically and from a UX perspective. Since, when restoring the state, the device/client might not be
+    // TODO(aalbert): Ideally, we would like to be able to select the connected device and client in
+    // the header from the `state` but this
+    //  might be challenging both technically and from a UX perspective. Since, when restoring the
+    // state, the device/client might not be
     //  available.
     //  From a UX perspective, it's not clear what we should do in this case.
-    //  From a technical standpoint, the current implementation that uses DevicePanel doesn't seem to be well suited for preselecting a
+    //  From a technical standpoint, the current implementation that uses DevicePanel doesn't seem
+    // to be well suited for preselecting a
     //  device/client.
     addToTop(headerPanel)
     addToLeft(toolbar.component)
@@ -365,8 +394,13 @@ internal class LogcatMainPanel @TestOnly constructor(
     }
     noApplicationIdsBanner.apply {
       text = LogcatBundle.message("logcat.main.panel.no.application.ids.banner.text")
-      createActionLabel(LogcatBundle.message("logcat.main.panel.no.application.ids.banner.sync.now")) {
-        ProjectSystemService.getInstance(project).projectSystem.getSyncManager().syncProject(USER_REQUEST)
+      createActionLabel(
+        LogcatBundle.message("logcat.main.panel.no.application.ids.banner.sync.now")
+      ) {
+        ProjectSystemService.getInstance(project)
+          .projectSystem
+          .getSyncManager()
+          .syncProject(USER_REQUEST)
       }
       isVisible = isMissingApplicationIds()
     }
@@ -377,23 +411,27 @@ internal class LogcatMainPanel @TestOnly constructor(
       }
       isVisible = isLogsMissing()
     }
-    val centerPanel = JPanel(null).apply {
-      layout = GroupLayout(this).apply {
-        val height = pausedBanner.preferredSize.height
-        setVerticalGroup(
-          createSequentialGroup()
-            .addComponent(noLogsBanner, height, height, height)
-            .addComponent(noApplicationIdsBanner, height, height, height)
-            .addComponent(pausedBanner, height, height, height)
-            .addComponent(editor.component))
-        setHorizontalGroup(
-          createParallelGroup(GroupLayout.Alignment.CENTER)
-            .addComponent(noLogsBanner)
-            .addComponent(noApplicationIdsBanner)
-            .addComponent(pausedBanner)
-            .addComponent(editor.component))
+    val centerPanel =
+      JPanel(null).apply {
+        layout =
+          GroupLayout(this).apply {
+            val height = pausedBanner.preferredSize.height
+            setVerticalGroup(
+              createSequentialGroup()
+                .addComponent(noLogsBanner, height, height, height)
+                .addComponent(noApplicationIdsBanner, height, height, height)
+                .addComponent(pausedBanner, height, height, height)
+                .addComponent(editor.component)
+            )
+            setHorizontalGroup(
+              createParallelGroup(GroupLayout.Alignment.CENTER)
+                .addComponent(noLogsBanner)
+                .addComponent(noApplicationIdsBanner)
+                .addComponent(pausedBanner)
+                .addComponent(editor.component)
+            )
+          }
       }
-    }
     addToCenter(centerPanel)
 
     initScrollToEndStateHandling()
@@ -404,26 +442,41 @@ internal class LogcatMainPanel @TestOnly constructor(
         .setPanelAdded(
           LogcatPanelEvent.newBuilder()
             .setIsRestored(state != null)
-            .setFilter(logcatFilterParser.getUsageTrackingEvent(headerPanel.filter, headerPanel.filterMatchCase))
+            .setFilter(
+              logcatFilterParser.getUsageTrackingEvent(
+                headerPanel.filter,
+                headerPanel.filterMatchCase
+              )
+            )
             .setFormatConfiguration(state?.formattingConfig.toUsageTracking())
             .setBufferSize(logcatSettings.bufferSize)
         )
     )
 
     project.messageBus.let { messageBus ->
-      messageBus.connect(this).subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener {
-        if (connectedDevice.get()?.serialNumber == it) {
-          clearMessageView()
-        }
-      })
-      messageBus.connect(this).subscribe(PROJECT_APPLICATION_IDS_CHANGED_TOPIC, ProjectApplicationIdsListener {
-        if (getFilter().contains(MY_PACKAGE)) {
-          UIUtil.invokeLaterIfNeeded {
-            noApplicationIdsBanner.isVisible = isMissingApplicationIds()
-            reloadMessages()
+      messageBus
+        .connect(this)
+        .subscribe(
+          ClearLogcatListener.TOPIC,
+          ClearLogcatListener {
+            if (connectedDevice.get()?.serialNumber == it) {
+              clearMessageView()
+            }
           }
-        }
-      })
+        )
+      messageBus
+        .connect(this)
+        .subscribe(
+          PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
+          ProjectApplicationIdsListener {
+            if (getFilter().contains(MY_PACKAGE)) {
+              UIUtil.invokeLaterIfNeeded {
+                noApplicationIdsBanner.isVisible = isMissingApplicationIds()
+                reloadMessages()
+              }
+            }
+          }
+        )
     }
 
     coroutineScope.launch(workerThread) {
@@ -433,21 +486,23 @@ internal class LogcatMainPanel @TestOnly constructor(
             item.device.isOnline -> logcatServiceChannel.send(StartLogcat(item.device))
             else -> logcatServiceChannel.send(StopLogcat)
           }
-        }
-        else if (item is FileItem) {
+        } else if (item is FileItem) {
           logcatServiceChannel.send(StopLogcat)
-          val data = withContext(Dispatchers.IO) {
-            try {
-              LogcatFileIo().readLogcat(item.path)
-            }
-            catch (e: Exception) {
-              LOGGER.warn("Failed to load Logcat from file ${item.path}", e)
-              withContext(uiThread) {
-                deviceComboBox.handleItemError(item, LogcatBundle.message("logcat.device.combo.error.load.file", item.path))
+          val data =
+            withContext(Dispatchers.IO) {
+              try {
+                LogcatFileIo().readLogcat(item.path)
+              } catch (e: Exception) {
+                LOGGER.warn("Failed to load Logcat from file ${item.path}", e)
+                withContext(uiThread) {
+                  deviceComboBox.handleItemError(
+                    item,
+                    LogcatBundle.message("logcat.device.combo.error.load.file", item.path)
+                  )
+                }
+                null
               }
-              null
             }
-          }
           logcatServiceChannel.send(LoadLogcatFile(data))
         }
       }
@@ -456,23 +511,26 @@ internal class LogcatMainPanel @TestOnly constructor(
     coroutineScope.launch {
       logcatServiceChannel.consumeEach {
         logcatServiceJob?.cancel()
-        logcatServiceJob = when (it) {
-          is StartLogcat -> startLogcat(it.device).also { isLogcatPaused = false }
-          StopLogcat -> connectedDevice.set(null).let { null }
-          PauseLogcat -> null.also { isLogcatPaused = true }
-          is LoadLogcatFile -> loadLogcatFile(it.logcatFileData).let { null }
-        }
+        logcatServiceJob =
+          when (it) {
+            is StartLogcat -> startLogcat(it.device).also { isLogcatPaused = false }
+            StopLogcat -> connectedDevice.set(null).let { null }
+            PauseLogcat -> null.also { isLogcatPaused = true }
+            is LoadLogcatFile -> loadLogcatFile(it.logcatFileData).let { null }
+          }
       }
     }
 
-    state?.file?.let {
-      deviceComboBox.addOrSelectFile(Path.of(it))
-    }
+    state?.file?.let { deviceComboBox.addOrSelectFile(Path.of(it)) }
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
     return DefaultActionGroup().apply {
-      add(CopyAction().withText(ActionsBundle.message("action.EditorCopy.text")).withIcon(AllIcons.Actions.Copy))
+      add(
+        CopyAction()
+          .withText(ActionsBundle.message("action.EditorCopy.text"))
+          .withIcon(AllIcons.Actions.Copy)
+      )
       add(CopyMessageTextAction())
       add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
       add(LogcatFoldLinesLikeThisAction(editor))
@@ -485,7 +543,10 @@ internal class LogcatMainPanel @TestOnly constructor(
         add(Separator.create())
       }
       actions.forEach { add(it) }
-      if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() && StudioFlags.LOGCAT_TERMINATE_APP_ACTIONS_ENABLED.get()) {
+      if (
+        StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() &&
+          StudioFlags.LOGCAT_TERMINATE_APP_ACTIONS_ENABLED.get()
+      ) {
         add(Separator.getInstance())
         add(TerminateAppActions.ForceStopAppAction())
         add(TerminateAppActions.KillAppAction())
@@ -494,9 +555,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(Separator.create())
       add(ClearLogcatAction())
       add(Separator.create())
-      ActionManager.getInstance().getAction("Logcat.PopupActions")?.let {
-        add(it)
-      }
+      ActionsTreeUtil.getActions("Logcat.PopupActions").forEach { add(it) }
     }
   }
 
@@ -507,30 +566,33 @@ internal class LogcatMainPanel @TestOnly constructor(
   /**
    * Derived from similar code in ConsoleViewImpl.
    *
-   * The purpose of this code is to 'not scroll to end' when the caret is at the end **but** the user has scrolled away from the bottom of
-   * the file.
+   * The purpose of this code is to 'not scroll to end' when the caret is at the end **but** the
+   * user has scrolled away from the bottom of the file.
    *
-   * aalbert: In theory, it seems like it should be possible to determine the state of the scroll bar directly and see if it's at the
-   * bottom, but when I attempted that, it did not quite work. The code in `isScrollAtBottom()` doesn't always return the expected result.
+   * aalbert: In theory, it seems like it should be possible to determine the state of the scroll
+   * bar directly and see if it's at the bottom, but when I attempted that, it did not quite work.
+   * The code in `isScrollAtBottom()` doesn't always return the expected result.
    *
-   * Specifically, on the second batch of text appended to the document, the expression "`scrollBar.maximum - scrollBar.visibleAmount`" is
-   * equal to "`position + <some small number>`" rather than to "`position`" exactly.
+   * Specifically, on the second batch of text appended to the document, the expression
+   * "`scrollBar.maximum - scrollBar.visibleAmount`" is equal to "`position + <some small number>`"
+   * rather than to "`position`" exactly.
    */
   private fun initScrollToEndStateHandling() {
-    val mouseListener: MouseAdapter = object : MouseAdapter() {
-      override fun mousePressed(e: MouseEvent) {
-        updateScrollToEndState(true)
-      }
+    val mouseListener: MouseAdapter =
+      object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) {
+          updateScrollToEndState(true)
+        }
 
-      override fun mouseDragged(e: MouseEvent) {
-        updateScrollToEndState(false)
-      }
+        override fun mouseDragged(e: MouseEvent) {
+          updateScrollToEndState(false)
+        }
 
-      override fun mouseWheelMoved(e: MouseWheelEvent) {
-        if (e.isShiftDown) return  // ignore horizontal scrolling
-        updateScrollToEndState(false)
+        override fun mouseWheelMoved(e: MouseWheelEvent) {
+          if (e.isShiftDown) return // ignore horizontal scrolling
+          updateScrollToEndState(false)
+        }
       }
-    }
     val scrollPane = editor.scrollPane
     scrollPane.addMouseWheelListener(mouseListener)
     scrollPane.verticalScrollBar.addMouseListener(mouseListener)
@@ -554,36 +616,48 @@ internal class LogcatMainPanel @TestOnly constructor(
       LogcatPanelConfig(
         device = deviceComboBox.getSelectedDevice()?.copy(isOnline = false),
         file = deviceComboBox.getSelectedFile()?.pathString,
-        formattingConfig = if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
+        formattingConfig =
+          if (formattingOptionsStyle == null) Custom(formattingOptions)
+          else Preset(formattingOptionsStyle),
         filter = headerPanel.filter,
         filterMatchCase = headerPanel.filterMatchCase,
-        isSoftWrap = isSoftWrapEnabled))
+        isSoftWrap = isSoftWrapEnabled()
+      )
+    )
   }
 
-  override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
-    LOGGER.debug { "Appending ${textAccumulator.text.length} bytes. isActive=$isActive" }
-    if (!isActive) {
-      return@withContext
+  override suspend fun appendMessages(textAccumulator: TextAccumulator) =
+    withContext(uiThread(ModalityState.any())) {
+      LOGGER.debug { "Appending ${textAccumulator.text.length} bytes. isActive=$isActive" }
+      if (!isActive) {
+        return@withContext
+      }
+      // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
+      val shouldStickToEnd = !ignoreCaretAtBottom && isCaretAtBottom()
+      ignoreCaretAtBottom =
+        false // The 'ignore' only needs to last for one update. Next time, isCaretAtBottom() will
+      // be false.
+      // Mark the end for post-processing. Adding text changes the lines due to the cyclic buffer.
+      val endMarker: RangeMarker =
+        document.createRangeMarker(document.textLength, document.textLength)
+
+      documentAppender.appendToDocument(textAccumulator)
+      noLogsBanner.isVisible = isLogsMissing()
+
+      val startLine = if (endMarker.isValid) document.getLineNumber(endMarker.endOffset) else 0
+      endMarker.dispose()
+      val endLine = max(0, document.lineCount - 1)
+      hyperlinkDetector.detectHyperlinks(
+        startLine,
+        endLine,
+        deviceComboBox.getSelectedDevice()?.sdk
+      )
+      foldingDetector.detectFoldings(startLine, endLine)
+
+      if (shouldStickToEnd) {
+        scrollToEnd()
+      }
     }
-    // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
-    val shouldStickToEnd = !ignoreCaretAtBottom && isCaretAtBottom()
-    ignoreCaretAtBottom = false // The 'ignore' only needs to last for one update. Next time, isCaretAtBottom() will be false.
-    // Mark the end for post-processing. Adding text changes the lines due to the cyclic buffer.
-    val endMarker: RangeMarker = document.createRangeMarker(document.textLength, document.textLength)
-
-    documentAppender.appendToDocument(textAccumulator)
-    noLogsBanner.isVisible = isLogsMissing()
-
-    val startLine = if (endMarker.isValid) document.getLineNumber(endMarker.endOffset) else 0
-    endMarker.dispose()
-    val endLine = max(0, document.lineCount - 1)
-    hyperlinkDetector.detectHyperlinks(startLine, endLine, deviceComboBox.getSelectedDevice()?.sdk)
-    foldingDetector.detectFoldings(startLine, endLine)
-
-    if (shouldStickToEnd) {
-      scrollToEnd()
-    }
-  }
 
   override fun dispose() {
     EditorFactory.getInstance().releaseEditor(editor)
@@ -594,9 +668,7 @@ internal class LogcatMainPanel @TestOnly constructor(
     val bufferSize = logcatSettings.bufferSize
     documentAppender.setMaxDocumentSize(bufferSize)
     messageBacklog.get().setMaxSize(bufferSize)
-    runInEdt {
-      reloadMessages()
-    }
+    runInEdt { reloadMessages() }
   }
 
   @UiThread
@@ -616,20 +688,19 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun isLogsMissing(): Boolean {
-    return document.immutableCharSequence.isEmpty()
-           && messageBacklog.get().messages.isNotEmpty()
-           && !isMissingApplicationIds()
-           && headerPanel.filter.isNotEmpty()
+    return document.immutableCharSequence.isEmpty() &&
+      messageBacklog.get().messages.isNotEmpty() &&
+      !isMissingApplicationIds() &&
+      headerPanel.filter.isNotEmpty()
   }
 
   @UiThread
   override fun reloadMessages() {
+    editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
     document.setText("")
     coroutineScope.launch(workerThread) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
-      withContext(uiThread) {
-        noLogsBanner.isVisible = isLogsMissing()
-      }
+      withContext(uiThread) { noLogsBanner.isVisible = isLogsMissing() }
     }
   }
 
@@ -638,7 +709,10 @@ internal class LogcatMainPanel @TestOnly constructor(
   override fun getSelectedDevice() = deviceComboBox.getSelectedDevice()
 
   override fun countFilterMatches(filter: LogcatFilter?): Int {
-    return LogcatMasterFilter(filter).filter(messageBacklog.get().messages).filter { it.header != SYSTEM_HEADER }.size
+    return LogcatMasterFilter(filter)
+      .filter(messageBacklog.get().messages)
+      .filter { it.header != SYSTEM_HEADER }
+      .size
   }
 
   override fun getTags(): Set<String> = tags
@@ -675,14 +749,11 @@ internal class LogcatMainPanel @TestOnly constructor(
     deviceComboBox.addOrSelectFile(path)
   }
 
-  @UiThread
-  override fun isLogcatPaused(): Boolean = isLogcatPaused
+  @UiThread override fun isLogcatPaused(): Boolean = isLogcatPaused
 
   @UiThread
   override fun pauseLogcat() {
-    coroutineScope.launch {
-      logcatServiceChannel.send(PauseLogcat)
-    }
+    coroutineScope.launch { logcatServiceChannel.send(PauseLogcat) }
     pausedBanner.isVisible = true
   }
 
@@ -691,11 +762,10 @@ internal class LogcatMainPanel @TestOnly constructor(
     restartLogcat()
   }
 
-
-  override fun isSoftWrapEnabled(): Boolean = isSoftWrapEnabled
+  override fun isSoftWrapEnabled(): Boolean = editor.settings.isUseSoftWraps
 
   override fun setSoftWrapEnabled(state: Boolean) {
-    isSoftWrapEnabled = state
+    editor.settings.isUseSoftWraps = state
     reloadMessages()
   }
 
@@ -709,9 +779,7 @@ internal class LogcatMainPanel @TestOnly constructor(
     packages.clear()
     processNames.clear()
     documentAppender.reset()
-    withContext(uiThread) {
-      document.setText("")
-    }
+    withContext(uiThread) { document.setText("") }
   }
 
   override fun clearMessageView() {
@@ -722,20 +790,26 @@ internal class LogcatMainPanel @TestOnly constructor(
         if (device.sdk == 26) {
           // See http://b/issues/37109298#comment9.
           // TL/DR:
-          // On API 26, "logcat -c" will hand for a couple of seconds and then crash any running logcat processes.
+          // On API 26, "logcat -c" will hand for a couple of seconds and then crash any running
+          // logcat processes.
           //
-          // Theoretically, we could stop the running logcat here before sending "logcat -c" to the device but this is not trivial. And we
-          // have to do this for all active Logcat panels listening on this device, not only in the current project but across all projects.
-          // A much easier and safer workaround is to not send a "logcat -c" command on this particular API level.
-          systemMessages.add(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.skipped")))
-        }
-        else {
+          // Theoretically, we could stop the running logcat here before sending "logcat -c" to the
+          // device but this is not trivial. And we
+          // have to do this for all active Logcat panels listening on this device, not only in the
+          // current project but across all projects.
+          // A much easier and safer workaround is to not send a "logcat -c" command on this
+          // particular API level.
+          systemMessages.add(
+            LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.skipped"))
+          )
+        } else {
           try {
             logcatService.clearLogcat(device)
-          }
-          catch (e: TimeoutException) {
+          } catch (e: TimeoutException) {
             LOGGER.warn("Timed out executing logcat -c")
-            systemMessages.add(LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.timeout")))
+            systemMessages.add(
+              LogcatMessage(SYSTEM_HEADER, LogcatBundle.message("logcat.clear.timeout"))
+            )
           }
         }
       }
@@ -752,9 +826,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   override fun restartLogcat() {
     pausedBanner.isVisible = false
     val device = connectedDevice.get() ?: return
-    coroutineScope.launch {
-      logcatServiceChannel.send(StartLogcat(device))
-    }
+    coroutineScope.launch { logcatServiceChannel.send(StartLogcat(device)) }
   }
 
   override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
@@ -768,12 +840,21 @@ internal class LogcatMainPanel @TestOnly constructor(
     val device = connectedDevice.get()
     return when (dataId) {
       LOGCAT_PRESENTER_ACTION.name -> this
-      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.model) }
-      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
-        ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
-      }
+      ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
+        device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.model) }
+      ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
+        device?.let {
+          ScreenRecorderAction.Parameters(
+            it.name,
+            it.serialNumber,
+            it.featureLevel,
+            if (it.isEmulator) it.deviceId else null,
+            this
+          )
+        }
       CONNECTED_DEVICE.name -> device
-      // Using CommonDataKeys.EDITOR causes the IJ framework to interfere with some components in the hierarchy
+      // Using CommonDataKeys.EDITOR causes the IJ framework to interfere with some components in
+      // the hierarchy
       LogcatPresenter.EDITOR.name -> editor
       else -> null
     }
@@ -790,27 +871,23 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private suspend fun startLogcat(device: Device): Job {
-    withContext(uiThread) {
-      document.setText("")
-    }
+    withContext(uiThread) { document.setText("") }
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
       val logcatFlow = logcatService.readLogcat(device).transform { emit(LogcatMessagesEvent(it)) }
-      val processMonitorFlow = projectAppMonitor.monitorDevice(device.serialNumber).transform {
-        emit(LogcatMessagesEvent(listOf(it)))
-      }
+      val processMonitorFlow =
+        projectAppMonitor.monitorDevice(device.serialNumber).transform {
+          emit(LogcatMessagesEvent(listOf(it)))
+        }
 
       connectedDevice.set(device)
 
       if (StudioFlags.LOGCAT_PANEL_MEMORY_SAVER.get()) {
-        val panelVisibilityFlow = trackVisibility().transform {
-          emit(LogcatPanelVisibility(it))
-        }
+        val panelVisibilityFlow = trackVisibility().transform { emit(LogcatPanelVisibility(it)) }
         val flow = merge(logcatFlow, processMonitorFlow, panelVisibilityFlow)
         flow.consume(this@LogcatMainPanel, device.serialNumber, logcatSettings.bufferSize)
-      }
-      else {
+      } else {
         merge(logcatFlow, processMonitorFlow).collect { processMessages(it.messages) }
       }
     }
@@ -836,7 +913,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
-    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages, if (isSoftWrapEnabled) editorWidth else null)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
   }
 
   private fun MouseEvent.getFilterHint(): FilterHint? {
@@ -852,53 +929,69 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun EditorEx.addFilterHintHandlers() {
-    // Note that adding & removing a filter to an existing filter properly is not trivial. For example, if the existing filter contains
-    // logical operators & parens, just appending/deleting the filter term can result in unexpected results or even in an invalid filter.
-    // For example: If the existing filter is "package:mine | level:error", trying to remove "level:error" will result in an invalid filter
+    // Note that adding & removing a filter to an existing filter properly is not trivial. For
+    // example, if the existing filter contains
+    // logical operators & parens, just appending/deleting the filter term can result in unexpected
+    // results or even in an invalid filter.
+    // For example: If the existing filter is "package:mine | level:error", trying to remove
+    // "level:error" will result in an invalid filter
     // "package:mine |".
-    // Since this is an extreme use case, we don't attempt to be 100% correct when add/removing filters. We just verify that the resulting
+    // Since this is an extreme use case, we don't attempt to be 100% correct when add/removing
+    // filters. We just verify that the resulting
     // filter is a valid filter. If it's not, we disable the action.
-    contentComponent.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (e.isControlDown && e.button == BUTTON1) {
-          val filterHint = e.getFilterHint()
-          if (filterHint != null) {
-            val newFilter = toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter())
-            if (newFilter != null) {
-              headerPanel.filter = newFilter
+    contentComponent.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          if (e.isControlDown && e.button == BUTTON1) {
+            val filterHint = e.getFilterHint()
+            if (filterHint != null) {
+              val newFilter =
+                toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter())
+              if (newFilter != null) {
+                headerPanel.filter = newFilter
+              }
             }
           }
         }
       }
-    })
-    contentComponent.addMouseMotionListener(object : MouseAdapter() {
-      override fun mouseMoved(e: MouseEvent) {
-        val filterHint = e.getFilterHint()
-        if (e.isControlDown) {
-          if (filterHint != null && toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter()) != null) {
-            contentComponent.cursor = handCursor
-            return
+    )
+    contentComponent.addMouseMotionListener(
+      object : MouseAdapter() {
+        override fun mouseMoved(e: MouseEvent) {
+          val filterHint = e.getFilterHint()
+          if (e.isControlDown) {
+            if (
+              filterHint != null &&
+                toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter()) !=
+                  null
+            ) {
+              contentComponent.cursor = handCursor
+              return
+            }
           }
-        }
-        contentComponent.toolTipText = if (filterHint?.isElided() == true) filterHint.text else null
+          contentComponent.toolTipText =
+            if (filterHint?.isElided() == true) filterHint.text else null
 
-        contentComponent.cursor = textCursor
+          contentComponent.cursor = textCursor
+        }
       }
-    })
+    )
   }
 
   private sealed class LogcatServiceEvent {
     class StartLogcat(val device: Device) : LogcatServiceEvent()
+
     object StopLogcat : LogcatServiceEvent()
+
     object PauseLogcat : LogcatServiceEvent()
+
     class LoadLogcatFile(val logcatFileData: LogcatFileData?) : LogcatServiceEvent()
   }
 
   private fun isCaretAtBottom(): Boolean {
     return try {
       editor.isCaretAtBottom()
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       // Logging as error in order to see how prevalent this is in the wild. See b/239095674
       LOGGER.error("Failed to check caret position directly. Using backup method.", t)
       caretLine >= document.lineCount - 1
@@ -907,7 +1000,8 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   private class WarningNotificationPanel : EditorNotificationPanel(Banner.WARNING_BACKGROUND) {
     init {
-      border = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), border)
+      border =
+        BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), border)
     }
   }
 }
@@ -920,17 +1014,9 @@ private fun LogcatPanelConfig.getInitialItem(): DeviceComboBox.DeviceComboItem? 
   }
 }
 
-private fun LogcatFileData?.safeGetFilter(): String {
-  val filter = this?.metadata?.filter ?: return ""
-  if (!filter.contains(MY_PACKAGE) || metadata.projectApplicationIds.isEmpty()) {
-    return filter
-  }
-  val packages = metadata.projectApplicationIds.joinToString(" ") { "package:$it" }
-  return if (filter == MY_PACKAGE) packages else filter.replace(MY_PACKAGE, "(${packages})")
-}
-
 private fun LogcatPanelConfig?.getFormattingOptions(): FormattingOptions =
-  this?.formattingConfig?.toFormattingOptions() ?: AndroidLogcatFormattingOptions.getDefaultOptions()
+  this?.formattingConfig?.toFormattingOptions()
+    ?: AndroidLogcatFormattingOptions.getDefaultOptions()
 
 private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
   val builder = LogcatFormatConfiguration.newBuilder()
@@ -941,12 +1027,10 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
       builder.preset = defaultFormatting.toUsageTracking()
       formattingOptions = defaultFormatting.formattingOptions
     }
-
     this is Preset -> {
       builder.preset = style.toUsageTracking()
       formattingOptions = style.formattingOptions
     }
-
     else -> {
       formattingOptions = this.toFormattingOptions()
     }
@@ -955,7 +1039,9 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
     .setIsShowTimestamp(formattingOptions.timestampFormat.enabled)
     .setIsShowDate(formattingOptions.timestampFormat.style == TimestampFormat.Style.DATETIME)
     .setIsShowProcessId(formattingOptions.processThreadFormat.enabled)
-    .setIsShowThreadId(formattingOptions.processThreadFormat.style == ProcessThreadFormat.Style.BOTH)
+    .setIsShowThreadId(
+      formattingOptions.processThreadFormat.style == ProcessThreadFormat.Style.BOTH
+    )
     .setIsShowTags(formattingOptions.tagFormat.enabled)
     .setIsShowRepeatedTags(!formattingOptions.tagFormat.hideDuplicates)
     .setTagWidth(formattingOptions.tagFormat.maxLength)
@@ -965,7 +1051,8 @@ private fun FormattingConfig?.toUsageTracking(): LogcatFormatConfiguration {
     .build()
 }
 
-private fun FormattingOptions.Style.toUsageTracking() = if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
+private fun FormattingOptions.Style.toUsageTracking() =
+  if (this == FormattingOptions.Style.STANDARD) STANDARD else COMPACT
 
 private fun AnAction.withText(text: String): AnAction {
   templatePresentation.text = text

@@ -16,9 +16,10 @@
 package com.android.tools.idea.uibuilder.model;
 
 import com.android.tools.idea.common.model.NlComponent;
-import java.awt.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
 
 /**
  * A segment type describes the different roles or positions a segment can have in a node

@@ -25,13 +25,7 @@ import com.android.tools.idea.compose.pickers.common.enumsupport.PsiCallEnumSupp
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
-import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
-import com.android.tools.idea.compose.preview.PARAMETER_GROUP
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
-import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
@@ -39,6 +33,12 @@ import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.layoutlib.isLayoutLibTarget
+import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_GROUP
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.preview.config.PARAMETER_LOCALE
+import com.android.tools.preview.config.PARAMETER_UI_MODE
+import com.android.tools.preview.config.PARAMETER_WALLPAPER
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
@@ -102,9 +102,7 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider = {
       DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
       DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
       DeviceGroup.DESKTOP -> devices.forEach(devicesEnumValueBuilder::addDesktop)
-      DeviceGroup.ADDITIONAL_DEVICE -> {
-        //no-op
-      }
+      DeviceGroup.ADDITIONAL_DEVICE -> {}
     }
   }
   devicesEnumValueBuilder.includeDefaultsAndBuild()
@@ -116,57 +114,56 @@ private fun getGroupedDevices(module: Module): Map<DeviceGroup, List<Device>> {
   return groupDevices(studioDevices)
 }
 
-private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
-  uiModeProvider@{
-    val configurationClass =
-      findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
-    val uiModeValueParams =
-      configurationClass.fields
-        .filter { it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK") }
-        .mapNotNull { uiMode ->
-          (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
-            val displayName =
-              if (UiMode.VR.resolvedValue == it.toString()) {
-                UiMode.VR.display
-              } else {
-                uiMode.name
-                  .substringAfter("UI_MODE_TYPE_")
-                  .replace('_', ' ')
-                  .toLowerCaseAsciiOnly()
-                  .capitalizeAsciiOnly()
-              }
-            ClassEnumValueParams(uiMode.name, displayName, it.toString())
-          }
+private fun createUiModeEnumProvider(module: Module): EnumValuesProvider = uiModeProvider@{
+  val configurationClass =
+    findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
+  val uiModeValueParams =
+    configurationClass.fields
+      .filter { it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK") }
+      .mapNotNull { uiMode ->
+        (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
+          val displayName =
+            if (UiMode.VR.resolvedValue == it.toString()) {
+              UiMode.VR.display
+            } else {
+              uiMode.name
+                .substringAfter("UI_MODE_TYPE_")
+                .replace('_', ' ')
+                .toLowerCaseAsciiOnly()
+                .capitalizeAsciiOnly()
+            }
+          ClassEnumValueParams(uiMode.name, displayName, it.toString())
         }
-        .filter { params -> UiMode.NORMAL.resolvedValue != params.resolvedValue }
-        .sortedBy { params -> params.resolvedValue }
-
-    val uiModeNoNightValues =
-      uiModeValueParams.map { uiModeParams ->
-        UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
-          uiModeParams.value,
-          uiModeParams.displayName,
-          uiModeParams.resolvedValue
-        )
       }
+      .filter { params -> UiMode.NORMAL.resolvedValue != params.resolvedValue }
+      .sortedBy { params -> params.resolvedValue }
 
-    val uiModeNightValues =
-      uiModeValueParams.map { uiModeParams ->
-        UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
-          uiModeParams.value,
-          uiModeParams.displayName,
-          uiModeParams.resolvedValue
-        )
-      }
-    return@uiModeProvider listOf(
-      EnumValue.header(message("picker.preview.uimode.header.notnight")),
-      UiModeWithNightMaskEnumValue.NormalNotNightEnumValue,
-      *uiModeNoNightValues.toTypedArray(),
-      EnumValue.header(message("picker.preview.uimode.header.night")),
-      UiModeWithNightMaskEnumValue.NormalNightEnumValue,
-      *uiModeNightValues.toTypedArray(),
-    )
-  }
+  val uiModeNoNightValues =
+    uiModeValueParams.map { uiModeParams ->
+      UiModeWithNightMaskEnumValue.createNotNightUiModeEnumValue(
+        uiModeParams.value,
+        uiModeParams.displayName,
+        uiModeParams.resolvedValue
+      )
+    }
+
+  val uiModeNightValues =
+    uiModeValueParams.map { uiModeParams ->
+      UiModeWithNightMaskEnumValue.createNightUiModeEnumValue(
+        uiModeParams.value,
+        uiModeParams.displayName,
+        uiModeParams.resolvedValue
+      )
+    }
+  return@uiModeProvider listOf(
+    EnumValue.header(message("picker.preview.uimode.header.notnight")),
+    UiModeWithNightMaskEnumValue.NormalNotNightEnumValue,
+    *uiModeNoNightValues.toTypedArray(),
+    EnumValue.header(message("picker.preview.uimode.header.night")),
+    UiModeWithNightMaskEnumValue.NormalNightEnumValue,
+    *uiModeNightValues.toTypedArray(),
+  )
+}
 
 /**
  * Provides a list of targets within the appropriate range (by minimum sdk) and that are valid for
@@ -180,13 +177,13 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
   configurationManager
     ?.targets
     ?.filter { it.isLayoutLibTarget && it.version.apiLevel >= minTargetSdk }
+    ?.distinctBy { it.version.apiLevel }
     ?.map { target ->
       EnumValue.item(
         target.version.apiLevel.toString(),
         "${target.version.apiLevel} (Android ${target.versionName})"
       )
-    }
-    ?: emptyList()
+    } ?: emptyList()
 }
 
 private fun createGroupEnumProvider(
@@ -201,19 +198,18 @@ private fun createGroupEnumProvider(
     .map { group -> EnumValue.Companion.item(group) }
 }
 
-private fun createLocaleEnumProvider(module: Module): EnumValuesProvider =
-  localesProvider@{
-    val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
-    StudioResourceRepositoryManager.getInstance(module)
-      ?.localesInProject
-      ?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
-      ?.forEach { locale ->
-        locale.qualifier.full.nullize()?.let {
-          enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
-        }
+private fun createLocaleEnumProvider(module: Module): EnumValuesProvider = localesProvider@{
+  val enumValueLocales = mutableListOf<EnumValue>(EnumValue.empty("Default (en-US)"))
+  StudioResourceRepositoryManager.getInstance(module)
+    ?.localesInProject
+    ?.sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
+    ?.forEach { locale ->
+      locale.qualifier.full.nullize()?.let {
+        enumValueLocales.add(EnumValue.Companion.item(it, locale.toLocaleId()))
       }
-    return@localesProvider enumValueLocales
-  }
+    }
+  return@localesProvider enumValueLocales
+}
 
 private data class ClassEnumValueParams(
   val value: String,

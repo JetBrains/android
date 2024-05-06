@@ -57,11 +57,10 @@ import java.io.File
 
 private val LOG = Logger.getInstance(AndroidDependenciesSetupContext::class.java)
 
-typealias SourcesPath = File?
+typealias SourcesPath = File
 typealias JavadocPath = File?
-typealias SampleSourcePath = File?
 
-data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath, val sampleSources: SampleSourcePath)
+data class AdditionalArtifactsPaths(val sources: List<SourcesPath>, val javadoc: JavadocPath)
 
 /**
  * Computes the module ID for the given target of this [library]. We want to be able to reuse the
@@ -185,7 +184,7 @@ private class AndroidDependenciesSetupContext(
       if (IdeInfo.getInstance().isAndroidStudio) {
         LOG.warnInProduction(ExternalSystemException("Cannot find module with id: $targetModuleGradlePath"))
       }
-      return null
+      return null;
     }
     return ModuleLibraryWorkItem(targetModuleGradlePath, targetData)
   }
@@ -210,12 +209,11 @@ private class AndroidDependenciesSetupContext(
     libraryData: LibraryData,
     library: IdeArtifactLibrary,
   ) {
-    val (sources, javadocs, sampleSources) =
+    val (sources, javadocs) =
       additionalArtifactsMapper(library) ?: return
 
-    sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
+    sources.forEach { libraryData.addPath(SOURCE, it.absolutePath) }
     javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
-    sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
   }
 
   private fun setupAnnotationsFrom(

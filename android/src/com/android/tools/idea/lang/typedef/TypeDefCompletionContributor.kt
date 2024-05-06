@@ -16,9 +16,14 @@
 package com.android.tools.idea.lang.typedef
 
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.intellij.codeInsight.CodeInsightWorkspaceSettings
+import com.intellij.codeInsight.actions.OptimizeImportsProcessor
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
+import com.intellij.codeInsight.completion.InsertHandler
+import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.patterns.ElementPattern
@@ -27,6 +32,7 @@ import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
@@ -34,6 +40,7 @@ import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.parents
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -59,10 +66,6 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
   internal abstract fun computeConstrainingTypeDef(position: PsiElement): TypeDef?
 
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
-    // This method does two things:
-    //   1. Redecorate and promote typedef value completions that already exist, and
-    //   2. Add in typedef value completions for values that are missing
-
     // First, find the typedef, if it exists.
     val def = parameters.position.takeIf { elementPattern.accepts(it) }?.let { computeConstrainingTypeDef(it) }
 
@@ -74,27 +77,52 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
 
     ProgressManager.checkCanceled()
 
-    // Otherwise, redecorate and promote completions that represent the values of the typedef.
-    val missingValues = def.values.toMutableSet()
-    result.runRemainingContributors(parameters) { completion ->
-      val lookupElement = completion.lookupElement
-      val navElement = lookupElement.psiElement?.navigationElement
-      missingValues.remove(navElement)
-      val resultToPass = def.decorateAndPrioritize(lookupElement)?.let(completion::withLookupElement) ?: completion
-      result.passResult(resultToPass)
+    // Do not add anything if we are after a dot in the completion as we don't want to pollute the
+    // results with potentially irrelevant items. Instead, only redecorate where appropriate.
+    if (postDotElementPattern.accepts(parameters.position)) {
+      result.runRemainingContributors(parameters) {
+        val lookupElement = it.lookupElement
+        if (lookupElement.psiElement?.navigationElement in def.values) {
+          result.passResult(it.withLookupElement(def.maybeDecorateAndPrioritize(it.lookupElement)))
+        }
+        else {
+          result.passResult(it)
+        }
+      }
+      return
     }
 
-    // Do not add anything if we are after a dot in the completion as we don't want to pollute the
-    // results with potentially irrelevant items.
-    if (postDotElementPattern.accepts(parameters.position)) return
+    // Otherwise, add results for the typedef values.
+    def.values.forEach {
+      val lookupElement = LookupElementBuilder.create(it).withInsertHandler(insertHandler)
+      result.addElement(def.maybeDecorateAndPrioritize(lookupElement))
+    }
 
-    // Add in the values we haven't seen.
-    // TODO(b/274787926): Anything we add here will not complete properly (i.e. importing, qualifying).
-    // TODO(b/274790750): Anything we add here will not rank correctly (it shows up last despite being
-    //  Prioritized). Once we figure out how to correctly add completions we should add them first and
-    //  then skip dupes when running remaining contributors.
-    for (value in missingValues) {
-      def.decorateAndPrioritize(LookupElementBuilder.create(value))?.let(result::addElement)
+    // Filter out any subsequent results for those typedef values.
+    result.runRemainingContributors(parameters) {
+      if (it.lookupElement.psiElement?.navigationElement !in def.values) result.passResult(it)
+    }
+  }
+
+  protected abstract val insertHandler: InsertHandler<LookupElement>
+
+  protected abstract class TypeDefInsertHandler : InsertHandler<LookupElement> {
+    protected abstract fun bindToTarget(context: InsertionContext, target: PsiElement)
+
+    override fun handleInsert(context: InsertionContext, item: LookupElement) {
+      val target = item.psiElement ?: return
+      bindToTarget(context, target)
+      if (CodeInsightWorkspaceSettings.getInstance(context.project).isOptimizeImportsOnTheFly) {
+        val psiFile = PsiDocumentManager.getInstance(context.project).getPsiFile(context.document) ?: return
+        OptimizeImportsProcessor(context.project, psiFile).runWithoutProgress()
+      }
+    }
+
+    protected fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
+
+    protected inline fun <reified T: PsiElement> InsertionContext.getMaximalParentOfType(): PsiElement? {
+      val parent = getParent()
+      return parent?.parents(true)?.firstOrNull() { it.parent !is T }
     }
   }
 
@@ -194,7 +222,7 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
     val values = findDeclaredAttributeValue(VALUES_ATTR_NAME) as? PsiArrayInitializerMemberValue ?: return emptyList()
     return values.initializers.mapNotNull {
       if (it is PsiReferenceExpression) it.resolve()
-      else (it.navigationElement as? KtExpression)?.unqualified()?.mainReference?.resolve()
+      else (it.navigationElement as? KtExpression)?.resolveMainReference()
     }
   }
 
@@ -213,14 +241,16 @@ sealed class TypeDefCompletionContributor : CompletionContributor() {
 
   /** Handles the case where the `value` attribute is explicitly named. */
   private fun KtAnnotationEntry.getExplicitValueAttributeValues(): List<PsiElement>? {
-    val namedValueAttribute = valueArguments.find { it.getArgumentName()?.asName?.asString() == VALUES_ATTR_NAME }
-    return (namedValueAttribute?.getArgumentExpression() as? KtCollectionLiteralExpression)?.getInnerExpressions()
-      ?.mapNotNull { (it.unqualified() as? KtReferenceExpression)?.mainReference?.resolve() }
+    val valueArgument = valueArguments.find { it.getArgumentName()?.asName?.asString() == VALUES_ATTR_NAME }
+    val valueExpressions = (valueArgument?.getArgumentExpression() as? KtCollectionLiteralExpression)?.innerExpressions
+    return valueExpressions?.mapNotNull { it.resolveMainReference() }
   }
 
   /** Handles the case where varargs are passed instead of a named `value` attribute. */
   private fun KtAnnotationEntry.getImplicitValueAttributeValues(): List<PsiElement> =
-    valueArguments.mapNotNull { (it.getArgumentExpression()?.unqualified() as? KtReferenceExpression)?.mainReference?.resolve() }
+    valueArguments.mapNotNull { it.getArgumentExpression()?.resolveMainReference() }
+
+  private fun KtExpression.resolveMainReference(): PsiElement? = unqualified()?.mainReference?.resolve()
 
   private tailrec fun KtExpression.unqualified(): KtExpression? = when (this) {
     is KtQualifiedExpression -> selectorExpression?.unqualified()

@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.util.text.Strings
 import com.intellij.ui.AnimatedIcon
 import icons.StudioIcons
 import java.text.SimpleDateFormat
@@ -34,7 +35,7 @@ fun Long.toFormattedTimeString(): String {
   return if (this == -1L) "-" else formatter.format(Date(this))
 }
 
-fun String.capitalizedName() = lowercase(Locale.getDefault()).capitalize(Locale.getDefault())
+fun String.capitalizedName() = Strings.capitalize(lowercase(Locale.getDefault()))
 
 fun WorkInfo.State.isFinished() =
   this == WorkInfo.State.SUCCEEDED ||

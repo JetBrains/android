@@ -19,12 +19,14 @@ import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.toVcsFilePath
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.diff.chains.DiffRequestProducer
+import com.intellij.diff.requests.ErrorDiffRequest
 import com.intellij.diff.requests.SimpleDiffRequest
 import com.intellij.diff.util.DiffUserDataKeysEx
 import com.intellij.diff.util.Side
 import com.intellij.openapi.ListSelection
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
@@ -56,7 +58,8 @@ class JumpToDiffUtilsTest {
         vcsKey = VCS_CATEGORY.TEST_VCS,
         revision = BEFORE_REVISION,
         filePath = vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.toVcsFilePath(),
-        lineNumber = LINE_NUMBER
+        lineNumber = LINE_NUMBER,
+        origin = null
       )
 
     val requestChain = InsightsDiffRequestChain(context, projectRule.project)
@@ -74,22 +77,22 @@ class JumpToDiffUtilsTest {
     )
 
     // Assert
-    Truth.assertThat(requests).isNotNull()
-    Truth.assertThat(requests!!.list.size).isEqualTo(1)
+    assertThat(requests).isNotNull()
+    assertThat(requests!!.list.size).isEqualTo(1)
     val produced = requests!!.list.single() as ChangeDiffRequestProducer
 
     val diffRequest =
       produced.process(projectRule.project, EmptyProgressIndicator()) as SimpleDiffRequest
     with(diffRequest) {
-      Truth.assertThat(title)
+      assertThat(title)
         .isEqualTo(
           "Foo.kt (${PathUtil.toSystemDependentName(vcsInsightsRule.projectBaseDir.path)})"
         )
 
       val customTitles = getUserData(DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER)
-      Truth.assertThat(customTitles).isNotNull()
-      Truth.assertThat(customTitles!!.size).isEqualTo(2)
-      Truth.assertThat(
+      assertThat(customTitles).isNotNull()
+      assertThat(customTitles!!.size).isEqualTo(2)
+      assertThat(
           customTitles.mapNotNull {
             when (val label = it.label) {
               is JBLabel -> label.text
@@ -106,11 +109,57 @@ class JumpToDiffUtilsTest {
         .inOrder()
 
       val scrollToLine = getUserData(DiffUserDataKeysEx.SCROLL_TO_LINE)
-      Truth.assertThat(scrollToLine).isEqualTo(Pair.create(Side.LEFT, LINE_NUMBER - 1))
+      assertThat(scrollToLine).isEqualTo(Pair.create(Side.LEFT, LINE_NUMBER - 1))
 
       val isAlignTwoSideDiff = getUserData(DiffUserDataKeysEx.ALIGNED_TWO_SIDED_DIFF)
-      Truth.assertThat(isAlignTwoSideDiff).isTrue()
+      assertThat(isAlignTwoSideDiff).isTrue()
     }
+  }
+
+  @Test
+  fun testErrorMessageShownWhenNoHistoricalContent() {
+    // Prepare
+    vcsInsightsRule.createChangeForPath("Foo.kt", BEFORE_REVISION, AFTER_REVISION)
+
+    val context =
+      ContextDataForDiff(
+        vcsKey = VCS_CATEGORY.TEST_VCS,
+        revision = BEFORE_REVISION,
+        filePath = vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.toVcsFilePath(),
+        lineNumber = LINE_NUMBER,
+        origin = null
+      )
+
+    val requestChain = InsightsDiffRequestChain(context, projectRule.project)
+
+    // Delete this file to mimic the situation we don't have such content in disk.
+    // Note in our test infra, we don't really support real historical content.
+    WriteAction.run<RuntimeException> {
+      vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.delete(this)
+    }
+
+    // Act
+    var requests: ListSelection<out DiffRequestProducer>? = null
+    BackgroundTaskUtil.executeAndTryWait(
+      { indicator: ProgressIndicator ->
+        Runnable {
+          indicator.checkCanceled()
+          requests = requestChain.loadRequestsInBackground()
+        }
+      },
+      null
+    )
+
+    // Assert
+    assertThat(requests).isNotNull()
+    assertThat(requests!!.list.size).isEqualTo(1)
+
+    val produced = requests!!.list.single()
+    val diffRequest =
+      produced.process(projectRule.project, EmptyProgressIndicator()) as ErrorDiffRequest
+
+    assertThat(diffRequest.exception?.message)
+      .isEqualTo("Source revision is not available. Update your working tree and try again.")
   }
 }
 

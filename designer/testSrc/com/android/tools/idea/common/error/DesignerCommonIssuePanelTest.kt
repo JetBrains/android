@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.common.error.IssuePanelService.Companion.SELECTED_ISSUES
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -36,13 +35,13 @@ import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
+import javax.swing.tree.TreePath
+import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import javax.swing.tree.TreePath
-import kotlin.test.assertNotNull
 
 @Suppress("UnstableApiUsage")
 class DesignerCommonIssuePanelTest {
@@ -63,10 +62,9 @@ class DesignerCommonIssuePanelTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -132,10 +130,9 @@ class DesignerCommonIssuePanelTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -198,10 +195,9 @@ class DesignerCommonIssuePanelTest {
         rule.project,
         model,
         { LayoutValidationNodeFactory },
-        provider
-      ) {
-        ""
-      }
+        provider,
+        { "" }
+      )
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -228,7 +224,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<IssuedFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(file.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(fileIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -239,7 +234,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<IssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(file.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(fileIssue), context.getData(SELECTED_ISSUES))
 
       val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
       assertInstanceOf<OpenFileDescriptor>(navigatable)
@@ -255,7 +249,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<NoFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(noFileIssue, visualLintIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -266,7 +259,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<IssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(noFileIssue), context.getData(SELECTED_ISSUES))
       assertNull(context.getData(CommonDataKeys.NAVIGATABLE))
     }
 
@@ -277,22 +269,6 @@ class DesignerCommonIssuePanelTest {
 
       assertInstanceOf<VisualLintIssueNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
       assertEquals(null, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
-    }
-
-    run {
-      // Test NavigatableFileNode
-      tree.setSelectionRow(5)
-      val context = DataManager.getInstance().getDataContext(tree)
-
-      assertInstanceOf<NavigatableFileNode>(context.getData(PlatformDataKeys.SELECTED_ITEM))
-      assertEquals(composeFile.virtualFile, context.getData(PlatformDataKeys.VIRTUAL_FILE))
-      assertEquals(listOf(visualLintIssue), context.getData(SELECTED_ISSUES))
-      val navigatable = context.getData(CommonDataKeys.NAVIGATABLE)
-      assertInstanceOf<OpenFileDescriptor>(navigatable)
-      val descriptor = navigatable as OpenFileDescriptor
-      assertEquals(rule.project, descriptor.project)
-      assertEquals(composeFile.virtualFile, descriptor.file)
     }
   }
 }

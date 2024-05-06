@@ -17,10 +17,10 @@ package com.android.tools.idea.lint.common
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.startOffset
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import com.intellij.refactoring.suggested.startOffset
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
+class AnnotateQuickFixTest : JavaCodeInsightFixtureAdtTestCase() {
 
   fun testKotlinAnnotationArgs() {
     val file =

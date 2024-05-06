@@ -18,13 +18,12 @@ package com.android.tools.idea.naveditor.editor
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
-import org.mockito.Mockito.*
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 import java.util.Collections
 
 class NavActionsToolbarTest : NavTestCase() {
@@ -44,8 +43,6 @@ class NavActionsToolbarTest : NavTestCase() {
     val surface = model.surface
 
     surface.selectionModel.clear()
-    val issuePanel = mock(IssuePanel::class.java)
-    whenever(surface.issuePanel).thenReturn(issuePanel)
     val issueModel = mock(IssueModel::class.java)
     whenever(surface.issueModel).thenReturn(issueModel)
     whenever(surface.actionManager).thenReturn(actionManager)
@@ -70,6 +67,6 @@ class NavActionsToolbarTest : NavTestCase() {
     verify(actionManager).getToolbarActions(eq(f1AndRoot))
   }
 
-  fun <T> any(): T = ArgumentMatchers.any() as T
-  fun <T> eq(v: T): T = ArgumentMatchers.eq(v) as T
+  fun <T> any(): T = Mockito.any() as T
+  fun <T> eq(v: T): T = Mockito.eq(v) as T
 }

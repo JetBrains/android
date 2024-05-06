@@ -78,12 +78,19 @@ protected constructor(val parent: TParent) :
 
 abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel> protected constructor(parent: TParent)
   : PsCollectionBase<TModel, TKey, TParent>(parent) {
-
+  // return escaped key
   protected abstract fun instantiateNew(key: TKey)
   protected abstract fun removeExisting(key: TKey)
 
+  protected open fun checkIfCanAddNew(key: TKey):String? =
+    if (entries.containsKey(key))  ("Duplicate key: $key")
+  else
+    null
+
   fun addNew(key: TKey): TModel {
-    if (entries.containsKey(key)) throw IllegalArgumentException("Duplicate key: $key")
+    val message = checkIfCanAddNew(key)
+    if (message != null) throw IllegalArgumentException(message)
+
     instantiateNew(key)
     val model = create(key).also { update(key, it) }
     entries = entries + (key to model)

@@ -29,12 +29,12 @@ import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
+import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.CountDownLatch
 
 class AppInspectionProcessDiscoveryTest {
   private val timer = FakeTimer()
@@ -497,7 +497,7 @@ class AppInspectionProcessDiscoveryTest {
 
   @Test
   fun addListenerWithFilter() =
-    runBlocking {
+    runBlocking<Unit> {
       val processConnectedDeferred = CompletableDeferred<String>()
 
       appInspectionRule.addProcessListener(

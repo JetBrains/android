@@ -19,7 +19,7 @@ import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.sdk.install.VmType
-import com.android.tools.idea.welcome.install.InstallationIntention.UNINSTALL
+import com.android.tools.idea.welcome.install.VmInstallationIntention.UNINSTALL
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep
 import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.VmUninstallInfoStep
@@ -31,7 +31,7 @@ import com.intellij.openapi.util.SystemInfo
  * Google AEHD installable component
  */
 class Aehd(
-  installationIntention: InstallationIntention,
+  installationIntention: VmInstallationIntention,
   isCustomInstall: ScopedStateStore.Key<Boolean>
 ) : Vm(Aehd, installationIntention, isCustomInstall) {
   override val filePrefix = "aehd"

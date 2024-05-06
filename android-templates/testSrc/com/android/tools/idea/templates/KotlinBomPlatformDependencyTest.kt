@@ -18,6 +18,7 @@ package com.android.tools.idea.templates
 import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.lint.common.getModuleDir
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -67,6 +68,7 @@ class KotlinBomPlatformDependencyTest {
 
   private val projectTemplateDataBuilder by lazy {
     ProjectTemplateDataBuilder(true).apply {
+      agpVersion = AgpVersions.newProject
       androidXSupport = true
       setProjectDefaults(projectRule.project)
       language = Language.Kotlin

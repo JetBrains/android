@@ -58,6 +58,7 @@ import com.android.tools.rendering.classloading.ClassLoaderPreloaderKt;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.ModuleClassLoader;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager;
+import com.android.tools.rendering.compose.RenderTaskPatcher;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
@@ -99,12 +100,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * The {@link RenderTask} provides rendering and layout information for
  * Android layouts. This is a wrapper around the layout library.
  */
 public class RenderTask {
+  /**
+   * Listener that receives call before and after relevant {@link RenderTask} events.
+   * This is <b>only for testing</b> and can only be set via a {@link TestOnly} method. This can be used
+   * for test logging or to inject errors during a specific phase of the execution.
+   */
+  // TODO(b/313930015): Find a better name/location for this class.
+  public interface TestEventListener {
+    default void onBeforeInflate() {}
+    default void onAfterInflate() {}
+    default void onBeforeRender() {}
+    default void onAfterRender() {}
+  }
+
+  public static final TestEventListener NOP_TEST_EVENT_LISTENER = new TestEventListener() {
+  };
+
   private static final Logger LOG = Logger.getInstance(RenderTask.class);
 
   /**
@@ -122,7 +140,7 @@ public class RenderTask {
     public BufferedImage getImage(int width, int height) {
       @SuppressWarnings("UndesirableClassUsage")
       BufferedImage image =
-        new BufferedImage(Math.max(MIN_BITMAP_SIZE_PX, width), Math.max(MIN_BITMAP_SIZE_PX, height), BufferedImage.TYPE_INT_ARGB);
+        new BufferedImage(Math.max(MIN_BITMAP_SIZE_PX, width), Math.max(MIN_BITMAP_SIZE_PX, height), BufferedImage.TYPE_INT_ARGB_PRE);
       image.setAccelerationPriority(1f);
 
       return image;
@@ -183,6 +201,7 @@ public class RenderTask {
   @Nullable private RenderXmlFile myXmlFile;
   @NotNull private String myDefaultForegroundColor = "#333333";
   @NotNull private final ModuleClassLoaderManager.Reference<?> myModuleClassLoaderReference;
+  @NotNull private final TestEventListener myTestEventListener;
 
   /**
    * If true, the {@link RenderTask#render()} will report when the user classes loaded by this class loader are out of date.
@@ -219,7 +238,9 @@ public class RenderTask {
              @NotNull Runnable onNewModuleClassLoader,
              @NotNull Collection<String> classesToPreload,
              boolean reportOutOfDateUserClasses,
-             @NotNull RenderAsyncActionExecutor.RenderingTopic topic) throws NoDeviceException {
+             @NotNull RenderAsyncActionExecutor.RenderingTopic topic,
+             boolean useCustomInflater,
+             @NotNull TestEventListener testEventListener) throws NoDeviceException {
     myTracker = tracker;
     myImagePool = imagePool;
     myContext = renderContext;
@@ -235,6 +256,7 @@ public class RenderTask {
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
+    myTestEventListener = testEventListener;
     Device device = renderContext.getConfiguration().getDevice();
     if (device == null) {
       throw new NoDeviceException();
@@ -247,12 +269,7 @@ public class RenderTask {
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
-    WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
-    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule(), () -> {
-      RenderTask task = xmlFileProvider.get();
-      RenderXmlFile xmlFile = task != null ? task.getXmlFile() : null;
-      return xmlFile != null ? xmlFile.get() : null;
-    });
+    ModuleRenderContext moduleRenderContext = renderContext.getModule().createModuleRenderContext(new WeakReference<>(this));
     if (privateClassLoader) {
       myModuleClassLoaderReference = classLoaderManager.getPrivate(
         myLayoutLib.getClassLoader(),
@@ -278,7 +295,8 @@ public class RenderTask {
           myCredential,
           actionBarHandler,
           parserFactory,
-          moduleClassLoader);
+          moduleClassLoader,
+          useCustomInflater);
       if (renderContext.getModule().getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
@@ -408,13 +426,17 @@ public class RenderTask {
 
     myTracker.captureDisposeStackTrace().bind(this);
 
+    CompletableFuture<?>[] currentRunningFutures;
+    synchronized (myRunningFutures) {
+      currentRunningFutures = myRunningFutures.toArray(new CompletableFuture<?>[0]);
+      myRunningFutures.clear();
+    }
+    myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
+    RenderSession renderSessionToDispose = myRenderSession;
+    myRenderSession = null;
+
     return ourDisposeService.submit(() -> {
       try {
-        CompletableFuture<?>[] currentRunningFutures;
-        synchronized (myRunningFutures) {
-          currentRunningFutures = myRunningFutures.toArray(new CompletableFuture<?>[0]);
-          myRunningFutures.clear();
-        }
         // Wait for all current running operations to complete
         CompletableFuture.allOf(currentRunningFutures).get(5, TimeUnit.SECONDS);
       }
@@ -422,13 +444,12 @@ public class RenderTask {
         // We do not care about these exceptions since we are disposing the task anyway
         LOG.debug(e);
       }
-      myLayoutlibCallback.setLogger(IRenderLogger.NULL_LOGGER);
-      if (myRenderSession != null) {
+      if (renderSessionToDispose != null) {
         try {
-          disposeRenderSession(myRenderSession)
+          disposeRenderSession(renderSessionToDispose)
             .whenComplete((result, ex) -> clearClassLoader())
+            .orTimeout(2, TimeUnit.SECONDS)
             .join(); // This is running on the dispose thread so wait for the full dispose to happen.
-          myRenderSession = null;
         }
         catch (Exception ignored) {
         }
@@ -441,6 +462,12 @@ public class RenderTask {
 
       return null;
     });
+  }
+
+  @TestOnly
+  @Nullable
+  public ClassLoader getClassLoader() {
+    return myModuleClassLoaderReference.getClassLoader();
   }
 
   /**
@@ -583,6 +610,20 @@ public class RenderTask {
   }
 
   /**
+   * Returns a valid pooled image or {@link ImagePool#NULL_POOLED_IMAGE} if the input if null or not valid.
+   */
+  @NotNull
+  private ImagePool.Image toPooledImage(@Nullable BufferedImage result) {
+    // Check if the image exists and it's a valid image. Layoutlib can sometimes return a 1x1 image when
+    // an error has happened. Even if the image is valid, a 1x1 image is not useful so we approximate it to
+    // the null image.
+    if (result != null && result.getWidth() > 1 && result.getHeight() > 1) {
+      return myImagePool.copyOf(result);
+    }
+    return ImagePool.NULL_POOLED_IMAGE;
+  }
+
+  /**
    * Renders the model and returns the result as a {@link RenderSession}.
    *
    * @param factory Factory for images which would be used to render layouts to.
@@ -652,6 +693,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
 
     params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
+    params.setImageTransformation(configuration.getImageTransformation());
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -748,9 +790,12 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
+        BufferedImage resultImage = session.getImage();
+
+        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, toPooledImage(resultImage), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
+        RenderTaskPatcher.enableComposeHotReloadMode(myModuleClassLoaderReference.getClassLoader());
         if (oldRenderSession != null) {
           disposeRenderSession(oldRenderSession);
         }
@@ -805,7 +850,7 @@ public class RenderTask {
       }
       else {
         // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-        topParser = LayoutFilePullParser.create(new PathString(myIncludedWithin.getFromPath()), ResourceNamespace.TODO());
+        topParser = LayoutFilePullParser.create(new PathString(myIncludedWithin.getFromPath()), ResourceNamespace.TODO(), myContext.getModule().getResourceIdManager());
         if (topParser == null) {
           myLogger.error(null, String.format("Could not read layout file %1$s", myIncludedWithin.getFromPath()), null, null, null);
         }
@@ -888,12 +933,14 @@ public class RenderTask {
     // Inflation can be way slower than a regular render since it will load classes and initiate most of the state.
     // That's why, for inflating, we allow a more generous timeout than for rendering.
     return runAsyncRenderAction(() -> createRenderSession((width, height) -> {
+      myTestEventListener.onBeforeInflate();
       if (myImageFactoryDelegate != null) {
         return myImageFactoryDelegate.getImage(width, height);
       }
 
-      return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+      return new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB_PRE);
     }), RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS * 10, TimeUnit.MILLISECONDS)
+      .whenComplete((result, ex) -> myTestEventListener.onAfterInflate())
       .handle((result, ex) -> {
         if (ex != null) {
           while (ex instanceof CompletionException) {
@@ -905,7 +952,7 @@ public class RenderTask {
           }
           RenderModelModule module = myContext.getModule();
           RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), ex, fixFactory));
+          myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), ex, fixFactory));
         }
 
         if (result != null) {
@@ -917,7 +964,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex, myLogger);
+            return RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, myContext.getModule(), xmlFile, ex, myLogger);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -1068,9 +1115,11 @@ public class RenderTask {
       try {
         long startRenderTimeMs = System.currentTimeMillis();
         return runAsyncRenderAction(() -> {
+          myTestEventListener.onBeforeRender();
           myRenderSession.render(forceMeasure);
+          BufferedImage resultImage = myRenderSession.getImage();
           RenderResult result =
-            RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
+            RenderResult.create(myContext, myRenderSession, xmlFile, myLogger, toPooledImage(resultImage), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());
@@ -1084,18 +1133,32 @@ public class RenderTask {
             myLogger.addMessage(problem);
           }
           return result;
-        }).handle((result, ex) -> {
-          ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
-          // After render clean-up. Dispose the GapWorker cache.
-          RenderSessionCleaner.clearGapWorkerCache(moduleClassLoader);
-          RenderSessionCleaner.clearFontRequestWorker(moduleClassLoader);
-          return result.createWithStats(new RenderResultStats(
-            inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
-            System.currentTimeMillis() - startRenderTimeMs,
-            moduleClassLoader.getStats().getClassesFound(),
-            moduleClassLoader.getStats().getAccumulatedFindTimeMs(),
-            moduleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
-        });
+        })
+          .whenComplete((result, ex) -> myTestEventListener.onAfterRender())
+          .whenComplete((result, ex) -> {
+            ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+            // After render clean-up. Dispose the GapWorker cache.
+            RenderSessionCleaner.clearGapWorkerCache(moduleClassLoader);
+            RenderSessionCleaner.clearFontRequestWorker(moduleClassLoader);
+            RenderSessionCleaner.clearCompositions(moduleClassLoader);
+          })
+          .handle((result, ex) -> {
+            if (ex != null) {
+              while (ex instanceof CompletionException) {
+                ex = ex.getCause();
+              }
+            }
+            if (result == null) {
+              result = RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER, myContext.getModule(), xmlFile, ex, myLogger);
+            }
+            ModuleClassLoader moduleClassLoader = myModuleClassLoaderReference.getClassLoader();
+            return result.createWithStats(new RenderResultStats(
+              inflateResult != null ? inflateResult.getStats().getInflateDurationMs() : result.getStats().getInflateDurationMs(),
+              System.currentTimeMillis() - startRenderTimeMs,
+              moduleClassLoader.getStats().getClassesFound(),
+              moduleClassLoader.getStats().getAccumulatedFindTimeMs(),
+              moduleClassLoader.getStats().getAccumulatedRewriteTimeMs()));
+          });
       }
       catch (Exception e) {
         reportException(e);
@@ -1105,8 +1168,9 @@ public class RenderTask {
         }
         RenderModelModule module = myContext.getModule();
         RenderProblem.RunnableFixFactory fixFactory = module.getEnvironment().getRunnableFixFactory();
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(module, xmlFile, e, myLogger));
+        myLogger.addMessage(RenderProblem.createHtml(ERROR, message, module.getProject(), myLogger.getLinkManager(), e, fixFactory));
+        return CompletableFuture.completedFuture(
+          RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, module, xmlFile, e, myLogger));
       }
     });
   }

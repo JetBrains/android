@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Companion.getInstance
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -67,7 +67,7 @@ abstract class AbstractMakeGradleModuleAction :
   open fun getModuleNamesToBuild(e: AnActionEvent, project: Project): List<String> = extractModuleNames(e, project)
 
   open fun getModulesToBuild(e: AnActionEvent, project: Project): Array<Module> =
-    GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
+    Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
 
   final override fun doUpdate(e: AnActionEvent, project: Project) {
     val modules = getModuleNamesToBuild(e, project).ifEmpty {  getPreviouslySelectedNamesIfValid(project) }
@@ -140,7 +140,7 @@ abstract class AbstractMakeGradleModuleAction :
     }
 
     private fun extractModuleNames(e: AnActionEvent, project: Project): List<String> =
-      GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
+      Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
 
     private fun updatePresentation(e: AnActionEvent, project: Project, moduleNames: List<String?>) {
       val moduleCount = moduleNames.size

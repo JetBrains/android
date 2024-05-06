@@ -20,11 +20,11 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Tracks devices for [DeviceComboBox].
  *
- * Notifies when a previously unseen device comes online and when a tracked device changes state. Only offline/online states are tracked.
+ * Notifies when a previously unseen device comes online and when a tracked device changes state.
+ * Only offline/online states are tracked.
  *
  * Devices are not removed when they go offline.
  */
 internal interface IDeviceComboBoxDeviceTracker {
   suspend fun trackDevices(): Flow<DeviceEvent>
 }
-

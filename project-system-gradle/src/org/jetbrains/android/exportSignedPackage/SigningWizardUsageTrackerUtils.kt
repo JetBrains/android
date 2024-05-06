@@ -57,14 +57,12 @@ fun trackWizardGradleSigning(
   project: Project,
   targetType: SigningWizardEvent.SigningTargetType,
   numberOfModules: Int,
-  numberOfVariants: Int,
-  isPrivateKeyExported: Boolean
+  numberOfVariants: Int
 ) {
   val signEvent = SigningWizardEvent.newBuilder()
     .setTargetType(targetType)
     .setNumberOfModules(numberOfModules)
     .setNumberOfVariants(numberOfVariants)
-    .setIsPrivateKeyExported(isPrivateKeyExported)
   val event = createEvent(project, SIGNING_WIZARD_GRADLE_SIGNING_SUCCEEDED)
     .setSigningWizardEvent(signEvent)
   log(event)

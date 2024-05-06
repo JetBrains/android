@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.testing;
 
-import static org.mockito.Mockito.mock;
-
 import com.android.tools.adtui.common.AutoCloseDisposable;
 import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for {@link IdeComponents}.

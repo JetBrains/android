@@ -39,8 +39,12 @@ interface NlModelFactoryInterface {
 
 /** An {@link NlModel} builder */
 // TODO: Migrate next to NlModel if/when NlModel is migrated to Kotlin
-class NlModelBuilder
-(val facet: AndroidFacet, val file: VirtualFile, val configuration: Configuration) {
+class NlModelBuilder(
+  val parentDisposable: Disposable,
+  val facet: AndroidFacet,
+  val file: VirtualFile,
+  val configuration: Configuration
+) {
   private var modelFactory: NlModelFactoryInterface =
     object : NlModelFactoryInterface {
       override fun build(nlModelBuilder: NlModelBuilder): NlModel =
@@ -59,7 +63,6 @@ class NlModelBuilder
         }
     }
 
-  private var parentDisposable: Disposable? = null
   private var modelTooltip: String? = null
   private var componentRegistrar: Consumer<NlComponent> = Consumer {}
   private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> =
@@ -76,10 +79,6 @@ class NlModelBuilder
   @TestOnly
   fun useNlModelFactory(modelFactory: NlModelFactoryInterface): NlModelBuilder = also {
     this.modelFactory = modelFactory
-  }
-
-  fun withParentDisposable(parentDisposable: Disposable): NlModelBuilder = also {
-    this.parentDisposable = parentDisposable
   }
 
   fun withModelTooltip(modelTooltip: String): NlModelBuilder = also {

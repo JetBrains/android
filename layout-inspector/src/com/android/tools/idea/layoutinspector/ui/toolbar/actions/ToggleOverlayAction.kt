@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.tools.idea.layoutinspector.ui.RenderModel
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -33,16 +34,18 @@ import javax.imageio.ImageIO
  * against design mocks.
  */
 class ToggleOverlayAction(private val renderModelProvider: () -> RenderModel) :
-  AnAction(StudioIcons.LayoutInspector.LOAD_OVERLAY) {
+  AnAction(StudioIcons.LayoutInspector.Toolbar.LOAD_OVERLAY) {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
     val renderModel = renderModelProvider()
     if (renderModel.overlay != null) {
-      e.presentation.icon = StudioIcons.LayoutInspector.CLEAR_OVERLAY
+      e.presentation.icon = StudioIcons.LayoutInspector.Toolbar.CLEAR_OVERLAY
       e.presentation.text = "Clear Overlay"
     } else {
-      e.presentation.icon = StudioIcons.LayoutInspector.LOAD_OVERLAY
+      e.presentation.icon = StudioIcons.LayoutInspector.Toolbar.LOAD_OVERLAY
       e.presentation.text = "Load Overlay"
     }
     e.presentation.isEnabled = renderModel.isActive

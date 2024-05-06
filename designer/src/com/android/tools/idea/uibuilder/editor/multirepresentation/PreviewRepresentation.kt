@@ -39,7 +39,7 @@ enum class PreferredVisibility {
 
 /**
  * An interface for a generic representation of a preview for a case where a preview part of
- * [com.intellij.openapi.fileEditor.TextEditor] with preview can have several representations.
+ * [com.intellij.openapi.fileEditor.TextEditorWithPreview] can have several representations.
  *
  * TODO(b/143067434): have a solid motivation for having [updateNotifications] and
  *   [registerShortcuts] as part of this interface

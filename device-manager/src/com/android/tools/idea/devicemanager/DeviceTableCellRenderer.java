@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanager;
 
 import static com.android.tools.idea.wearpairing.AndroidWearPairingBundle.message;
 
+import com.android.tools.adtui.table.Tables;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PairingState;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;

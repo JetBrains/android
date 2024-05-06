@@ -17,7 +17,8 @@ import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl
 import com.android.tools.idea.gradle.dsl.model.build.BuildScriptModelImpl
 import com.android.tools.idea.gradle.dsl.model.configurations.ConfigurationsModelImpl
 import com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsModelImpl
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModelImpl
+import com.android.tools.idea.gradle.dsl.model.dependencies.DeclarativeDependenciesModelImpl
+import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl
 import com.android.tools.idea.gradle.dsl.model.java.JavaModelImpl
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl
@@ -36,11 +37,12 @@ import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
+import com.android.tools.idea.gradle.dsl.utils.EXT_DECLARATIVE_TOML
 
 class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleDslFile> {
 
   override fun availableModels(): List<BlockModelBuilder<*, GradleDslFile>> {
-    return DEFAULT_ROOT_AVAILABLE_MODELS
+    return DEFAULT_ROOT_AVAILABLE_MODELS;
   }
 
   override fun getParentClass() = GradleBuildModel::class.java
@@ -79,9 +81,14 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleDslF
       CrashlyticsModel::class.java from {
         CrashlyticsModelImpl(it.ensurePropertyElement(CrashlyticsDslElement.CRASHLYTICS))
       },
-
       DependenciesModel::class.java from {
-        DependenciesModelImpl(it.ensurePropertyElement(DependenciesDslElement.DEPENDENCIES))
+        val dependenciesDslElement: DependenciesDslElement = it.ensurePropertyElement(DependenciesDslElement.DEPENDENCIES)
+        if (it.file.name.endsWith(EXT_DECLARATIVE_TOML)) {
+          DeclarativeDependenciesModelImpl(dependenciesDslElement)
+        }
+        else {
+          ScriptDependenciesModelImpl(dependenciesDslElement)
+        }
       },
 
       ExtModel::class.java from {
@@ -106,7 +113,6 @@ class GradleDefaultBlockModels : BlockModelProvider<GradleBuildModel, GradleDslF
       }
     )
   }
-
 
 
 }

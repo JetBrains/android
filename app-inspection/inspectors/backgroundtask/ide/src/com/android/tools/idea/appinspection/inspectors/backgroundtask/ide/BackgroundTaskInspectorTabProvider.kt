@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorLaunchConfig
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerTarget
@@ -35,8 +35,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
-
-const val MINIMUM_WORKMANAGER_VERSION = "2.5.0"
 
 class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
   override val launchConfigs =
@@ -58,12 +56,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
             "workmanager-inspection.jar",
             developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"
           ),
-          ArtifactCoordinate(
-            "androidx.work",
-            "work-runtime",
-            MINIMUM_WORKMANAGER_VERSION,
-            ArtifactCoordinate.Type.AAR
-          )
+          MinimumArtifactCoordinate.WORK_RUNTIME
         )
       )
     )

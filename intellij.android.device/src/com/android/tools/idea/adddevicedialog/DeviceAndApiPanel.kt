@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,121 +15,68 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.devices.Abi
-import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.JBTextField
-import com.intellij.ui.scale.JBUIScale
-import java.awt.Component
-import javax.swing.DefaultComboBoxModel
-import javax.swing.GroupLayout
-import javax.swing.JComboBox
-import javax.swing.JList
+import com.android.sdklib.getApiNameAndDetails
+import kotlinx.collections.immutable.ImmutableCollection
+import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.TextField
 
-internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPanel>(null) {
-  private val apiLevelComboBox: JComboBox<AndroidVersion>
+@Composable
+internal fun DeviceAndApiPanel(
+  device: VirtualDevice,
+  images: ImmutableCollection<SystemImage>,
+  onDeviceChange: (VirtualDevice) -> Unit
+) {
+  Text("Name")
+  TextField(device.name, { onDeviceChange(device.copy(name = it)) })
 
-  init {
-    val nameLabel = JBLabel("Name")
-    val nameTextField = JBTextField()
+  Text("API level")
+  ApiLevelDropdown(images)
+}
 
-    val deviceDefinitionLabel = JBLabel("Device definition")
-    val deviceDefinitionComboBox = initDeviceDefinitionComboBox()
-
-    val apiLevelLabel = JBLabel("API level")
-    apiLevelComboBox = ComboBox()
-
-    val servicesLabel = JBLabel("Services")
-    val servicesComboBox = ComboBox(arrayOf(Service.ANDROID_OPEN_SOURCE))
-
-    val abiLabel = JBLabel("ABI")
-    val abiComboBox = ComboBox(arrayOf(Abi.ARM64_V8A))
-
-    val max = JBUIScale.scale(Short.MAX_VALUE.toInt())
-
-    layout = groupLayout(this) {
-      horizontalGroup {
-        parallelGroup {
-          component(nameLabel)
-          component(nameTextField)
-          component(deviceDefinitionLabel)
-          component(deviceDefinitionComboBox)
-
-          sequentialGroup {
-            component(apiLevelLabel, max = max)
-            component(servicesLabel, max = max)
-          }
-
-          sequentialGroup {
-            component(apiLevelComboBox)
-            component(servicesComboBox)
-          }
-
-          component(abiLabel)
-
-          sequentialGroup {
-            component(abiComboBox)
-            containerGap(abiComboBox.preferredSize.width, max)
-          }
-        }
-      }
-
-      verticalGroup {
-        sequentialGroup {
-          component(nameLabel)
-          component(nameTextField, max = GroupLayout.PREFERRED_SIZE)
-          component(deviceDefinitionLabel)
-          component(deviceDefinitionComboBox, max = GroupLayout.PREFERRED_SIZE)
-
-          parallelGroup {
-            component(apiLevelLabel)
-            component(servicesLabel)
-          }
-
-          parallelGroup {
-            component(apiLevelComboBox, max = GroupLayout.PREFERRED_SIZE)
-            component(servicesComboBox, max = GroupLayout.PREFERRED_SIZE)
-          }
-
-          component(abiLabel)
-          component(abiComboBox, max = GroupLayout.PREFERRED_SIZE)
-        }
-      }
-    }
+@Composable
+private fun ApiLevelDropdown(images: ImmutableCollection<SystemImage>) {
+  if (images.isEmpty()) {
+    Dropdown(menuContent = {}, content = {})
+    return
   }
 
-  private fun initDeviceDefinitionComboBox(): Component {
-    val comboBox = ComboBox(Definition.getDefinitions().sorted().toTypedArray())
-
-    comboBox.renderer = object : ColoredListCellRenderer<Definition>() {
-      override fun customizeCellRenderer(list: JList<out Definition>,
-                                         definition: Definition,
-                                         index: Int,
-                                         selected: Boolean,
-                                         focused: Boolean) {
-        append("${definition.name} ")
-        append("${definition.size}″, ${definition.resolution}, ${definition.density}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
-      }
-    }
-
-    return comboBox
-  }
-
-  internal fun setSystemImages(systemImages: Iterable<SystemImage>) {
-    val levels = systemImages.asSequence()
+  val levels =
+    images //
       .map(SystemImage::apiLevel)
       .distinct()
       .sortedDescending()
-      .toList()
 
-    (apiLevelComboBox.model as DefaultComboBoxModel).addAll(levels)
+  var selectedLevel by remember { mutableStateOf(levels.first()) }
 
-    apiLevelComboBox.renderer = AndroidVersionListCellRenderer()
-    apiLevelComboBox.selectedIndex = 0
+  Dropdown(
+    menuContent = {
+      levels.forEach {
+        selectableItem(selectedLevel == it, { selectedLevel = it }, content = { ApiLevelText(it) })
+      }
+    },
+    content = { ApiLevelText(selectedLevel) }
+  )
+}
+
+@Composable
+private fun ApiLevelText(level: AndroidVersion) {
+  val nameAndDetails = level.getApiNameAndDetails(includeReleaseName = true, includeCodeName = true)
+
+  val string = buildString {
+    append(nameAndDetails.name)
+
+    nameAndDetails.details?.let {
+      append(' ')
+      append(it)
+    }
   }
+
+  Text(string)
 }

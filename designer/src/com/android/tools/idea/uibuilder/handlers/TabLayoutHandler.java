@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.AndroidXConstants.TAB_ITEM;
 import static com.android.SdkConstants.ANDROID_MATERIAL_PKG;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
 import static com.android.SdkConstants.ATTR_STYLE;
@@ -46,22 +45,17 @@ import static com.android.SdkConstants.ATTR_TAB_TEXT_COLOR;
 import static com.android.SdkConstants.ATTR_TAB_UNBOUNDED_RIPPLE;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.ATTR_THEME;
+import static com.android.AndroidXConstants.TAB_ITEM;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 
-import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
-import com.android.tools.idea.common.scene.target.Target;
-import com.android.tools.idea.uibuilder.api.DragHandler;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder;
-import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler;
-import com.android.tools.idea.uibuilder.handlers.frame.FrameDragTarget;
 import com.android.xml.XmlBuilder;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
@@ -159,9 +153,8 @@ public class TabLayoutHandler extends HorizontalScrollViewHandler {
   }
 
   @Override
-  public @NotNull List<Target> createChildTargets(@NotNull SceneComponent parentComponent,
-                                                  @NotNull SceneComponent childComponent) {
-    return ImmutableList.of(new FrameDragTarget());
+  public boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+    return true;
   }
 
   @Override

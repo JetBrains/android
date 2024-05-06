@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.structure;
 
-import java.util.List;
-import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.tree.TreePath;
+import java.util.List;
 
 /**
  * Object to be passed to a {@link DelegatedTreeEventHandler} with a simplified view

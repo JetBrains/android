@@ -25,7 +25,6 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.kotlin.idea.util.application.invokeLater
 import java.awt.DefaultFocusTraversalPolicy
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -36,6 +35,7 @@ import javax.swing.JCheckBox
 import javax.swing.JPanel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
+import org.jetbrains.kotlin.idea.util.application.invokeLater
 
 // These 3 mask values comes from android/text/InputType.java:
 private const val TYPE_MASK_CLASS = 0x0f
@@ -123,7 +123,9 @@ class InputTypeEditor(private val property: InputTypePropertyItem) : JPanel(Grid
           variation.isVisible = variationModel.size > 1
           variationLabel.isVisible = variationModel.size > 1
         }
+
         override fun intervalAdded(event: ListDataEvent) {}
+
         override fun intervalRemoved(event: ListDataEvent) {}
       }
     )

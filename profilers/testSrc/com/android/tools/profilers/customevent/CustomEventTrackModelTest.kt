@@ -34,7 +34,7 @@ class CustomEventTrackModelTest {
 
   val groupId1 = "group1".hashCode().toLong()
 
-  private val USER_EVENTS: ImmutableList<Common.Event> = ImmutableList.of(
+  private val USER_EVENTS = ImmutableList.of<Common.Event>(
     Common.Event.newBuilder()
       .setGroupId(groupId1)
       .setTimestamp(TimeUnit.MILLISECONDS.toNanos(500))

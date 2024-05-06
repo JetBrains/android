@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_GRAVITY
+import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_ORIENTATION
 import com.android.SdkConstants.ATTR_SRC_COMPAT
 import com.android.SdkConstants.ATTR_STYLE
@@ -30,6 +31,7 @@ import com.android.SdkConstants.PREFIX_APP
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -117,6 +119,34 @@ class NlNewPropertyItemTest {
   }
 
   @Test
+  fun testIdDelegate() {
+    val properties = createTable()
+    val model = properties.first!!.model
+    val property = NlNewPropertyItem(model, properties)
+    property.name = PREFIX_ANDROID + ATTR_ID
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    val delegate = property.delegate!!
+
+    assertThat(delegate.namespace).isEqualTo(ANDROID_URI)
+    assertThat(delegate.name).isEqualTo(ATTR_ID)
+
+    property.value = "abc"
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+
+    assertThat(property.value).isEqualTo("abc")
+    assertThat(property.type).isEqualTo(NlPropertyType.ID)
+    assertThat(property.definition!!.resourceReference)
+      .isEqualTo(ResourceReference.attr(ResourceNamespace.ANDROID, ATTR_ID))
+    assertThat(property.components).containsExactly(delegate.components[0])
+    assertThat(property.resolvedValue).isEqualTo("@+id/abc")
+    assertThat(property.isReference).isFalse()
+    assertThat(property.tooltipForValue).isEqualTo("")
+    assertThat(property.getCompletionValues()).isEmpty()
+    assertThat(property.validate("abc")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(property.validate("@+/textId")).isEqualTo(EDITOR_NO_ERROR)
+  }
+
+  @Test
   fun testDelegateWithoutPrefix() {
     val properties = createTable()
     val model = properties.first!!.model
@@ -176,11 +206,13 @@ class NlNewPropertyItemTest {
     assertThat(values)
       .containsExactly(
         "style",
+        "android:id",
         "android:text",
         "android:textSize",
         "android:textColor",
         "android:gravity",
         "app:srcCompat",
+        "tools:id",
         "tools:text",
         "tools:textSize",
         "tools:textColor",
@@ -203,9 +235,11 @@ class NlNewPropertyItemTest {
     assertThat(values)
       .containsExactly(
         "style",
+        "android:id",
         "android:textSize",
         "android:gravity",
         "app:srcCompat",
+        "tools:id",
         "tools:text",
         "tools:textSize",
         "tools:textColor",
@@ -252,6 +286,7 @@ class NlNewPropertyItemTest {
     val property3 = util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
     val property4 = util.makeProperty(AUTO_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
     val property5 = util.makeProperty(ANDROID_URI, ATTR_GRAVITY, NlPropertyType.ENUM)
+    val property6 = util.makeIdProperty()
     val table: Table<String, String, NlPropertyItem> = HashBasedTable.create()
 
     // Override property1 such that componentName and library name is set for the delegate test
@@ -275,6 +310,7 @@ class NlNewPropertyItemTest {
     add(table, property3)
     add(table, property4)
     add(table, property5)
+    add(table, property6)
     return PropertiesTable.create(table)
   }
 

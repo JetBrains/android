@@ -18,7 +18,13 @@ package com.android.tools.idea.res
 import com.android.tools.res.ids.ResourceIdManager
 import com.android.tools.res.ids.ResourceIdManagerBase
 import com.intellij.openapi.module.Module
+import org.jetbrains.android.facet.AndroidFacet
 
 /** Studio-specific implementation of [ResourceIdManager]. */
-class ResourceIdManagerImpl private constructor(module: Module)
-  : ResourceIdManagerBase(AndroidFacetResourceIdManagerModelModule(module))
+class ResourceIdManagerImpl private constructor(val module: Module) :
+  ResourceIdManagerBase(
+    AndroidFacetResourceIdManagerModelModule(
+      AndroidFacet.getInstance(module)
+        ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
+    )
+  )

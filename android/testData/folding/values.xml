@@ -32,6 +32,10 @@
   <string name="string4">String 4</string>
   <string name="referenced">resolved</string>
   <string name="alias">@string/referenced</string>
+  <string name="cycle">@string/cycle1</string>
+  <string name="cycle1">@string/cycle2</string>
+  <string name="cycle2">@string/cycle3</string>
+  <string name="cycle3">@string/cycle1</string>
   <integer name="max_action_buttons">5</integer>
   <integer name="login_pane_width_percent">65</integer>
   <string name="hello">Hello!</string>

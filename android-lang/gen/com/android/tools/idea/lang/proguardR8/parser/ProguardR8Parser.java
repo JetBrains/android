@@ -1494,10 +1494,10 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // flag_with_class_filter class_filter
-  static boolean rule_with_class_filter(PsiBuilder builder, int level) {
+  public static boolean rule_with_class_filter(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "rule_with_class_filter")) return false;
     boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_);
+    Marker marker = enter_section_(builder, level, _NONE_, RULE_WITH_CLASS_FILTER, "<rule with class filter>");
     result = flag_with_class_filter(builder, level + 1);
     pinned = result; // pin = 1
     result = result && class_filter(builder, level + 1);

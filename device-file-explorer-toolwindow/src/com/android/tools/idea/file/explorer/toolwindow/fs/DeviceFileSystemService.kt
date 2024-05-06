@@ -20,14 +20,18 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * Abstraction over ADB devices and their corresponding file system.
  *
- * The service is meant to be called on the EDT thread, where long pending operations suspend,
- * while state changes (e.g. new device discovered, existing device disconnected, etc.) fire events on
- * the registered [DeviceFileSystemServiceListener] instances. Events are always fired on the EDT
+ * The service is meant to be called on the EDT thread, where long pending operations suspend, while
+ * state changes (e.g. new device discovered, existing device disconnected, etc.) fire events on the
+ * registered [DeviceFileSystemServiceListener] instances. Events are always fired on the EDT
  * thread.
  */
 interface DeviceFileSystemService<S : DeviceFileSystem> {
-  /**
-   * Returns the list of currently known devices.
-   */
+  /** Returns the list of currently known devices. */
   val devices: StateFlow<List<DeviceFileSystem>>
+
+  /**
+   * Returns a [DeviceFileSystem] for a device by [serialNumber] or `null` if device is not
+   * available.
+   */
+  suspend fun getFileSystem(serialNumber: String): DeviceFileSystem?
 }

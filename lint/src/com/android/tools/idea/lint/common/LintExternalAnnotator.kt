@@ -168,7 +168,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     return LintEditorResult(module, vFile, file.text, issues)
   }
 
-  override fun doAnnotate(lintResult: LintEditorResult): LintEditorResult {
+  override fun doAnnotate(lintResult: LintEditorResult?): LintEditorResult? {
+    if (lintResult == null) return null
     val startTime = System.currentTimeMillis()
     val client = LintIdeSupport.get().createEditorClient(lintResult)
     try {
@@ -234,8 +235,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     return lintResult
   }
 
-  override fun apply(file: PsiFile, lintResult: LintEditorResult, holder: AnnotationHolder) {
-    if (lintResult.isDirty) {
+  override fun apply(file: PsiFile, lintResult: LintEditorResult?, holder: AnnotationHolder) {
+    if (lintResult == null || lintResult.isDirty) {
       return
     }
     val project = file.project

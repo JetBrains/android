@@ -18,7 +18,12 @@ package com.android.tools.adtui.model;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.math.DoubleMath;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,10 +38,10 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   /**
    * The view range is multiplied by this value to determine the new view range when zooming.
    */
-  public static final double DEFAULT_ZOOM_PERCENT = 0.25;
+  public static final double DEFAULT_ZOOM_RATIO = 0.25;
 
   /**
-   * The mid point of our view used for zooming.
+   * The mid-point of our view used for zooming.
    */
   public static final double ZOOM_MIDDLE_FOCAL_POINT = 0.5;
 
@@ -45,20 +50,14 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    */
   public static final float ZOOM_LERP_THRESHOLD_NS = 10;
 
-  /**
-   * In order to prevent attempts to zoom larger than the current view range, this cap serves to limit the delta range to a fixed number
-   * proportional to the current view range.
-   */
-  public static final double ZOOM_IN_DELTA_RANGE_US_MAX_RATIO = 0.90;
-
   @VisibleForTesting
   public static final long DEFAULT_VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30);
 
   @NotNull private final Updater myUpdater;
-  @NotNull private final Range myDataRangeUs;
-  @NotNull private final Range myViewRangeUs;
-  @NotNull private final Range mySelectionRangeUs;
-  @NotNull private final Range myTooltipRangeUs;
+  private final Range myDataRangeUs = new Range(0, 0);
+  private final Range myViewRangeUs = new Range(0, 0);
+  private final Range mySelectionRangeUs = new Range(); // Empty range
+  private final Range myTooltipRangeUs = new Range(); // Empty range
 
   private boolean myStreaming;
 
@@ -77,7 +76,9 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    * delta we resolve this by allowing the go live set the view to its requested value
    * then adjusting the min / max values by their computed adjusted amounts.
    */
-  private Range myZoomLeft;
+  private final Range myZoomLeft = new Range(0, 0);
+
+  private final TimelineZoomHelper myZoomHelper = new TimelineZoomHelper(myDataRangeUs, myViewRangeUs, myZoomLeft);
 
   private boolean myCanStream = true;
   private long myDataStartTimeNs;
@@ -86,6 +87,8 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   private long myResetTimeNs;
   private boolean myIsPaused = false;
   private long myPausedTime;
+  private final Queue<Double> myMouseScrollWheelEvents = new LinkedList<>();
+  private final Lock myScrollbarScrollWheelEventLock = new ReentrantLock();
 
   /**
    * When not negative, interpolates {@link #myViewRangeUs}'s max to it while keeping the view range length.
@@ -98,12 +101,6 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   private float myJumpFactor;
 
   public StreamingTimeline(@NotNull Updater updater) {
-    myDataRangeUs = new Range(0, 0);
-    myViewRangeUs = new Range(0, 0);
-    myZoomLeft = new Range(0, 0);
-    mySelectionRangeUs = new Range(); // Empty range
-    myTooltipRangeUs = new Range(); // Empty range
-
     myUpdater = updater;
     myUpdater.register(this);
   }
@@ -120,6 +117,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     if (myStreaming == isStreaming) {
       return;
     }
+    //noinspection ConstantValue
     assert myCanStream || !isStreaming;
 
     myStreaming = isStreaming;
@@ -165,6 +163,15 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     }
   }
 
+  public void addMouseScrollWheelEvent(Double event) {
+    // Acquire the lock on modifying the mouse scroll wheel events queue.
+    myScrollbarScrollWheelEventLock.lock();
+    // Store the mouse wheel scroll event.
+    myMouseScrollWheelEvents.offer(event);
+    // Release the lock.
+    myScrollbarScrollWheelEventLock.unlock();
+  }
+
   @NotNull
   @Override
   public Range getDataRange() {
@@ -191,6 +198,8 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
 
   @Override
   public void update(long elapsedNs) {
+    handleMouseScrollWheelEvents(); // Does not take into consideration the elapsed time
+                                    // after a timeline reset.
     if (myIsReset) {
       // If the timeline has been reset, we need to make sure the elapsed time is the duration between the current update and when reset
       // was triggered. Otherwise we would be adding extra time. e.g.
@@ -332,56 +341,21 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     myTargetRangeMaxUs = Math.min(targetMax, myDataRangeUs.getMax());
   }
 
-  /**
-   * Calculates a zoom within the current data bounds. If a zoom extends beyond data max the left over is applied to the view minimum.
-   *
-   * @param deltaUs the amount of time request to change the view by.
-   * @param percent a ratio between 0 and 1 that determines the focal point of the zoom. 1 applies the full delta to the min while 0 applies
-   *                the full delta to the max.
-   */
-  public void zoom(double deltaUs, double percent) {
-    if (deltaUs == 0.0) {
-      return;
-    }
+  public void zoom(double deltaUs, double ratio) {
+    myZoomHelper.zoom(deltaUs, ratio);
     if (deltaUs < 0.0) {
-      double zoomMax = -ZOOM_IN_DELTA_RANGE_US_MAX_RATIO * myViewRangeUs.getLength();
-      deltaUs = Math.max(zoomMax, deltaUs);
-
-      if (percent < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
+      if (ratio < 1.0 && myViewRangeUs.getMin() >= myDataRangeUs.getMin()) {
         setStreaming(false);
       }
     }
-    myZoomLeft.clear();
-    double minUs = myViewRangeUs.getMin() - deltaUs * percent;
-    double maxUs = myViewRangeUs.getMax() + deltaUs * (1 - percent);
-    // When the view range is not fully covered, reset minUs to data range could change zoomLeft from zero to a large number.
-    boolean isDataRangeFullyCoveredByViewRange = myDataRangeUs.getMin() <= myViewRangeUs.getMin();
-    if (isDataRangeFullyCoveredByViewRange && minUs < myDataRangeUs.getMin()) {
-      maxUs += myDataRangeUs.getMin() - minUs;
-      minUs = myDataRangeUs.getMin();
-    }
-    // If our new view range is less than our data range then lock our max view so we
-    // don't expand it beyond the data range max.
-    if (!isDataRangeFullyCoveredByViewRange && minUs < myDataRangeUs.getMin()) {
-      maxUs = myDataRangeUs.getMax();
-    }
-    if (maxUs > myDataRangeUs.getMax()) {
-      minUs -= maxUs - myDataRangeUs.getMax();
-      maxUs = myDataRangeUs.getMax();
-    }
-    // minUs could have gone past again.
-    if (isDataRangeFullyCoveredByViewRange) {
-      minUs = Math.max(minUs, myDataRangeUs.getMin());
-    }
-    myZoomLeft.set(minUs - myViewRangeUs.getMin(), maxUs - myViewRangeUs.getMax());
   }
 
   /**
-   * Zooms out by {@link StreamingTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms out by {@link StreamingTimeline#DEFAULT_ZOOM_RATIO} of the current view range length.
    */
   @Override
   public void zoomOut() {
-    zoom(myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
+    zoom(myViewRangeUs.getLength() * DEFAULT_ZOOM_RATIO);
   }
 
   /**
@@ -392,11 +366,11 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
   }
 
   /**
-   * Zooms in by {@link StreamingTimeline#DEFAULT_ZOOM_PERCENT} of the current view range length.
+   * Zooms in by {@link StreamingTimeline#DEFAULT_ZOOM_RATIO} of the current view range length.
    */
   @Override
   public void zoomIn() {
-    zoom(-myViewRangeUs.getLength() * DEFAULT_ZOOM_PERCENT);
+    zoom(-myViewRangeUs.getLength() * DEFAULT_ZOOM_RATIO);
   }
 
   @Override
@@ -418,9 +392,9 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
    * Zoom and pans the view range to the specified target range if the range is not point, otherwise center the view range only.
    *
    * @param targetRangeUs target range to lerp view to.
-   * @param leftRightPaddingPercent how much space to leave on both sides of the range to leave as padding.
+   * @param leftRightPaddingRatio how much space to leave on both sides of the range to leave as padding.
    */
-  public void frameViewToRange(Range targetRangeUs, double leftRightPaddingPercent) {
+  public void frameViewToRange(Range targetRangeUs, double leftRightPaddingRatio) {
     // Zoom to view when the selection range is not point, otherwise adjust the view range only.
     if (targetRangeUs.isEmpty() || targetRangeUs.isPoint()) {
       adjustRangeCloseToMiddleView(targetRangeUs);
@@ -428,15 +402,7 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
     }
 
     setStreaming(false);
-    Range finalRange = new Range(targetRangeUs.getMin() - targetRangeUs.getLength() * leftRightPaddingPercent,
-                                 targetRangeUs.getMax() + targetRangeUs.getLength() * leftRightPaddingPercent);
-
-    // Cap requested view to max data.
-    if (finalRange.getMax() > myDataRangeUs.getMax()) {
-      finalRange.setMax(myDataRangeUs.getMax());
-    }
-    myZoomLeft.set(finalRange.getMin() - myViewRangeUs.getMin(),
-                   finalRange.getMax() - myViewRangeUs.getMax());
+    myZoomHelper.updateZoomLeft(targetRangeUs, leftRightPaddingRatio);
   }
 
   @Override
@@ -445,6 +411,27 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
       setStreaming(false);
     }
     Timeline.super.panView(deltaUs);
+  }
+
+  /**
+   * Handles queued up mouse scroll wheel events stored by the mouse wheel event listener in the TimelineScrollbar.
+   */
+  public void handleMouseScrollWheelEvents() {
+    // Acquire the lock to modify the mouse scroll wheel event queue.
+    myScrollbarScrollWheelEventLock.lock();
+    // Make a copy of the mouse scroll wheel events queue.
+    Queue<Double> copyMouseScrollWheelEvents = new LinkedList<>(myMouseScrollWheelEvents);
+    // Clear the original queue.
+    myMouseScrollWheelEvents.clear();
+    // Release the lock on the mouse scroll wheel events.
+    myScrollbarScrollWheelEventLock.unlock();
+    // Process the events from the copy of the queue.
+    double delta = copyMouseScrollWheelEvents.stream().mapToDouble(Double::doubleValue).sum();
+    // If there are no mouse scroll wheel events (delta is 0), do not continue processing.
+    if (DoubleMath.fuzzyEquals(delta, 0.0, 0.00001)) {
+      return;
+    }
+    panView(delta);
   }
 
   /**

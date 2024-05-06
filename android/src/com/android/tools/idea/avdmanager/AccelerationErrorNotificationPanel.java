@@ -31,6 +31,7 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
  * fixing the problem, and as a popup dialog if (solution ==NONE).
  */
 public class AccelerationErrorNotificationPanel extends EditorNotificationPanel {
+
   public AccelerationErrorNotificationPanel(@NotNull AccelerationErrorCode error, @Nullable Project project, @Nullable Runnable refresh) {
     super(Status.Error);
     setText(error.getProblem());

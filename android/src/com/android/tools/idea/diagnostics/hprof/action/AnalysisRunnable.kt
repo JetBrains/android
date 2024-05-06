@@ -117,7 +117,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
       else {
         openOptions = setOf(StandardOpenOption.READ)
       }
-      val reportString = FileChannel.open(report.hprofPath, openOptions).use { channel ->
+      val (reportString, summary) = FileChannel.open(report.hprofPath, openOptions).use { channel ->
         HProfAnalysis(channel, SystemTempFilenameSupplier()).analyze(indicator)
       }
       if (deleteAfterAnalysis) {
@@ -126,6 +126,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
 
       val analyzedReport = AnalyzedHeapReport(
         reportString,
+        summary,
         report.heapProperties,
         report.properties
       )
@@ -186,7 +187,7 @@ class AnalysisRunnable(val report: UnanalyzedHeapReport,
       // No need to check for AnalyticsSettings.hasOptedIn() as user agreed to the privacy policy by
       // clicking "Send" in ShowReportDialog.
       StudioCrashReporter.getInstance().submit(report.asCrashReport(), true)
-        .whenCompleteAsync(BiConsumer { _, throwable ->
+        .whenCompleteAsync(BiConsumer<String, Throwable?> { _, throwable ->
           if (throwable == null) {
             HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),

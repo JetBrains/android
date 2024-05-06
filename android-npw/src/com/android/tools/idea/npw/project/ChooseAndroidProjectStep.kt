@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.project
 
 import com.android.tools.adtui.ASGallery
-import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.idea.npw.model.NewProjectModel
 import com.android.tools.idea.npw.model.NewProjectModuleModel
@@ -39,7 +38,6 @@ import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
-import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
@@ -73,7 +71,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   model, message("android.wizard.project.new.choose")
 ) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
-  private val tabsPanel = CommonTabbedPane()
   private val leftList = JBList<FormFactorInfo>()
   private val rightPanel = JPanel(BorderLayout())
   private val listEntriesListeners = ListenerManager()
@@ -88,11 +85,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       ConfigureAndroidProjectStep(newProjectModuleModel!!, model),
       ConfigureTemplateParametersStep(renderModel, message("android.wizard.config.activity.title"), listOf())
     )
-  }
-
-  private fun createUIComponents() {
-    loadingPanel = JBLoadingPanel(BorderLayout(), this, ProgressWindow.DEFAULT_PROGRESS_DIALOG_POSTPONE_TIME_MILLIS)
-    loadingPanel.setLoadingText("Loading Android project template files")
   }
 
   override fun onWizardStarting(wizard: Facade) {

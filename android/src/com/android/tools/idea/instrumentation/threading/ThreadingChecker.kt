@@ -29,7 +29,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-internal class ThreadingChecker : ApplicationInitializedListener {
+
+class ThreadingChecker : ApplicationInitializedListener {
+
   /** Start receiving notifications from the threading agent. */
   override suspend fun execute(asyncScope: CoroutineScope) {
     val agentLoadedAtStartup = try {

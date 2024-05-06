@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.build.invoker;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 import com.android.tools.idea.run.AndroidNativeDebugProcess;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.xdebugger.XDebugProcess;
@@ -27,6 +23,10 @@ import com.intellij.xdebugger.XDebuggerManager;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 public class NativeDebugSessionFinderTest extends PlatformTestCase {
   @Mock private XDebuggerManager myDebuggerManager;

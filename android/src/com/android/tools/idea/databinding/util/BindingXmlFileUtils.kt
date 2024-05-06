@@ -54,7 +54,7 @@ fun XmlFile.findImportTag(shortName: String): XmlTag? {
     val alias = tag.getAttributeValue(SdkConstants.ATTR_ALIAS)
     if (alias == null) {
       val type = tag.getAttributeValue(SdkConstants.ATTR_TYPE) ?: continue
-      val anImport = ImportData(StringUtil.unescapeXmlEntities(type), null)
+      val anImport = ImportData(StringUtil.unescapeXmlEntities(type), null);
       if (anImport.shortName == shortName) {
         return tag
       }

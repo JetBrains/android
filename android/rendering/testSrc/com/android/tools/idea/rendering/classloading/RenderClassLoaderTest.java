@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
-import static com.android.tools.idea.flags.StudioFlags.NELE_WARN_NEW_THREADS;
 import static com.android.tools.rendering.classloading.UtilKt.toClassTransform;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -25,6 +24,7 @@ import com.android.layoutlib.reflection.TrackingThread;
 import com.android.layoutlib.reflection.TrackingThreadLocal;
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader;
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader;
+import com.android.tools.rendering.classloading.ClassBinaryCache;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader;
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader;
@@ -49,7 +49,6 @@ import java.util.Map;
 import java.util.Set;
 import kotlin.Unit;
 import org.jetbrains.android.AndroidTestBase;
-import org.jetbrains.android.uipreview.ClassBinaryCache;
 import org.jetbrains.android.uipreview.ModuleClassLoaderUtil;
 import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader;
 import org.jetbrains.annotations.NonNls;
@@ -98,7 +97,6 @@ public class RenderClassLoaderTest {
     if (myOriginalFactory != null) {
       Logger.setFactory(myOriginalFactory.getClass());
     }
-    NELE_WARN_NEW_THREADS.clearOverride();
   }
 
   @Test
@@ -222,7 +220,6 @@ public class RenderClassLoaderTest {
     threadCreationClass = intrumentingLoader.loadClass("com.mythreadcontrollingjar.ThreadCreator");
     threadFactory = threadCreationClass.getMethod("createIllegalThread");
 
-    NELE_WARN_NEW_THREADS.override(true);
     try {
       threadFactory.invoke(null);
       fail();
@@ -240,11 +237,6 @@ public class RenderClassLoaderTest {
     }
     Method coroutineThreadFactory = threadCreationClass.getMethod("createCoroutineThread");
     assertThat(coroutineThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
-
-    NELE_WARN_NEW_THREADS.override(false);
-
-    assertThat(threadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
-    assertThat(customThreadFactory.invoke(null)).isInstanceOf(TrackingThread.class);
   }
 
   @Test

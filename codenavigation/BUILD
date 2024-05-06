@@ -5,6 +5,7 @@ iml_module(
     name = "codenavigation",
     srcs = ["src"],
     iml_files = ["codenavigation.iml"],
+    lint_baseline = "lint_baseline.xml",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

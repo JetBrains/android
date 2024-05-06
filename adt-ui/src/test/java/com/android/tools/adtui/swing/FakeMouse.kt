@@ -21,7 +21,6 @@ import java.awt.Point
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
-import java.util.concurrent.TimeUnit
 
 /**
  * A fake mouse device that can be used for clicking on / scrolling programmatically in tests.
@@ -214,7 +213,7 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
   private fun dispatchMouseEvent(
       point: RelativePoint, eventType: Int, modifiers: Int, button: Int, clickCount: Int, popupTrigger: Boolean) {
     val event = MouseEvent(
-        point.component, eventType, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()), keyboard.toModifiersCode() or modifiers,
+        point.component, eventType, System.currentTimeMillis(), keyboard.toModifiersCode() or modifiers,
         point.x, point.y, clickCount, popupTrigger, button)
     point.component.dispatchEvent(event)
   }
@@ -222,7 +221,7 @@ class FakeMouse internal constructor(private val fakeUi: FakeUi, private val key
   private fun dispatchMouseWheelEvent(x: Int, y: Int, rotation: Int) {
     val point = fakeUi.targetMouseEvent(x, y) ?: return
     val event = MouseWheelEvent(
-        point.component, MouseEvent.MOUSE_WHEEL, TimeUnit.NANOSECONDS.toMillis(System.nanoTime()), keyboard.toModifiersCode(),
+        point.component, MouseEvent.MOUSE_WHEEL, System.currentTimeMillis(), keyboard.toModifiersCode(),
         point.x, point.y, 0, false, MouseWheelEvent.WHEEL_UNIT_SCROLL, 1, rotation)
     point.component.dispatchEvent(event)
   }

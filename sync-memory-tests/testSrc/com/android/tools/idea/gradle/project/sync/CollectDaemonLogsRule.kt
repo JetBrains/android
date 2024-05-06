@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import org.junit.rules.ExternalResource
 import java.nio.file.Files
 import java.nio.file.Paths

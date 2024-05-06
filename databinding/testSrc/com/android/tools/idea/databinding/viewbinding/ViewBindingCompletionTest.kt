@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding.viewbinding
 
-import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
@@ -36,13 +35,15 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingCompletionTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(
-      namespace = { "test.vb" },
-      viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }))
+    AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder(
+        namespace = { "test.vb" },
+        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
+      )
+    )
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -60,19 +61,23 @@ class ViewBindingCompletionTest {
   fun setUp() {
     assertThat(facet.isViewBindingEnabled()).isTrue()
 
-    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
-
+    """
+        .trimIndent()
+    )
   }
 
   @Test
   fun completeViewBindingIgnoreAttribute() {
-    val layoutFile = fixture.addFileToProject(
-      "src/main/res/layout/activity_ignored.xml",
+    val layoutFile =
+      fixture.addFileToProject(
+        "src/main/res/layout/activity_ignored.xml",
         // language=XML
         """
         <?xml version="1.0" encoding="utf-8"?>
@@ -80,7 +85,9 @@ class ViewBindingCompletionTest {
           xmlns:tools="http://schemas.android.com/tools"
           tools:viewBindingI<caret>>
         </FrameLayout>
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
 
@@ -94,13 +101,16 @@ class ViewBindingCompletionTest {
         xmlns:tools="http://schemas.android.com/tools"
         tools:viewBindingIgnore="">
       </FrameLayout>
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
   @Test
   fun completeViewBindingIgnoreAttribute_BooleanValue() {
-    val layoutFile = fixture.addFileToProject(
-      "src/main/res/layout/activity_ignored.xml",
+    val layoutFile =
+      fixture.addFileToProject(
+        "src/main/res/layout/activity_ignored.xml",
         // language=XML
         """
         <?xml version="1.0" encoding="utf-8"?>
@@ -108,7 +118,9 @@ class ViewBindingCompletionTest {
           xmlns:tools="http://schemas.android.com/tools"
           tools:viewBindingIgnore="<caret>">
         </FrameLayout>
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
 
@@ -116,13 +128,13 @@ class ViewBindingCompletionTest {
     assertThat(fixture.lookupElementStrings).containsAllIn(listOf("true", "false"))
   }
 
-
   @Test
   fun completeViewBindingClass() {
-    val modelFile = fixture.addFileToProject(
-      "src/main/java/test/vb/Model.java",
-      // language=JAVA
-      """
+    val modelFile =
+      fixture.addFileToProject(
+        "src/main/java/test/vb/Model.java",
+        // language=JAVA
+        """
           package test.vb;
 
           import test.vb.databinding.ActivityMainBinding;
@@ -130,7 +142,9 @@ class ViewBindingCompletionTest {
           public class Model {
             ActivityMainB${caret}
           }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(modelFile.virtualFile)
 
@@ -146,18 +160,19 @@ class ViewBindingCompletionTest {
         public class Model {
           ActivityMainBinding
         }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
   }
 
-  /**
-   * Note: The Java version of this test indirectly verifies [BindingScopeEnlarger].
-   */
+  /** Note: This test indirectly verifies [BindingScopeEnlarger]. */
   @Test
   fun completeViewBindingField_JavaContext() {
-    val activityFile = fixture.addFileToProject(
-      "src/main/java/test/vb/MainActivity.java",
-      // language=JAVA
-      """
+    val activityFile =
+      fixture.addFileToProject(
+        "src/main/java/test/vb/MainActivity.java",
+        // language=JAVA
+        """
           package test.vb;
 
           import android.app.Activity;
@@ -172,7 +187,9 @@ class ViewBindingCompletionTest {
                   binding.test${caret}
               }
           }
-        """.trimIndent())
+        """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(activityFile.virtualFile)
 
@@ -195,45 +212,8 @@ class ViewBindingCompletionTest {
                 binding.testId
             }
         }
-      """.trimIndent())
-  }
-
-  /**
-   * Note: The Kotlin version of this test indirectly verifies [BindingKotlinScopeEnlarger].
-   */
-  @Test
-  fun completeViewBindingField_KotlinContext() {
-    val testUtilFile = fixture.addFileToProject(
-      "src/main/java/test/vb/TestUtil.kt",
-      // language=kotlin
       """
-          package test.vb
-
-          import test.vb.databinding.ActivityMainBinding
-
-          fun sample() {
-            lateinit var binding: ActivityMainBinding
-            binding.test${caret}
-          }
-        """.trimIndent())
-
-    fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)
-
-    fixture.completeBasic()
-
-/* b/165051684
-    fixture.checkResult(
-      // language=kotlin
-      """
-          package test.vb
-
-          import test.vb.databinding.ActivityMainBinding
-
-          fun sample() {
-            lateinit var binding: ActivityMainBinding
-            binding.testId
-          }
-      """.trimIndent())
-b/165051684 */
+        .trimIndent()
+    )
   }
 }

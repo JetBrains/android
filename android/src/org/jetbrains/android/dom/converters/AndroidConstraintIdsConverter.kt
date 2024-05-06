@@ -35,7 +35,8 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.converters.DelimitedListConverter
 
 /**
- * Converter that supports the id reference syntax that is unique to the {@link SdkConstants.CONSTRAINT_REFERENCED_IDS} attribute.
+ * Converter that supports the id reference syntax that is unique to the {@link
+ * SdkConstants.CONSTRAINT_REFERENCED_IDS} attribute.
  */
 class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(", ") {
   override fun convertString(string: String?, context: ConvertContext): ResourceReference? {
@@ -51,20 +52,33 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
     context: ConvertContext,
     genericDomValue: GenericDomValue<out MutableList<ResourceReference>>?
   ): Array<Any> {
-    val file = context.file ?: return EMPTY_ARRAY
-    return findIdUrlsInFile(file).stream().map { url ->
-      val name = (url.namespace?.let { "$it:" } ?: "") + url.name
-      LookupElementBuilder.create(name)
-    }.toArray()
+    val file = context?.file ?: return EMPTY_ARRAY
+    return findIdUrlsInFile(file)
+      .stream()
+      .map { url ->
+        val name = (url.namespace?.let { "$it:" } ?: "") + url.name
+        LookupElementBuilder.create(name)
+      }
+      .toArray()
   }
 
-  override fun resolveReference(resourceReference: ResourceReference?, context: ConvertContext): PsiElement? {
+  override fun resolveReference(
+    resourceReference: ResourceReference?,
+    context: ConvertContext
+  ): PsiElement? {
     if (resourceReference == null || context.referenceXmlElement == null) {
       return null
     }
     val facet = context.module?.androidFacet ?: return null
-    val resourceToPsiResolver = AndroidResourceToPsiResolver.getInstance() as? ResourceRepositoryToPsiResolver ?: return null
-    val resolveResultList = resourceToPsiResolver.resolveReference(resourceReference, context.referenceXmlElement!!, facet, false)
+    val resourceToPsiResolver =
+      AndroidResourceToPsiResolver.getInstance() as? ResourceRepositoryToPsiResolver ?: return null
+    val resolveResultList =
+      resourceToPsiResolver.resolveReference(
+        resourceReference,
+        context.referenceXmlElement!!,
+        facet,
+        false
+      )
     return pickMostRelevantId(resolveResultList, context)?.element
   }
 
@@ -72,11 +86,20 @@ class AndroidConstraintIdsConverter : DelimitedListConverter<ResourceReference>(
     return AnalysisBundle.message("error.cannot.resolve.default.message", value)
   }
 
-  private fun pickMostRelevantId(resolveResultList: Array<out ResolveResult>, context: ConvertContext): ResolveResult? {
-    return resolveResultList.asSequence().minWithOrNull(Comparator.comparing<ResolveResult, Boolean> {
-      it.element?.containingFile != context.file
-    }.thenComparing(
-      Comparator.comparing { ((it.element as? XmlAttributeValue)?.parent as? XmlAttribute)?.name != PREFIX_ANDROID + RESOURCE_CLZ_ID })
-    )
+  private fun pickMostRelevantId(
+    resolveResultList: Array<out ResolveResult>,
+    context: ConvertContext
+  ): ResolveResult? {
+    return resolveResultList
+      .asSequence()
+      .minWithOrNull(
+        Comparator.comparing<ResolveResult, Boolean> { it.element?.containingFile != context.file }
+          .thenComparing(
+            Comparator.comparing {
+              ((it.element as? XmlAttributeValue)?.parent as? XmlAttribute)?.name !=
+                PREFIX_ANDROID + RESOURCE_CLZ_ID
+            }
+          )
+      )
   }
 }

@@ -17,8 +17,6 @@ package com.android.tools.idea.gradle.project.build.compiler;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
-import com.android.tools.idea.AndroidGradleBundle;
-import com.android.tools.idea.IdeInfo;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.openapi.options.Configurable;
@@ -29,7 +27,6 @@ import com.intellij.ui.RawCommandLineEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +50,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
   private JCheckBox myContinueBuildWithErrors;
 
-  public GradleCompilerSettingsConfigurable(@NotNull Project project) {
+  private final String myDisplayName;
+
+  public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
+    myDisplayName = displayName;
     myCompilerConfiguration = CompilerConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
   }
@@ -67,7 +67,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   @Nls
   public String getDisplayName() {
-    return AndroidGradleBundle.message("android.configurable.GradleCompilerConfigurable.displayName");
+    return myDisplayName;
   }
 
   @Override
@@ -122,7 +122,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private void createUIComponents() {
     myParallelBuildDocHyperlinkLabel =
       createHyperlinkLabel("This option is in \"incubation\" and should only be used with ", "decoupled projects", ".",
-                           "http://www.gradle.org/docs/current/userguide/multi_project_builds.html#sec:decoupled_projects");
+                           "https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects");
 
     myCommandLineOptionsDocHyperlinkLabel =
       createHyperlinkLabel("Example: --stacktrace --debug (for more information, please read Gradle's ", "documentation", ".)",

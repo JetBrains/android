@@ -1,8 +1,14 @@
 <component name="libraryTable">
   <library name="libam-instrumentation-data-proto" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libam-instrumentation-data-proto:231.0.26.0" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libam-instrumentation-data-proto:232.1.23.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libam-instrumentation-data-proto/232.1.23.0/libam-instrumentation-data-proto-232.1.23.0.jar">
+          <sha256sum>c91ae7b20c8f62fda0e914abab4e8edf524bf01469faef75ebf02780776bffb8</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libam-instrumentation-data-proto/231.0.26.0/libam-instrumentation-data-proto-231.0.26.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libam-instrumentation-data-proto/232.1.23.0/libam-instrumentation-data-proto-232.1.23.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -16,15 +16,15 @@
 
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
+import static com.android.sdklib.SystemImageTags.CHROMEOS_TAG;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
+import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.OTHER;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.PERFORMANT;
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.SystemImageClassification.RECOMMENDED;
@@ -33,7 +33,6 @@ import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassi
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
 
 import com.android.repository.api.LocalPackage;
-import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -42,7 +41,6 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -59,7 +57,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 
 public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
@@ -79,6 +76,21 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     sysimgDetails.setApiLevel(apiLevel);
     pkg.setTypeDetails((TypeDetails)sysimgDetails);
     InMemoryFileSystems.recordExistingFile(pkg.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    return pkg;
+  }
+
+  private static FakePackage.FakeRemotePackage createRemoteSysimgPackage(String sysimgPath, String abi, IdDisplay tag, IdDisplay vendor,
+                                                                         int apiLevel) {
+    FakePackage.FakeRemotePackage pkg = new FakePackage.FakeRemotePackage(
+      sysimgPath);
+    DetailsTypes.SysImgDetailsType sysimgDetails =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    sysimgDetails.getTags().add(tag);
+    sysimgDetails.setAbi(abi);
+    sysimgDetails.setVendor(vendor);
+    sysimgDetails.setApiLevel(apiLevel);
+    pkg.setTypeDetails((TypeDetails)sysimgDetails);
 
     return pkg;
   }
@@ -128,6 +140,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     final FakePackage.FakeLocalPackage pkgCnWear;
     FakePackage.FakeLocalPackage pkgAutomotive;
     final FakePackage.FakeLocalPackage pkgAutomotivePs;
+    final FakePackage.FakeRemotePackage remotePkgAutomotive;
     final FakePackage.FakeLocalPackage pkgTv30;
     final FakePackage.FakeLocalPackage pkgTv31;
 
@@ -145,6 +158,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
     SystemImageDescription automotivePsImageDescription;
     SystemImageDescription tv30ImageDescription;
     SystemImageDescription tv31ImageDescription;
+    SystemImageDescription remoteAutoDescription;
 
     SystemImageTestList(String abi, Path sdkRoot) {
       gapiPath += abi;
@@ -187,6 +201,9 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       pkgAutomotivePs = createSysimgPackage(automotivePsPath, abi, IdDisplay.create("android-automotive-playstore",
                                                                                     "Android Automotive with Google Play"),
                                             IdDisplay.create("google", "Google"), 28, sdkRoot);
+      remotePkgAutomotive = createRemoteSysimgPackage(automotivePsPath, abi, IdDisplay.create("android-automotive-playstore",
+                                                                                              "Android Automotive with Google Play"),
+                                                      IdDisplay.create("google", "Google"), 28);
       pkgAutomotive = createSysimgPackage(automotivePath, abi, IdDisplay.create("android-automotive", "Android Automotive"),
                                           IdDisplay.create("google", "Google"), 28, sdkRoot);
       pkgTv30 = createSysimgPackage(tv30Path, abi, IdDisplay.create("android-tv", "Television"),
@@ -204,20 +221,20 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       FakeProgressIndicator progress = new FakeProgressIndicator();
       SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
-      var gapiImage = getImageAt(systemImageManager, sdkHandler, gapiPath, progress);
-      var gapi29Image = getImageAt(systemImageManager, sdkHandler, gapi29Path, progress);
-      var gapi30Image = getImageAt(systemImageManager, sdkHandler, gapi30Path, progress);
-      var gapi31Image = getImageAt(systemImageManager, sdkHandler, gapi31Path, progress);
-      var gapi32Image = getImageAt(systemImageManager, sdkHandler, gapi32Path, progress);
-      var gapi33Image = getImageAt(systemImageManager, sdkHandler, gapi33Path, progress);
-      var playStoreImage = getImageAt(systemImageManager, sdkHandler, psPath, progress);
-      var wearImage = getImageAt(systemImageManager, sdkHandler, wearPath, progress);
-      var wear29Image = getImageAt(systemImageManager, sdkHandler, wear29Path, progress);
-      var wearCnImage = getImageAt(systemImageManager, sdkHandler, wearCnPath, progress);
-      var automotiveImage = getImageAt(systemImageManager, sdkHandler, automotivePath, progress);
-      var automotivePsImage = getImageAt(systemImageManager, sdkHandler, automotivePsPath, progress);
-      var tv30Image = getImageAt(systemImageManager, sdkHandler, tv30Path, progress);
-      var tv31Image = getImageAt(systemImageManager, sdkHandler, tv31Path, progress);
+      var gapiImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapiPath, progress);
+      var gapi29Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi29Path, progress);
+      var gapi30Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi30Path, progress);
+      var gapi31Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi31Path, progress);
+      var gapi32Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi32Path, progress);
+      var gapi33Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi33Path, progress);
+      var playStoreImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, psPath, progress);
+      var wearImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, wearPath, progress);
+      var wear29Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, wear29Path, progress);
+      var wearCnImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, wearCnPath, progress);
+      var automotiveImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, automotivePath, progress);
+      var automotivePsImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, automotivePsPath, progress);
+      var tv30Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, tv30Path, progress);
+      var tv31Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, tv31Path, progress);
 
       gapiImageDescription = new SystemImageDescription(gapiImage);
       gapi29ImageDescription = new SystemImageDescription(gapi29Image);
@@ -233,20 +250,7 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       automotivePsImageDescription = new SystemImageDescription(automotivePsImage);
       tv30ImageDescription = new SystemImageDescription(tv30Image);
       tv31ImageDescription = new SystemImageDescription(tv31Image);
-    }
-
-    @NotNull
-    private static ISystemImage getImageAt(@NotNull SystemImageManager manager,
-                                           @NotNull AndroidSdkHandler handler,
-                                           @NotNull String path,
-                                           @NotNull ProgressIndicator indicator) {
-      var localPackage = handler.getLocalPackage(path, indicator);
-      assert localPackage != null;
-
-      var image = manager.getImageAt(localPackage.getLocation());
-      assert image != null;
-
-      return image;
+      remoteAutoDescription = new SystemImageDescription(remotePkgAutomotive);
     }
   }
 
@@ -390,6 +394,14 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationFromParts(Abi.X86, new AndroidVersion(33), ANDROID_TV_TAG, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
                    getClassificationFromParts(Abi.X86, new AndroidVersion(33), GOOGLE_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31), ANDROID_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31), GOOGLE_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(33), ANDROID_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(33), GOOGLE_TV_TAG, isArmHostOs));
     }
   }
 
@@ -490,6 +502,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationForDevice(mSysImagesX86.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
       assertEquals((isArmHostOs ? OTHER : RECOMMENDED),
                    getClassificationForDevice(mSysImagesX86.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? OTHER : RECOMMENDED,
+                   getClassificationForDevice(mSysImagesX86.remoteAutoDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 
@@ -512,6 +526,8 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       assertEquals(OTHER, getClassificationForDevice(mSysImagesArm64.automotiveImageDescription, myAutomotiveDevice, isArmHostOs));
       assertEquals((isArmHostOs ? RECOMMENDED : OTHER),
                    getClassificationForDevice(mSysImagesArm64.automotivePsImageDescription, myAutomotiveDevice, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationForDevice(mSysImagesArm64.remoteAutoDescription, myAutomotiveDevice, isArmHostOs));
     }
   }
 

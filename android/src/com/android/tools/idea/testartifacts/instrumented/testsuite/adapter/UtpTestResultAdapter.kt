@@ -17,8 +17,6 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.adapter
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.protobuf.TextFormat
-import com.android.tools.idea.protobuf.Timestamp
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
@@ -27,6 +25,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.utp.plugins.host.device.info.proto.AndroidTestDeviceInfoProto.AndroidTestDeviceInfo
+import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.idea.protobuf.Timestamp
 import com.google.testing.platform.proto.api.core.TestArtifactProto.Artifact
 import com.google.testing.platform.proto.api.core.TestResultProto.TestResult
 import com.google.testing.platform.proto.api.core.TestStatusProto.TestStatus

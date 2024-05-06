@@ -26,6 +26,8 @@ import com.android.tools.module.AndroidModuleInfo
 import com.android.tools.module.ModuleDependencies
 import com.android.tools.module.ModuleKey
 import com.android.tools.module.ModuleKeyManager
+import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.EnvironmentContext
 import com.android.tools.rendering.api.RenderModelManifest
 import com.android.tools.rendering.api.RenderModelModule
@@ -39,6 +41,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
+import java.lang.ref.WeakReference
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -91,7 +94,7 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = ModuleKeyManager.getKey(facet.module)
   override val resourcePackage: String?
     get() = facet.module.getModuleSystem().getPackageName()
-  override val dependencies: ModuleDependencies = StudioModuleDependencies(facet.module)
+  override val dependencies: ModuleDependencies = facet.getModuleSystem().moduleDependencies
   override val project: Project
     get() = facet.module.project
   override val isDisposed: Boolean
@@ -105,4 +108,9 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
   override val name: String
     get() = facet.module.name
   override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module)
+  override fun createModuleRenderContext(weakRenderTask: WeakReference<RenderTask>): ModuleRenderContext {
+    return StudioModuleRenderContext.forFile(facet.module) {
+      weakRenderTask.get()?.xmlFile?.get()
+    }
+  }
 }

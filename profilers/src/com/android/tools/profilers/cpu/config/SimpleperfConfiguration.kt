@@ -55,6 +55,6 @@ class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
   }
 
   override fun getRequiredDeviceLevel(): Int {
-    return AndroidVersion.VersionCodes.O
+    return AndroidVersion.VersionCodes.O;
   }
 }

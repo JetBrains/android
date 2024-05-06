@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyMap;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.filter.Filter;
@@ -25,9 +26,11 @@ import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.intellij.util.containers.ContainerUtil;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -141,10 +144,19 @@ public class CaptureNodeTest {
   }
 
   @Test
-  public void testGetTopKNodes() {
+  public void testGetTopKNodesWithoutNameMapping() {
     CaptureNode root = createFilterTestTree();
     List<CaptureNode> longestNodes = root.getTopKNodes(
-      4, node -> node.getData().getFullName().equals("otherPackage.method4"), Comparator.comparing(CaptureNode::getDuration));
+      4, "otherPackage.method4", Comparator.comparing(CaptureNode::getDuration), emptyMap());
+    assertThat(ContainerUtil.map(longestNodes, CaptureNode::getDuration)).containsExactly(100L, 100L, 99L, 40L);
+  }
+
+  @Test
+  public void testGetTopKNodesWithNameMapping() {
+    CaptureNode root = createFilterTestTree();
+    Map<String, List<CaptureNode>> nameToNodes = CpuThreadTrackModel.getNameToNodesMapping(root);
+    List<CaptureNode> longestNodes = root.getTopKNodes(
+      4, "otherPackage.method4", Comparator.comparing(CaptureNode::getDuration), nameToNodes);
     assertThat(ContainerUtil.map(longestNodes, CaptureNode::getDuration)).containsExactly(100L, 100L, 99L, 40L);
   }
 

@@ -22,7 +22,8 @@ class AnalysisConfig(
   val traverseOptions: TraverseOptions = TraverseOptions(),
   val metaInfoOptions: MetaInfoOptions = MetaInfoOptions(),
   val dominatorTreeOptions: DominatorTreeOptions = DominatorTreeOptions(),
-  val innerClassOptions: InnerClassOptions = InnerClassOptions()
+  val innerClassOptions: InnerClassOptions = InnerClassOptions(),
+  val summaryOptions: SummaryOptions = SummaryOptions()
 ) {
 
   class PerClassOptions(
@@ -103,6 +104,11 @@ class AnalysisConfig(
   class InnerClassOptions(
     val includeInnerClassSection: Boolean = true,
     val histogramEntries: Int = 30
+  )
+
+  class SummaryOptions(
+    val minimumSubgraphSize: Long = 10_000_000,
+    val maximumTreeDepth: Int = 40
   )
 
   companion object {

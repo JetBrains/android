@@ -148,7 +148,7 @@ fun getSourceSetsResDirs(facet: AndroidFacet): Array<SourceSetResDir> {
 /**
  * A utility data class used to represent a resource directory for a sourceSet.
  */
-data class SourceSetResDir(
+data class SourceSetResDir constructor(
   /**
    * The relative path of this resource directory from the project base path.
    */

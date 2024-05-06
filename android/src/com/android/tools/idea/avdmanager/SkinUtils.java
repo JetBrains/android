@@ -15,9 +15,25 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import org.jetbrains.annotations.NotNull;
+
 public final class SkinUtils {
-  public static final String NO_SKIN = "_no_skin";
+  @NotNull
+  private static final Path NO_SKIN = noSkin(FileSystems.getDefault());
 
   private SkinUtils() {
+  }
+
+  @NotNull
+  public static Path noSkin() {
+    return NO_SKIN;
+  }
+
+  @NotNull
+  static Path noSkin(@NotNull FileSystem fileSystem) {
+    return fileSystem.getPath("_no_skin");
   }
 }

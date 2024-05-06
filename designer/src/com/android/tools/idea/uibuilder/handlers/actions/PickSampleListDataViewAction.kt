@@ -23,6 +23,7 @@ import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction
 import icons.StudioIcons
+import java.util.HashSet
 
 class PickSampleListDataViewAction(private val namespace: String?, private val attribute: String) :
   DirectViewAction(StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE, "Sample Data") {

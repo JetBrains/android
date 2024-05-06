@@ -21,11 +21,11 @@ import com.android.tools.profiler.proto.Trace.TraceConfiguration
 import com.android.tools.profiler.proto.Trace.TraceMode
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import perfetto.protos.PerfettoConfig
 
 class ProfilingConfigurationTest {
@@ -64,8 +64,8 @@ class ProfilingConfigurationTest {
     val proto =
       TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.newBuilder().build()).build();
     val config = ProfilingConfiguration.fromProto(proto, false);
-    assertThat(config).isInstanceOf(PerfettoConfiguration::class.java)
-    config as PerfettoConfiguration
+    assertThat(config).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    config as PerfettoSystemTraceConfiguration
     assertThat(config.name).isEqualTo("")
     assertThat(config.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.P)
     assertThat(config.traceType).isEqualTo(TraceType.PERFETTO)
@@ -76,8 +76,8 @@ class ProfilingConfigurationTest {
     val proto =
       TraceConfiguration.newBuilder().setPerfettoOptions(PerfettoConfig.TraceConfig.newBuilder().build()).build();
     val config = ProfilingConfiguration.fromProto(proto, true);
-    assertThat(config).isInstanceOf(PerfettoConfiguration::class.java)
-    config as PerfettoConfiguration
+    assertThat(config).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    config as PerfettoSystemTraceConfiguration
     assertThat(config.name).isEqualTo("")
     assertThat(config.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.M)
     assertThat(config.traceType).isEqualTo(TraceType.PERFETTO)
@@ -147,9 +147,9 @@ class ProfilingConfigurationTest {
   @Test
   fun addOptionsPerfettoConfigAddsSuccessfully() {
     val configBuilder = TraceConfiguration.getDefaultInstance().toBuilder()
-    val perfettoConfiguration = PerfettoConfiguration("MyConfiguration", false)
+    val perfettoSystemTraceConfiguration = PerfettoSystemTraceConfiguration("MyConfiguration", false)
 
-    perfettoConfiguration.addOptions(configBuilder, mapOf(AdditionalOptions.APP_PKG_NAME to "foo"))
+    perfettoSystemTraceConfiguration.addOptions(configBuilder, mapOf(AdditionalOptions.APP_PKG_NAME to "foo"))
     val config = configBuilder.build()
 
     assertThat(config.hasPerfettoOptions()).isTrue()

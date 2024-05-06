@@ -62,9 +62,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         -1,
         -1, -1, -1, // bunch of tabbed elements
         0);
-    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
-      return getIndentInfos(resFile1);
-    });
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> getIndentInfos(resFile1));
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }
@@ -80,9 +78,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2, -1, -1, // TextView
         2, -1, // TextView
         0);
-    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
-      return getIndentInfos(resFile1);
-    });
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> getIndentInfos(resFile1));
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }
@@ -98,9 +94,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2,
         2, -1, -1, -1, 4, 6, 8, 8, 6, 4, 2,
         0);
-    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
-      return getIndentInfos(manifestFile);
-    });
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> getIndentInfos(manifestFile));
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(manifestFile);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }

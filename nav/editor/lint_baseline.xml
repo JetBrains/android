@@ -1,1340 +1,1863 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.2.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="          listModel.setFilter { destination -> destination.label.toLowerCase().contains(searchField.text.lowercase()) }"
+        errorLine2="                                                                 ~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/editor/AddDestinationMenu.kt"
-            line="329"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="83"/>
+            line="329"
+            column="66"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val FONT_SIZE = JBUI.scale(13)"
+        errorLine2="                             ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
-            line="31"/>
+            line="31"
+            column="30"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val VERTICAL_OFFSET = JBUI.scale(3)"
+        errorLine2="                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawEmptyDesigner.kt"
-            line="33"/>
+            line="33"
+            column="36"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val TEXT_PADDING = JBUI.scale(4)"
+        errorLine2="                                ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
-            line="37"/>
+            line="37"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val FONT_SIZE = JBUI.scale(14)"
+        errorLine2="                             ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/draw/DrawNavScreen.kt"
-            line="39"/>
+            line="39"
+            column="30"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val SCREEN_LONG = JBUIScale.scale(256f)"
+        errorLine2="                                    ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="77"/>
+            line="77"
+            column="37"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="val SUBNAV_WIDTH = JBUIScale.scale(140)"
+        errorLine2="                             ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="80"/>
+            line="80"
+            column="30"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="val SUBNAV_HEIGHT = JBUIScale.scale(38)"
+        errorLine2="                              ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="82"/>
+            line="82"
+            column="31"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val PAN_LIMIT = JBUIScale.scale(150)"
+        errorLine2="                                  ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="85"/>
+            line="85"
+            column="35"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="private val BOUNDING_BOX_PADDING = JBUIScale.scale(100)"
+        errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/NavSceneManager.kt"
-            line="87"/>
+            line="87"
+            column="46"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="@SwingCoordinate private val INITIAL_OFFSET = JBUI.scale(40)"
+        errorLine2="                                                   ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/layout/NewDestinationLayoutAlgorithm.kt"
-            line="27"/>
+            line="27"
+            column="52"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="@SwingCoordinate private val INCREMENTAL_OFFSET = JBUI.scale(30)"
+        errorLine2="                                                       ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/layout/NewDestinationLayoutAlgorithm.kt"
-            line="28"/>
+            line="28"
+            column="56"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="@SwingCoordinate private val TOLERANCE = JBUI.scale(5)"
+        errorLine2="                                              ~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/layout/NewDestinationLayoutAlgorithm.kt"
-            line="29"/>
+            line="29"
+            column="47"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This declaration implicitly references AddActionDialogUI, which should only be accessed from tests or within private scope"
+        errorLine1="  @VisibleForTesting"
+        errorLine2="  ^">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="116"/>
+            line="111"
+            column="3"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = dialog.myIdTextField.text"
+        errorLine2="                   ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="120"/>
+            line="116"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = dialog.myFromComboBox.selectedItem as NlComponent"
+        errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="125"/>
+            line="120"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      val item = dialog.myDestinationComboBox.selectedItem as DestinationListEntry?"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="131"/>
+            line="125"
+            column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = (dialog.myEnterComboBox.selectedItem as ValueWithDisplayString?)?.value"
+        errorLine2="                    ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="135"/>
+            line="131"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = (dialog.myExitComboBox.selectedItem as ValueWithDisplayString?)?.value"
+        errorLine2="                    ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="139"/>
+            line="135"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component?.id"
+        errorLine2="                    ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="143"/>
+            line="139"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = dialog.myInclusiveCheckBox.isSelected"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="147"/>
+            line="143"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = (dialog.myPopEnterComboBox.selectedItem as ValueWithDisplayString?)?.value"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="151"/>
+            line="147"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = (dialog.myPopExitComboBox.selectedItem as ValueWithDisplayString?)?.value"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="155"/>
+            line="151"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = dialog.mySingleTopCheckBox.isSelected"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="165"/>
+            line="155"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myFromComboBox.addItem(parent)"
+        errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="173"/>
+            line="165"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      generatedId = dialog.myIdTextField.text"
+        errorLine2="                           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="188"/>
+            line="173"
+            column="28"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      if (dialog.myIdTextField.text == generatedId) {"
+        errorLine2="                 ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="190"/>
+            line="188"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialog.myIdTextField.text = generatedId"
+        errorLine2="               ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="192"/>
+            line="190"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialog.myIdTextField.emptyText.text = &quot;&quot;"
+        errorLine2="               ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="195"/>
+            line="192"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myDestinationComboBox.addItemListener(idUpdater)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="196"/>
+            line="195"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopToComboBox.addItemListener(idUpdater)"
+        errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="197"/>
+            line="196"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myInclusiveCheckBox.addItemListener(idUpdater)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="199"/>
+            line="197"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myIdTextField.emptyText.text = &quot;generated&quot;"
+        errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="209"/>
+            line="199"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myFromComboBox.addItem(sourceNav)"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="210"/>
+            line="209"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myFromComboBox.selectedIndex = dialog.myFromComboBox.itemCount - 1"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="210"/>
+            line="210"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myFromComboBox.selectedIndex = dialog.myFromComboBox.itemCount - 1"
+        errorLine2="                                                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="210"/>
+            line="210"
+            column="52"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myFromComboBox.selectedIndex = dialog.myFromComboBox.itemCount - 1"
+        errorLine2="                                                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="211"/>
+            line="210"
+            column="52"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      selectItem(dialog.myDestinationComboBox, { it.component }, parent)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="214"/>
+            line="211"
+            column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      selectItem(dialog.myPopToComboBox, { it.component }, parent)"
+        errorLine2="                        ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="215"/>
+            line="214"
+            column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myInclusiveCheckBox.isSelected = true"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="216"/>
+            line="215"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      selectItem(dialog.myDestinationComboBox, { entry -> entry.isReturnToSource }, true)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="218"/>
+            line="216"
+            column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myIdTextField.text = generateActionId(source, destination?.id, popTo, isInclusive)"
+        errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="224"/>
+            line="218"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myDestinationComboBox.addItem(null)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="225"/>
+            line="224"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myDestinationComboBox.addItem(RETURN_TO_SOURCE)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="226"/>
+            line="225"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myDestinationComboBox.addItem(SEPARATOR)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="228"/>
+            line="226"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    populateComboBox(dialog.myDestinationComboBox, { true })"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="232"/>
+            line="228"
+            column="29"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopToComboBox.addItem(null)"
+        errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="234"/>
+            line="232"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    populateComboBox(dialog.myPopToComboBox, { it.isFragment || it.isNavigation })"
+        errorLine2="                            ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="238"/>
+            line="234"
+            column="29"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myEnterComboBox.isEnabled = enable"
+        errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="239"/>
+            line="238"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myExitComboBox.isEnabled = enable"
+        errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="240"/>
+            line="239"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopEnterComboBox.isEnabled = enable"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="241"/>
+            line="240"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopExitComboBox.isEnabled = enable"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="264"/>
+            line="241"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myFromComboBox.addItem(existingAction.parent)"
+        errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="267"/>
+            line="264"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myFromComboBox.addItem(existingAction.parent)"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="271"/>
+            line="267"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      selectItem(dialog.myDestinationComboBox, { it.isReturnToSource }, true)"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="274"/>
+            line="271"
+            column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      selectItem(dialog.myDestinationComboBox, { it.component?.resolveAttribute(ANDROID_URI, ATTR_ID) }, ATTR_DESTINATION, AUTO_URI,"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="278"/>
+            line="274"
+            column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    selectItem(dialog.myPopToComboBox, { it.component?.resolveAttribute(ANDROID_URI, ATTR_ID) }, ATTR_POP_UP_TO, AUTO_URI, existingAction)"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="279"/>
+            line="278"
+            column="23"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myInclusiveCheckBox.isSelected = existingAction.inclusive == true"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="280"/>
+            line="279"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    selectItem(dialog.myEnterComboBox, { it.value }, ATTR_ENTER_ANIM, AUTO_URI, existingAction)"
+        errorLine2="                      ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="281"/>
+            line="280"
+            column="23"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    selectItem(dialog.myExitComboBox, { it.value }, ATTR_EXIT_ANIM, AUTO_URI, existingAction)"
+        errorLine2="                      ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="282"/>
+            line="281"
+            column="23"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    selectItem(dialog.myPopEnterComboBox, { it.value }, ATTR_POP_ENTER_ANIM, AUTO_URI, existingAction)"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="283"/>
+            line="282"
+            column="23"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    selectItem(dialog.myPopExitComboBox, { it.value }, ATTR_POP_EXIT_ANIM, AUTO_URI, existingAction)"
+        errorLine2="                      ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="285"/>
+            line="283"
+            column="23"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="286"/>
+            line="285"
+            column="29"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="                    ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="                               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="290"/>
+            line="286"
+            column="32"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.mySingleTopCheckBox.isSelected = existingAction.singleTop == true"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="291"/>
+            line="290"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myIdTextField.text = existingAction.id"
+        errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="292"/>
+            line="291"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myIdTextField.isEnabled = false"
+        errorLine2="           ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="354"/>
+            line="292"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myFromComboBox.renderer = sourceRenderer"
+        errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="355"/>
+            line="354"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myFromComboBox.isEnabled = false"
+        errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="381"/>
+            line="355"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myDestinationComboBox.renderer = destinationRenderer"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="385"/>
+            line="381"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myEnterComboBox.removeAllItems()"
+        errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="386"/>
+            line="385"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myExitComboBox.removeAllItems()"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="387"/>
+            line="386"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myEnterComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="388"/>
+            line="387"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myExitComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="390"/>
+            line="388"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myPopEnterComboBox.removeAllItems()"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="391"/>
+            line="390"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myPopExitComboBox.removeAllItems()"
+        errorLine2="             ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="392"/>
+            line="391"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myPopEnterComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="393"/>
+            line="392"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myPopExitComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="             ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="395"/>
+            line="393"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      val component = (dialog.myDestinationComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="396"/>
+            line="395"
+            column="31"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="                      ?: (dialog.myPopToComboBox.selectedItem as? DestinationListEntry)?.component"
+        errorLine2="                                 ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="405"/>
+            line="396"
+            column="34"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="            dialog.myEnterComboBox.addItem(item)"
+        errorLine2="                   ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="406"/>
+            line="405"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="            dialog.myExitComboBox.addItem(item)"
+        errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="407"/>
+            line="406"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="            dialog.myPopEnterComboBox.addItem(item)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="408"/>
+            line="407"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="            dialog.myPopExitComboBox.addItem(item)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="413"/>
+            line="408"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myDestinationComboBox.addActionListener(destinationListener)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="414"/>
+            line="413"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopToComboBox.addActionListener(destinationListener)"
+        errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="416"/>
+            line="414"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myDestinationComboBox.addActionListener {"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="417"/>
+            line="416"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      val item = dialog.myDestinationComboBox.selectedItem as? DestinationListEntry"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="419"/>
+            line="417"
+            column="25"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        previousPopTo = dialog.myPopToComboBox.selectedItem as DestinationListEntry?"
+        errorLine2="                               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="420"/>
+            line="419"
+            column="32"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        previousInclusive = dialog.myInclusiveCheckBox.isSelected"
+        errorLine2="                                   ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="421"/>
+            line="420"
+            column="36"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        selectItem(dialog.myPopToComboBox, { it.component }, parent)"
+        errorLine2="                          ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="422"/>
+            line="421"
+            column="27"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialog.myPopToComboBox.isEnabled = false"
+        errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="423"/>
+            line="422"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialog.myInclusiveCheckBox.isSelected = true"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="424"/>
+            line="423"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialog.myInclusiveCheckBox.isEnabled = false"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="427"/>
+            line="424"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        if (!dialog.myPopToComboBox.isEnabled) {"
+        errorLine2="                    ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="428"/>
+            line="427"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          selectItem(dialog.myPopToComboBox, { it }, previousPopTo)"
+        errorLine2="                            ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="429"/>
+            line="428"
+            column="29"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          dialog.myPopToComboBox.selectedItem = previousPopTo"
+        errorLine2="                 ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="430"/>
+            line="429"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          dialog.myInclusiveCheckBox.isSelected = previousInclusive"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="431"/>
+            line="430"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          dialog.myPopToComboBox.isEnabled = true"
+        errorLine2="                 ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="432"/>
+            line="431"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          dialog.myInclusiveCheckBox.isEnabled = true"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="437"/>
+            line="432"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopToComboBox.addActionListener {"
+        errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="438"/>
+            line="437"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      val popUpTo = dialog.myPopToComboBox.selectedItem"
+        errorLine2="                           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="439"/>
+            line="438"
+            column="28"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      val destination = dialog.myDestinationComboBox.selectedItem as? DestinationListEntry"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="441"/>
+            line="439"
+            column="32"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialog.myInclusiveCheckBox.isEnabled = (popUpTo != null &amp;&amp; destination?.isReturnToSource != true)"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="443"/>
+            line="441"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialog.myInclusiveCheckBox.isSelected = false"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="447"/>
+            line="443"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myEnterComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="448"/>
+            line="447"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myExitComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="           ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="449"/>
+            line="448"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopEnterComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="450"/>
+            line="449"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopExitComboBox.addItem(ValueWithDisplayString(&quot;None&quot;, null))"
+        errorLine2="           ~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="453"/>
+            line="450"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialog.myPopToComboBox.renderer = destinationRenderer"
+        errorLine2="           ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="458"/>
+            line="453"
+            column="12"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      ValidationInfo(&quot;Destination must be set!&quot;, dialog.myDestinationComboBox)"
+        errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="461"/>
+            line="458"
+            column="57"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      ValidationInfo(&quot;ID must be set!&quot;, dialog.myIdTextField)"
+        errorLine2="                                               ~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="464"/>
+            line="461"
+            column="48"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      ValidationInfo(&quot;Destination has no ID&quot;, dialog.myDestinationComboBox)"
+        errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="466"/>
+            line="464"
+            column="54"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    else if (dialog.myPopToComboBox.selectedItem != null &amp;&amp; popTo == null) {"
+        errorLine2="                    ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="468"/>
+            line="466"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      ValidationInfo(&quot;Pop To destination has no ID&quot;, dialog.myDestinationComboBox)"
+        errorLine2="                                                            ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
-            line="478"/>
+            line="468"
+            column="61"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    return dialog.myContentPanel"
+        errorLine2="                  ~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/naveditor/dialogs/AddActionDialog.kt"
+            line="478"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This declaration implicitly references AddArgumentDialogUI, which should only be accessed from tests or within private scope"
+        errorLine1="  @VisibleForTesting"
+        errorLine2="  ^">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="83"/>
+            line="72"
+            column="3"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myDefaultValueComboBox.selectedItem as String?"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="86"/>
+            line="83"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myDefaultValueTextField.text"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="89"/>
+            line="86"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myDefaultValueComboBox.setSelectedItem(defaultValue)"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="92"/>
+            line="89"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myDefaultValueTextField.text = defaultValue"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="97"/>
+            line="92"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = dialogUI.myArrayCheckBox.isSelected"
+        errorLine2="                     ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="99"/>
+            line="97"
+            column="22"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myArrayCheckBox.isSelected = array"
+        errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="104"/>
+            line="99"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = dialogUI.myNullableCheckBox.isSelected"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="106"/>
+            line="104"
+            column="22"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myNullableCheckBox.isSelected = nullable"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="112"/>
+            line="106"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    get() = dialogUI.myNameTextField.text"
+        errorLine2="                     ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="114"/>
+            line="112"
+            column="22"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myNameTextField.text = name"
+        errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="141"/>
+            line="114"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    Type.values().forEach { dialogUI.myTypeComboBox.addItem(it) }"
+        errorLine2="                                     ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="143"/>
+            line="141"
+            column="38"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myTypeComboBox.setRenderer(object : ListCellRendererWrapper&lt;Type>() {"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="156"/>
+            line="143"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myTypeComboBox.isEditable = false"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="158"/>
+            line="156"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myDefaultValueComboBox.model = defaultValueComboModel"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="167"/>
+            line="158"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialogUI.myTypeComboBox.setSelectedItem(Type.INFERRED)"
+        errorLine2="                 ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="178"/>
+            line="167"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="            dialogUI.myTypeComboBox.selectedItem = selectedType"
+        errorLine2="                     ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="192"/>
+            line="178"
+            column="22"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          dialogUI.myTypeComboBox.selectedItem = selectedType"
+        errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="202"/>
+            line="192"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
+        errorLine2="                ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="202"/>
+            line="202"
+            column="17"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
+        errorLine2="                                                                        ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="207"/>
+            line="202"
+            column="73"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myTypeComboBox.addActionListener { event ->"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="213"/>
+            line="207"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myDefaultValueComboBox.renderer = object : ListCellRendererWrapper&lt;String>() {"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="219"/>
+            line="213"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myArrayCheckBox.addActionListener { event ->"
+        errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="224"/>
+            line="219"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myNullableCheckBox.addActionListener { event ->"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="232"/>
+            line="224"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    val selectedItem = dialogUI.myTypeComboBox.selectedItem as? Type"
+        errorLine2="                                ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="236"/>
+            line="232"
+            column="33"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        val superType = when (dialogUI.myTypeComboBox.selectedItem) {"
+        errorLine2="                                       ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="255"/>
+            line="236"
+            column="40"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          dialogUI.myTypeComboBox.setSelectedItem(selectedType)"
+        errorLine2="                   ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="268"/>
+            line="255"
+            column="20"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myNullableCheckBox.isEnabled = nullable"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="269"/>
+            line="268"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myNullableLabel.isEnabled = nullable"
+        errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="271"/>
+            line="269"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myNullableCheckBox.isSelected = false"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="274"/>
+            line="271"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myArrayCheckBox.isEnabled = supportsArray"
+        errorLine2="             ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="275"/>
+            line="274"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myArrayLabel.isEnabled = supportsArray"
+        errorLine2="             ~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="277"/>
+            line="275"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      dialogUI.myArrayCheckBox.isSelected = false"
+        errorLine2="               ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="282"/>
+            line="277"
+            column="16"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="282"/>
+            line="282"
+            column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="286"/>
+            line="282"
+            column="75"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="286"/>
+            line="286"
+            column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="297"/>
+            line="286"
+            column="75"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="297"/>
+            line="297"
+            column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;comboDefaultValue&quot;)"
+        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="303"/>
+            line="297"
+            column="75"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        dialogUI.myDefaultValueTextField.text = &quot;&quot;"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="304"/>
+            line="303"
+            column="18"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="304"/>
+            line="304"
+            column="19"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, &quot;textDefaultValue&quot;)"
+        errorLine2="                                                                          ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="307"/>
+            line="304"
+            column="75"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myDefaultValueComboBox.isEnabled = defaultValueComboModel.size != 1"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="311"/>
+            line="307"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    dialogUI.myContentPanel.minimumSize = Dimension(320,200)"
+        errorLine2="             ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="312"/>
+            line="311"
+            column="14"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    return dialogUI.myContentPanel"
+        errorLine2="                    ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="322"/>
+            line="312"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      return ValidationInfo(&quot;Name must be set&quot;, dialogUI.myNameTextField)"
+        errorLine2="                                                         ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="329"/>
+            line="322"
+            column="58"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      return ValidationInfo(&quot;Name must be unique&quot;, dialogUI.myNameTextField)"
+        errorLine2="                                                            ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="333"/>
+            line="329"
+            column="61"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      when (dialogUI.myTypeComboBox.selectedItem as Type) {"
+        errorLine2="                     ~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
-            line="394"/>
+            line="333"
+            column="22"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          &amp;&amp; dialogUI.myTypeComboBox.selectedItem === Type.LONG &amp;&amp; !newDefaultValue.endsWith(&quot;L&quot;)) {"
+        errorLine2="                      ~~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/naveditor/dialogs/AddArgumentDialog.kt"
+            line="394"
+            column="23"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    navActionManager?.addDestinationMenu?.show()"
+        errorLine2="                                          ~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/scene/targets/EmptyDesignerTarget.kt"
-            line="82"/>
+            line="82"
+            column="43"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="  open val addDestinationMenu by lazy { AddDestinationMenu(mySurface) }"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/editor/NavActionManager.kt"
-            line="83"/>
+            line="81"
+            column="41"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This declaration implicitly references NavNopTracker, which should only be accessed from tests or within private scope"
+        errorLine1="    private val NOP_TRACKER = NavNopTracker()"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/naveditor/analytics/NavUsageTracker.kt"
-            line="36"/>
+            line="36"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    private val NOP_TRACKER = NavNopTracker()"
+        errorLine2="                              ~~~~~~~~~~~~~">
+        <location
+            file="src/com/android/tools/idea/naveditor/analytics/NavUsageTracker.kt"
+            line="36"
+            column="31"/>
     </issue>
 
 </issues>

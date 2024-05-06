@@ -1,6 +1,0 @@
-<idea-plugin package="org.jetbrains.kotlin.android.common">
-    <dependencies>
-        <module name="kotlin.gradle.gradle"/>
-        <module name="kotlin.gradle.gradle-java"/>
-    </dependencies>
-</idea-plugin>

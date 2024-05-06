@@ -227,9 +227,18 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
 
   @VisibleForTesting
   fun execute(request: ExecuteRequest, responseObserver: StreamObserver<ExecuteResponse>) = request.command.let { command ->
-    responseObserver.onLast(commandHandlers[command.type]?.let {
-      if (it.shouldHandle(command)) it.execute(command) else null
-    } ?: serviceStub.execute(request))
+    try {
+      responseObserver.onLast(commandHandlers[command.type]?.let {
+        if (it.shouldHandle(command)) it.execute(command) else null
+      } ?: serviceStub.execute(request))
+    }
+    catch (t: StatusRuntimeException) {
+      // There is one known case where this exception can show up: in the interval of time between when an emulator
+      // is stopped and Studio detects it stopped, it's possible for clients of the Transport to send messages to
+      // that emulator. Doing so causes "StatusRuntimeException: UNAVAILABLE: Network closed for unknown reason" to
+      // be thrown by grpc.
+      log.warn(t)
+    }
   }
 
   override fun deviceConnected(device: IDevice) { } // Don't care

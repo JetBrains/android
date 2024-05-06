@@ -248,7 +248,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   }
 
   private fun logVfsEvent(eventId: String, data: Map<String, Any>) {
-    if (eventId != "refreshed") { // eventId as declared in com.intellij.openapi.vfs.newvfs.RefreshProgress
+    if (!eventId.equals("refreshed")) { // eventId as declared in com.intellij.openapi.vfs.newvfs.RefreshProgress
       return
     }
 

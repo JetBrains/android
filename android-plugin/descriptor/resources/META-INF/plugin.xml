@@ -11,9 +11,13 @@
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
 
+  <change-notes><![CDATA[
+    This release contains updates from Android Studio Iguana Stable.
+    For detailed information, please refer to the release notes available at: Learn more in the <a href="https://android-developers.googleblog.com/2024/02/android-studio-iguana-is-stable.html">Android Studio Iguana Stable</a>.]]>
+  </change-notes>
+
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-kotlin.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android-kotlin-extensions.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
   <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-adb-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -23,16 +27,14 @@
   <xi:include href="/META-INF/android-navigator.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-room.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-dagger.xml" xpointer="xpointer(/idea-plugin/*)"/>
-<!--  <xi:include href="/META-INF/app-insights-api.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
-<!--  <xi:include href="/META-INF/app-insights.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
   <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/mlkit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/streaming.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/safeargs.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/pipeline.xml" xpointer="xpointer(/idea-plugin/*)"/>
-<!--  <xi:include href="/META-INF/play-vitals.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
   <xi:include href="/META-INF/profilers.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/profilers-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-psd-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/project-system-gradle-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -43,6 +45,7 @@
   <xi:include href="/META-INF/layout-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/layout-inspector-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-inspection.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/app-inspection-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/app-inspector.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/build-attribution.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -53,7 +56,6 @@
   <xi:include href="/META-INF/android-debuggers.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-device.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/logcat.xml" xpointer="xpointer(/idea-plugin/*)"/>
-  <xi:include href="/META-INF/android.device-explorer-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-device-file-explorer-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/intellij.android.device-explorer.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-npw.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -65,7 +67,9 @@
   <xi:include href="/META-INF/threading-checker.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/device-manager-v2.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/wear-pairing.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/wear-whs.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-execution-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-deploy.xml" xpointer="xpointer(/idea-plugin/*)"/>
-<!--  <xi:include href="/META-INF/google-login.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+  <xi:include href="/META-INF/native-symbolizer.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/native-symbolizer-gradle.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

@@ -15,14 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.RELATIVE_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.assertNotEquals;
-
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.SyncNlModel;
@@ -43,10 +35,15 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertNotEquals;
 
 public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
 

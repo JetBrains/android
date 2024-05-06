@@ -28,11 +28,12 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
+import com.intellij.ui.JBColor
 import java.awt.Color
 import java.awt.Graphics
 import javax.swing.JComponent
 
-private val DEFAULT_COLOR: Color = Color.white
+private val DEFAULT_COLOR: Color = JBColor.WHITE
 
 /** [AnAction] displaying the color state. It opens a color picker to select it. */
 class ColorStateAction(

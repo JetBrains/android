@@ -66,7 +66,7 @@ class PathStringPool : Closeable {
       files[path]?.let { return it }
     }
 
-    val fileName = path.fileName.let { if (it.length >= 3) it else "PathStringPool$it" }
+    val fileName = path.fileName.let { if (it.length >= 3) it else "PathStringPool" + it }
     val tempFile = File.createTempFile(fileName, ".tmp")
     path.inputStream().use { stream ->
       Files.copy(stream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING)

@@ -1,12 +1,16 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
+
+import static com.google.common.truth.Truth.assertThat;
 
 import com.intellij.codeInsight.actions.RearrangeCodeProcessor;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
+import com.intellij.codeInspection.incorrectFormatting.FormattingChanges;
+import com.intellij.codeInspection.incorrectFormatting.FormattingChangesKt;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.arrangement.engine.ArrangementEngine;
@@ -116,6 +120,31 @@ public class AndroidXmlFormatterTest extends AndroidTestCase {
     androidSettings.LAYOUT_SETTINGS.INSERT_LINE_BREAK_BEFORE_NAMESPACE_DECLARATION = true;
     androidSettings.LAYOUT_SETTINGS.INSERT_LINE_BREAK_AFTER_LAST_ATTRIBUTE = true;
     doTestLayout("layout1.xml");
+  }
+
+  public void testLayoutNoChangesNeeded() throws Exception {
+    // Regression test for https://issuetracker.google.com/issues/297790370
+
+    // Set base XML wrapping and layout XML wrapping to different values.
+    final XmlCodeStyleSettings xmlSettings = mySettings.getCustomSettings(XmlCodeStyleSettings.class);
+    xmlSettings.XML_ATTRIBUTE_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS;
+    final AndroidXmlCodeStyleSettings androidSettings = mySettings.getCustomSettings(AndroidXmlCodeStyleSettings.class);
+    androidSettings.LAYOUT_SETTINGS.WRAP_ATTRIBUTES = CommonCodeStyleSettings.WRAP_AS_NEEDED;
+
+    // Create and format the layout file.
+    createManifest();
+    final VirtualFile f = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml");
+    myFixture.configureFromExistingVirtualFile(f);
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      CodeStyleManager.getInstance(getProject()).reformat(myFixture.getFile());
+    });
+
+    // After the file has been formatted, it shouldn't need to have any further formatting changes made.
+    // Before the fix for b/297790370, the general formatting settings for XML were taking precedence here over layout-specific settings.
+    PsiFile psiFile = myFixture.getFile();
+    FormattingChanges changes = FormattingChangesKt.detectFormattingChanges(psiFile);
+    assertThat(changes).isNotNull();
+    assertThat(changes.getMismatches()).isEmpty();
   }
 
   public void testManifest1() throws Exception {

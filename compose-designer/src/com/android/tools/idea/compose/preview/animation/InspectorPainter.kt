@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -29,25 +26,16 @@ import java.awt.Polygon
 import javax.swing.JComponent
 import javax.swing.JSlider
 
-/** [ActionToolbarImpl] with enabled navigation. */
-open class DefaultToolbarImpl(rootComponent: JComponent, place: String, actions: List<AnAction>) :
-  ActionToolbarImpl(place, DefaultActionGroup(actions), true) {
-  init {
-    targetComponent = rootComponent
-    ActionToolbarUtil.makeToolbarNavigable(this)
-    layoutStrategy = ToolbarLayoutStrategy.NOWRAP_STRATEGY
-    setMinimumButtonSize(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+/** Create [ActionToolbar] with enabled navigation. */
+fun createToolbarWithNavigation(rootComponent: JComponent, place: String, action: AnAction) =
+  createToolbarWithNavigation(rootComponent, place, listOf(action)).apply {
+    // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by
+    // default.
+    // Set the preferred size of the
+    // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a
+    // margin
+    component.preferredSize = JBUI.size(30, 30)
   }
-}
-
-internal class SingleButtonToolbar(rootComponent: JComponent, place: String, action: AnAction) :
-  DefaultToolbarImpl(rootComponent, place, listOf(action)) {
-  // From ActionToolbar#setMinimumButtonSize, all the toolbar buttons have 25x25 pixels by default.
-  // Set the preferred size of the
-  // toolbar to be 5 pixels more in both height and width, so it fits exactly one button plus a
-  // margin
-  override fun getPreferredSize() = JBUI.size(30, 30)
-}
 
 /** Graphics elements corresponding to painting the inspector in [AnimationPreview]. */
 object InspectorPainter {
@@ -148,7 +136,7 @@ object InspectorPainter {
    *
    * @param x coordinate of the center of the diamond
    * @param y coordinate of the center of the diamond
-   * @param colorIndex index of the color from [GRAPH_COLORS]
+   * @param colorIndex index of the color from [InspectorColors.GRAPH_COLORS]
    */
   class Diamond(val x: Int, val y: Int, private val colorIndex: Int) {
     // The diamond should have the following shape:
@@ -161,7 +149,9 @@ object InspectorPainter {
     // (x - size, y): left point
     // where (x, y) is the center of the diamond
     private fun xArray(size: Int) = intArrayOf(x, x + size, x, x - size)
+
     private fun yArray(size: Int) = intArrayOf(y - size, y, y + size, y)
+
     private val diamond = Polygon(xArray(diamondSize()), yArray(diamondSize()), 4)
     private val diamondOutline = Polygon(xArray(diamondSize() + 1), yArray(diamondSize() + 1), 4)
 

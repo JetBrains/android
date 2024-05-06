@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.testutils
+package com.android.tools.idea.testing
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer

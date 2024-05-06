@@ -23,13 +23,14 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParentStyleConverter extends ResourceReferenceConverter {
   public ParentStyleConverter() {
@@ -104,10 +105,10 @@ public class ParentStyleConverter extends ResourceReferenceConverter {
   }
 
   @Override
-  public @Nullable String convertToString(@Nullable ResourceValue element) {
+  public String toString(@Nullable ResourceValue element, ConvertContext context) {
     if (element != null && element.getPrefix() == '@') {
       return element.toString();
     }
-    return super.convertToString(element);
+    return super.toString(element, context);
   }
 }

@@ -34,13 +34,13 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import java.nio.file.Path
+import java.util.concurrent.Executor
+import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.asListenableFuture
-import java.nio.file.Path
-import java.util.concurrent.Executor
-import kotlin.math.min
 
 /**
  * From:

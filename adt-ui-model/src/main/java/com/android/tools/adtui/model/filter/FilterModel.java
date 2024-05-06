@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/*
+/**
  * A {@link Filter} with some additional support for firing listeners on event changes.
  */
 public class FilterModel {

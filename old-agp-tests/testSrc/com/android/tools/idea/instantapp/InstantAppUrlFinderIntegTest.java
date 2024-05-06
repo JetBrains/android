@@ -39,7 +39,7 @@ public class InstantAppUrlFinderIntegTest {
   public final RuleChain ruleChain = RuleChain.outerRule(projectRule).around(new EdtRule());
 
   @Test
-  @Ignore("b/203803107")
+  @Ignore("b/303110113")
   public void testHostIsResolved() throws Exception {
     // Use a plugin with instant app supportp
     projectRule.loadProject(INSTANT_APP_RESOURCE_HOST, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);

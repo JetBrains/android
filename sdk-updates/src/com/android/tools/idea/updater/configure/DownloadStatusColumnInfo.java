@@ -16,8 +16,8 @@
 package com.android.tools.idea.updater.configure;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -35,7 +35,7 @@ class DownloadStatusColumnInfo extends ColumnInfo<UpdaterTreeNode, Icon> {
 
   @Override
   public int getWidth(JTable table) {
-    return JBUIScale.scale(30);
+    return JBUI.scale(30);
   }
 
   @Nullable

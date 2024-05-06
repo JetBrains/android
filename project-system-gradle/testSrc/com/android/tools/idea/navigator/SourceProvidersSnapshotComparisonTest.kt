@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.navigator
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTestDef
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -79,7 +79,7 @@ data class SourceProvidersTestDef(
       SourceProvidersTestDef(TestProject.PSD_SAMPLE_GROOVY),
       SourceProvidersTestDef(TestProject.COMPOSITE_BUILD),
       SourceProvidersTestDef(TestProject.APP_WITH_BUILDSRC),
-      // TODO(b/279759255) SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
+      SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36),
       SourceProvidersTestDef(TestProject.COMPATIBILITY_TESTS_AS_36_NO_IML),
       SourceProvidersTestDef(TestProject.TEST_FIXTURES),
       SourceProvidersTestDef(TestProject.KOTLIN_KAPT),

@@ -23,6 +23,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.ArrayList
 import java.util.concurrent.TimeUnit
 
 class LazyDataSeriesTest {

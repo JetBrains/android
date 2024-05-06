@@ -16,8 +16,8 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+//import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper
 import java.awt.Shape
-import javax.annotation.OverridingMethodsMustInvokeSuper
 
 /**
  * Container for window-level information in the layout inspector. [refreshImages] should be called
@@ -59,7 +59,7 @@ abstract class AndroidWindow(val root: ViewNode, val id: Any, imageType: ImageTy
 
   open val deviceClip: Shape? = null
 
-  @OverridingMethodsMustInvokeSuper
+  //@OverridingMethodsMustInvokeSuper
   open fun copyFrom(other: AndroidWindow) {
     if (other.imageType == ImageType.SKP_PENDING && imageType == ImageType.SKP) {
       // we already have an skp merged in, don't go back to pending when we get a new one

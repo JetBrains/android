@@ -1,39 +1,29 @@
 package org.jetbrains.android;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A specialized version of LightJavaCodeInsightFixtureTestCase that sets up
- * a java SDK to point to a custom mock one. Use this subclass if your
- * tests need a java sdk set up.
+ * Like {@link LightJavaCodeInsightFixtureTestCase} but uses a local mock JDK instead
+ * of downloading one from the network. This allows tests to run in Bazel where
+ * network access is generally disallowed.
+ * <p>
+ * If you do not need a mock JDK attached to your test project, consider using
+ * {@link com.intellij.testFramework.fixtures.BasePlatformTestCase} instead.
  */
 public abstract class LightJavaCodeInsightFixtureAdtTestCase extends LightJavaCodeInsightFixtureTestCase {
 
   @Override
   @NotNull
   protected LightProjectDescriptor getProjectDescriptor() {
-    return getAdtProjectDescriptor();
-  }
-
-  @NotNull
-  public static LightProjectDescriptor getAdtProjectDescriptor() {
-    return new ProjectDescriptor(LanguageLevel.HIGHEST) {
-      @Override
-      public Sdk getSdk() {
-        String path = TestUtils.getMockJdk().toString();
-        return IdeaTestUtil.createMockJdk("java 1.7", path);
-      }
-    };
+    return AdtTestProjectDescriptors.defaultDescriptor();
   }
 
   @Override

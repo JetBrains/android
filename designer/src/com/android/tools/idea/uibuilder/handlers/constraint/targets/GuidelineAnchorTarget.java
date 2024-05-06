@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
 import com.android.tools.idea.common.scene.target.Target;
-import java.awt.Cursor;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 /**
  * Guideline anchors

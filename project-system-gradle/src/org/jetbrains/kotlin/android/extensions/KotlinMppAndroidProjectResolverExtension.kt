@@ -34,6 +34,7 @@ import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.android.models.KotlinModelConverter
@@ -41,11 +42,14 @@ import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getJav
 import org.jetbrains.kotlin.config.ExternalSystemTestRunTask
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
+import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinSourceDependency
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver.Context
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinMppGradleProjectResolverExtension
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinProjectArtifactDependencyResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinSourceSetModuleId
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.findLibraryDependencyNode
+import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.kotlinSourceSetModuleId
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinComponent
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
@@ -59,6 +63,8 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
 
   private val sourceSetResolver = KotlinMppAndroidSourceSetResolver()
   private val sourceSetDependenciesMap = mutableMapOf<String, MutableMap<String, Set<LibraryReference>>>()
+
+  private var sourceSetDataNodeMap: Map<KotlinSourceSetModuleId, DataNode<GradleSourceSetData>>? = null
 
   private val compilationModelMap = mutableMapOf<String, MutableMap<CompilationType, Pair<KotlinCompilation, AndroidCompilation>>>()
 
@@ -98,6 +104,45 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
     if (sourceSet.extras[androidSourceSetKey] != null) {
       val sourceSetDependenciesMap = sourceSetDependenciesMap.getOrPut(context.moduleDataNode.data.id) { mutableMapOf() }
       sourceSetDependenciesMap.putIfAbsent(sourceSet.name, dependencies.mapNotNull { modelConverter.recordDependency(it) }.toSet())
+    }
+
+    // TODO(KTIJ-28110): This is a workaround for an issue in the kotlin IDE plugin, after we resolve dependencies from a kmp module on an
+    //  android module to the appropriate sourceSet by [KotlinAndroidProjectArtifactDependencyResolver], the kotlin IDE plugin is still not
+    //  able to map the dependency sourceSet to the gradle sourceSet data node. Here we add these dependencies manually as a workaround
+    //  until this issue is solved.
+    dependencies.filterIsInstance<IdeaKotlinSourceDependency>().forEach { ideaKotlinDependency ->
+      val androidLibInfo = ideaKotlinDependency.extras[androidDependencyKey] ?: return@forEach
+
+      // This is a dependency on an android library module
+      if (!androidLibInfo.hasLibrary() || !androidLibInfo.library.hasProjectInfo()) {
+        return@forEach
+      }
+
+      val dependencyModuleId = KotlinSourceSetModuleId(ideaKotlinDependency.coordinates)
+
+      // Kotlin Ide plugin did add the dependency already.
+      if (dependencyNodes.any {
+        it.data is ModuleDependencyData && (it.data as ModuleDependencyData).target.id == dependencyModuleId.toString()
+      }) {
+        return@forEach
+      }
+
+      if (sourceSetDataNodeMap == null) {
+        sourceSetDataNodeMap = ExternalSystemApiUtil.findAllRecursively(context.projectDataNode, ProjectKeys.MODULE).flatMap { moduleNode ->
+          ExternalSystemApiUtil.findAll(moduleNode, GradleSourceSetData.KEY).map {
+            it.data.kotlinSourceSetModuleId to it
+          }
+        }.toMap()
+      }
+
+      val dependencyNode = sourceSetDataNodeMap!![dependencyModuleId]
+
+      dependencyNode?.let {
+        sourceSetDataNode.createChild(
+          ProjectKeys.MODULE_DEPENDENCY,
+          ModuleDependencyData(sourceSetDataNode.data, dependencyNode.data)
+        )
+      }
     }
 
     dependencies.filterIsInstance<IdeaKotlinBinaryDependency>().forEach { ideaKotlinDependency ->
@@ -204,6 +249,7 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       }
       compilationModelMap.remove(context.moduleDataNode.data.id)
       sourceSetDependenciesMap.remove(context.moduleDataNode.data.id)
+      sourceSetDataNodeMap = null
     }
   }
 

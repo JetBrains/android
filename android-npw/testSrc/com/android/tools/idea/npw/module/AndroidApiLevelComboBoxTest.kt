@@ -33,7 +33,7 @@ class AndroidApiLevelComboBoxTest {
   fun testDefaultSelectedItem() = runBlocking(AndroidDispatchers.uiThread) {
     val formFactor = FormFactor.MOBILE
     assertEquals("none", PropertiesComponent.getInstance().getValue(getPropertiesComponentMinSdkKey(formFactor), "none"))
-    val items: MutableList<VersionItem> = mutableListOf(
+    val items: MutableList<VersionItem> = Lists.newArrayList(
       VersionItem.fromStableVersion(formFactor.defaultApi - 1),
       VersionItem.fromStableVersion(formFactor.defaultApi),
       // Default is at position 1

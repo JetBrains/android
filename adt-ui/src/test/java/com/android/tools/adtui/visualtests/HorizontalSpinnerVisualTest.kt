@@ -24,7 +24,7 @@ class HorizontalSpinnerVisualTest : VisualTest() {
 
   override fun populateUi(panel: JPanel) {
     val listElementSelector = HorizontalSpinner.forStrings(arrayOf("String 1", "String 2", "String 3"))
-    panel.add(listElementSelector)
+    panel.add(listElementSelector);
   }
 
   override fun getName(): String = HorizontalSpinner::class.simpleName!!

@@ -53,7 +53,7 @@ public class DiagnosticReportBuilder {
   private final @NotNull ScheduledFuture<?> myFutureStop;
   @GuardedBy("LOCK")
   private boolean myIsStopped;
-  private @NotNull List<DiagnosticReportContributor> myReportContributors;
+  private final @NotNull List<DiagnosticReportContributor> myReportContributors;
   private final @NotNull Map<String, Path> myBinaryReportPaths;
   @GuardedBy("LOCK")
   private boolean myIsTimedOut;
@@ -73,7 +73,8 @@ public class DiagnosticReportBuilder {
     myReportContributors = Arrays.asList(
       new ThreadSamplingReportContributor(),
       new MemoryUseReportContributor(),
-      new ActionsReportContributor()
+      new ActionsReportContributor(),
+      new CPUUseReportContributor()
     );
     myBinaryReportPaths = new TreeMap<>();
 
@@ -101,10 +102,6 @@ public class DiagnosticReportBuilder {
     }
 
     myFutureStop = JobScheduler.getScheduler().schedule(this::stopAfterTimeout, maxSamplingTimeMs, TimeUnit.MILLISECONDS);
-  }
-
-  public void addBinaryReportPath(String reportName, Path reportPath) {
-    myBinaryReportPaths.put(reportName, reportPath);
   }
 
   private void stopAfterTimeout() {

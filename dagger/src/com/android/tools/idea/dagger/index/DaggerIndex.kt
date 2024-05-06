@@ -43,11 +43,17 @@ class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
   }
 
   override fun getName(): ID<String, Set<IndexValue>> = NAME
+
   override fun dependsOnFileContent() = true
-  override fun getVersion() = 0
+
+  override fun getVersion() = 3
+
   override fun getInputFilter(): FileBasedIndex.InputFilter = DaggerIndexInputFilter
+
   override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
+
   override fun getValueExternalizer(): DataExternalizer<Set<IndexValue>> = IndexValue.Externalizer
+
   override fun getIndexer(): DataIndexer<String, Set<IndexValue>, FileContent> =
     DaggerDataIndexer.INSTANCE
 

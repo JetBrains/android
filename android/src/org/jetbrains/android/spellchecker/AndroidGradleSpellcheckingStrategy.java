@@ -15,9 +15,6 @@
  */
 package org.jetbrains.android.spellchecker;
 
-import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.utils.SdkUtils.endsWithIgnoreCase;
-
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
@@ -28,6 +25,9 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 
 public class AndroidGradleSpellcheckingStrategy extends GroovySpellcheckingStrategy {
   @Override

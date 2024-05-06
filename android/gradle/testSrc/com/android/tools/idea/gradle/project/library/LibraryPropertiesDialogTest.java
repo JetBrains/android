@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.library;
 
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.roots.OrderRootType.SOURCES;
-
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.roots.JavadocOrderRootType;
@@ -29,8 +24,14 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditor;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.PlatformTestCase;
-import java.io.File;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 
 public class LibraryPropertiesDialogTest extends PlatformTestCase {
   private Library createLibrary(@NotNull String name) {

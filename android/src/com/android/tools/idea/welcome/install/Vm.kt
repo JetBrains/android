@@ -50,12 +50,12 @@ private val LOG: Logger
 
 abstract class Vm(
   private val installerInfo: VmInstallerInfo,
-  @JvmField val installationIntention: InstallationIntention,
+  @JvmField val installationIntention: VmInstallationIntention,
   @JvmField val isCustomInstall: ScopedStateStore.Key<Boolean>
 ) : InstallableComponent("Performance (${installerInfo.fullName})",
                          "Enables a hardware-assisted virtualization engine (hypervisor) to speed up " +
                          "Android app emulation on your development computer. (Recommended)",
-                         installationIntention === InstallationIntention.INSTALL_WITH_UPDATES) {
+                         installationIntention == VmInstallationIntention.INSTALL_WITH_UPDATES) {
 
   var isInstallerSuccessfullyCompleted: Boolean = false
     private set
@@ -116,14 +116,14 @@ abstract class Vm(
         "${installerInfo.fullName} installer could not be run because SDK root isn't specified", ConsoleViewContentType.ERROR_OUTPUT)
       return
     }
-    if (installationIntention === InstallationIntention.UNINSTALL) {
+    if (installationIntention == VmInstallationIntention.UNINSTALL) {
       configureForUninstall(installContext, sdkRoot)
       return
     }
     val accelerationErrorCode = installerInfo.checkInstallation()
     var solution = accelerationErrorCode.solution
     if (accelerationErrorCode == AccelerationErrorCode.ALREADY_INSTALLED) {
-      if (installationIntention === InstallationIntention.INSTALL_WITHOUT_UPDATES) {
+      if (installationIntention == VmInstallationIntention.INSTALL_WITHOUT_UPDATES) {
         isInstallerSuccessfullyCompleted = true
         return
       }
@@ -240,7 +240,7 @@ abstract class Vm(
           return
         }
         // The vm is not required so we do not stop setup process if this install failed.
-        if (installationIntention === InstallationIntention.UNINSTALL) {
+        if (installationIntention == VmInstallationIntention.UNINSTALL) {
           installContext.print("${installerInfo.fullName} uninstallation failed", ConsoleViewContentType.ERROR_OUTPUT)
         }
         else {

@@ -23,5 +23,6 @@ enum class ProfilerTaskType(val description: String) {
   JAVA_KOTLIN_METHOD_SAMPLE("Java/Kotlin Method Sample (legacy)"),
   HEAP_DUMP("Heap Dump"),
   NATIVE_ALLOCATIONS("Native Allocations"),
-  JAVA_KOTLIN_ALLOCATIONS("Java/Kotlin Allocations")
+  JAVA_KOTLIN_ALLOCATIONS("Java/Kotlin Allocations"),
+  LIVE_VIEW("Live View")
 }

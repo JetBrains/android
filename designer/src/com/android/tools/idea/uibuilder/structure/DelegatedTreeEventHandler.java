@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.structure;
 
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
-import java.awt.datatransfer.Transferable;
-import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.tree.TreePath;
+import java.awt.datatransfer.Transferable;
 
 /**
  * Indicates that the implementing class can handle a {@link DelegatedTreeEvent}.

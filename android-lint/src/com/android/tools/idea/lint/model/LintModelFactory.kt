@@ -16,10 +16,12 @@
 package com.android.tools.idea.lint.model
 
 import com.android.AndroidProjectTypes
-import com.android.builder.model.AndroidProject
 import com.android.builder.model.LintOptions
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_TEST_FIXTURES
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
@@ -216,8 +218,7 @@ class LintModelFactory : LintModelModuleLoader {
             provided = false
           )
         is IdeUnknownLibrary -> null
-      }
-        ?: return false
+      } ?: return false
 
     libraryResolverMap[library.getIdentifier()] = lintLibrary
     return true
@@ -280,8 +281,8 @@ class LintModelFactory : LintModelModuleLoader {
     type: LintModelArtifactType
   ): LintModelAndroidArtifact {
     return DefaultLintModelAndroidArtifact(
-      applicationId = artifact.applicationId
-          ?: "", // TODO(b/234146319): This should probably be optional
+      applicationId =
+        artifact.applicationId ?: "", // TODO(b/234146319): This should probably be optional
       dependencies = getDependencies(artifact),
       generatedSourceFolders = artifact.generatedSourceFolders,
       generatedResourceFolders = artifact.generatedResourceFolders,
@@ -290,6 +291,7 @@ class LintModelFactory : LintModelModuleLoader {
       type = type
     )
   }
+
   private fun getArtifact(
     artifact: IdeJavaArtifact,
     type: LintModelArtifactType
@@ -406,15 +408,15 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   private fun IdeExtraSourceProvider.isTestFixtures(): Boolean {
-    return AndroidProject.ARTIFACT_TEST_FIXTURES == artifactName
+    return ARTIFACT_NAME_TEST_FIXTURES == artifactName
   }
 
   private fun IdeExtraSourceProvider.isUnitTest(): Boolean {
-    return AndroidProject.ARTIFACT_UNIT_TEST == artifactName
+    return ARTIFACT_NAME_UNIT_TEST == artifactName
   }
 
   private fun IdeExtraSourceProvider.isInstrumentationTest(): Boolean {
-    return AndroidProject.ARTIFACT_ANDROID_TEST == artifactName
+    return ARTIFACT_NAME_ANDROID_TEST == artifactName
   }
 
   private fun computeExtraSourceProviders(
@@ -650,22 +652,31 @@ class LintModelFactory : LintModelModuleLoader {
   ) : LintModelModule {
     override val modulePath: String
       get() = project.projectPath.projectPath
+
     override val type: LintModelModuleType
       get() = getModuleType(project.projectType)
+
     override val mavenName: LintModelMavenName?
       get() = getMavenName(project)
+
     override val buildFolder: File
       get() = project.buildFolder
+
     override val resourcePrefix: String?
       get() = project.resourcePrefix
+
     override val dynamicFeatures: Collection<String>
       get() = project.dynamicFeatures
+
     override val bootClassPath: List<File>
       get() = project.bootClasspath.map { File(it) }
+
     override val javaSourceLevel: String
       get() = project.javaCompileOptions.sourceCompatibility
+
     override val compileTarget: String
       get() = project.compileTarget
+
     override val lintRuleJars: List<File> = project.getLintRuleJarsForAnyAgpVersion()
 
     override fun neverShrinking(): Boolean {
@@ -723,22 +734,31 @@ class LintModelFactory : LintModelModuleLoader {
 
     override val name: String
       get() = variant.name
+
     override val useSupportLibraryVectorDrawables: Boolean
       get() = useSupportLibraryVectorDrawables(variant)
+
     override val mergedManifest: File?
       get() = null // Injected by legacy AGP lint runner
+
     override val manifestMergeReport: File?
       get() = null // Injected by legacy AGP lint runner
+
     override val `package`: String?
       get() = null // not in the old builder model
+
     override val minSdkVersion: AndroidVersion?
       get() = variant.minSdkVersion.toAndroidVersion()
+
     override val targetSdkVersion: AndroidVersion?
       get() = variant.targetSdkVersion?.toAndroidVersion()
+
     override val resourceConfigurations: Collection<String>
       get() = variant.resourceConfigurations
+
     override val debuggable: Boolean
       get() = buildType.isDebuggable
+
     override val shrinkable: Boolean
       get() = buildType.isMinifyEnabled
 

@@ -105,11 +105,11 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
               .maxOfOrNull {
                 table.getFontMetrics(table.font).stringWidth(getNodeText(it)) +
                   80 // for 2 levels of indent + checkbox
-              }
-              ?: 80
+              } ?: 80
         },
         object : ColumnInfo<CheckedTreeNode, Long>(null) {
           override fun valueOf(item: CheckedTreeNode) = getIssueCount(item)
+
           override fun getWidth(table: JTable) =
             table.getFontMetrics(table.font).stringWidth(getIssueCount(root).toString()) +
               20 // So there's space for the scrollbar on the right
@@ -405,6 +405,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
   )
 
   data class Leaf<T>(val item: WithCount<T>) : CheckedTreeNode(item)
+
   data class Node(val title: String) : CheckedTreeNode(title)
 }
 

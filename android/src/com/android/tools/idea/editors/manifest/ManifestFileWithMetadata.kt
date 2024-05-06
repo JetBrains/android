@@ -68,10 +68,8 @@ data class ManifestXmlWithMetadata(
   val sourcePosition: SourcePosition
 ) : ManifestFileWithMetadata(sortPriority = 0)
 
-/** Injected build.gradle file is also rendered in the same category as the rest, so it's represented here. */
-data class InjectedBuildDotGradleFile(override val file: File?) : ManifestFileWithMetadata(sortPriority = 1) {
-  override val isProjectFile = true
-}
+abstract class InjectedFile : ManifestFileWithMetadata(sortPriority = 1)
+
 object UnknownManifestFile : ManifestFileWithMetadata(sortPriority = 2) {
   override val file = null
   override val isProjectFile = false

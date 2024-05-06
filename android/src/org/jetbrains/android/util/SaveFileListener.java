@@ -25,11 +25,12 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import javax.swing.JPanel;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class SaveFileListener implements ActionListener {
   private final JPanel myContentPanel;

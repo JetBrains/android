@@ -30,12 +30,9 @@ object KeyStrokes {
   val CTRL_SPACE: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, KeyEvent.CTRL_MASK)
   val F1: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)
   val SHIFT_F1: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.SHIFT_DOWN_MASK)
-  val CMD_HOME: KeyStroke
-    get() = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, AdtUiUtils.getActionMask())
-  val CMD_END: KeyStroke
-    get() = KeyStroke.getKeyStroke(KeyEvent.VK_END, AdtUiUtils.getActionMask())
-  val CMD_MINUS: KeyStroke
-    get() = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, AdtUiUtils.getActionMask())
+  val CMD_HOME: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, AdtUiUtils.getActionMask())
+  val CMD_END: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_END, AdtUiUtils.getActionMask())
+  val CMD_MINUS: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, AdtUiUtils.getActionMask())
   val HOME: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0)
   val END: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0)
   val LEFT: KeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0)

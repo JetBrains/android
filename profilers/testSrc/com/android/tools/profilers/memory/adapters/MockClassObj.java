@@ -15,17 +15,18 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Field;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Type;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class MockClassObj extends ClassObj {
   // keep insertion order with LinkedHashMap so we have deterministic positions when validating the fields

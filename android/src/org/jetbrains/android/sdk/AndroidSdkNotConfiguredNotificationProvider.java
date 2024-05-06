@@ -1,4 +1,3 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
 import static org.jetbrains.android.util.AndroidBundle.message;
@@ -25,53 +24,36 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AndroidSdkNotConfiguredNotificationProvider implements EditorNotificationProvider {
-  private final Project myProject;
 
-  public AndroidSdkNotConfiguredNotificationProvider(Project project) {
-    myProject = project;
-  }
-
-  @NotNull
   @Override
   @Nullable
   public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
-    EditorNotifications notifications = EditorNotifications.getInstance(project);
-    if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)) {
-      return null;
-    }
+    if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)) return null;
     final Module module = ModuleUtilCore.findModuleForFile(file, project);
-    final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
-
-    if (facet == null) {
+    if (module == null) return null;
+    final AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) return null;
+    if (AndroidModel.isRequired(facet)) return null;
+    if (!IdeResourcesUtil.isResourceFile(file, facet) && !file.equals(AndroidRootUtil.getPrimaryManifestFile(facet))) {
       return null;
     }
-    if (!AndroidModel.isRequired(facet)
-        && (IdeResourcesUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
-      final AndroidPlatform platform = AndroidPlatforms.getInstance(module);
+    final AndroidPlatform platform = AndroidPlatforms.getInstance(module);
+    if (platform != null) return null;
 
-      if (platform == null) {
-        return (fileEditor) -> new MySdkNotConfiguredNotificationPanel(notifications, fileEditor, module, myProject);
-      }
-    }
-    return null;
+    return (fileEditor) -> new MySdkNotConfiguredNotificationPanel(project, fileEditor, module);
   }
 
   private static class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {
 
-    MySdkNotConfiguredNotificationPanel(EditorNotifications myNotifications, @NotNull FileEditor fileEditor, @NotNull final Module module,
-                                        Project project) {
+    MySdkNotConfiguredNotificationPanel(Project myProject, @NotNull FileEditor fileEditor, @NotNull final Module module) {
       super(fileEditor, Status.Warning);
 
       setText(message("android.sdk.not.configured.notification", module.getName()));
 
-      createActionLabel(message("action.label.open.project.structure"), new Runnable() {
-        @Override
-        public void run() {
-          ModulesConfigurator.showDialog(module.getProject(), module.getName(), ClasspathEditor.getName());
-          EditorNotifications.getInstance(project).updateAllNotifications();
-        }
+      createActionLabel(message("action.label.open.project.structure"), () -> {
+        ModulesConfigurator.showDialog(module.getProject(), module.getName(), ClasspathEditor.getName());
+        EditorNotifications.getInstance(myProject).updateAllNotifications();
       });
     }
   }
 }
-

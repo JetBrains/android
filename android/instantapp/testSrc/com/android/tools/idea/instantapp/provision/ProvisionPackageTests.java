@@ -16,8 +16,8 @@
 package com.android.tools.idea.instantapp.provision;
 
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.notNull;
 import static org.mockito.Mockito.when;

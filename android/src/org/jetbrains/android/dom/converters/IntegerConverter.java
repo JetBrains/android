@@ -15,14 +15,15 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
-import java.util.Collection;
-import java.util.Collections;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public class IntegerConverter extends ResolvingConverter<String> {
   public static final IntegerConverter INSTANCE = new IntegerConverter();
@@ -32,12 +33,12 @@ public class IntegerConverter extends ResolvingConverter<String> {
 
   @NotNull
   @Override
-  public Collection<String> getVariants(@NotNull ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     return Collections.emptyList();
   }
 
   @Override
-  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null || IdeResourcesUtil.isIdDeclaration(s) || IdeResourcesUtil.isIdReference(s)) {
       return s;
     }
@@ -56,7 +57,7 @@ public class IntegerConverter extends ResolvingConverter<String> {
   }
 
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 }

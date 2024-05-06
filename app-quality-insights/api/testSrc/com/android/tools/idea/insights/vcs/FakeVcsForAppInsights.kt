@@ -27,6 +27,7 @@ class FakeVcsForAppInsights : VcsForAppInsights {
   override val key: VCS_CATEGORY = VCS_CATEGORY.TEST_VCS
 
   override fun isApplicable(vcs: AbstractVcs) = vcs is MockAbstractVcs
+
   override fun createVcsContent(
     localFilePath: FilePath,
     revision: String,

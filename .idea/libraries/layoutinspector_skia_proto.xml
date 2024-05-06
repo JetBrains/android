@@ -1,8 +1,14 @@
 <component name="libraryTable">
   <library name="layoutinspector-skia-proto" type="repository">
-    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layout_inspector_skia_java_proto:231.0.26.0" />
+    <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layout_inspector_skia_java_proto:232.1.23.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layout_inspector_skia_java_proto/232.1.23.0/layout_inspector_skia_java_proto-232.1.23.0.jar">
+          <sha256sum>e2884ea08a63bdbe8f27d198519f5a1b4d3cf88c44e5206f16e8dd128dea50d0</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layout_inspector_skia_java_proto/231.0.26.0/layout_inspector_skia_java_proto-231.0.26.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layout_inspector_skia_java_proto/232.1.23.0/layout_inspector_skia_java_proto-232.1.23.0.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

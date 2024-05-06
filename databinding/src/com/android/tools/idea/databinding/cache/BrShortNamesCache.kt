@@ -43,16 +43,21 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val allFieldNamesCache: CachedValue<Array<String>>
 
   init {
-    allFieldNamesCache = CachedValuesManager.getManager(bindingFacetsProvider.project).createCachedValue(
-      {
-        val facets = bindingFacetsProvider.getDataBindingEnabledFacets()
-        val allFields = facets
-          .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
-          .flatMap { brClass -> brClass.allFieldNames.asIterable() }
-          .toTypedArray()
+    allFieldNamesCache =
+      CachedValuesManager.getManager(bindingFacetsProvider.project)
+        .createCachedValue(
+          {
+            val facets = bindingFacetsProvider.getDataBindingEnabledFacets()
+            val allFields =
+              facets
+                .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
+                .flatMap { brClass -> brClass.allFieldNames.asIterable() }
+                .toTypedArray()
 
-        CachedValueProvider.Result.create(allFields, bindingFacetsProvider)
-      }, false)
+            CachedValueProvider.Result.create(allFields, bindingFacetsProvider)
+          },
+          false
+        )
   }
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
@@ -60,7 +65,8 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
       return PsiClass.EMPTY_ARRAY
     }
 
-    return bindingFacetsProvider.getDataBindingEnabledFacets()
+    return bindingFacetsProvider
+      .getDataBindingEnabledFacets()
       .filter { facet -> scope.isSearchInModuleContent(facet.module) }
       .mapNotNull { facet -> LayoutBindingModuleCache.getInstance(facet).lightBrClass }
       .toTypedArray()
@@ -75,14 +81,20 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
     return PsiMethod.EMPTY_ARRAY
   }
 
-  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
+  override fun getMethodsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiMethod> {
     // BR files are only fields, no methods
     return PsiMethod.EMPTY_ARRAY
   }
 
-  override fun processMethodsWithName(name: String,
-                                      scope: GlobalSearchScope,
-                                      processor: Processor<in PsiMethod>): Boolean {
+  override fun processMethodsWithName(
+    name: String,
+    scope: GlobalSearchScope,
+    processor: Processor<in PsiMethod>
+  ): Boolean {
     // BR files are only fields, no methods
     return true
   }
@@ -106,7 +118,11 @@ class BrShortNamesCache(project: Project) : PsiShortNamesCache() {
     return allFieldNamesCache.value
   }
 
-  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
+  override fun getFieldsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }
 

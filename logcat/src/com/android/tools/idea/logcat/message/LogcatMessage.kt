@@ -18,9 +18,7 @@ package com.android.tools.idea.logcat.message
 import java.io.ObjectInput
 import java.io.ObjectOutput
 
-/**
- * A Logcat message.
- */
+/** A Logcat message. */
 data class LogcatMessage(val header: LogcatHeader, val message: String) {
   override fun toString(): String {
     return "$header: $message"

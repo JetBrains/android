@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
-/**
- * Fake implementation of [PackageNamesProvider] for tests.
- */
+/** Fake implementation of [PackageNamesProvider] for tests. */
 class FakePackageNamesProvider(vararg packageNames: String) : PackageNamesProvider {
   private val _packageNames = packageNames.toMutableSet()
 

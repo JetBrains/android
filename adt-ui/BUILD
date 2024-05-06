@@ -47,10 +47,3 @@ iml_module(
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
     ],
 )
-
-java_binary(
-    name = "baseline-images-generator",
-    testonly = True,
-    main_class = "com.android.tools.adtui.imagediff.BaselineImagesGenerator",
-    runtime_deps = [":intellij.android.adt.ui_testlib"],
-)

@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.template
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.AgpVersion
 import com.android.repository.Revision
-import com.android.tools.idea.npw.project.determineAgpVersion
 import com.android.tools.idea.npw.project.determineKotlinVersion
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.wizard.template.FormFactor
@@ -57,7 +56,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
   internal fun setEssentials(project: Project) {
     applicationName = project.name
     kotlinVersion = determineKotlinVersion(project)
-    agpVersion = determineAgpVersion(project)
     // If we create a new project, then we have a checkbox for androidX support
     if (!isNewProject) {
       androidXSupport = project.isAndroidx()
@@ -78,13 +76,6 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
 
     sdkDir = sdkHandler.location?.toFile()
-  }
-
-  /** Find the most appropriate Android Gradle Plugin version for the specified project. */
-  @Slow
-  private fun determineAgpVersion(project: Project): AgpVersion {
-    // Could be expensive to calculate, so return any cached value.
-    return agpVersion ?: determineAgpVersion(project, isNewProject)
   }
 
   @Slow

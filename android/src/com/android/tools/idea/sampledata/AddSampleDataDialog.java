@@ -19,11 +19,7 @@ import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 
 import com.android.ide.common.util.PathString;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.sampledata.datasource.CombinerDataSource;
-import com.android.tools.idea.sampledata.datasource.HardcodedContent;
-import com.android.tools.idea.sampledata.datasource.LoremIpsumGenerator;
-import com.android.tools.idea.sampledata.datasource.NumberGenerator;
-import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.android.tools.idea.sampledata.datasource.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -41,20 +37,15 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.ui.JBUI;
-import java.awt.Component;
-import java.awt.Font;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.function.Function;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
+import java.util.function.Function;
 
 public class AddSampleDataDialog extends DialogWrapper {
   private static final Logger LOG = Logger.getInstance(AddSampleDataDialog.class);

@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.compose.DESIGN_INFO_LIST_KEY
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneManager
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.PxBounds
-import com.android.tools.idea.compose.preview.designinfo.parseDesignInfoList
 import com.android.tools.idea.compose.preview.isEmpty
 import com.android.tools.idea.compose.preview.parseViewInfo
+import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.intellij.openapi.diagnostic.Logger
 
@@ -78,7 +76,7 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
 
   /** Walks the given list of [SceneComponent] for debugging displaying all children. */
   private fun debugResult(result: List<SceneComponent>, indent: Int = 0): List<SceneComponent> =
-    if (LOG.isDebugEnabled()) {
+    if (LOG.isDebugEnabled) {
       result
     } else {
       result.onEach {
@@ -97,23 +95,16 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
     val viewInfo = component.viewInfo ?: return listOf()
 
     if (LOG.isDebugEnabled) {
-      component.model.dataContext
-        .getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
-        ?.displaySettings
-        ?.name
-        ?.let { LOG.debug(" ${it} component=${component} model=${component.model}") }
+      component.model.dataContext.previewElement()?.displaySettings?.name?.let {
+        LOG.debug(" $it component=${component} model=${component.model}")
+      }
     }
 
-    val sceneComponents =
-      debugResult(
-        parseViewInfo(viewInfo, logger = LOG).flatMap {
-          it.mapToSceneComponent(manager, component, mutableSetOf())
-        }
-      )
-
-    sceneComponents.getOrNull(0)?.myCache?.put(DESIGN_INFO_LIST_KEY, parseDesignInfoList(viewInfo))
-
-    return sceneComponents
+    return debugResult(
+      parseViewInfo(viewInfo, logger = LOG).flatMap {
+        it.mapToSceneComponent(manager, component, mutableSetOf())
+      }
+    )
   }
 
   // We do not sync information from the NlComponents back to SceneComponents in Compose

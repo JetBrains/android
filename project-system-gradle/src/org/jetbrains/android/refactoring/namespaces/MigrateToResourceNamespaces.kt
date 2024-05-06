@@ -56,7 +56,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
-import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
@@ -70,6 +69,7 @@ import org.jetbrains.android.dom.converters.AttrNameConverter
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.refactoring.AndroidGradleBaseRefactoringAction
 import org.jetbrains.android.refactoring.module
 import org.jetbrains.android.refactoring.offerToCreateBackupAndRun
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
@@ -80,14 +80,15 @@ import org.jetbrains.android.util.AndroidBundle
  *
  * Decides if the refactoring is available and constructs the right [MigrateToResourceNamespacesHandler] object if it is.
  */
-class MigrateToResourceNamespacesAction : BaseRefactoringAction() {
+class MigrateToResourceNamespacesAction : AndroidGradleBaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext) = MigrateToResourceNamespacesHandler()
   override fun isHidden() = StudioFlags.MIGRATE_TO_RESOURCE_NAMESPACES_REFACTORING_ENABLED.get().not()
   override fun isAvailableInEditorOnly() = false
   override fun isAvailableForLanguage(language: Language?) = true
 
   override fun isEnabledOnDataContext(dataContext: DataContext) = isEnabledOnModule(dataContext.module)
-  override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnModule(ModuleUtil.findModuleForPsiElement(elements.first()))
+  override fun isEnabledOnElements(elements: Array<PsiElement>) = elements.firstOrNull()
+    ?.let { isEnabledOnModule(ModuleUtil.findModuleForPsiElement(it)) } ?: false
 
   private fun isEnabledOnModule(module: Module?): Boolean {
     return StudioResourceRepositoryManager.getInstance(module ?: return false)?.namespacing == ResourceNamespacing.DISABLED
@@ -335,7 +336,7 @@ class MigrateToResourceNamespacesProcessor(
             }
             val namespace = findOrCreateNamespacePrefix(tag, inferredPackage)
             val resourceValue = usageInfo.resourceValue
-            val newStringValue = usageInfo.converter.convertToString(
+            val newStringValue = usageInfo.converter.doToString(
               ResourceValue.referenceTo(
                 resourceValue.prefix,
                 namespace,

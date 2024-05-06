@@ -1,6 +1,12 @@
 <component name="libraryTable">
   <library name="JUnit4" type="repository">
-    <properties maven-id="junit:junit:4.13.2" />
+    <properties include-transitive-deps="false" maven-id="junit:junit:4.13.2">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/junit/junit/4.13.2/junit-4.13.2.jar">
+          <sha256sum>ec96c0b2d26d157dd239d3a6a029dec60d0bf8ec994db52a485182496483cfb8</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/junit/junit/4.13.2/junit-4.13.2.jar!/" />
     </CLASSES>

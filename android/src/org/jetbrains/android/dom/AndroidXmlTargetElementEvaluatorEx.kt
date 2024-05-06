@@ -24,13 +24,14 @@ import com.intellij.psi.PsiFile
 /**
  * Extends the functionality of [XmlTargetElementEvaluator].
  *
- * This is necessary because Android resource references in XML start with the '@' symbol, which is not included in the default
- * implementation for Java identifiers, @see [Character.isJavaIdentifierPart], but remains part of the resource reference.
+ * This is necessary because Android resource references in XML start with the '@' symbol, which is
+ * not included in the default implementation for Java
+ * identifiers, @see [Character.isJavaIdentifierPart], but remains part of the resource reference.
  */
 class AndroidXmlTargetElementEvaluatorEx : XmlTargetElementEvaluator(), TargetElementEvaluatorEx {
   override fun isIdentifierPart(file: PsiFile, text: CharSequence, offset: Int): Boolean {
     val character = text[offset]
-     return if (file.androidFacet != null) {
+    return if (file.androidFacet != null) {
       Character.isJavaIdentifierPart(character) || character == '@'
     } else {
       Character.isJavaIdentifierPart(character)

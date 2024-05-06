@@ -106,14 +106,13 @@ open class GridSurfaceLayoutManager(
     scaleFunc: PositionableContent.() -> Double,
     @SwingCoordinate widthFunc: PositionableContent.() -> Int
   ): List<List<PositionableContent>> {
-    val visibleContent = content.filter { it.isVisible }
-    if (visibleContent.isEmpty()) {
+    if (content.isEmpty()) {
       return listOf(emptyList())
     }
     val startX = horizontalPadding
     val gridList = mutableListOf<List<PositionableContent>>()
 
-    val firstView = visibleContent.first()
+    val firstView = content.first()
     var nextX =
       startX +
         firstView.widthFunc() +
@@ -121,7 +120,7 @@ open class GridSurfaceLayoutManager(
         horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
-    for (view in visibleContent.drop(1)) {
+    for (view in content.drop(1)) {
       // The full width is the view width + any horizontal margins
       val totalWidth = view.widthFunc() + view.getMargin(view.scaleFunc()).horizontal
       if (nextX + totalWidth > availableWidth) {
@@ -264,9 +263,6 @@ open class GridSurfaceLayoutManager(
     var maxBottomInRow = 0
     for (row in grid) {
       for (view in row) {
-        if (!view.isVisible) {
-          continue
-        }
         positionMap[view] = Point(nextX + view.margin.left, nextY)
         nextX += view.scaledContentSize.width + horizontalViewDelta + view.margin.horizontal
         maxBottomInRow =
@@ -276,7 +272,7 @@ open class GridSurfaceLayoutManager(
       nextY = maxBottomInRow + verticalViewDelta
     }
 
-    return positionMap + content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
+    return positionMap
   }
 
   /**

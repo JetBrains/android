@@ -15,21 +15,18 @@
  */
 package com.android.tools.idea.execution.common.deploy
 
-import com.android.ddmlib.IDevice
 import com.android.tools.deployer.model.Apk
 import com.android.tools.deployer.model.App
 import com.android.tools.manifest.parser.XmlNode
 import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
-import com.android.utils.NullLogger
 
-fun createApp(
-  device: IDevice, appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
+fun createApp(appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
 ): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
   val apk = Apk.Builder().setServices(services).setActivities(activities).build()
-  return App(appId, listOf(apk), device, NullLogger())
+  return App.fromApk(appId, apk)
 }
 
 private fun createManifestServiceInfo(

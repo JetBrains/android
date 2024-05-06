@@ -3,43 +3,39 @@
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="true">
     <exclude-output />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module" module-name="android.sdktools.chunkio" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-pixelprobe" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.26.0/studio.android.sdktools.pixelprobe-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/232.1.23.0/studio.android.sdktools.pixelprobe-232.1.23.0.jar">
               <sha256sum>aa879ff4482de9f41c25081598c1000bb551de587a611caec82cae2e5be89182</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.26.0/studio.android.sdktools.pixelprobe-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/232.1.23.0/studio.android.sdktools.pixelprobe-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe/231.0.26.0/studio.android.sdktools.pixelprobe-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-pixelprobe-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.pixelprobe_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.26.0/studio.android.sdktools.pixelprobe_test-231.0.26.0.jar">
-              <sha256sum>6255807e8284beccd3dfb31d82f76f4092a449a9d7965b258fff2918e8473313</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/232.1.23.0/studio.android.sdktools.pixelprobe_test-232.1.23.0.jar">
+              <sha256sum>6d7fd3059f53cc60f3cd6e0a483421fd510fa17cd85620566e1657b3aafd7f74</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.26.0/studio.android.sdktools.pixelprobe_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/232.1.23.0/studio.android.sdktools.pixelprobe_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.pixelprobe_test/231.0.26.0/studio.android.sdktools.pixelprobe_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="android.sdktools.chunkio" />
   </component>
 </module>

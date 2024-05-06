@@ -108,7 +108,7 @@ class JarManagerUtilTest {
     val jarFilePath = createSampleJarFile()
 
     run {
-      val jarManagerNoPrefetch = JarManager.withCache()
+      val jarManagerNoPrefetch = JarManager()
       assertEquals(
         "contents1",
         String(jarManagerNoPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!)
@@ -127,7 +127,7 @@ class JarManagerUtilTest {
     }
 
     run {
-      val jarManagerPrefetch = JarManager.withCache()
+      val jarManagerPrefetch = JarManager()
       assertEquals(
         "contents1",
         String(jarManagerPrefetch.loadFileFromJar(URI("jar:file:$jarFilePath!/file1"))!!)
@@ -191,6 +191,24 @@ class JarManagerUtilTest {
         .trimIndent(),
       backingMap.entries.first().value.keys.sorted().joinToString("\n")
     )
+  }
+
+  @Test
+  fun `check no-preload cache misses`() {
+    val jarFilePath = createSampleJarFile()
+    var cacheMisses = 0
+    val jarManager = JarManager.forTesting(maxPrefetchFileSizeBytes = 0L) { cacheMisses++ }
+
+    assertEquals(
+      "contents1",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+    )
+
+    assertEquals(
+      "contents2",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file2"))!!)
+    )
+    assertEquals(2, cacheMisses)
   }
 
   @Test
@@ -277,5 +295,46 @@ class JarManagerUtilTest {
       String(jarManager.loadFileFromJar(URI("jar:file:/$bannedJar2!/file1"))!!)
     )
     assertEquals("bannedJar1.jar,bannedJar2.jar", jarManager.getSortedPrefetchBannedJars())
+  }
+
+  /**
+   * Verifies that JAR replacement does not cause an exception when trying to update the cache.
+   * Regression test for b/308140478.
+   */
+  @Test
+  fun `check cache load after eviction`() {
+    val backingMap = mutableMapOf<String, EntryCache>()
+    val cache = MapCache(backingMap)
+    val jarManager = JarManager.forTesting(jarFileCache = cache)
+
+    val outDirectory = Files.createTempDirectory("out")
+    val jarFile = outDirectory.resolve("content1.jar")
+    // Single file jars in the past would trigger a specific code path
+    // that would end up generating unexpectedly an immutable cache map
+    // that would throw.
+    // Create a sample jar file with 1 file that we will replace after it's
+    // been loaded.
+    val jarFilePath = createJarFile(
+      jarFile,
+      mapOf(
+        "file1" to "contents1".encodeToByteArray(),
+      )
+    )
+
+    assertEquals(
+      "contents1",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file1"))!!)
+    )
+
+    createJarFile(
+      jarFile,
+      mapOf(
+        "file3" to "contents3".encodeToByteArray(),
+      )
+    )
+    assertEquals(
+      "contents3",
+      String(jarManager.loadFileFromJar(URI("jar:file:/$jarFilePath!/file3"))!!)
+    )
   }
 }

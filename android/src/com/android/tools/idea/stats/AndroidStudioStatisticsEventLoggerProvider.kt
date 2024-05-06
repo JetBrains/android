@@ -20,6 +20,7 @@ import com.intellij.internal.statistic.eventLog.StatisticsEventLoggerProvider
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant
 import com.intellij.openapi.application.ApplicationManager
 
+@Suppress("UnstableApiUsage")
 class AndroidStudioStatisticsEventLoggerProvider : StatisticsEventLoggerProvider("FUS", 1, DEFAULT_SEND_FREQUENCY_MS, DEFAULT_MAX_FILE_SIZE_BYTES) {
   override val logger: StatisticsEventLogger by lazy { createLogger() }
 

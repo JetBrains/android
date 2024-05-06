@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -66,7 +66,9 @@ abstract class InspectorTests {
     """
           .trimIndent()
       )
-    invokeAndWaitIfNeeded { psiFilePointer = SmartPointerManager.createPointer(psiFile) }
+    ApplicationManager.getApplication().invokeAndWait {
+      psiFilePointer = SmartPointerManager.createPointer(psiFile)
+    }
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(true)
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATED_CONTENT.override(true)
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_INFINITE_TRANSITION.override(true)

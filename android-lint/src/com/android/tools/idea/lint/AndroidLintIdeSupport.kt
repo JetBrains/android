@@ -179,7 +179,10 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
   override fun canAnalyze(project: Project): Boolean {
     // Only run in Android projects. This is relevant when the Android plugin is
     // enabled in IntelliJ.
-    return ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+    if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) {
+      return false
+    }
+    return true
   }
 
   // Projects
@@ -277,6 +280,7 @@ open class AndroidLintIdeSupport : LintIdeSupport() {
   override fun canRequestFeedback(): Boolean = ProvideLintFeedbackPanel.canRequestFeedback()
 
   override fun requestFeedbackFix(issue: Issue): LocalQuickFix = ProvideLintFeedbackFix(issue.id)
+
   override fun requestFeedbackIntentionAction(issue: Issue): IntentionAction =
     ProvideLintFeedbackIntentionAction(issue.id)
 

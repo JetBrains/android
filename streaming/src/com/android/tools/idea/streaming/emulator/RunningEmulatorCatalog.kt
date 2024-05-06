@@ -46,6 +46,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.Pattern
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.io.path.deleteIfExists
 import kotlin.math.max
 import kotlin.math.min
 
@@ -376,6 +377,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
       for (emulator in emulators) {
         if (emulator.emulatorId.isEmbedded) {
           emulator.shutdown()
+          registrationDirectory?.resolve(emulator.emulatorId.registrationFileName)?.deleteIfExists()
         }
       }
     }

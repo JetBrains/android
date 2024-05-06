@@ -19,17 +19,24 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import javax.swing.JComponent
+import com.intellij.openapi.diagnostic.Logger
 
 object ProfilerBuildAndLaunch {
+  private fun getLogger() = Logger.getInstance(ProfilerBuildAndLaunch::class.java)
+
   @JvmStatic
-  fun buildAndLaunchAction(profileableMode: Boolean, component: JComponent) {
+  fun buildAndLaunchAction(profileableMode: Boolean) {
     val action = if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
-    doBuildAndLaunchAction(action, component)
+    doBuildAndLaunchAction(action)
   }
 
-  private fun doBuildAndLaunchAction(action: AnAction, component: JComponent) {
-    val event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, DataManager.getInstance().getDataContext(component))
-    action.actionPerformed(event)
+  private fun doBuildAndLaunchAction(action: AnAction) {
+    // This is the only way to acquire the data context without providing a JComponent or AnActionEvent.
+    DataManager.getInstance().dataContextFromFocusAsync.onSuccess {
+      val event = AnActionEvent.createFromAnAction(action, null, ActionPlaces.UNKNOWN, it)
+      action.actionPerformed(event)
+    }.onError {
+      getLogger().error(it.message)
+    }
   }
 }

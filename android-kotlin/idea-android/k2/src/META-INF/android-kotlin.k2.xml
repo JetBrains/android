@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright (C) 2023 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.K2AndroidKotlinResourceExternalAnnotator" />
+    <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.K2TypeParameterFindViewByIdInspection"
+                     displayName="Cast can be converted to findViewById with type parameter"
+                     groupName="Kotlin Android"
+                     enabledByDefault="true"
+                     cleanupTool="true"
+                     level="WEAK WARNING"
+                     language="kotlin" />
+    <intentionAction>
+        <language>kotlin</language>
+        <className>org.jetbrains.kotlin.android.intention.K2KotlinAndroidAddStringResourceIntention</className>
+        <category>Kotlin Android</category>
+    </intentionAction>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.quickfix.K2AndroidViewConstructorFixRegistrar"/>
+    <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.quickfix.K2CreateResourceQuickFixRegistrar"/>
+  </extensions>
+</idea-plugin>

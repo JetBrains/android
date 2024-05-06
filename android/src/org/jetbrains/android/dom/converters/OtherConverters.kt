@@ -33,13 +33,17 @@ class StyleItemConverter : WrappingConverter() {
     val attributeName = (element as StyleItem).name
     val psiElement = attributeName.xmlAttribute ?: return null
 
-    // Use the DOM for finding the module+facet, as for AAR sources this will be one of the consuming modules and not null.
+    // Use the DOM for finding the module+facet, as for AAR sources this will be one of the
+    // consuming modules and not null.
     val facet = element.androidFacet ?: return null
 
     val name = attributeName.stringValue.nullize(nullizeSpaces = true) ?: return null
     val reference = ResourceUrl.parseAttrReference(name)?.resolve(psiElement) ?: return null
-    val resourceManager = ModuleResourceManagers.getInstance(facet).getResourceManager(reference.namespace.packageName) ?: return null
-    val attrDefinition = resourceManager.attributeDefinitions?.getAttrDefinition(reference) ?: return null
+    val resourceManager =
+      ModuleResourceManagers.getInstance(facet).getResourceManager(reference.namespace.packageName)
+        ?: return null
+    val attrDefinition =
+      resourceManager.attributeDefinitions?.getAttrDefinition(reference) ?: return null
 
     return AndroidDomUtil.getConverter(attrDefinition)
   }
@@ -48,12 +52,12 @@ class StyleItemConverter : WrappingConverter() {
 /**
  * Adapts a given [Converter] to treat any string starting with '@' as a string resource reference.
  */
-class StringResourceAdapterConverter(private val innerConverter: Converter<*>) : WrappingConverter() {
+class StringResourceAdapterConverter(private val innerConverter: Converter<*>) :
+  WrappingConverter() {
   override fun getConverter(domElement: GenericDomValue<*>): Converter<*> {
     return if (domElement.rawText?.startsWith('@') == true) {
       ResourceReferenceConverter(ResourceType.STRING, true, true)
-    }
-    else {
+    } else {
       innerConverter
     }
   }

@@ -16,7 +16,7 @@
 package com.android.tools.asdriver.tests
 
 import com.android.SdkConstants
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.utils.time.TimeSource
 import com.android.utils.time.toDurationUnit
 import java.io.FileWriter
@@ -24,6 +24,8 @@ import java.io.IOException
 import java.lang.ProcessBuilder.Redirect.appendTo
 import java.nio.file.Files
 import java.nio.file.Path
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MICROSECONDS
 import java.util.regex.Matcher
@@ -44,7 +46,12 @@ class Adb private constructor(
   override fun close() {
     when(process) {
       null -> runCommand("kill-server")
-      else -> if (process.isAlive) process.destroy()
+      else -> {
+        if (process.isAlive) process.destroy()
+        val footer = "=== Stream closed at: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ==="
+        FileWriter(stdout.toString(), true).use { it.write(footer) }
+        FileWriter(stderr.toString(), true).use { it.write(footer) }
+      }
     }
   }
 
@@ -136,7 +143,7 @@ class Adb private constructor(
       val logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "adb_logs")
       val stdout = logsDir.resolve("stdout.txt").also { Files.createFile(it) }
       val stderr = logsDir.resolve("stderr.txt").also { Files.createFile(it) }
-      val header = "=== $stdout ${params.joinToString("-")} ${System.currentTimeMillis()} ===\n"
+      val header = "=== $stdout ${params.joinToString("-")} ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SS").format(Date())} ===\n"
       FileWriter(stdout.toString()).use { it.write(header) }
       FileWriter(stderr.toString()).use { it.write(header) }
       val command = listOf(sdk.sourceDir.resolve(SdkConstants.FD_PLATFORM_TOOLS).resolve(SdkConstants.FN_ADB).toString()) + params

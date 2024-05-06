@@ -67,7 +67,7 @@ private class CoroutineDebuggerConfigurableUi : ConfigurableUi<CoroutineDebugger
   }
 
   override fun isModified(settings: CoroutineDebuggerSettings): Boolean {
-    return coroutineDebuggerEnabledCheckbox.isSelected != settings.isCoroutineDebuggerEnabled()
+    return coroutineDebuggerEnabledCheckbox.isSelected != settings.isCoroutineDebuggerEnabled();
   }
 
   override fun apply(settings: CoroutineDebuggerSettings) {

@@ -20,13 +20,15 @@ fun baselineProfileGeneratorKt(
   pluginTaskName: String,
   className: String,
   packageName: String,
-  targetPackageName: String
+  targetPackageName: String,
+  useInstrumentationArgumentForAppId: Boolean
 ): String {
   return """package $packageName
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+${if (useInstrumentationArgumentForAppId) "import androidx.test.platform.app.InstrumentationRegistry" else ""}
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,10 +40,10 @@ import org.junit.runner.RunWith
  * Refer to the [baseline profile documentation](https://d.android.com/topic/performance/baselineprofiles)
  * for more information.
  *
- * You can run the generator with the Generate Baseline Profile run configuration,
- * or directly with `generateBaselineProfile` Gradle task:
+ * You can run the generator with the "Generate Baseline Profile" run configuration in Android Studio or
+ * the equivalent `generateBaselineProfile` gradle task:
  * ```
- * ./gradlew :$targetModuleName:$pluginTaskName -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+ * ./gradlew :$targetModuleName:$pluginTaskName
  * ```
  * The run configuration runs the Gradle task and applies filtering to run only the generators.
  *
@@ -49,6 +51,10 @@ import org.junit.runner.RunWith
  * for more information about available instrumentation arguments.
  *
  * After you run the generator, you can verify the improvements running the [StartupBenchmarks] benchmark.
+ *
+ * When using this class to generate a baseline profile, only API 33+ or rooted API 28+ are supported.
+ *
+ * The minimum required version of androidx.benchmark to generate a baseline profile is 1.2.0.
  **/
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -59,10 +65,15 @@ class $className {
 
     @Test
     fun generate() {
-        rule.collect("$targetPackageName") {
+        ${if (useInstrumentationArgumentForAppId) "// The application id for the running build variant is read from the instrumentation arguments." else "// This example works only with the variant with application id `$targetPackageName`.\""}
+        rule.collect(
+            packageName = ${if (useInstrumentationArgumentForAppId) "InstrumentationRegistry.getArguments().getString(\"targetAppId\") ?: throw Exception(\"targetAppId not passed as instrumentation runner arg\")" else "\"$targetPackageName\""},
+
+            // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+            includeInStartupProfile = true
+        ) {
             // This block defines the app's critical user journey. Here we are interested in
-            // optimizing for app startup. But you can also navigate and scroll
-            // through your most important UI.
+            // optimizing for app startup. But you can also navigate and scroll through your most important UI.
 
             // Start default activity for your app
             pressHome()

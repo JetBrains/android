@@ -26,8 +26,8 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.res.LocalResourceRepository;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -51,7 +51,7 @@ import org.jetbrains.annotations.TestOnly;
  * the repository contents are fetched from the Gradle model rather than by analyzing XML files as is done by the other resource
  * repositories.
  */
-public class DynamicValueResourceRepository extends LocalResourceRepository implements Disposable, SingleNamespaceResourceRepository {
+public class DynamicValueResourceRepository extends LocalResourceRepository<VirtualFile> implements Disposable, SingleNamespaceResourceRepository {
   private final AndroidFacet myFacet;
   @NotNull private final ResourceNamespace myNamespace;
   @SuppressWarnings("InstanceGuardedByStatic")
@@ -132,7 +132,7 @@ public class DynamicValueResourceRepository extends LocalResourceRepository impl
       ResourceType type = field.getType();
       ListMultimap<String, ResourceItem> map = myResourceTable.get(type);
       if (map == null) {
-        map = ArrayListMultimap.create();
+        map = LinkedListMultimap.create();
         myResourceTable.put(type, map);
       }
       else if (map.containsKey(name)) {

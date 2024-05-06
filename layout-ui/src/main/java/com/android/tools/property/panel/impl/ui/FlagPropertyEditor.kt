@@ -35,9 +35,7 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
-import java.awt.Color
 import java.awt.Component
 import java.awt.DefaultFocusTraversalPolicy
 import java.awt.Dimension
@@ -240,14 +238,10 @@ class FlagPropertyPanel(
     for (index in 0 until innerPanel.componentCount) {
       val component = innerPanel.getComponent(index) as? JBCheckBox ?: continue
       component.isSelected = editorModel.isSelected(component.text)
-      component.foreground = getForegroundColor(editorModel.isEnabled(component.text))
+      component.isEnabled = editorModel.isEnabled(component.text)
       component.isVisible = editorModel.isVisible(component.text)
     }
     flagDivider.isVisible = editorModel.flagDividerVisible
-  }
-
-  private fun getForegroundColor(enabled: Boolean): Color? {
-    return if (enabled) UIUtil.getLabelTextForeground() else UIUtil.getLabelDisabledForeground()
   }
 }
 

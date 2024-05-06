@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
@@ -41,8 +41,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.anyString
 import org.mockito.Mockito.isNull
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import java.util.concurrent.Future
@@ -117,7 +117,9 @@ class LambdaParameterItemTest {
     val lookup =
       object : ViewNodeAndResourceLookup {
         override val resourceLookup = ResourceLookup(projectRule.project)
+
         override fun get(id: Long): ViewNode? = null
+
         override val selection: ViewNode? = null
       }
     return LambdaParameterItem(

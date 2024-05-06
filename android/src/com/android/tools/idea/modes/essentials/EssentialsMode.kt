@@ -50,7 +50,7 @@ class EssentialsMode {
 
     @JvmStatic
     fun isEnabled(): Boolean {
-      return RegistryManager.getInstance().`is`(REGISTRY_KEY);
+      return RegistryManager.getInstance().`is`(REGISTRY_KEY)
     }
 
     @JvmStatic
@@ -97,8 +97,9 @@ class EssentialsMode {
     }
 
     fun trackEvent(value: Boolean) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setEssentialsModeEvent(
-        EssentialsModeEvent.newBuilder().setEnabled(value)))
+      UsageTracker.log(AndroidStudioEvent.newBuilder()
+                         .setKind(AndroidStudioEvent.EventKind.ESSENTIALS_MODE_EVENT)
+                         .setEssentialsModeEvent(EssentialsModeEvent.newBuilder().setEnabled(value)))
     }
   }
 }

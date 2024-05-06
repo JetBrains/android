@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.getTestStartTime
 import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
@@ -43,12 +41,6 @@ class ImportTestGroup(
 
   private val timestampMap: MutableMap<File, IntelliJStandardTestHistoryTimestamp> = ConcurrentCollectionFactory.createConcurrentMap()
 
-  // TODO(b/244935095): remove when getChildren() no longer expects/requires @UiThread
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.EDT
-  }
-
-  @UiThread
   override fun getChildren(e: AnActionEvent?): Array<AnAction> {
     val project = e?.project ?: return EMPTY_ARRAY
     val actions: MutableMap<Long, AnAction> = sortedMapOf( compareByDescending { it } )
@@ -57,7 +49,6 @@ class ImportTestGroup(
     return actions.values.toTypedArray()
   }
 
-  @UiThread
   private fun getIntelliJStandardTestHistoryActions(project: Project): Sequence<Pair<Long, AnAction>> {
     val testHistoryRoot = TestStateStorage.getTestHistoryRoot(project)
     return TestHistoryConfiguration.getInstance(project).files.asSequence()

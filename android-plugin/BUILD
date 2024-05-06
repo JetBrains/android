@@ -16,6 +16,10 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
         "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector.gradle",
+        "//tools/adt/idea/profilers-android/gradle:intellij.android.profilersAndroid.gradle",
+        "//tools/adt/idea/app-inspection/ide/gradle:app-inspection.ide.gradle",
+        "//tools/adt/idea/nav/safeargs/common/gradle:intellij.android.nav.safeargs.common.gradle",
+        "//tools/adt/idea/native-symbolizer/gradle:native-symbolizer.gradle",
     ],
     # do not sort: must match IML order
     deps = [
@@ -63,10 +67,13 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module]",
         "//tools/adt/idea/device-manager:intellij.android.device-manager[module]",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module]",
+        "//tools/adt/idea/wear-whs:intellij.android.wear-whs[module]",
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2[module]",
         "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide[module]",
         "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module]",
+        "//tools/adt/idea/samples-browser[module]",
+        "//tools/adt/idea/native-symbolizer[module]",
     ],
 )

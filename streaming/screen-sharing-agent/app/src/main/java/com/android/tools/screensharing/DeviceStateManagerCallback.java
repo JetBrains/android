@@ -19,6 +19,7 @@ import android.hardware.devicestate.DeviceStateInfo;
 import android.hardware.devicestate.IDeviceStateManagerCallback;
 import android.os.IBinder;
 
+@SuppressWarnings("unused") // Called through JNI.
 public class DeviceStateManagerCallback extends IDeviceStateManagerCallback.Stub {
   @Override
   public native void onDeviceStateInfoChanged(DeviceStateInfo info);

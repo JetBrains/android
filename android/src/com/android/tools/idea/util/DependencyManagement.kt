@@ -19,8 +19,8 @@ package com.android.tools.idea.util
 
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.support.AndroidxName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -69,10 +69,7 @@ fun Module.dependsOn(artifactId: GoogleMavenArtifactId): Boolean {
 /**
  * Returns whether this module depends on the new support library artifacts (androidx).
  */
-fun Module.dependsOnAndroidx(): Boolean =
-  GoogleMavenArtifactId.values()
-    .filter { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
-    .any { dependsOn(it) }
+fun Module.dependsOnAndroidx(): Boolean = getModuleSystem().useAndroidX
 
 /**
  * Returns whether this module depends on the old support library artifacts (com.android.support).

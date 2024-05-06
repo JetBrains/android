@@ -68,8 +68,7 @@ enum class InspectorSection(val title: String) {
         super.update(event)
         event.presentation.isVisible =
           getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
-            ?.isInspectorSectionsActive
-            ?: false
+            ?.isInspectorSectionsActive ?: false
       }
     }
 }

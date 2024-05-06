@@ -19,12 +19,14 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 
 interface IrClassCache {
   operator fun get(name: String): IrClass?
+  operator fun contains(name: String): Boolean
 }
 
 class MutableIrClassCache : IrClassCache {
   private val cache = mutableMapOf<String, IrClass>()
 
   override operator fun get(name: String): IrClass? = cache[name]
+  override fun contains(name: String) = name in cache
 
   fun update(clazz: IrClass) {
     cache[clazz.name] = clazz

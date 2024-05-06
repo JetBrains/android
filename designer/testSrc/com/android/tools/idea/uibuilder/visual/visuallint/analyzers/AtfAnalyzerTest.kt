@@ -85,7 +85,7 @@ class AtfAnalyzerTest {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val nlModel =
       SyncNlModel.create(
-        projectRule.project,
+        projectRule.fixture.testRootDisposable,
         NlComponentRegistrar,
         null,
         facet,
@@ -104,8 +104,9 @@ class AtfAnalyzerTest {
           assertEquals("Duplicated clickable Views", it.message)
           assertEquals(
             "This clickable item has the same on-screen location ([0,0][358,96]) as 1 other item(s) with those " +
-              "properties.<br><br>Learn more at <a href=\"https://support.google.com/accessibility/android/answer/6378943\">" +
-              "https://support.google.com/accessibility/android/answer/6378943</a>",
+              "properties. Conflicting element(s): View app:id/button_in_clickable_parent.<br><br>Learn more at " +
+              "<a href=\"https://support.google.com/accessibility/android/answer/6378943\">https://support.google.com/" +
+              "accessibility/android/answer/6378943</a>",
             it.descriptionProvider.invoke(1).html
           )
         }

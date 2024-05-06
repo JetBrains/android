@@ -15,43 +15,67 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.getFieldValue;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Pair;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.WeakList;
+import it.unimi.dsi.fastutil.ints.Int2ByteMap;
+import it.unimi.dsi.fastutil.ints.Int2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.ToLongFunction;
 import org.jetbrains.annotations.NotNull;
 
 public class ExtendedReportStatistics {
+
+  // In the current configuration maximum value for NOMINATED_CLASSES_NUMBER_IN_SECTION is 4. If it's not enough please also change the
+  // type of RootPathElement#rootPathTreeNodeWasPropagated mask.
+  static final int NOMINATED_CLASSES_NUMBER_IN_SECTION = 3;
+  static final int NUMBER_OF_LOADERS_FOR_CLASS_NAME_THRESHOLD = 10;
+  private static final String CLASS_FQN = "java.lang.Class";
 
   @NotNull final List<ClusterHistogram> componentHistograms;
 
   @NotNull final List<CategoryHistogram> categoryHistograms;
 
   @NotNull final Long2ObjectMap<ClusterHistogram> sharedClustersHistograms;
+  @NotNull final Int2IntMap objectIdToMinDepth = new Int2IntOpenHashMap();
+  @NotNull final Int2ByteMap objectIdToMinDepthKind = new Int2ByteOpenHashMap();
+
+  @NotNull final Map<ComponentsSet.Component, ExceededClusterStatistics> componentToExceededClustersStatistics = Maps.newHashMap();
+  @NotNull final Int2ObjectMap<ExceededClusterStatistics> exceededClustersEnumeration = new Int2ObjectOpenHashMap<>();
+  @NotNull final Set<ClassLoader> globalNominatedClassLoaders = ContainerUtil.createWeakSet();
+  @NotNull final List<Pair<String, Integer>> duplicatedClassNamesAndNumberOfInstances = Lists.newArrayList();
 
   private int totalNumberOfDisposedButReferencedObjects = 0;
   private int totalDisposerTreeSize = 0;
 
-  final Int2ObjectMap<List<Integer>> categoryRootOwnershipSets = new Int2ObjectOpenHashMap<>();
-
   @NotNull
-  private final Map<String, ObjectsStatistics> disposedButReferencedObjectsClasses = new HashMap<>();
+  private final Map<String, ObjectsStatistics> disposedButReferencedObjectsClasses = Maps.newHashMap();
+  @NotNull
+  final RootPathTree rootPathTree = new RootPathTree(this);
+  @NotNull
+  final HeapTraverseConfig myConfig;
 
   public ExtendedReportStatistics(@NotNull final HeapTraverseConfig config) {
-    this.componentHistograms = new ArrayList<>();
-    this.categoryHistograms = new ArrayList<>();
+    myConfig = config;
+    this.componentHistograms = Lists.newArrayList();
+    this.categoryHistograms = Lists.newArrayList();
     this.sharedClustersHistograms = new Long2ObjectOpenHashMap<>();
 
     int componentIndex = 0;
@@ -67,30 +91,48 @@ public class ExtendedReportStatistics {
       componentCategoryIndex++;
     }
 
-    categoryRootOwnershipSets.put(0, Collections.emptyList());
+    int exceededComponentIndex = 0;
+    for (ComponentsSet.Component component : config.exceededComponents) {
+      ExceededClusterStatistics exceededClusterStatistics = new ExceededClusterStatistics(exceededComponentIndex++);
+      exceededClustersEnumeration.put(exceededClusterStatistics.exceededClusterIndex, exceededClusterStatistics);
+      componentToExceededClustersStatistics.put(component, exceededClusterStatistics);
+    }
   }
 
   void addClassNameToComponentOwnedHistogram(@NotNull final ComponentsSet.Component component,
                                              @NotNull final String className,
                                              long size,
-                                             boolean isRoot) {
-    componentHistograms.get(component.getId()).addObjectClassName(className, size, isRoot);
+                                             boolean isRoot,
+                                             boolean isDisposedButReferenced) {
+    componentHistograms.get(component.getId()).addObjectClassName(className, size, isRoot, isDisposedButReferenced);
   }
 
   void addClassNameToCategoryOwnedHistogram(@NotNull final ComponentsSet.ComponentCategory componentCategory,
                                             @NotNull final String className,
                                             long size,
-                                            boolean isRoot) {
-    categoryHistograms.get(componentCategory.getId()).addObjectClassName(className, size, isRoot);
+                                            boolean isRoot,
+                                            boolean isDisposedButReferenced) {
+    categoryHistograms.get(componentCategory.getId()).addObjectClassName(className, size, isRoot, isDisposedButReferenced);
   }
 
   public void addClassNameToSharedClusterHistogram(@NotNull final HeapSnapshotStatistics.SharedClusterStatistics sharedClusterStatistics,
                                                    @NotNull String className,
                                                    long size,
-                                                   boolean isMergePoint) {
+                                                   boolean isMergePoint,
+                                                   boolean isDisposedButReferenced) {
     sharedClustersHistograms.putIfAbsent(sharedClusterStatistics.componentsMask,
                                          new ClusterHistogram(ClusterHistogram.ClusterType.SHARED_CLUSTER));
-    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask).addObjectClassName(className, size, isMergePoint);
+    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask)
+      .addObjectClassName(className, size, isMergePoint, isDisposedButReferenced);
+  }
+
+  public void logClusterHistogram(@NotNull Consumer<String> writer,
+                                  @NotNull final ComponentsSet.Cluster cluster,
+                                  @NotNull final ExtendedReportStatistics.ClusterHistogram.ClusterType clusterType) {
+    switch (clusterType) {
+      case COMPONENT -> logComponentHistogram(writer, (ComponentsSet.Component)cluster);
+      case CATEGORY -> logCategoryHistogram(writer, (ComponentsSet.ComponentCategory)cluster);
+    }
   }
 
   public void logCategoryHistogram(@NotNull Consumer<String> writer, @NotNull final ComponentsSet.ComponentCategory componentCategory) {
@@ -125,72 +167,128 @@ public class ExtendedReportStatistics {
     }
   }
 
-  public void addOwnedObjectSizeToCategoryRoots(int categoryId, int hashCode, long currentObjectSize) {
-    if (!categoryRootOwnershipSets.containsKey(hashCode)) {
-      return;
+  public void calculateExtendedReportData(@NotNull final HeapTraverseConfig config,
+                                          @NotNull final FieldCache fieldCache,
+                                          @NotNull final MemoryReportCollector collector,
+                                          @NotNull final WeakList<Object> startRoots,
+                                          @NotNull final Map<String, ExtendedReportStatistics.ClassObjectsStatistics> nameToClassObjectsStatistics)
+    throws HeapSnapshotTraverseException {
+    if (config.collectDisposerTreeInfo) {
+      //noinspection UnstableApiUsage
+      Object objToNodeMap = getFieldValue(Disposer.getTree(), "myObject2ParentNode");
+      if (objToNodeMap instanceof Map) {
+        setDisposerTreeSize(((Map<?, ?>)objToNodeMap).size());
+      }
     }
-    CategoryHistogram categoryHistogram = categoryHistograms.get(categoryId);
 
-    for (int rootId : categoryRootOwnershipSets.get(hashCode)) {
-      categoryHistogram.addObjectOwnedByRoot(rootId, currentObjectSize);
+    for (Map.Entry<String, ClassObjectsStatistics> entry : nameToClassObjectsStatistics.entrySet()) {
+      if (entry.getValue().classLoaders.size() > NUMBER_OF_LOADERS_FOR_CLASS_NAME_THRESHOLD) {
+        globalNominatedClassLoaders.addAll(entry.getValue().classLoaders);
+        duplicatedClassNamesAndNumberOfInstances.add(Pair.create(entry.getKey(), entry.getValue().classObjects.size()));
+      }
     }
-  }
 
-  public void addOwnedObjectSizeToComponentRoots(@NotNull final ComponentsSet.Component component,
-                                                 int hashCode,
-                                                 long currentObjectSize) {
-    if (!categoryRootOwnershipSets.containsKey(hashCode)) {
-      return;
+    for (ComponentsSet.Component component : config.exceededComponents) {
+      ClusterHistogram histogram = componentHistograms.get(component.getId());
+      ExceededClusterStatistics exceededClusterStatistics = componentToExceededClustersStatistics.get(component);
+
+      // Classes with the highest objects count owned by the exceeded component
+      addNominatedClassesFromHistogram(exceededClusterStatistics, histogram.histogram,
+                                       (Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount());
+      // Classes with the highest total size owned by the exceeded component
+      addNominatedClassesFromHistogram(exceededClusterStatistics, histogram.histogram,
+                                       (Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getTotalSizeInBytes());
+
+      // Exceeded component root classes with the highest number of instances
+      addNominatedClassesFromHistogram(exceededClusterStatistics, histogram.rootHistogram,
+                                       (Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount());
     }
-    List<Integer> rootIds = categoryRootOwnershipSets.get(hashCode);
-    CategoryHistogram categoryHistogram = categoryHistograms.get(component.getComponentCategory().getId());
 
-    for (int rootId : rootIds) {
-      Pair<Integer, Integer> componentAndRootId = categoryHistogram.categoryRootIdToComponentRootId.get(rootId);
-      if (componentAndRootId == null || componentAndRootId.first != component.getId()) {
+    DepthFirstSearchTraverse.ExtendedReportCollectionTraverse traverse =
+      new DepthFirstSearchTraverse.ExtendedReportCollectionTraverse(fieldCache, collector, this);
+    WeakList<Object> firstTraverseRoots = new WeakList<>();
+    WeakList<Object> nominatedLoadersRoots = new WeakList<>();
+
+    for (Object root : startRoots) {
+      if (root == null) {
         continue;
       }
-      componentHistograms.get(componentAndRootId.first).addObjectOwnedByRoot(componentAndRootId.second, currentObjectSize);
+      ClassLoader cl;
+      if(root instanceof Class) {
+        cl = ((Class<?>)root).getClassLoader();
+      } else if (root instanceof ClassLoader) {
+        cl = (ClassLoader)root;
+      }
+      else {
+        firstTraverseRoots.add(root);
+        continue;
+      }
+
+      if (cl != null && (globalNominatedClassLoaders.contains(cl) ||
+                         componentToExceededClustersStatistics.values().stream().anyMatch(a -> a.isClassLoaderNominated(cl)))) {
+        nominatedLoadersRoots.add(root);
+      }
+      else {
+        firstTraverseRoots.add(root);
+      }
     }
+
+    traverse.start(firstTraverseRoots);
+    traverse.disableClassLoaderTracking();
+    traverse.start(nominatedLoadersRoots);
   }
 
-  private static int getHashCode(@NotNull final List<Integer> elements) {
-    int result = 1;
-    for (int element : elements) {
-      result = 239017 * result + element;
+  /**
+   *  Sort classes from the histogram using the specified {@param extractorForComparator} and register top
+   *  {@code NOMINATED_CLASSES_NUMBER_IN_SECTION} of them as nominated classes.
+   */
+  private void addNominatedClassesFromHistogram(@NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                                                @NotNull final Map<String, ObjectsStatistics> histogram,
+                                                @NotNull final ToLongFunction<Map.Entry<String, ObjectsStatistics>> extractorForComparator) {
+    histogram.entrySet().stream().filter(e -> !CLASS_FQN.equals(e.getKey())).sorted(
+        Comparator.comparingLong(extractorForComparator).reversed())
+      .limit(NOMINATED_CLASSES_NUMBER_IN_SECTION).forEach(e -> exceededClusterStatistics.addNominatedClass(e.getKey(), e.getValue()));
+  }
+
+  public void printExceededClusterStatisticsIfNeeded(@NotNull final Consumer<String> writer,
+                                                     @NotNull final ComponentsSet.Component component) {
+    ExceededClusterStatistics statistics = componentToExceededClustersStatistics.get(component);
+    List<Pair<String, ObjectsStatistics>> nominatedClassesInOrder = statistics.nominatedClassesTotalStatistics.entrySet().stream()
+      .sorted(Comparator.comparingInt((Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount()).reversed())
+      .map(e -> new Pair<>(e.getKey(), e.getValue())).toList();
+
+    ObjectsStatistics totalDisposedButReferencedObjectsStatistics = new ObjectsStatistics();
+    for (ObjectsStatistics value : componentHistograms.get(component.getId()).disposedButReferencedObjects.values()) {
+      totalDisposedButReferencedObjectsStatistics.addStats(value);
+    }
+    new RootPathTreePrinter.RootPathTreeDisposedObjectsPrinter(totalDisposedButReferencedObjectsStatistics, this,
+                                                               statistics).print(writer);
+
+    writer.accept("======== INSTANCES OF EACH NOMINATED CLASS ========");
+    writer.accept("Nominated classes:");
+    for (Pair<String, ObjectsStatistics> pair : nominatedClassesInOrder) {
+      writer.accept(
+        String.format(Locale.US, " --> [%s] %s", HeapTraverseUtil.getObjectsStatsPresentation(pair.second, OPTIMAL_UNITS), pair.first));
+    }
+    writer.accept("");
+
+    for (Pair<String, ObjectsStatistics> pair : nominatedClassesInOrder) {
+      writer.accept(String.format(Locale.US, "CLASS: %s (%d objects)", pair.first, pair.second.getObjectsCount()));
+      new RootPathTreePrinter.RootPathTreeNominatedTypePrinter(pair.second, this, statistics,
+                                                               statistics.nominatedClassesEnumeration.getInt(pair.first)).print(writer);
     }
 
-    return result;
+    new RootPathTreePrinter.RootPathTreeNominatedLoadersPrinter(rootPathTree.totalNominatedLoadersReferringObjectsStatistics, this,
+                                                                statistics).print(writer);
   }
 
-  public int getOwningRootsSetHashcode(int rootId) {
-    List<Integer> rootIdList = List.of(rootId);
-    int hashCode = getHashCode(rootIdList);
-    categoryRootOwnershipSets.putIfAbsent(hashCode, rootIdList);
-    return hashCode;
-  }
-
-  public int joinOwningRootsAndReturnHashcode(int hashcode1, int hashcode2) {
-    List<Integer> l1 = categoryRootOwnershipSets.get(hashcode1);
-    List<Integer> l2 = categoryRootOwnershipSets.get(hashcode2);
-    HashSet<Integer> join = new HashSet<>(l1);
-    join.addAll(l2);
-    List<Integer> joinList = join.stream().toList();
-    int hashCode = getHashCode(joinList);
-
-    categoryRootOwnershipSets.putIfAbsent(hashCode, joinList);
-    return hashCode;
-  }
-
-  static class CategoryHistogram extends ClusterHistogram {
-    @NotNull final Int2ObjectMap<Pair<Integer, Integer>> categoryRootIdToComponentRootId = new Int2ObjectOpenHashMap<>();
-
+  class CategoryHistogram extends ClusterHistogram {
     public CategoryHistogram() {
       super(ClusterType.CATEGORY);
     }
   }
 
-  static class ClusterHistogram {
+  class ClusterHistogram {
 
     enum ClusterType {
       COMPONENT,
@@ -198,12 +296,11 @@ public class ExtendedReportStatistics {
       SHARED_CLUSTER
     }
 
-    private final static int HISTOGRAM_PRINT_LIMIT = 50;
+    @NotNull final Map<String, ObjectsStatistics> disposedButReferencedObjects = Maps.newHashMap();
 
     @NotNull final Map<String, ObjectsStatistics> histogram =
-      new HashMap<>();
-    @NotNull final List<ClusterRootStatistics> rootHistograms = new ArrayList<>();
-    @NotNull final Map<String, Integer> rootClassNameToId = new HashMap<>();
+      Maps.newHashMap();
+    @NotNull final Map<String, ObjectsStatistics> rootHistogram = Maps.newHashMap();
 
     @NotNull
     private final ClusterType clusterType;
@@ -212,37 +309,30 @@ public class ExtendedReportStatistics {
       this.clusterType = clusterType;
     }
 
-    void registerClusterRootIfNeeded(@NotNull final String className) {
-      if (rootClassNameToId.containsKey(className)) {
-        return;
-      }
-      rootHistograms.add(new ClusterRootStatistics(className));
-      rootClassNameToId.put(className, rootClassNameToId.size());
-    }
-
-    public void addObjectClassName(@NotNull final String className, long size, boolean isRoot) {
+    public void addObjectClassName(@NotNull final String className, long size, boolean isRoot, boolean isDisposedButReferenced) {
       histogram.putIfAbsent(className, new ObjectsStatistics());
       histogram.get(className).addObject(size);
       if (isRoot) {
-        registerClusterRootIfNeeded(className);
-        rootHistograms.get(rootClassNameToId.get(className)).addObject(size);
+        rootHistogram.putIfAbsent(className, new ObjectsStatistics());
+        rootHistogram.get(className).addObject(size);
       }
-    }
 
-    public void addObjectOwnedByRoot(int rootId, long currentObjectSize) {
-      rootHistograms.get(rootId).addObjectToSubtree(currentObjectSize);
+      if (isDisposedButReferenced) {
+        disposedButReferencedObjects.putIfAbsent(className, new ObjectsStatistics());
+        disposedButReferencedObjects.get(className).addObject(size);
+      }
     }
 
     private boolean classNameIsStudioSource(@NotNull final String className) {
       return className.startsWith("com.android.") ||
-             HeapSnapshotTraverse.isPlatformObject(className);
+             MemoryReportCollector.isPlatformObject(className);
     }
 
     public void print(Consumer<String> writer) {
       writer.accept("      Histogram:");
       histogram.entrySet().stream()
         .sorted(Comparator.comparingLong((Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
-        .limit(HISTOGRAM_PRINT_LIMIT)
+        .limit(myConfig.histogramPrintLimit)
         .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
                                                   HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
                                                   e.getKey())));
@@ -250,7 +340,7 @@ public class ExtendedReportStatistics {
       writer.accept("      Studio objects histogram:");
       histogram.entrySet().stream().filter(e -> classNameIsStudioSource(e.getKey()))
         .sorted(Comparator.comparingLong((Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
-        .limit(HISTOGRAM_PRINT_LIMIT)
+        .limit(myConfig.histogramPrintLimit)
         .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
                                                   HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
                                                   e.getKey())));
@@ -260,15 +350,34 @@ public class ExtendedReportStatistics {
         case COMPONENT -> writer.accept("      Component roots histogram:");
         case SHARED_CLUSTER -> writer.accept("      Shared cluster merge-points histogram:");
       }
-      rootHistograms.stream()
+      rootHistogram.entrySet().stream()
         .sorted(
-          Comparator.comparingLong(
-            (ClusterRootStatistics a) -> a.getObjectsStatistics().getObjectsCount()).reversed())
-        .limit(HISTOGRAM_PRINT_LIMIT)
-        .forEach(e -> writer.accept(String.format(Locale.US, "        %s[%s]: %s",
-                                                  HeapTraverseUtil.getObjectsStatsPresentation(e.getObjectsStatistics(), OPTIMAL_UNITS),
-                                                  HeapTraverseUtil.getObjectsStatsPresentation(e.getSubtree(), OPTIMAL_UNITS),
-                                                  e.getRootObjectClassName())));
+          Comparator.comparingInt(
+            (Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getObjectsCount()).reversed())
+        .limit(myConfig.histogramPrintLimit)
+        .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
+                                                  HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
+                                                  e.getKey())));
+
+      if (!disposedButReferencedObjects.isEmpty()) {
+        writer.accept("      Disposed but strong referenced objects:");
+        disposedButReferencedObjects.entrySet().stream().sorted(
+            Comparator.comparingInt(
+              (Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getObjectsCount()).reversed())
+          .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
+                                                    HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
+                                                    e.getKey())));
+      }
+    }
+  }
+
+  static class ClassObjectsStatistics {
+    Set<ClassLoader> classLoaders;
+    Set<Class<?>> classObjects;
+
+    ClassObjectsStatistics() {
+      classLoaders = ContainerUtil.createWeakSet();
+      classObjects = ContainerUtil.createWeakSet();
     }
   }
 }

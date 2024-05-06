@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers.tasks
 
+import com.android.tools.profilers.taskbased.tasks.CreateProfilerTaskTabListener
+import com.android.tools.profilers.taskbased.tasks.OpenProfilerTaskTabListener
+import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.project.Project
 
 /**
@@ -23,13 +26,22 @@ import com.intellij.openapi.project.Project
 object ProfilerTaskTabs {
 
   /**
-   * Opens a Profiler tab for a specific task.
+   * Creates and opens a Profiler task tab for a specific task.
    *
    * @param project The project associated with the current Android Studio instance.
    * @param taskType The [ProfilerTaskType] that should be opened.
    * @param args A serialized representation of the arguments needed to open the requested task.
    */
-  fun open(project: Project, taskType: ProfilerTaskType, args: String? = null) {
-    project.messageBus.syncPublisher(OpenProfilerTaskListener.TOPIC).openProfilerTask(taskType, args)
+  fun create(project: Project, taskType: ProfilerTaskType, args: TaskArgs?) {
+    project.messageBus.syncPublisher(CreateProfilerTaskTabListener.TOPIC).createProfilerTaskTab(taskType, args)
+  }
+
+  /**
+   * Opens an existing Profiler task tab. There is at most one existing task tab at any time that can be opened.
+   *
+   * @param project The project associated with the current Android Studio instance.
+   */
+  fun open(project: Project) {
+    project.messageBus.syncPublisher(OpenProfilerTaskTabListener.TOPIC).openProfilerTaskTab()
   }
 }

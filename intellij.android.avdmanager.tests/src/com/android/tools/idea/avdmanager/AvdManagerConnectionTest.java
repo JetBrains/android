@@ -147,8 +147,8 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       hardwareProperties,
       false);
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1080");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2092");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
     assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
     assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
@@ -157,12 +157,12 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("884-0-1-2208");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1840-0-0-1840");
     assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
     assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
     assertThat(hardwareProperties.get(AVD_INI_RESIZABLE_CONFIG)).
-      isEqualTo("phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+      isEqualTo("phone-0-1080-2340-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
   }
 
   public void testFoldableAvds() {

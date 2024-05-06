@@ -96,9 +96,8 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
 
   override fun isShowActionsInTabs(): Boolean {
     // TextEditorWithPreview#getTabActions() is a ConditionalActionGroup that shows the actions when
-    // isShowActionsInTabs() returns true
-    // and hides them otherwise. This condition is checked on each action group update, which
-    // happens every 500ms. We need to override
+    // isShowActionsInTabs() returns true and hides them otherwise. This condition is checked on
+    // each action group update, which happens every 500ms. We need to override
     // the TextEditorWithPreview to include a check of isPureTextEditor because we want to hide the
     // actions in text-only mode.
     return super.isShowActionsInTabs() && !isPureTextEditor
@@ -108,10 +107,8 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(
   // persistent to the clients
   var isPureTextEditor: Boolean = true
     set(value) {
-      // Toolbar should be hidden if file the file is handled as pure-text, or if the controls are
-      // shown in a floating toolbar.
-      val shouldHideToolbar = value || isShowFloatingToolbar
-      toolbarComponent?.isVisible = !shouldHideToolbar
+      // Toolbar should be hidden if file the file is handled as pure-text
+      toolbarComponent?.isVisible = !value
       if (value) {
         setPureTextEditorVisibility()
         setEditorLayout(Layout.SHOW_EDITOR)

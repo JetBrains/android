@@ -22,12 +22,12 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.util.ui.UIUtil
+import java.nio.file.Files
+import java.nio.file.Path
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Files
-import java.nio.file.Path
 
 class CreateSampleDataDirectoryTest {
   @get:Rule val projectRule = AndroidProjectRule.onDisk()

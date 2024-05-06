@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.inspectors.network.view.details
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.borderLight
 import com.android.tools.adtui.ui.HideablePanel
 import com.intellij.icons.AllIcons
@@ -58,6 +57,7 @@ val PAGE_VGAP = scale(28)
 val SECTION_VGAP = scale(10)
 
 const val SECTION_TITLE_HEADERS = "Headers"
+const val SECTION_TITLE_TRAILERS = "Trailers"
 
 const val REGEX_TEXT = "Regex"
 
@@ -92,7 +92,7 @@ fun createHideablePanel(
 ): HideablePanel {
   return HideablePanel.Builder(title, content)
     .setNorthEastComponent(northEastComponent)
-    .setPanelBorder(JBUI.Borders.empty(10, 0, 0, 0))
+    .setPanelBorder(JBUI.Borders.emptyTop(10))
     .setContentBorder(JBUI.Borders.empty(10, 12, 0, 0))
     .setIsTitleBold(true)
     .build()
@@ -102,7 +102,7 @@ fun createHideablePanel(
  * Create a component that shows a list of key/value pairs and some additional margins. If there are
  * no values in the map, this returns a label indicating that no data is available.
  */
-fun createStyledMapComponent(map: Map<String, String>): JComponent {
+fun createStyledMapComponent(map: Map<String, List<String>>): JComponent {
   if (map.isEmpty()) {
     return JLabel("Not available")
   }
@@ -122,7 +122,7 @@ fun createStyledMapComponent(map: Map<String, String>): JComponent {
           BorderLayout.LINE_START
         )
         add(
-          WrappedTextArea(value).apply {
+          WrappedTextArea(if (value.size == 1) value.first() else value.toString()).apply {
             border = emptyBorder
             background = null
             isOpaque = false
@@ -137,22 +137,6 @@ fun createStyledMapComponent(map: Map<String, String>): JComponent {
   }
   mainJPanel.alignmentX = JPanel.LEFT_ALIGNMENT
   return mainJPanel
-}
-
-/**
- * Find a component by its name. If duplicate names are found, this will throw an exception.
- *
- * This utility method is meant to be used indirectly only for test purposes - names can be a
- * convenient way to expose child elements to tests to assert their state.
- *
- * Non-unique names throw an exception to help catch accidental copy/paste errors when initializing
- * names.
- */
-fun findComponentWithUniqueName(root: JComponent, name: String): JComponent? {
-  val matches =
-    TreeWalker(root).descendants().filter { component -> name == component.name }.toList()
-  check(matches.size <= 1) { "More than one component found with the name: $name" }
-  return if (matches.size == 1) matches[0] as JComponent else null
 }
 
 /**
@@ -187,7 +171,7 @@ fun createCategoryPanel(
   return panel
 }
 
-/** Create a [JBTextField] with preferred [width] and focus lost listener. */
+/** Create a [JBTextField] with preferred `width` and focus lost listener. */
 fun createTextField(
   initialText: String?,
   hintText: String,
@@ -245,6 +229,7 @@ class NoWrapBoldLabel(text: String) : JBLabel(text) {
   init {
     withFont(JBFont.label().asBold())
   }
+
   override fun setFont(ignored: Font?) {
     // ignore the input font and explicitly set the label font provided by JBFont
     super.setFont(JBFont.label().asBold())

@@ -22,14 +22,14 @@ import com.intellij.openapi.externalSystem.model.ProjectKeys;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService;
+import com.intellij.openapi.externalSystem.service.project.manage.AbstractModuleDataService;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DoNotUseLegacyJavaFacetRemover extends AbstractProjectDataService<ModuleData, Void> {
+public class DoNotUseLegacyJavaFacetRemover extends AbstractModuleDataService<ModuleData> {
 
   public DoNotUseLegacyJavaFacetRemover() { }
 

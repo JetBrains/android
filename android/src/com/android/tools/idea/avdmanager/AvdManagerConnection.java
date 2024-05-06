@@ -19,6 +19,9 @@ import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
+import static com.android.ide.common.rendering.HardwareConfigHelper.isRollable;
+import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
@@ -33,8 +36,6 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
@@ -121,6 +122,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
@@ -495,23 +497,31 @@ public class AvdManagerConnection {
     myAvdManager.stopAvd(info);
   }
 
-  public @NotNull ListenableFuture<IDevice> coldBoot(@NotNull Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
+  /**
+   * Starts the emulator without mounting a file to store or load state snapshots, forcing a full boot and disabling state snapshot
+   * functionality.
+   */
+  public @NotNull ListenableFuture<IDevice> coldBoot(@Nullable Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
     return startAvd(project, avd, requestType, ColdBootEmulatorCommandBuilder::new);
   }
 
-  public @NotNull ListenableFuture<IDevice> quickBoot(@NotNull Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
+  /** Starts the emulator, booting from the "default_boot" snapshot. */
+  public @NotNull ListenableFuture<IDevice> quickBoot(@Nullable Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
     return startAvd(project, avd, requestType, EmulatorCommandBuilder::new);
   }
 
+  /** Starts the emulator, booting from the given snapshot (specified as the directory name beneath "snapshots", not a full path). */
   public @NotNull ListenableFuture<IDevice> bootWithSnapshot(
-      @NotNull Project project, @NotNull AvdInfo avd, @NotNull String snapshot, @NotNull RequestType requestType) {
+      @Nullable Project project, @NotNull AvdInfo avd, @NotNull String snapshot, @NotNull RequestType requestType) {
     return startAvd(project, avd, requestType, (emulator, a) -> new BootWithSnapshotEmulatorCommandBuilder(emulator, a, snapshot));
   }
 
+  /** Boots the AVD, using its .ini file to determine the booting method. */
   public @NotNull ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull RequestType requestType) {
     return startAvd(project, info, requestType, new DefaultEmulatorCommandBuilderFactory());
   }
 
+  /** Performs a cold boot and saves the emulator state on exit. */
   public @NotNull ListenableFuture<IDevice> startAvdWithColdBoot(
       @Nullable Project project, @NotNull AvdInfo info, @NotNull RequestType requestType) {
     return startAvd(project, info, requestType, ColdBootNowEmulatorCommandBuilder::new);
@@ -526,7 +536,14 @@ public class AvdManagerConnection {
 
     String skinPath = info.getProperties().get(AVD_INI_SKIN_PATH);
     if (skinPath != null) {
-      DeviceSkinUpdater.updateSkins(mySdkHandler.toCompatiblePath(skinPath), null);
+      Path skin = mySdkHandler.toCompatiblePath(skinPath);
+      // For historical reasons skin.path in config.ini may be a path relative to SDK
+      // rather than its "skins" directory. Remove the "skins" prefix in that case.
+      if (!skin.isAbsolute() && skin.getNameCount() > 1 && skin.getName(0).toString().equals("skins")) {
+        skin = skin.subpath(1, skin.getNameCount());
+      }
+
+      DeviceSkinUpdater.updateSkin(skin, null);
     }
 
     // noinspection ConstantConditions, UnstableApiUsage
@@ -947,7 +964,7 @@ public class AvdManagerConnection {
       File skin = getRoundSkin(systemImageDescription);
       skinFolder = skin == null ? null : mySdkHandler.toCompatiblePath(skin);
     }
-    if (skinFolder != null && skinFolder.toString().equals(SkinUtils.NO_SKIN)) {
+    if (Objects.equals(skinFolder, SkinUtils.noSkin())) {
       skinFolder = null;
     }
     if (skinFolder == null) {
@@ -960,7 +977,7 @@ public class AvdManagerConnection {
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
     }
-    if (device.getId().equals("7.4in Rollable")) {
+    if (isRollable(device.getId())) {
       hardwareProperties.put(AVD_INI_ROLL, "yes");
       hardwareProperties.put(AVD_INI_ROLL_COUNT, "1");
       hardwareProperties.put(AVD_INI_HINGE_TYPE, "3");
@@ -974,7 +991,7 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
     }
     if (device.getId().equals("resizable")) {
-      hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+      hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2340-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
       assert myAvdManager != null;

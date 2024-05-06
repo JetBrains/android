@@ -28,6 +28,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Before
@@ -107,15 +108,15 @@ class BindsOptionalOfDaggerConceptTest {
       .containsExactly(
         "Optional",
         setOf(
-          BindsOptionalOfIndexValue("com.example.MyModule", "functionInModule"),
-          BindsOptionalOfIndexValue("com.example.MyModule.Companion", "functionInModuleCompanion"),
+          BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule"),
+          BindsOptionalOfIndexValue(MY_MODULE_COMPANION_ID, "functionInModuleCompanion"),
         )
       )
   }
 
   @Test
   fun bindsOptionalOfIndexValue_serialization() {
-    val indexValue = BindsOptionalOfIndexValue("abc", "def")
+    val indexValue = BindsOptionalOfIndexValue(MY_MODULE_COMPANION_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -176,7 +177,7 @@ class BindsOptionalOfDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        BindsOptionalOfIndexValue("com.example.MyModule", "functionInModule")
+        BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(functionInModuleDaggerElement)
@@ -184,20 +185,20 @@ class BindsOptionalOfDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyModule" to "functionInModuleWithParameters",
-        "com.example.MyModule" to "functionInModuleWithoutBindsOptionalOf",
-        "com.example.MyModule.Companion" to "functionInModuleCompanion",
-        "com.example.MyModule.Companion" to "functionInModuleCompanionWithoutBindsOptionalOf",
-        "com.example.NotAModule" to "functionInNotAModule",
-        "com.example.NotAModule" to "functionInNotAModuleWithoutBindsOptionalOf",
-        "com.example.NotAModule.Companion" to "functionInNotAModuleCompanion",
-        "com.example.NotAModule.Companion" to "functionInNotAModuleCompanionWithoutBindsOptionalOf",
+        MY_MODULE_ID to "functionInModuleWithParameters",
+        MY_MODULE_ID to "functionInModuleWithoutBindsOptionalOf",
+        MY_MODULE_COMPANION_ID to "functionInModuleCompanion",
+        MY_MODULE_COMPANION_ID to "functionInModuleCompanionWithoutBindsOptionalOf",
+        NOT_A_MODULE_ID to "functionInNotAModule",
+        NOT_A_MODULE_ID to "functionInNotAModuleWithoutBindsOptionalOf",
+        NOT_A_MODULE_COMPANION_ID to "functionInNotAModuleCompanion",
+        NOT_A_MODULE_COMPANION_ID to "functionInNotAModuleCompanionWithoutBindsOptionalOf",
       )
 
-    for ((classFqName, methodName) in nonResolving) {
-      assertWithMessage("Resolution for ($classFqName, $methodName)")
+    for ((classId, methodName) in nonResolving) {
+      assertWithMessage("Resolution for (${classId.asString()}, $methodName)")
         .that(
-          BindsOptionalOfIndexValue(classFqName, methodName)
+          BindsOptionalOfIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope()),
         )
         .isEmpty()
@@ -248,7 +249,7 @@ class BindsOptionalOfDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        BindsOptionalOfIndexValue("com.example.MyModule", "functionInModule")
+        BindsOptionalOfIndexValue(MY_MODULE_ID, "functionInModule")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(functionInModuleDaggerElement)
@@ -256,19 +257,26 @@ class BindsOptionalOfDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyModule" to "functionInModuleWithParameters",
-        "com.example.MyModule" to "functionInModuleWithoutBindsOptionalOf",
-        "com.example.MyModule" to "functionInModuleNotAbstract",
-        "com.example.NotAModule" to "functionInNotAModule",
+        MY_MODULE_ID to "functionInModuleWithParameters",
+        MY_MODULE_ID to "functionInModuleWithoutBindsOptionalOf",
+        MY_MODULE_ID to "functionInModuleNotAbstract",
+        NOT_A_MODULE_ID to "functionInNotAModule",
       )
 
-    for ((classFqName, methodName) in nonResolving) {
-      assertWithMessage("Resolution for ($classFqName, $methodName)")
+    for ((classId, methodName) in nonResolving) {
+      assertWithMessage("Resolution for (${classId.asString()}, $methodName)")
         .that(
-          BindsOptionalOfIndexValue(classFqName, methodName)
+          BindsOptionalOfIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope()),
         )
         .isEmpty()
     }
+  }
+
+  companion object {
+    private val MY_MODULE_ID = ClassId.fromString("com/example/MyModule")
+    private val MY_MODULE_COMPANION_ID = ClassId.fromString("com/example/MyModule.Companion")
+    private val NOT_A_MODULE_ID = ClassId.fromString("com/example/NotAModule")
+    private val NOT_A_MODULE_COMPANION_ID = ClassId.fromString("com/example/NotAModule.Companion")
   }
 }

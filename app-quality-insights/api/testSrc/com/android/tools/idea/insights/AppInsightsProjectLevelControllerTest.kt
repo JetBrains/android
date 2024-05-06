@@ -25,7 +25,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import java.time.Duration
 import kotlinx.coroutines.runBlocking
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -645,7 +644,12 @@ class AppInsightsProjectLevelControllerTest {
       )
 
     controllerRule.selectIssue(ISSUE1, IssueSelectionSource.LIST)
+    controllerRule.consumeNext()
 
+    client.completeIssueVariantsCallWith(LoadingState.Ready(emptyList()))
+    controllerRule.consumeNext()
+
+    client.completeListEvents(LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")))
     controllerRule.consumeNext()
 
     client.completeDetailsCallWith(LoadingState.Ready(null))
@@ -778,6 +782,9 @@ class AppInsightsProjectLevelControllerTest {
     assertThat(model.issues).isInstanceOf(LoadingState.Ready::class.java)
     assertThat((model.issues as LoadingState.Ready).value.value)
       .isEqualTo(Selection(ISSUE1, listOf(ISSUE1, ISSUE2)))
+    assertThat(model.currentIssueVariants)
+      .isEqualTo(LoadingState.Ready(Selection(null, emptyList())))
+    assertThat(model.currentEvents).isEqualTo(LoadingState.Ready(null))
     assertThat(model.currentIssueDetails).isEqualTo(LoadingState.Ready(null))
     assertThat(model.currentNotes).isEqualTo(LoadingState.Ready(emptyList<Note>()))
 
@@ -787,12 +794,20 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         model.copy(
           issues = model.issues.map { Timed(it.value.select(ISSUE2), clock.instant()) },
+          currentIssueVariants = LoadingState.Loading,
+          currentEvents = LoadingState.Loading,
           currentIssueDetails = LoadingState.Loading,
           currentNotes = LoadingState.Loading
         )
       )
 
-    client.completeDetailsCallWith(LoadingState.Ready(null))
+    client.completeIssueVariantsCallWith(LoadingState.Ready(listOf(ISSUE_VARIANT)))
+    controllerRule.consumeNext()
+
+    client.completeListEvents(LoadingState.Ready(EventPage(listOf(ISSUE2.sampleEvent), "")))
+    controllerRule.consumeNext()
+
+    client.completeDetailsCallWith(LoadingState.Ready(ISSUE1_DETAILS))
     controllerRule.consumeNext()
 
     client.completeListNotesCallWith(LoadingState.Ready(emptyList()))
@@ -800,7 +815,10 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         model.copy(
           issues = model.issues.map { Timed(it.value.select(ISSUE2), clock.instant()) },
-          currentIssueDetails = LoadingState.Ready(null),
+          currentIssueVariants = LoadingState.Ready(Selection(null, listOf(ISSUE_VARIANT))),
+          currentEvents =
+            LoadingState.Ready(DynamicEventGallery(listOf(ISSUE2.sampleEvent), 0, "")),
+          currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList())
         )
       )
@@ -931,6 +949,8 @@ class AppInsightsProjectLevelControllerTest {
         .isEqualTo(
           newModel.copy(
             issues = LoadingState.UnknownFailure(null),
+            currentIssueVariants = LoadingState.Ready(null),
+            currentEvents = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           )
@@ -968,12 +988,14 @@ class AppInsightsProjectLevelControllerTest {
               DEFAULT_FETCHED_PERMISSIONS
             )
           ),
+        issueVariantsState = LoadingState.Ready(emptyList()),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS)
       )
     assertThat(newModel)
       .isEqualTo(
         startingState.copy(
           issues = LoadingState.Ready(Timed(Selection(ISSUE1, listOf(ISSUE1)), clock.instant())),
+          currentIssueVariants = LoadingState.Ready(Selection(null, emptyList())),
           currentIssueDetails = LoadingState.Ready(ISSUE1_DETAILS),
           currentNotes = LoadingState.Ready(emptyList())
         )
@@ -985,6 +1007,7 @@ class AppInsightsProjectLevelControllerTest {
       .isEqualTo(
         newModel.copy(
           issues = LoadingState.UnknownFailure(null),
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null)
         )
@@ -1077,6 +1100,8 @@ class AppInsightsProjectLevelControllerTest {
               LoadingState.Ready(
                 Timed(Selection(selected = ISSUE1, listOf(ISSUE1)), clock.instant())
               ),
+            currentIssueVariants = LoadingState.Loading,
+            currentEvents = LoadingState.Loading,
             currentIssueDetails = LoadingState.Loading,
             currentNotes = LoadingState.Loading
           )
@@ -1156,14 +1181,11 @@ class AppInsightsProjectLevelControllerTest {
             listOf(NOTE2_BODY to NoteState.CREATING, NOTE1_BODY to NoteState.CREATED)
           )
       }
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(1)
-
     client.completeCreateNoteCallWith(LoadingState.PermissionDenied("Permission Denied."))
 
     newModel = controllerRule.consumeNext()
     assertThat(newModel.permission).isEqualTo(Permission.READ_ONLY)
     assertThat(newModel.currentNotes).isEqualTo(LoadingState.Ready(listOf(NOTE1)))
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(0)
   }
 
   @Test
@@ -1195,14 +1217,12 @@ class AppInsightsProjectLevelControllerTest {
             listOf(NOTE2_BODY to NoteState.CREATED, NOTE1_BODY to NoteState.DELETING)
           )
       }
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(1)
 
     client.completeDeleteNoteCallWith(LoadingState.PermissionDenied("Permission Denied."))
 
     newModel = controllerRule.consumeNext()
     assertThat(newModel.permission).isEqualTo(Permission.READ_ONLY)
     assertThat(newModel.currentNotes).isEqualTo(LoadingState.Ready(listOf(NOTE2, NOTE1)))
-    assertThat(newModel.issues.selected().pendingRequests).isEqualTo(0)
   }
 
   @Test
@@ -1310,72 +1330,8 @@ class AppInsightsProjectLevelControllerTest {
     }
 
   @Test
-  fun `fetch notes in offline mode includes pending note additions and deletions`() = runBlocking {
-    val testIssue = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(notesCount = 1))
-    // discard initial loading state, already tested above
-    var state =
-      controllerRule.consumeInitialState(
-        state =
-          LoadingState.Ready(
-            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
-          ),
-        notesState = LoadingState.Ready(listOf(NOTE1))
-      )
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-
-    // Switch into offline mode to queue some pending actions
-    controllerRule.enterOfflineMode()
-    controllerRule.consumeNext()
-    state =
-      controllerRule.consumeFetchState(
-        state =
-          LoadingState.Ready(
-            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
-          ),
-        notesState = LoadingState.Ready(listOf(NOTE1))
-      )
-    assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE1)
-
-    controllerRule.controller.addNote(ISSUE1, NOTE2_BODY)
-    controllerRule.consumeNext()
-    controllerRule.controller.deleteNote(NOTE1)
-    state = controllerRule.consumeNext()
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(2)
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-
-    // Switch into online mode and verify pending actions are retried
-    controllerRule.refreshAndConsumeLoadingState()
-    controllerRule.consumeFetchState(
-      state =
-        LoadingState.Ready(
-          IssueResponse(
-            listOf(testIssue.copy(pendingRequests = 2)),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            Permission.FULL
-          )
-        ),
-      notesState = LoadingState.Ready(listOf(NOTE1)),
-      isTransitionToOnlineMode = true
-    )
-
-    client.completeCreateNoteCallWith(LoadingState.Ready(NOTE2))
-    state = controllerRule.consumeNext()
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(2)
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(1)
-    client.completeDeleteNoteCallWith(LoadingState.Ready(Unit))
-    state = controllerRule.consumeNext()
-    assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE2)
-    assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
-    assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-  }
-
-  @Test
-  @Ignore("b/260206459: disable queueing of actions for now")
-  fun `add and delete notes during network failure, causes offline mode, results in requests being queued and retried later`() =
-    runBlocking {
+  fun `add and delete note triggers offline mode on network failure`() =
+    runBlocking<Unit> {
       val testIssue = ISSUE1.copy(issueDetails = ISSUE1.issueDetails.copy(notesCount = 1))
       // discard initial loading state, already tested above
       var state =
@@ -1392,40 +1348,26 @@ class AppInsightsProjectLevelControllerTest {
             ),
           notesState = LoadingState.Ready(listOf(NOTE1))
         )
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
       assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
 
-      // Fail add and delete actions.
-      controllerRule.controller.addNote(testIssue, NOTE2_BODY)
+      // Create note and fail the call
+      controllerRule.controller.addNote(ISSUE1, NOTE2_BODY)
       state = controllerRule.consumeNext()
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(1)
-      client.completeCreateNoteCallWith(LoadingState.NetworkFailure(null))
+      assertThat((state.currentNotes as LoadingState.Ready).value).hasSize(2)
+      client.completeCreateNoteCallWith(LoadingState.NetworkFailure("failed"))
+      state = controllerRule.consumeNext()
+      assertThat((state.currentNotes as LoadingState.Ready).value).hasSize(1)
+      state = controllerRule.consumeNext()
+      assertThat(state.mode).isEqualTo(ConnectionMode.OFFLINE)
+      controllerRule.consumeFetchState(
+        state =
+          LoadingState.Ready(
+            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
+          ),
+        notesState = LoadingState.Ready(listOf(NOTE1)),
+      )
 
-      // The failure above should cause AQI to automatically jump into offline mode and perform
-      // fetch.
-      controllerRule.consumeNext()
-      state =
-        controllerRule.consumeFetchState(
-          state =
-            LoadingState.Ready(
-              IssueResponse(
-                listOf(testIssue),
-                emptyList(),
-                emptyList(),
-                emptyList(),
-                Permission.FULL
-              )
-            ),
-          notesState = LoadingState.Ready(listOf(NOTE1))
-        )
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(1)
-      assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
-
-      // Delete note in offline mode should go straight to the cache, without calling the client.
-      controllerRule.controller.deleteNote(NOTE1)
-      controllerRule.consumeNext()
-
-      // Perform refresh to go back online.
+      // Flip back into online mode
       controllerRule.refreshAndConsumeLoadingState()
       state =
         controllerRule.consumeFetchState(
@@ -1439,27 +1381,28 @@ class AppInsightsProjectLevelControllerTest {
                 Permission.FULL
               )
             ),
-          detailsState = LoadingState.Ready(null),
           notesState = LoadingState.Ready(listOf(NOTE1)),
           isTransitionToOnlineMode = true
         )
+      assertThat(state.mode).isEqualTo(ConnectionMode.ONLINE)
 
-      val offlineNotes = (state.currentNotes as LoadingState.Ready).value!!
-      assertThat(offlineNotes).hasSize(2)
-      assertThat(offlineNotes[0].id.noteId).isEmpty()
-      assertThat(offlineNotes[0].id.sessionId).isNotEmpty()
-      assertThat(offlineNotes[0].state).isEqualTo(NoteState.CREATING)
-      assertThat(offlineNotes[1]).isEqualTo(NOTE1.copy(state = NoteState.DELETING))
-
-      // Complete the note retries and check they are propagated to the state.
-      client.completeCreateNoteCallWith(LoadingState.Ready(NOTE2))
+      // Delete note and fail the call
+      controllerRule.controller.deleteNote(NOTE1)
       state = controllerRule.consumeNext()
-      assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(2)
-      client.completeDeleteNoteCallWith(LoadingState.Ready(Unit))
+      assertThat((state.currentNotes as LoadingState.Ready).value)
+        .containsExactly(NOTE1.copy(state = NoteState.DELETING))
+      client.completeDeleteNoteCallWith(LoadingState.NetworkFailure("failed"))
       state = controllerRule.consumeNext()
-      assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE2)
-      assertThat(state.issues.selected().pendingRequests).isEqualTo(0)
-      assertThat(state.issues.selected().issueDetails.notesCount).isEqualTo(1)
+      assertThat((state.currentNotes as LoadingState.Ready).value).containsExactly(NOTE1)
+      state = controllerRule.consumeNext()
+      assertThat(state.mode).isEqualTo(ConnectionMode.OFFLINE)
+      controllerRule.consumeFetchState(
+        state =
+          LoadingState.Ready(
+            IssueResponse(listOf(testIssue), emptyList(), emptyList(), emptyList(), Permission.FULL)
+          ),
+        notesState = LoadingState.Ready(listOf(NOTE1)),
+      )
     }
 
   @Test
@@ -1499,6 +1442,72 @@ class AppInsightsProjectLevelControllerTest {
         any()
       )
     return@runBlocking
+  }
+
+  @Test
+  fun `next and previous events propagates state changes to model`() = runBlocking {
+    controllerRule.consumeInitialState(
+      LoadingState.Ready(
+        IssueResponse(
+          listOf(ISSUE1, ISSUE2),
+          emptyList(),
+          emptyList(),
+          emptyList(),
+          Permission.READ_ONLY
+        )
+      ),
+      eventsState = LoadingState.Ready(EventPage(listOf(Event("1"), Event("2"), Event("3")), ""))
+    )
+
+    controllerRule.controller.nextEvent()
+    var state = controllerRule.consumeNext()
+    assertThat(state.selectedEvent).isEqualTo(Event("2"))
+
+    controllerRule.controller.previousEvent()
+    state = controllerRule.consumeNext()
+    assertThat(state.selectedEvent).isEqualTo(Event("1"))
+  }
+
+  @Test
+  fun `next event triggers querying of next page of events when token is available`() =
+    runBlocking {
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1, ISSUE2),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            Permission.READ_ONLY
+          )
+        ),
+        eventsState = LoadingState.Ready(EventPage(listOf(Event("1")), "abc"))
+      )
+
+      controllerRule.controller.nextEvent()
+      client.completeListEvents(LoadingState.Ready(EventPage(listOf(Event("2")), "")))
+      val state = controllerRule.consumeNext()
+
+      assertThat(state.selectedEvent).isEqualTo(Event("2"))
+    }
+
+  @Test
+  fun `default to using issue sample event when in offline mode`() = runBlocking {
+    controllerRule.consumeInitialState()
+
+    controllerRule.enterOfflineMode()
+    controllerRule.consumeNext()
+
+    val state =
+      controllerRule.consumeFetchState(
+        LoadingState.Ready(
+          IssueResponse(listOf(ISSUE1), emptyList(), emptyList(), emptyList(), Permission.READ_ONLY)
+        )
+      )
+
+    assertThat(state.currentEvents)
+      .isEqualTo(LoadingState.Ready(DynamicEventGallery(listOf(ISSUE1.sampleEvent), 0, "")))
+    assertThat(state.selectedEvent).isEqualTo(ISSUE1.sampleEvent)
   }
 }
 

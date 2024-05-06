@@ -23,12 +23,13 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
+import com.android.tools.idea.res.RClassResources
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITIVE
 import com.android.tools.idea.res.SmallAarRClass
-import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.res.ResourceNamespacing
@@ -42,9 +43,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiClass
 import com.intellij.psi.ResolveScopeEnlarger
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
@@ -75,14 +74,14 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
      * modules' resolve scope.
      */
     @JvmField
-    val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName)
+    val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
     @JvmField
-    val BACKING_CLASS: Key<SmartPsiElementPointer<PsiClass>> = Key.create(::BACKING_CLASS.qualifiedName)
+    val BACKING_CLASS: Key<RClassResources> = Key.create(::BACKING_CLASS.qualifiedName<AndroidResolveScopeEnlarger>())
     @JvmField
-    val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName)
-    val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName)
-    val FILE_SOURCE_SET_KEY: Key<SourceSet> = Key.create(::FILE_SOURCE_SET_KEY.qualifiedName)
-    val TRANSITIVITY_KEY: Key<Transitivity> = Key.create(::TRANSITIVITY_KEY.qualifiedName)
+    val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    val FILE_SOURCE_SET_KEY: Key<SourceSet> = Key.create(::FILE_SOURCE_SET_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    val TRANSITIVITY_KEY: Key<Transitivity> = Key.create(::TRANSITIVITY_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
 
     // Keys for caching resolve scopes.
     private val resolveScopeWithTestsKey =
@@ -116,7 +115,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
           return true
         }
         val resourceClassFacet = resourceClassModule.androidFacet ?: return false
-        val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, false)
+        val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), false)
         return androidDependencies.contains(resourceClassFacet)
       }
 

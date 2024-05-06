@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_CONTEXT;
-import static com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS;
-import static com.android.SdkConstants.ATTR_OPEN_DRAWER;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -28,9 +24,12 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.google.common.collect.ImmutableList;
 import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.*;
 
 public class DrawerLayoutHandler extends ViewGroupHandler {
   @Override

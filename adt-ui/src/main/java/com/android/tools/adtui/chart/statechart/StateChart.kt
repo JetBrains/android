@@ -56,8 +56,8 @@ typealias Renderer<T> = (g: Graphics2D,
  * A chart component that renders series of state change events as rectangles.
  */
 class StateChart<T : Any>(private val model: StateChartModel<T>,
-                          private val render: Renderer<T>,
-                          private val config: StateChartConfig<T> = defaultConfig())
+                    private val render: Renderer<T>,
+                    private val config: StateChartConfig<T> = defaultConfig())
   : AnimatedComponent() {
   /**
    * The gap value as a percentage {0...1} of the height given to each data series

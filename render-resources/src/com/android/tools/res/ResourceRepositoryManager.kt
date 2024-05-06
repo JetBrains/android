@@ -99,7 +99,7 @@ interface ResourceRepositoryManager {
    */
   @Slow
   fun getAppResourcesForNamespace(namespace: ResourceNamespace): List<ResourceRepository> {
-    val appRepository = appResources as MultiResourceRepository
+    val appRepository = appResources as MultiResourceRepository<*>
     return if (namespacing === ResourceNamespacing.DISABLED) {
       listOf(appRepository)
     }

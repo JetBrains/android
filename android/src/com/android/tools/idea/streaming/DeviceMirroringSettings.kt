@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
@@ -31,10 +30,8 @@ import kotlin.reflect.KProperty
 @State(name = "DeviceMirroringSettingsV2", storages = [(Storage("device.mirroring.xml"))])
 class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings> {
 
-  var deviceMirroringEnabled: Boolean by ChangeNotifyingProperty(
-      StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get() || StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get())
   var activateOnConnection: Boolean by ChangeNotifyingProperty(false)
-  var activateOnAppLaunch: Boolean by ChangeNotifyingProperty(!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get())
+  var activateOnAppLaunch: Boolean by ChangeNotifyingProperty(false)
   var activateOnTestLaunch: Boolean by ChangeNotifyingProperty(false)
   var synchronizeClipboard: Boolean by ChangeNotifyingProperty(true)
   /** Max length of clipboard text to participate in clipboard synchronization. */
@@ -54,7 +51,6 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
   override fun noStateLoaded() {
     // Migrate previous version of settings.
     val settingsV1 = ApplicationManager.getApplication().getService(SettingsV1::class.java)
-    deviceMirroringEnabled = settingsV1.deviceMirroringEnabled || StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
     activateOnConnection = settingsV1.activateOnConnection && settingsV1.deviceMirroringEnabled
     activateOnAppLaunch = settingsV1.activateOnAppLaunch && settingsV1.deviceMirroringEnabled
     activateOnTestLaunch = settingsV1.activateOnTestLaunch && settingsV1.deviceMirroringEnabled
@@ -67,9 +63,6 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
 
   override fun loadState(state: DeviceMirroringSettings) {
     XmlSerializerUtil.copyBean(state, this)
-    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      deviceMirroringEnabled = true
-    }
   }
 
   override fun initializeComponent() {
@@ -107,7 +100,7 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
   @State(name = "DeviceMirroringSettings", storages = [(Storage("device.mirroring.xml"))])
   class SettingsV1 : PersistentStateComponent<SettingsV1> {
 
-    var deviceMirroringEnabled: Boolean = StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get()
+    var deviceMirroringEnabled: Boolean = false
     var activateOnConnection: Boolean = false
     var activateOnAppLaunch: Boolean = true
     var activateOnTestLaunch: Boolean = false

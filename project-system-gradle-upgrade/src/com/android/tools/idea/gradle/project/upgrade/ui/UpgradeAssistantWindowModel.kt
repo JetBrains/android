@@ -18,9 +18,11 @@ package com.android.tools.idea.gradle.project.upgrade.ui
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
+import com.android.tools.idea.gradle.project.build.BuildContext
+import com.android.tools.idea.gradle.project.build.BuildStatus
+import com.android.tools.idea.gradle.project.build.GradleBuildListener
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -89,8 +91,9 @@ class UpgradeAssistantWindowModel(
   val latestKnownVersion : AgpVersion = AgpVersions.latestKnown,
   val newProjectVersion : AgpVersion = AgpVersions.newProject,
   val knownVersionsRequester: () -> Set<AgpVersion> = { AgpVersions.getAvailableVersions() }
-) : GradleSyncListener, Disposable {
+) : GradleSyncListener, GradleBuildListener, Disposable {
 
+  private var stateBeforeBuild: UIState = UIState.Loading
   var current: AgpVersion? = currentVersionProvider()
     private set
   private var _selectedVersion: AgpVersion? = recommended ?: latestKnownVersion
@@ -206,19 +209,17 @@ class UpgradeAssistantWindowModel(
                                  "you should commit or revert changes to the build files so that changes from the upgrade process " +
                                  "can be handled separately."
     }
-    object ProjectUsesVersionCatalogs : UIState() {
-      override val controlsEnabledState = ControlsEnabledState.BOTH
-      override val layoutState = LayoutState.READY
-      override val loadingText = ""
-      override val statusMessage = StatusMessage(Severity.WARNING, "Project uses Gradle Version Catalogs.")
-      override val runTooltip = "This project uses Gradle Version Catalogs in its build definition.  Some AGP Upgrade Assistant " +
-                                "functionality may not work as expected."
-    }
     object VersionSelectionInProgress : UIState() {
       override val controlsEnabledState = ControlsEnabledState.NO_RUN
       override val layoutState = LayoutState.LOADING
       override val runTooltip = "Press enter to commit selected version for upgrade."
 
+    }
+    object RunningBuild : UIState() {
+      override val controlsEnabledState = ControlsEnabledState.NEITHER
+      override val layoutState = LayoutState.LOADING
+      override val runTooltip = ""
+      override val loadingText = "Running Gradle Build"
     }
     class InvalidVersionError(
       override val statusMessage: StatusMessage
@@ -317,6 +318,7 @@ class UpgradeAssistantWindowModel(
     refresh()
 
     GradleSyncState.subscribe(project, this, this)
+    GradleBuildState.subscribe(project, this, this)
     // Initialize known versions (e.g. in case of offline work with no cache)
     suggestedVersions.value = suggestedVersionsList(setOf())
 
@@ -345,6 +347,15 @@ class UpgradeAssistantWindowModel(
       success -> uiState.set(UIState.UpgradeSyncSucceeded).also { processorRequestedSync = false }
       else -> uiState.set(UIState.UpgradeSyncFailed(errorMessage)).also { processorRequestedSync = false }
     }
+  }
+
+  override fun buildStarted(context: BuildContext) {
+    stateBeforeBuild = uiState.get()
+    uiState.set(UIState.RunningBuild)
+  }
+
+  override fun buildFinished(status: BuildStatus, context: BuildContext?) {
+    uiState.set(stateBeforeBuild).also { refresh(true) }
   }
 
   override fun dispose() {
@@ -452,17 +463,16 @@ class UpgradeAssistantWindowModel(
     val application = ApplicationManager.getApplication()
     newProcessor.ensureParsedModels()
     val projectFilesClean = isCleanEnoughProject(project)
-    val versionCatalogs = GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject
     if (application.isUnitTestMode) {
-      setEnabled(newProcessor, projectFilesClean, versionCatalogs)
+      setEnabled(newProcessor, projectFilesClean)
     } else {
       DumbService.getInstance(newProcessor.project).smartInvokeLater {
-        setEnabled(newProcessor, projectFilesClean, versionCatalogs)
+        setEnabled(newProcessor, projectFilesClean)
       }
     }
   }
 
-  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean, versionCatalogs: Boolean) {
+  private fun setEnabled(newProcessor: AgpUpgradeRefactoringProcessor, projectFilesClean: Boolean) {
     refreshTree(newProcessor)
     processor = newProcessor
     if (processorsForCheckedPresentations().any { it.isBlocked }) {
@@ -478,9 +488,6 @@ class UpgradeAssistantWindowModel(
     }
     else if (!projectFilesClean) {
       uiState.set(UIState.ProjectFilesNotCleanWarning)
-    }
-    else if (versionCatalogs && StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
-      uiState.set(UIState.ProjectUsesVersionCatalogs)
     }
     else {
       uiState.set(UIState.ReadyToRun)

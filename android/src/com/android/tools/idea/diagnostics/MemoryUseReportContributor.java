@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics;
 
 import com.intellij.openapi.util.LowMemoryWatcher;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 

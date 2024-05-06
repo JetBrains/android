@@ -82,84 +82,90 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     // Histogram section
     val histogramOptions = analysisContext.config.histogramOptions
     if (histogramOptions.includeByCount || histogramOptions.includeBySize) {
-      mainReport.appendLine(sectionHeader("Histogram"))
+      mainReport.appendln(sectionHeader("Histogram"))
       mainReport.append(prepareHistogramSection())
     }
 
     if (histogramOptions.includeSummary) {
-      mainReport.appendLine(sectionHeader("Heap summary"))
+      mainReport.appendln(sectionHeader("Heap summary"))
       mainReport.append(traverseReport)
     }
 
     // Per-class section
     if (includePerClassSection) {
       val perClassProgress = PartialProgressIndicator(progress, 0.5, 0.5)
-      mainReport.appendLine(sectionHeader("Instances of each nominated class"))
-      mainReport.append(preparePerClassSection(perClassProgress))
+      mainReport.appendln(sectionHeader("Instances of each nominated class"))
+      val (perClassSection, summaryTree) = preparePerClassSection(perClassProgress)
+      mainReport.append(perClassSection)
+      summaryTree.printTree(analysisContext, summary)
     }
 
     // Inner class section
     if (config.innerClassOptions.includeInnerClassSection) {
-      mainReport.appendLine(sectionHeader("Inner classes that retain objects via this$0"))
+      mainReport.appendln(sectionHeader("Inner classes that retain objects via this$0"))
       mainReport.append(innerClassReport)
     }
 
     if (config.disposerOptions.includeDisposerTreeSummary) {
-      mainReport.appendLine(sectionHeader("Disposer tree summary"))
+      mainReport.appendln(sectionHeader("Disposer tree summary"))
       mainReport.append(analyzeDisposer.prepareDisposerTreeSummarySection(config.disposerOptions.disposerTreeSummaryOptions))
     }
     if (config.disposerOptions.includeDisposedObjectsSummary || config.disposerOptions.includeDisposedObjectsDetails) {
-      mainReport.appendLine(sectionHeader("Disposed objects"))
+      mainReport.appendln(sectionHeader("Disposed objects"))
       mainReport.append(analyzeDisposer.prepareDisposedObjectsSection())
     }
 
     // Dominator tree flame graph
     if (config.dominatorTreeOptions.includeDominatorTree) {
-      mainReport.appendLine(sectionHeader("Dominator tree flame graph"))
+      mainReport.appendln(sectionHeader("Dominator tree flame graph"))
       mainReport.append(dominatorFlameGraph)
     }
-
   }
 
-  private fun preparePerClassSection(progress: PartialProgressIndicator): String = buildString {
-    val histogram = analysisContext.histogram
-    val perClassOptions = analysisContext.config.perClassOptions
+  private fun preparePerClassSection(progress: PartialProgressIndicator): Pair<String, SummaryTree> {
+    val summaryTree = SummaryTree(analysisContext.config.summaryOptions.minimumSubgraphSize, analysisContext.config.summaryOptions.maximumTreeDepth)
+    val perClassSection = buildString {
+      val histogram = analysisContext.histogram
+      val perClassOptions = analysisContext.config.perClassOptions
 
-    if (perClassOptions.includeClassList) {
-      appendLine("Nominated classes:")
-      perClassOptions.classNames.forEach { name ->
-        val (classDefinition, totalInstances, totalBytes) =
-          histogram.entries.find { entry -> entry.classDefinition.name == name } ?: return@forEach
-        val prettyName = classDefinition.prettyName
-        appendLine(" --> [${toShortStringAsCount(totalInstances)}/${toShortStringAsSize(totalBytes)}] " + prettyName)
+      if (perClassOptions.includeClassList) {
+        appendln("Nominated classes:")
+        perClassOptions.classNames.forEach { name ->
+          val (classDefinition, totalInstances, totalBytes) =
+            histogram.entries.find { entry -> entry.classDefinition.name == name } ?: return@forEach
+          val prettyName = classDefinition.prettyName
+          appendln(" --> [${toShortStringAsCount(totalInstances)}/${toShortStringAsSize(totalBytes)}] " + prettyName)
+        }
+        appendln()
       }
-      appendLine()
-    }
 
-    val nav = analysisContext.navigator
-    var counter = 0
-    val nominatedClassNames = config.perClassOptions.classNames
-    val stopwatch = Stopwatch.createUnstarted()
-    nominatedClassNames.forEach { className ->
-      val classDefinition = nav.classStore[className]
-      val set = nominatedInstances[classDefinition]!!
-      progress.fraction = counter.toDouble() / nominatedInstances.size
-      progress.text2 = "Processing: ${set.count()} ${classDefinition.prettyName}"
-      stopwatch.reset().start()
-      appendLine("CLASS: ${classDefinition.prettyName} (${set.count()} objects)")
-      val referenceRegistry = GCRootPathsTree(analysisContext, perClassOptions.treeDisplayOptions, classDefinition)
-      set.forEach { objectId ->
-        referenceRegistry.registerObject(objectId)
+      val nav = analysisContext.navigator
+      var counter = 0
+      val nominatedClassNames = config.perClassOptions.classNames
+      val stopwatch = Stopwatch.createUnstarted()
+      nominatedClassNames.forEach { className ->
+        val classDefinition = nav.classStore[className]
+        val set = nominatedInstances[classDefinition]!!
+        progress.fraction = counter.toDouble() / nominatedInstances.size
+        progress.text2 = "Processing: ${set.count()} ${classDefinition.prettyName}"
+        stopwatch.reset().start()
+        appendln("CLASS: ${classDefinition.prettyName} (${set.count()} objects)")
+        val referenceRegistry = GCRootPathsTree(analysisContext, perClassOptions.treeDisplayOptions, classDefinition)
+        set.forEach { objectId ->
+          referenceRegistry.registerObject(objectId)
+        }
+        set.clear()
+        append(referenceRegistry.printTree())
+        summaryTree.merge(referenceRegistry.topNode)
+        if (config.metaInfoOptions.include) {
+          appendln("Report for ${classDefinition.prettyName} created in $stopwatch")
+        }
+        appendln()
+        counter++
       }
-      set.clear()
-      append(referenceRegistry.printTree())
-      if (config.metaInfoOptions.include) {
-        appendLine("Report for ${classDefinition.prettyName} created in $stopwatch")
-      }
-      appendLine()
-      counter++
+      progress.fraction = 1.0
     }
-    progress.fraction = 1.0
+    return Pair(perClassSection, summaryTree)
   }
 
   private fun prepareHistogramSection(): String = buildString {
@@ -175,10 +181,8 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     val unreachableObjectsCount = histogram.instanceCount - strongRefHistogram.instanceCount - softWeakRefHistogram.instanceCount
     val unreachableObjectsSize = histogram.bytesCount - strongRefHistogram.bytesCount - softWeakRefHistogram.bytesCount
-    appendLine("Unreachable objects: ${
-      toPaddedShortStringAsCount(
-        unreachableObjectsCount)
-    }  ${toPaddedShortStringAsSize(unreachableObjectsSize)}")
+    appendln("Unreachable objects: ${toPaddedShortStringAsCount(
+      unreachableObjectsCount)}  ${toPaddedShortStringAsSize(unreachableObjectsSize)}")
   }
 
   private fun getReportOrExceptionString(generateReport: () -> String) =
@@ -551,20 +555,20 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
 
     traverseReport = buildString {
       if (config.metaInfoOptions.include) {
-        appendLine("Analysis completed! Visited instances: $visitedInstancesCount, time: $stopwatch")
-        appendLine("Update sizes time: $stopwatchUpdateSizes")
-        appendLine("Inner class report time: $stopwatchInnerClasses")
-        appendLine("Leaves found: $leafCounter")
+        appendln("Analysis completed! Visited instances: $visitedInstancesCount, time: $stopwatch")
+        appendln("Update sizes time: $stopwatchUpdateSizes")
+        appendln("Inner class report time: $stopwatchInnerClasses")
+        appendln("Leaves found: $leafCounter")
       }
 
-      appendLine("Class count: ${classStore.size()}")
+      appendln("Class count: ${classStore.size()}")
 
       // Adds summary of object count by reachability
-      appendLine("Finalizable size: ${toShortStringAsSize(finalizableBytes)}")
-      appendLine("Soft-reachable size: ${toShortStringAsSize(softBytes)}")
-      appendLine("Weak-reachable size: ${toShortStringAsSize(weakBytes)}")
-      appendLine("Reachable only from disposer tree: ${unreachableDisposableObjects.count()}")
-      TruncatingPrintBuffer(10, 0, this::appendLine).use { buffer ->
+      appendln("Finalizable size: ${toShortStringAsSize(finalizableBytes)}")
+      appendln("Soft-reachable size: ${toShortStringAsSize(softBytes)}")
+      appendln("Weak-reachable size: ${toShortStringAsSize(weakBytes)}")
+      appendln("Reachable only from disposer tree: ${unreachableDisposableObjects.count()}")
+      TruncatingPrintBuffer(10, 0, this::appendln).use { buffer ->
         val unreachableChildren = IntOpenHashSet()
         unreachableDisposableObjects.forEach { id ->
           analysisContext.disposerParentToChildren[id]?.let { unreachableChildren.addAll(it) }
@@ -958,15 +962,14 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       val children = idomTreeChildren[poNumber]
       if (depth < config.dominatorTreeOptions.maxDepth && children != null) {
         val childrenSize = children.sumOf { p -> retainedSizes[p] }
-        appendLine("$signatureIndex ${retainedSizes[poNumber] - childrenSize} ${children.size}")
+        appendln("$signatureIndex ${retainedSizes[poNumber] - childrenSize} ${children.size}")
         renderedNodes++
         children.sortedByDescending { p -> retainedSizes[p] }.forEach { p ->
           if (renderedNodes >= config.dominatorTreeOptions.headLimit) return@forEach
           dumpCompressedFlameGraph(p, depth + 1)
         }
-      }
-      else {
-        appendLine("$signatureIndex ${retainedSizes[poNumber]} 0")
+      } else {
+        appendln("$signatureIndex ${retainedSizes[poNumber]} 0")
         renderedNodes++
       }
     }
@@ -976,7 +979,7 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     sb.insert(0, buildString {
       appendLine(indexToString.size)
       indexToString.forEach {
-        appendLine(it)
+        appendln(it)
       }
     })
 
@@ -990,23 +993,22 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
     }
 
     report.metaInfo.apply {
-      appendLine("Dominator phase total time: $totalStopwatch")
-      appendLine("  Compute postorder numbers: $postorderStopwatch")
-      appendLine(
-        "    edgeCount = $edgeCount, poEdgeCount = $poEdgeCount, rootsSet size = ${rootsSet.count()}, maxPonum = $maxPonum; max stack depth = $maxStackDepth")
-      appendLine("  Compute incoming edges + card refs: $incomingEdgesStopwatch")
-      appendLine("  Sort incoming edges: $sortIncomingEdgesStopwatch")
-      appendLine("  Dominator computation: $dominatorsStopwatch")
-      appendLine("    $iter iterations")
-      appendLine(
+      appendln("Dominator phase total time: $totalStopwatch")
+      appendln("  Compute postorder numbers: $postorderStopwatch")
+      appendln("    edgeCount = $edgeCount, poEdgeCount = $poEdgeCount, rootsSet size = ${rootsSet.count()}, maxPonum = $maxPonum; max stack depth = $maxStackDepth")
+      appendln("  Compute incoming edges + card refs: $incomingEdgesStopwatch")
+      appendln("  Sort incoming edges: $sortIncomingEdgesStopwatch")
+      appendln("  Dominator computation: $dominatorsStopwatch")
+      appendln("    $iter iterations")
+      appendln(
         "    $idomUpdates idom updates (${(idomUpdates.toDouble() / maxPonum).round()}x per node); $intersectCalls calls to intersect (${(intersectCalls.toDouble() / idomUpdates).round()} per idomUpdate)")
-      appendLine("    card table is $ncards bits x $cardSize obj/bit, saved $updateCallsSavedByCardTable idom updates")
-      appendLine("    aborting updateIdom when root is hit saved $rootSkipIntersectCalls intersect calls")
-      appendLine("  Compute retained sizes: $retainedSizesStopwatch")
-      appendLine("  Emit flame graph: $flameGraphStopwatch")
-      appendLine("    retained size cutoff: ${config.dominatorTreeOptions.minNodeSize}")
-      appendLine("    depth cutoff: ${config.dominatorTreeOptions.maxDepth}")
-      appendLine(
+      appendln("    card table is $ncards bits x $cardSize obj/bit, saved $updateCallsSavedByCardTable idom updates")
+      appendln("    aborting updateIdom when root is hit saved $rootSkipIntersectCalls intersect calls")
+      appendln("  Compute retained sizes: $retainedSizesStopwatch")
+      appendln("  Emit flame graph: $flameGraphStopwatch")
+      appendln("    retained size cutoff: ${config.dominatorTreeOptions.minNodeSize}")
+      appendln("    depth cutoff: ${config.dominatorTreeOptions.maxDepth}")
+      appendln(
         "    pruned tree contains $renderedNodes nodes ${if (renderedNodes > config.dominatorTreeOptions.headLimit) "(truncated to ${config.dominatorTreeOptions.headLimit})" else ""}")
     }
     return sb.toString()
@@ -1127,9 +1129,8 @@ class AnalyzeGraph(private val analysisContext: AnalysisContext, private val lis
       retainedObjects.count().toLong())
 
     return buildString {
-      appendLine(culpritsHistogram.prepareReport("Inner class culprits", analysisContext.config.innerClassOptions.histogramEntries))
-      appendLine(objectsHistogram.prepareReport("Objects retained by enclosing instance references",
-                                                analysisContext.config.innerClassOptions.histogramEntries))
+      appendln(culpritsHistogram.prepareReport("Inner class culprits", analysisContext.config.innerClassOptions.histogramEntries))
+      appendln(objectsHistogram.prepareReport("Objects retained by enclosing instance references", analysisContext.config.innerClassOptions.histogramEntries))
     }
   }
 

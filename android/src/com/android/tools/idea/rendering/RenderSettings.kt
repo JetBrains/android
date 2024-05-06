@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage

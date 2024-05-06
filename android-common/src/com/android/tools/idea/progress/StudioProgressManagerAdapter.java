@@ -48,7 +48,7 @@ public final class StudioProgressManagerAdapter extends ProgressManagerAdapter {
 
   private StudioProgressManagerAdapter() {}
 
-  public static final class Installer extends ApplicationInitializedListenerJavaShim {
+  public static class Installer extends ApplicationInitializedListenerJavaShim {
     @Override
     public void componentsInitialized() {
       ProgressManagerAdapter.setInstance(new StudioProgressManagerAdapter());

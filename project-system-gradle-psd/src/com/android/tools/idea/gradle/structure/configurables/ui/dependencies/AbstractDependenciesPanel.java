@@ -22,8 +22,6 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.issues.IssuesViewer;
@@ -41,7 +39,6 @@ import com.android.tools.idea.gradle.structure.model.PsPath;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.android.tools.idea.structure.dialog.Header;
 import com.android.tools.idea.structure.dialog.TrackedConfigurableKt;
-import com.android.tools.idea.structure.dialog.VersionCatalogWarningHeader;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.intellij.openapi.Disposable;
@@ -52,13 +49,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.OnePixelDivider;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
-import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.Ref;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBSplitter;
@@ -121,14 +116,6 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
 
     myHeader = new Header(title);
     add(myHeader);
-
-    Project project = context.getProject().getIdeProject();
-    boolean projectUsesVersionCatalogs = GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject();
-    if (projectUsesVersionCatalogs) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
-        add(new VersionCatalogWarningHeader());
-      }
-    }
 
     JBSplitter splitter = new JBSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.55f);
 
@@ -216,7 +203,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
           }
 
           @Override
-          public PopupStep<?> onChosen(AbstractPopupAction action, boolean finalChoice) {
+          public PopupStep onChosen(AbstractPopupAction action, boolean finalChoice) {
             return doFinalStep(action::execute);
           }
 
@@ -377,7 +364,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
   private abstract class AbstractAddDependencyAction extends AbstractPopupAction {
     @NotNull private final String myTitle;
 
-    AbstractAddDependencyAction(@NotNull @NlsContexts.DialogTitle String title, @NotNull String text, @NotNull Icon icon, int index) {
+    AbstractAddDependencyAction(@NotNull String title, @NotNull String text, @NotNull Icon icon, int index) {
       super(text, icon, index);
       myTitle = title;
     }

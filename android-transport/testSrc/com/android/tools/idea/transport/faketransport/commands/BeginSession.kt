@@ -59,6 +59,7 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
           processAbi = command.beginSession.processAbi
           jvmtiEnabled = attachAgentCalled
           type = Common.SessionData.SessionStarted.SessionType.FULL
+          taskType = command.beginSession.taskType
         }.build()
       }.build()
     }.build())

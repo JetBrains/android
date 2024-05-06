@@ -17,9 +17,12 @@ package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.SeriesData;
 import com.google.common.base.Preconditions;
-import java.util.List;
+import com.intellij.util.NotNullFunction;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This class lazily fetches data from the provided {@link Supplier} in order to build an {@link InMemoryDataSeries}.

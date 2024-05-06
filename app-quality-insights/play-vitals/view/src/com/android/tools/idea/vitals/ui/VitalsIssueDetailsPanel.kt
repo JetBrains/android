@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.vitals.ui
 
+import com.android.sdklib.computeFullReleaseName
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -31,14 +32,19 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.DETAIL_PANEL_HORIZONTAL_SPACING
 import com.android.tools.idea.insights.ui.DetailsPanelHeader
+import com.android.tools.idea.insights.ui.DetailsPanelHeaderModel
+import com.android.tools.idea.insights.ui.DetailsTabbedPane
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.StackTraceConsole
+import com.android.tools.idea.insights.ui.TabbedPaneDefinition
 import com.android.tools.idea.insights.ui.dateFormatter
-import com.android.tools.idea.insights.ui.ifZero
 import com.android.tools.idea.insights.ui.prettyRangeString
+import com.android.tools.idea.insights.ui.shortenEventId
 import com.android.tools.idea.insights.ui.transparentPanel
+import com.android.tools.idea.insights.ui.vcs.VcsCommitLabel
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -47,7 +53,6 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
-import com.intellij.ui.TitledSeparator
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
@@ -66,8 +71,8 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
+import javax.swing.JSeparator
 import javax.swing.ScrollPaneConstants
-import javax.swing.SwingConstants
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -137,7 +142,7 @@ private val DefaultVitalsDetailsState =
 
 class VitalsIssueDetailsPanel(
   controller: AppInsightsProjectLevelController,
-  project: Project,
+  private val project: Project,
   val headerHeightUpdatedCallback: (Int) -> Unit,
   parentDisposable: Disposable,
   private val tracker: AppInsightsTracker
@@ -162,20 +167,13 @@ class VitalsIssueDetailsPanel(
   @VisibleForTesting val stackTraceConsole = StackTraceConsole(controller, project, tracker)
 
   // Title
-  private val header = DetailsPanelHeader(stackTraceConsole.consoleView.editor)
+  private val header = DetailsPanelHeader()
 
-  // TODO(b/290647605): add back device label
-  // Events, users, affected api levels
-  private val eventsCountLabel = JLabel(StudioIcons.AppQualityInsights.ISSUE)
-  private val usersCountLabel = JLabel(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
-  private val affectedApiLevelsLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
+  // Affected versions
+  private val affectedVersionsLabel = JLabel()
 
-  // Affected app version
-  private val affectedVersionsLabel = JLabel("Versions affected", SwingConstants.LEFT)
-
-  // Timestamp, Vitals Link
-  private val timestampLabel =
-    JLabel("yesterday", StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK, SwingConstants.LEFT)
+  // Event id, console link
+  private val eventIdLabel = JLabel(StudioIcons.AppQualityInsights.ISSUE)
   private val vitalsConsoleLink: HyperlinkLabel =
     HyperlinkLabel("View on Android Vitals").apply {
       isFocusable = true
@@ -183,6 +181,12 @@ class VitalsIssueDetailsPanel(
       // adjacent to the link.
       maximumSize = preferredSize
     }
+
+  // Device, SDK level, Timestamp, VCS Commit
+  private val deviceLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN)
+  private val affectedApiLevelsLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
+  private val timestampLabel = JLabel(StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK)
+  private val commitLabel = VcsCommitLabel()
 
   // Sdk insights
   private val insightsPanel = transparentPanel().apply { layout = BoxLayout(this, Y_AXIS) }
@@ -226,7 +230,11 @@ class VitalsIssueDetailsPanel(
             mainPanel,
             if (issue != null) MAIN_CARD else EMPTY_CARD
           )
-          header.updateWithIssue(issue)
+          if (issue == null) {
+            header.clear()
+          } else {
+            header.update(DetailsPanelHeaderModel.fromIssueVariant(issue.issueDetails, null))
+          }
         }
     }
 
@@ -292,12 +300,18 @@ class VitalsIssueDetailsPanel(
     val panel =
       transparentPanel().apply {
         border = JBUI.Borders.empty(0, 8)
-        layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        layout = BoxLayout(this, Y_AXIS)
         add(Box.createVerticalStrut(5))
         add(createBodySection())
         add(Box.createVerticalStrut(5))
-        add(TitledSeparator("Stack Trace"))
-        add(stackTraceConsole.consoleView.component)
+        add(
+          DetailsTabbedPane(
+              "VitalsDetails",
+              listOf(TabbedPaneDefinition("Stack trace", stackTraceConsole.consoleView.component)),
+              stackTraceConsole
+            )
+            .component
+        )
         components.forEach { (it as JComponent).alignmentX = LEFT_ALIGNMENT }
       }
     return transparentPanel(BorderLayout()).apply { add(panel, BorderLayout.NORTH) }
@@ -305,19 +319,8 @@ class VitalsIssueDetailsPanel(
 
   private fun createBodySection() =
     transparentPanel().apply {
-      layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      add(
-        transparentPanel().apply {
-          layout = BoxLayout(this, BoxLayout.X_AXIS)
-          add(eventsCountLabel)
-          add(Box.createHorizontalStrut(8))
-          add(usersCountLabel)
-          add(Box.createHorizontalStrut(8))
-          add(affectedApiLevelsLabel)
-          add(Box.createHorizontalGlue())
-        }
-      )
-      add(Box.createVerticalStrut(5))
+      name = "detail_rows"
+      layout = BoxLayout(this, Y_AXIS)
       add(
         transparentPanel().apply {
           layout = BoxLayout(this, BoxLayout.X_AXIS)
@@ -326,12 +329,28 @@ class VitalsIssueDetailsPanel(
         }
       )
       add(Box.createVerticalStrut(5))
+      add(JSeparator())
+      add(Box.createVerticalStrut(5))
       add(
         transparentPanel().apply {
           layout = BoxLayout(this, BoxLayout.X_AXIS)
-          add(timestampLabel)
-          add(Box.createHorizontalStrut(8))
+          add(eventIdLabel)
+          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
           add(vitalsConsoleLink)
+          add(Box.createHorizontalGlue())
+        }
+      )
+      add(Box.createVerticalStrut(5))
+      add(
+        transparentPanel().apply {
+          layout = BoxLayout(this, BoxLayout.X_AXIS)
+          add(deviceLabel)
+          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(affectedApiLevelsLabel)
+          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(timestampLabel)
+          add(Box.createHorizontalStrut(DETAIL_PANEL_HORIZONTAL_SPACING))
+          add(commitLabel)
           add(Box.createHorizontalGlue())
         }
       )
@@ -340,17 +359,17 @@ class VitalsIssueDetailsPanel(
     }
 
   private fun updateBodySection(issue: AppInsightsIssue) {
+    deviceLabel.text = issue.sampleEvent.eventData.device.let { "${it.manufacturer} ${it.model}" }
+    eventIdLabel.text = "Event ${issue.sampleEvent.name.shortenEventId()}"
     affectedApiLevelsLabel.text =
-      prettyRangeString(
-        issue.issueDetails.lowestAffectedApiLevel,
-        issue.issueDetails.highestAffectedApiLevel
+      computeFullReleaseName(
+        issue.sampleEvent.eventData.operatingSystemInfo.displayVersion.toInt(),
+        null,
+        includeApiLevel = true
       )
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
-    eventsCountLabel.icon = StudioIcons.AppQualityInsights.ISSUE
-    eventsCountLabel.text = issue.issueDetails.eventsCount.ifZero("-")
-    usersCountLabel.icon = StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE
-    usersCountLabel.text = issue.issueDetails.impactedDevicesCount.ifZero("-")
+    commitLabel.updateOnIssueChange(issue.sampleEvent.appVcsInfo, project)
 
     affectedVersionsLabel.text =
       "Versions affected: ${prettyRangeString(issue.issueDetails.firstSeenVersion, issue.issueDetails.lastSeenVersion)}"
@@ -364,7 +383,7 @@ class VitalsIssueDetailsPanel(
 
   override fun updateUI() {
     super.updateUI()
-    emptyText?.setFont(StartupUiUtil.getLabelFont())
+    emptyText?.setFont(StartupUiUtil.labelFont)
   }
 }
 

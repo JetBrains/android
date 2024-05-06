@@ -31,6 +31,6 @@ object FlagController {
     if (desiredState != flag.get()) {
       flag.override(desiredState)
     }
-    return previous
+    return previous;
   }
 }

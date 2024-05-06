@@ -57,6 +57,9 @@ class GradleJvmNotificationExtensionTest {
 
   private val invalidGradleJdkErrorText = GradleBundle.message("gradle.jvm.is.invalid")
   private val gradleJvmExtension = GradleJvmNotificationExtension()
+  private val externalProjectPath by lazy {
+    gradleProjectRule.project.basePath.orEmpty()
+  }
   private val embeddedJdkPath by lazy {
     IdeSdks.getInstance().embeddedJdkPath.toString()
   }
@@ -74,7 +77,7 @@ class GradleJvmNotificationExtensionTest {
     )
     assertThat(notificationData.registeredListenerIds).isEmpty()
     mockGradleJdkException(originalMessage)
-    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
 
     notificationData.run {
       assertEquals(originalTitle, title)
@@ -105,7 +108,7 @@ class GradleJvmNotificationExtensionTest {
     val notificationData = NotificationData(originalTitle, notificationMessage, ERROR, PROJECT_SYNC)
     assertThat(notificationData.registeredListenerIds).isEmpty()
     mockGradleJdkException(messageErrorText)
-    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
 
     assertEquals(originalTitle, notificationData.title)
     assertEquals(expectedMessage, notificationData.message)
@@ -127,7 +130,7 @@ class GradleJvmNotificationExtensionTest {
     val notificationData = NotificationData(originalTitle, invalidGradleJdkErrorText, ERROR, PROJECT_SYNC)
     assertThat(notificationData.registeredListenerIds).isEmpty()
     mockGradleJdkException(messageErrorText)
-    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
 
     assertEquals(originalTitle, notificationData.title)
     assertEquals(expectedMessage, notificationData.message)
@@ -152,7 +155,7 @@ class GradleJvmNotificationExtensionTest {
     mockGradleJdkException(messageErrorText)
     val notificationData = NotificationData(originalTitle, invalidGradleJdkErrorText, ERROR, PROJECT_SYNC)
     assertThat(notificationData.registeredListenerIds).isEmpty()
-    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, null)
+    gradleJvmExtension.customize(notificationData, gradleProjectRule.project, externalProjectPath, null)
 
     assertEquals(originalTitle, notificationData.title)
     assertEquals(expectedMessage, notificationData.message)

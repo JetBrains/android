@@ -17,18 +17,24 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 
 import com.android.tools.idea.gradle.dsl.api.android.SourceSetModel;
 import com.android.tools.idea.gradle.dsl.model.android.SourceSetModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class SourceSetsDslElement extends GradleDslElementMap implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<SourceSetsDslElement> SOURCE_SETS =
-    new PropertiesElementDescription<>("sourceSets", SourceSetsDslElement.class, SourceSetsDslElement::new);
+    new PropertiesElementDescription<>("sourceSets",
+                                       SourceSetsDslElement.class,
+                                       SourceSetsDslElement::new,
+                                       SourceSetsDslElementSchema::new);
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
@@ -56,5 +62,13 @@ public final class SourceSetsDslElement extends GradleDslElementMap implements G
   @Override
   public boolean implicitlyExists(@NotNull String name) {
     return true;
+  }
+
+  public static final class SourceSetsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @Nullable
+    public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
+      return SourceSetDslElement.SOURCE_SET;
+    }
   }
 }

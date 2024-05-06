@@ -22,11 +22,17 @@ import com.intellij.util.xml.ConvertContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
-class ViewClassConverter : PackageClassConverter(false, NO_PREFIX_PACKAGES_FOR_VIEW, true,
-                                                 arrayOf(AndroidUtils.VIEW_CLASS_NAME)) {
+class ViewClassConverter :
+  PackageClassConverter(
+    false,
+    NO_PREFIX_PACKAGES_FOR_VIEW,
+    true,
+    arrayOf(AndroidUtils.VIEW_CLASS_NAME)
+  ) {
 
   companion object {
-    private val EXTENDED_NO_PREFIX_PACKAGES_FOR_VIEW = NO_PREFIX_PACKAGES_FOR_VIEW + SdkConstants.ANDROID_APP_PKG
+    private val EXTENDED_NO_PREFIX_PACKAGES_FOR_VIEW =
+      NO_PREFIX_PACKAGES_FOR_VIEW + SdkConstants.ANDROID_APP_PKG
   }
 
   // Returning packages should be aligned with [IdeResourcesUtil.isViewPackageNeeded]

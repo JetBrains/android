@@ -15,18 +15,28 @@
  */
 package com.android.tools.idea.deviceprovisioner
 
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.Constraints
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.util.text.StringUtil
-import kotlinx.coroutines.launch
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.ui.popup.PopupFactoryImpl
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.SwingConstants
 
-class ExtendReservationAction : DefaultActionGroup() {
+object ExtendReservationAction : DefaultActionGroup(), CustomComponentAction {
+
+  init {
+    templatePresentation.isPerformGroup = true
+  }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -34,53 +44,110 @@ class ExtendReservationAction : DefaultActionGroup() {
     event.presentation.isEnabledAndVisible = event.reservationAction() != null
   }
 
-  init {
-    // Add a disabled action with remaining time.
-    add(
-      object : AnAction() {
-        override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override fun actionPerformed(e: AnActionEvent) {
+    val component = e.inputEvent?.component ?: return
+    val popup = JBPopupFactory.getInstance().createActionGroupPopup(null, this, e.dataContext, null, true)
 
-        override fun update(event: AnActionEvent) {
-          val presentation = event.presentation
-          presentation.isEnabled = false
-          val handle = event.deviceHandle()
-          if (handle?.reservationAction == null) {
-            presentation.isVisible = false
-            return
-          }
-          val reservation = handle.state.reservation
-          val endTime = reservation?.endTime?.toEpochMilli()
-          if (endTime == null) {
-            presentation.text = "Reservation remaining time not available"
-            return
-          }
-          val timeAccuracy = TimeUnit.MINUTES.toMillis(1)
-          val timeLeft = (endTime - Instant.now().toEpochMilli()) / timeAccuracy * timeAccuracy
-          val timeLeftText =
-            if (timeLeft < 1) "less than 1 min"
-            else StringUtil.formatDuration(timeLeft)
-          presentation.text = "Reservation: $timeLeftText remaining"
-        }
-
-        override fun actionPerformed(e: AnActionEvent) = Unit
-      },
-      Constraints.FIRST
-    )
+    @Suppress("UNCHECKED_CAST")
+    val actionList = popup.listStep.values as List<PopupFactoryImpl.ActionItem>
+    val anyActionEnabled = actionList.any { it.isEnabled }
+    if (!anyActionEnabled) {
+      popup.setAdText("Device reserved for the 180 minutes maximum duration", SwingConstants.LEFT)
+    } else {
+      popup.addListSelectionListener { selectEvent ->
+        val text = when (val selectedItem = PlatformCoreDataKeys.SELECTED_ITEM.getData(selectEvent.source as DataProvider)) {
+           is PopupFactoryImpl.ActionItem -> selectedItem.description
+           else  -> ""
+         }
+        popup.setAdText(text, SwingConstants.LEFT)
+      }
+    }
+    popup.showUnderneathOf(component)
   }
 
-  class HalfHour : ExtendFixedDurationAction(Duration.ofMinutes(30))
-  class OneHour : ExtendFixedDurationAction(Duration.ofHours(1))
+  override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
+    return ActionButton(this, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+  }
 
-  open class ExtendFixedDurationAction(private val duration: Duration) : AnAction() {
+  object Status: AnAction() {
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(event: AnActionEvent) {
-      event.presentation.isEnabledAndVisible = event.reservationAction() != null
+      val presentation = event.presentation
+      presentation.isEnabled = false
+      val handle = event.deviceHandle()
+      if (handle?.reservationAction == null) {
+        presentation.isVisible = false
+        return
+      }
+      val reservation = handle.state.reservation
+      val endTime = reservation?.endTime?.toEpochMilli()
+      if (endTime == null) {
+        presentation.text = "Reservation remaining time not available"
+        return
+      }
+      val timeLeft = Duration.between(Instant.now(), reservation.endTime).toMinutes()
+      val timeLeftText =
+        if (timeLeft < 1) "less than 1 min" else "$timeLeft min"
+      presentation.text = "Reservation: $timeLeftText remaining"
+    }
+
+    override fun actionPerformed(e: AnActionEvent) = Unit
+  }
+
+  object Extend30MinOrLessAction : AnAction() {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun update(event: AnActionEvent) {
+      event.presentation.isVisible = event.reservationAction() != null
+      val possibleExtendMinutes = event.getPossibleExtendMinutes().coerceAtMost(30)
+      // Action can only be performed if reservation can be extended by at least 1 min.
+      event.presentation.isEnabled = possibleExtendMinutes > 0
+      val phrase = when (possibleExtendMinutes) {
+        0L -> "30 mins"
+        1L -> "1 min"
+        else -> "$possibleExtendMinutes mins"
+      }
+      event.presentation.text = "Extend $phrase"
+      event.presentation.description = "Extend the device reservation by $phrase"
     }
 
     override fun actionPerformed(e: AnActionEvent) {
       val handle = e.deviceHandle() ?: return
-      handle.scope.launch { handle.reservationAction?.reserve(duration) }
+      val possibleExtendMinutes = e.getPossibleExtendMinutes().coerceAtMost(30)
+      handle.launchCatchingDeviceActionException { handle.reservationAction?.reserve(Duration.ofMinutes(possibleExtendMinutes)) }
     }
   }
+
+  object ExtendMaxDurationAction : AnAction() {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+    override fun update(event: AnActionEvent) {
+      val possibleExtendMinutes = event.getPossibleExtendMinutes()
+      // Action enabled and visible only if reservation can be extended by more than 30 min.
+      event.presentation.isEnabledAndVisible = possibleExtendMinutes > 30
+      event.presentation.text = "Extend $possibleExtendMinutes mins"
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val handle = e.deviceHandle() ?: return
+      val possibleExtendMinutes = e.getPossibleExtendMinutes()
+      handle.launchCatchingDeviceActionException { handle.reservationAction?.reserve(Duration.ofMinutes(possibleExtendMinutes)) }
+    }
+  }
+}
+
+private fun AnActionEvent.maxReservationDuration() = deviceHandle()?.state?.reservation?.maxDuration
+
+/** Get remaining time left between current end time and maximum possible end time. */
+private fun AnActionEvent.getPossibleExtendMinutes(): Long {
+  val handle = deviceHandle() ?: return 0
+
+  val maxDuration = maxReservationDuration() ?: return 0
+  val startTime = handle.state.reservation?.startTime ?: return 0
+  val endTime = handle.state.reservation?.endTime ?: return 0
+
+  return Duration.between(endTime, startTime.plus(maxDuration)).toMinutes()
 }

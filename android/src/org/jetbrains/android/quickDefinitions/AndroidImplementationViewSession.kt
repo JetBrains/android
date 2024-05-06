@@ -16,6 +16,7 @@
 package org.jetbrains.android.quickDefinitions
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -27,7 +28,6 @@ import com.intellij.codeInsight.hint.PsiImplementationViewSession
 import com.intellij.codeInsight.navigation.ImplementationSearcher
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -38,7 +38,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.util.Processor
 import org.jetbrains.android.dom.AndroidXmlDocumentationProvider
-import java.lang.Exception
+import org.jetbrains.kotlin.asJava.classes.runReadAction
 
 /**
  *  [ImplementationViewSessionFactory] for Android resources, for a better "Quick Definition" UI.`
@@ -72,7 +72,9 @@ class AndroidImplementationViewSessionFactory : ImplementationViewSessionFactory
     alwaysIncludeSelf: Boolean
   ): ImplementationViewSession? {
     // createSessionForLookupElement() is called on the second and subsequent requests for the quick definitions of lookup items.
-    if (editor == null || file == null) { return null }
+    if (editor == null || file == null) {
+      return null
+    }
     val contextElement = PsiManager.getInstance(project).findFile(file)?.findElementAt(editor.caretModel.offset) ?: return null
     val resourceReferencePsiElement = getResourceReferencePsiElement(lookupItemObject, contextElement) ?: return null
     return AndroidImplementationViewSession(resourceReferencePsiElement, contextElement, editor)
@@ -106,30 +108,34 @@ class AndroidImplementationViewSession(
   // TODO(lukeegan): Create own ImplementationViewElement to show custom text eg. entire Style Tags for styleable attrs.
   override val implementationElements: List<ImplementationViewElement>
     get() {
-      val computeImplementations = ThrowableComputable<List<PsiImplementationViewElement>, Exception> {
-        runReadAction {
-          AndroidResourceToPsiResolver.getInstance()
-            .getGotoDeclarationTargets(resourceReferencePsiElement.resourceReference, contextElement)
-            .map { PsiImplementationViewElement(it) }
-        }
-      }
-      return ProgressManager.getInstance().runProcessWithProgressSynchronously(computeImplementations, ImplementationSearcher.getSearchingForImplementations(), false, contextElement.project)
+      return ProgressManager.getInstance().runProcessWithProgressSynchronously(
+        ThrowableComputable {
+          runReadAction {
+            AndroidResourceToPsiResolver.getInstance()
+              .getGotoDeclarationTargets(resourceReferencePsiElement.resourceReference, contextElement)
+              .map { PsiImplementationViewElement(it) }
+          }
+        },
+        ImplementationSearcher.getSearchingForImplementations(),
+        true,
+        contextElement.project
+      )
     }
 
-    override val file: VirtualFile? = contextElement.containingFile.virtualFile
-    override val text: String? = contextElement.text
+  override val file: VirtualFile? = contextElement.containingFile.virtualFile
+  override val text: String? = contextElement.text
 
-    override val factory: ImplementationViewSessionFactory
-      get() = ImplementationViewSessionFactory.EP_NAME.findExtensionOrFail(AndroidImplementationViewSessionFactory::class.java)
+  override val factory: ImplementationViewSessionFactory
+    get() = ImplementationViewSessionFactory.EP_NAME.findExtensionOrFail(AndroidImplementationViewSessionFactory::class.java)
 
-    override val project: Project = resourceReferencePsiElement.project
+  override val project: Project = resourceReferencePsiElement.project
 
-    override fun searchImplementationsInBackground(indicator: ProgressIndicator,
-                                                   processor: Processor<in ImplementationViewElement>): List<ImplementationViewElement> = emptyList()
+  override fun searchImplementationsInBackground(indicator: ProgressIndicator,
+                                                 processor: Processor<in ImplementationViewElement>): List<ImplementationViewElement> = emptyList()
 
-    override fun elementRequiresIncludeSelf(): Boolean = false
+  override fun elementRequiresIncludeSelf(): Boolean = false
 
-    override fun needUpdateInBackground(): Boolean = false
+  override fun needUpdateInBackground(): Boolean = false
 
-    override fun dispose() {}
+  override fun dispose() {}
 }

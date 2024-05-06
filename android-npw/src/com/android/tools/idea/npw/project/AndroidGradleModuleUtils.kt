@@ -21,9 +21,6 @@ package com.android.tools.idea.npw.project
 import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.builder.model.SourceProvider
-import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.plugin.AgpVersions
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
@@ -74,23 +71,6 @@ fun setGradleWrapperExecutable(projectRoot: File) {
     throw IOException("Could not find gradle wrapper. Command line builds may not work properly.")
   }
   FileUtil.setExecutable(gradlewFile)
-}
-
-/** Find the most appropriate Gradle Plugin version for the specified project. */
-@Slow
-fun determineAgpVersion(project: Project, isNewProject: Boolean): AgpVersion {
-  if (isNewProject) {
-    return AgpVersions.newProject
-  }
-
-  val versionInUse =
-    GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)
-  if (versionInUse != null) {
-    return versionInUse
-  }
-  // Use slow method
-  val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
-  return androidPluginInfo?.pluginVersion ?: AgpVersions.newProject
 }
 
 /** Find the most appropriate Kotlin plugin version for the specified project. */

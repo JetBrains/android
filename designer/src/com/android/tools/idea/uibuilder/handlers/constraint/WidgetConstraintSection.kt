@@ -26,7 +26,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.registerAttributeHelp
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.ui.NewUiValue
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBList
 import com.intellij.ui.paint.EffectPainter2D
 import com.intellij.util.ui.JBDimension
@@ -111,41 +111,34 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
           val apiLevel = scene.renderedApiLevel
           val rtl = scene.isInRTL
           val constraint = getConstraintForAttribute(itemData.attribute, apiLevel, rtl)
-          surface.selectionModel.setSecondarySelection(widgetModel.component, constraint)
+          surface.selectionModel?.setSecondarySelection(widgetModel.component, constraint)
           surface.invalidate()
           surface.repaint()
         }
-      },
+      }
     )
 
     list.addKeyListener(
       object : KeyAdapter() {
         override fun keyReleased(e: KeyEvent) {
-          when (e.keyCode) {
-            KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE -> {
-              val index = list.selectedIndex
-              val item = listData.removeAt(index)
+          if (e.keyCode == KeyEvent.VK_DELETE || e.keyCode == KeyEvent.VK_BACK_SPACE) {
+            val index = list.selectedIndex
+            val item = listData.removeAt(index)
 
-              widgetModel.removeAttributes(item.namespace, item.attribute)
-              list.clearSelection()
-              e.consume()
-            }
-            KeyEvent.VK_ESCAPE -> {
-              list.clearSelection()
-              widgetModel.surface?.selectionModel?.setSecondarySelection(
-                widgetModel.component,
-                null,
-              )
-              widgetModel.surface?.invalidate()
-              widgetModel.surface?.repaint()
-              e.consume()
-            }
-            else -> {
-              super.keyReleased(e)
-            }
+            widgetModel.removeAttributes(item.namespace, item.attribute)
+            list.clearSelection()
+            e.consume()
+          } else if (e.keyCode == KeyEvent.VK_ESCAPE) {
+            list.clearSelection()
+            widgetModel.surface?.selectionModel?.setSecondarySelection(widgetModel.component, null)
+            widgetModel.surface?.invalidate()
+            widgetModel.surface?.repaint()
+            e.consume()
+          } else {
+            super.keyReleased(e)
           }
         }
-      },
+      }
     )
 
     list.setListData(listData)
@@ -367,7 +360,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
     }
   }
 
-  private inner class WarningPanel: JPanel(BorderLayout()) {
+  private inner class WarningPanel : JPanel(BorderLayout()) {
 
     private val horizontalWarning = JLabel()
     private val verticalWarning = JLabel()
@@ -379,8 +372,7 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
         override fun mouseClicked(e: MouseEvent?) {
           val component = widgetModel.component ?: return
           val surface = widgetModel.surface ?: return
-          IssuePanelService.getInstance(surface.project)
-            .showIssueForComponent(surface, true, component, true)
+          IssuePanelService.getInstance(surface.project).showIssueForComponent(surface, component)
         }
       }
 
@@ -464,7 +456,7 @@ private fun ConstraintCellData.toConstraintAttribute(): ConstraintAttribute {
 
 private val constraintIcon = StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT
 private val highlightConstraintIcon =
-  if (NewUiValue.isEnabled()) constraintIcon else ColoredIconGenerator.generateWhiteIcon(constraintIcon)
+  if (ExperimentalUI.isNewUI()) constraintIcon else ColoredIconGenerator.generateWhiteIcon(constraintIcon)
 
 private val FADING_LABEL_COLOR = Color(0x999999)
 

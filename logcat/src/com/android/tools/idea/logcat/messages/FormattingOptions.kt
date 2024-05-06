@@ -25,14 +25,13 @@ import com.intellij.util.Range
 
 private val logcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
 
-/**
- * Formatting options of a Logcat panel.
- */
+/** Formatting options of a Logcat panel. */
 internal data class FormattingOptions(
   var timestampFormat: TimestampFormat = TimestampFormat(DATETIME),
   var processThreadFormat: ProcessThreadFormat = ProcessThreadFormat(BOTH, enabled = true),
   var tagFormat: TagFormat = TagFormat(),
   var appNameFormat: AppNameFormat = AppNameFormat(),
+  var processNameFormat: ProcessNameFormat = AppNameFormat(enabled = false),
   var levelFormat: LevelFormat = LevelFormat(),
 ) {
   enum class Style(val displayName: @ActionText String) {
@@ -46,13 +45,19 @@ internal data class FormattingOptions(
     },
     ;
 
-    // Needs to be abstract so Style enum values do not depend on AndroidLogcatFormattingOptions because AndroidLogcatFormattingOptions has
+    // Needs to be abstract so Style enum values do not depend on AndroidLogcatFormattingOptions
+    // because AndroidLogcatFormattingOptions has
     // a field of type Style that needs to be initialized with a value.
     abstract val formattingOptions: FormattingOptions
   }
 
   fun getHeaderWidth() =
-    appNameFormat.width() + tagFormat.width() + processThreadFormat.width() + timestampFormat.width() + levelFormat.width()
+    appNameFormat.width() +
+      processNameFormat.width() +
+      tagFormat.width() +
+      processThreadFormat.width() +
+      timestampFormat.width() +
+      levelFormat.width()
 
   fun getStyle(): Style? {
     return when {
@@ -82,7 +87,12 @@ internal data class FormattingOptions(
     if (!levelFormat.enabled) {
       return Range(-1, -1)
     }
-    val start = timestampFormat.width() + processThreadFormat.width() + tagFormat.width() + appNameFormat.width()
+    val start =
+      timestampFormat.width() +
+        processThreadFormat.width() +
+        tagFormat.width() +
+        appNameFormat.width() +
+        processNameFormat.width()
     return Range(start, start + levelFormat.width() - 1)
   }
 }

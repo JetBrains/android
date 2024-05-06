@@ -89,7 +89,9 @@ class TreeTableDropTargetHandlerTest {
         }
 
       override fun getTooltipText(item: Any): String = ""
+
       override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {}
+
       override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {}
     }
 

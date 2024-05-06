@@ -42,7 +42,7 @@ class AndroidModuleRootConfigurable(
 
   private val signingConfigsModel = createTreeModel(SigningConfigsConfigurable(module, context).also { Disposer.register(this, it) })
 
-  override fun getId() = "android.psd.modules.$displayName"
+  override fun getId() = "android.psd.modules." + displayName
   override fun createPanel() =
       ModulePanel(context, module, signingConfigsModel)
   override fun dispose() = Unit

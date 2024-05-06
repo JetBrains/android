@@ -24,7 +24,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.ProjectRule
 import org.junit.Rule
 import org.junit.Test
 
@@ -38,11 +37,8 @@ class AndroidTileConfigurationTest {
 
   @Test
   fun testProgramRunnerAvailable() {
-    val configSettings = RunManager.getInstance(project)
-      .createConfiguration(
-      "run tile",
-            AndroidTileConfigurationType().configurationFactories.single()
-      )
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "run tile", AndroidTileConfigurationType().configurationFactories.single())
 
     val runnerForRun = ProgramRunner.getRunner(DefaultRunExecutor.EXECUTOR_ID, configSettings.configuration)
     assertThat(runnerForRun).isNotNull()

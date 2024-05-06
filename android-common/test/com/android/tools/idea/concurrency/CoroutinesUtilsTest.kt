@@ -108,7 +108,7 @@ class CoroutinesUtilsTest {
   }
 
   @Test
-  @Ignore("Test is disabled because of a bug in AndroidCoroutineScope")
+  @Ignore("b/303086924")
   fun androidCoroutineScopeIsCancelledOnDisposeInRunBlockingTest() {
     runBlockingTest {
       // Prepare

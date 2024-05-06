@@ -24,21 +24,19 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [LogcatApplicationSettingsConfigurableProvider]
- */
+/** Tests for [LogcatApplicationSettingsConfigurableProvider] */
 @RunsInEdt
 class LogcatApplicationSettingsConfigurableProviderTest {
   private val disposableRule = DisposableRule()
 
-  @get:Rule
-  val rule = RuleChain(ApplicationRule(), disposableRule, EdtRule())
+  @get:Rule val rule = RuleChain(ApplicationRule(), disposableRule, EdtRule())
 
   private val provider = LogcatApplicationSettingsConfigurableProvider()
 
   @Test
   fun createConfigurable() {
-    assertThat(provider.createConfigurable()).isInstanceOf(LogcatApplicationSettingsConfigurable::class.java)
+    assertThat(provider.createConfigurable())
+      .isInstanceOf(LogcatApplicationSettingsConfigurable::class.java)
   }
 
   @Test

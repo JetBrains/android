@@ -17,13 +17,13 @@ package com.android.tools.idea.diagnostics.hprof.parser
 
 import com.android.tools.idea.diagnostics.hprof.util.HProfReadBuffer
 import com.android.tools.idea.diagnostics.hprof.util.HProfReadBufferSlidingWindow
+import com.android.tools.idea.diagnostics.hprof.util.IDMapper
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.Logger
 import java.io.EOFException
 import java.io.IOException
 import java.nio.channels.FileChannel
 import java.nio.charset.Charset
-import java.util.function.LongUnaryOperator
 
 class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
   companion object {
@@ -34,12 +34,13 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     private set
 
   private var reparsePosition: Long = 0
-  private var remapFunction: LongUnaryOperator? = null
-  private val buffer: HProfReadBuffer = HProfReadBufferSlidingWindow(fileChannel, this)
+  private var idMapper: IDMapper? = null
+  private val buffer: HProfReadBuffer
 
   private var heapRecordPosition: Long = 0
 
   init {
+    buffer = HProfReadBufferSlidingWindow(fileChannel, this)
     initialParse()
   }
 
@@ -47,8 +48,8 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     buffer.close()
   }
 
-  fun setIdRemappingFunction(remapFunction: LongUnaryOperator) {
-    this.remapFunction = remapFunction
+  fun setIDMapper(idMapper: IDMapper) {
+    this.idMapper = idMapper
   }
 
   private fun initialParse() {
@@ -317,7 +318,10 @@ class HProfEventBasedParser(fileChannel: FileChannel) : AutoCloseable {
     )
   }
 
-  fun remap(id: Long): Long = remapFunction?.applyAsLong(id) ?: id
+  fun remap(id: Long): Long {
+    if (id == 0L) return 0L
+    return idMapper?.getID(id) ?: id
+  }
 
   private fun readTypeSizeValue(elementType: Type): Long {
     if (elementType === Type.OBJECT) {

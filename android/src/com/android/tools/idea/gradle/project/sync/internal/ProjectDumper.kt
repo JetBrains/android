@@ -84,19 +84,16 @@ class ProjectDumper(
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length - 3},${gradleLongHashStub.length}}")
   private val gradleVersionPattern = Regex("gradle-[^/]*${SdkConstants.GRADLE_LATEST_VERSION}")
   private val kotlinVersionPattern =
-  // org.jetbrains.kotlin:kotlin-something:<version> or kotlin-something-<version>
+    // org.jetbrains.kotlin:kotlin-something:<version> or kotlin-something-<version>
     // where <version> could be 1.7.0, 1.3.1-eap-23, or 1.7.20-Beta
     Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-zA-Z]*)*:)|(?:kotlin(?:-[0-9a-zA-Z]+)*)-)(\\d+\\.\\d+.[0-9a-zA-Z\\-]+)")
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
-  private val transformFolderPattern = Regex("/transforms-\\d/")
-  private val konanFolderPathRegex = Regex("^/([_/0-9a-z])+\\.konan")
 
   fun File.normalizeCxxPath(variantName: String?): String {
     val cxxSegment = findCxxSegment(this) ?: return this.path
     val abiSegment = findAbiSegment(this) ?: return this.path
     val stringFile = this.toString().replace("\\", "/")
-    val variantSegmentToReplace = stringFile.substring(stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1,
-                                                       stringFile.lastIndexOf(abiSegment) - 1)
+    val variantSegmentToReplace = stringFile.substring(stringFile.lastIndexOf(cxxSegment) + cxxSegment.length + 1, stringFile.lastIndexOf(abiSegment) - 1)
     val pathsToReplace = mapOf(
       "/build/intermediates/cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
       "/build/.cxx/${variantSegmentToReplace}" to "/<CXX>/{${variantName?.uppercase(Locale.ROOT)}}",
@@ -112,13 +109,13 @@ class ProjectDumper(
   private fun findCxxSegment(file: File): String? {
     val name = file.name
     if (name.endsWith("cxx")) return file.name
-    return findCxxSegment(file.parentFile ?: return null)
+    return findCxxSegment(file.parentFile?:return null)
   }
 
   private fun findAbiSegment(file: File): String? {
     val name = file.name
-    if (name in Abi.values().map { it -> it.toString() }.toSet()) return file.name
-    return findAbiSegment(file.parentFile ?: return null)
+    if (name in Abi.values().map{it -> it.toString()}.toSet()) return file.name
+    return findAbiSegment(file.parentFile?:return null)
   }
 
   fun String.toPrintablePaths(): Collection<String> =
@@ -155,7 +152,7 @@ class ProjectDumper(
     var res = maskedPath
     val gradleFilesPrefix = "<GRADLE>/caches/modules-2/files-2.1/"
     if (res.startsWith(gradleFilesPrefix)) {
-      val parts = res.substringAfter(gradleFilesPrefix).split("/")
+      val parts = res.substringAfter(gradleFilesPrefix).split("/");
 
       val pkg = parts[0]
       val artifact = parts[1]
@@ -195,11 +192,7 @@ class ProjectDumper(
 
   fun String.replaceKnownPaths(): String =
     this
-      .let {
-        offlineRepos.fold(it) { text, repo ->
-          text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false)
-        }
-      }
+      .let { offlineRepos.fold(it) { text, repo -> text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false) } }
       .let { additionalRoots.entries.fold(it) { text, (name, dir) -> text.replace(dir.absolutePath, "<$name>", ignoreCase = false) } }
       .replace("/transformed/jetified-", "/transformed/")
       .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
@@ -208,8 +201,7 @@ class ProjectDumper(
       .let {
         if (kotlinPlugin != null) {
           it.replace(FileUtils.toSystemIndependentPath(kotlinPlugin.absolutePath), "<KOTLIN_PATH>", ignoreCase = false)
-        }
-        else {
+        } else {
           it
         }
       }
@@ -234,7 +226,6 @@ class ProjectDumper(
       .replaceAgpVersion()
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .replace(dotAndroidFolderPathPattern, "<.ANDROID>")
-      .replace(konanFolderPathRegex, "<KONAN>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
@@ -265,7 +256,7 @@ class ProjectDumper(
 
   fun appendln(data: String) {
     output.append(currentNestingPrefix)
-    output.appendLine(data.trimEnd())
+    output.appendln(data.trimEnd())
   }
 
   /**
@@ -292,11 +283,10 @@ class ProjectDumper(
 
   fun String.replaceSourceAndTargetCompatibility(): String {
     return projectJdk
-             ?.let {
-               replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(),
-                       "<PROJECT_JDK_FEATURE_LEVEL>")
-             }
-           ?: this
+      ?.let {
+        replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(), "<PROJECT_JDK_FEATURE_LEVEL>")
+      }
+      ?: this
   }
 
   private val javaVersionRegex = Regex("(jbr|corretto)-(17|11|1\\.8)")

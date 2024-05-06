@@ -26,10 +26,12 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.CaptureDataSeries.ofHeapDumpSamples
+import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 
 class HprofSessionArtifactTest {
@@ -67,6 +69,25 @@ class HprofSessionArtifactTest {
                                                 Common.SessionMetaData.getDefaultInstance(),
                                                 finishedInfo)
     assertThat(finishedArtifact.isOngoing).isFalse()
+  }
+
+  @Test
+  fun testSubtitle() {
+    val ongoingInfo = HeapDumpInfo.newBuilder().setStartTime(1).setEndTime(Long.MAX_VALUE).build()
+    val finishedInfo = HeapDumpInfo.newBuilder()
+      .setStartTime(TimeUnit.SECONDS.toNanos(5)).setEndTime(TimeUnit.SECONDS.toNanos(10)).build()
+
+    val ongoingCaptureArtifact = HprofSessionArtifact(myProfilers,
+                                                      Common.Session.getDefaultInstance(),
+                                                      Common.SessionMetaData.getDefaultInstance(),
+                                                      ongoingInfo)
+    assertThat(ongoingCaptureArtifact.subtitle).isEqualTo(SessionArtifact.CAPTURING_SUBTITLE)
+
+    val finishedCaptureArtifact = HprofSessionArtifact(myProfilers,
+                                                       Common.Session.getDefaultInstance(),
+                                                       Common.SessionMetaData.getDefaultInstance(),
+                                                       finishedInfo)
+    assertThat(finishedCaptureArtifact.subtitle).isEqualTo("00:00:05.000")
   }
 
   @Test

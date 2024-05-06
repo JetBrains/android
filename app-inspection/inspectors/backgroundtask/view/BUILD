@@ -48,7 +48,7 @@ iml_module(
 iml_module(
     name = "app-inspection.inspectors.backgroundtask.view.tests",
     iml_files = ["app-inspection.inspectors.backgroundtask.view.tests.iml"],
-    test_class = "com.android.tools.idea.appinspection.inspectors.backgroundtask.view.BackgroundTaskInspectorViewTestSuite",
+    test_class = "com.android.tools.idea.appinspection.inspectors.backgroundtask.BackgroundTaskInspectorViewTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -74,5 +74,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/codenavigation[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )

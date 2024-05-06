@@ -63,6 +63,13 @@ public class CpuProfilerConfigModel {
   @NotNull
   private List<ProfilingConfiguration> myDefaultProfilingConfigurations;
 
+  /**
+   * The list of all default/modified configurations in task based ux. The list is filtered to configurations that are available,
+   * however it does not filter on device support.
+   */
+  @NotNull
+  private List<ProfilingConfiguration> myTaskProfilingConfigurations;
+
   @NotNull
   private final StudioProfilers myProfilers;
 
@@ -77,6 +84,7 @@ public class CpuProfilerConfigModel {
     myCustomProfilingConfigurations = new ArrayList<>();
     myCustomProfilingConfigurationsDeviceFiltered = new ArrayList<>();
     myDefaultProfilingConfigurations = new ArrayList<>();
+    myTaskProfilingConfigurations = new ArrayList<>();
     myAspectObserver = new AspectObserver();
     myProfilerStage.getAspect().addDependency(myAspectObserver)
       .onChange(CpuProfilerAspect.PROFILING_CONFIGURATION, this::updateProfilingConfigurations);
@@ -108,6 +116,11 @@ public class CpuProfilerConfigModel {
     return myDefaultProfilingConfigurations;
   }
 
+  @NotNull
+  public List<ProfilingConfiguration> getTaskProfilingConfigurations() {
+    return myTaskProfilingConfigurations;
+  }
+
   public void updateProfilingConfigurations() {
     Common.Device selectedDevice = myProfilers.getDevice();
     int featureLevel = selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
@@ -116,9 +129,11 @@ public class CpuProfilerConfigModel {
     myCustomProfilingConfigurations = filterConfigurations(savedConfigs, false);
     myCustomProfilingConfigurationsDeviceFiltered = filterConfigurations(savedConfigs, true);
 
+    List<ProfilingConfiguration> savedTaskConfigs = myProfilers.getIdeServices().getTaskCpuProfilerConfigs(featureLevel);
+    myTaskProfilingConfigurations = filterConfigurations(savedTaskConfigs, false);
+
     List<ProfilingConfiguration> defaultConfigs = myProfilers.getIdeServices().getDefaultCpuProfilerConfigs(featureLevel);
     myDefaultProfilingConfigurations = filterConfigurations(defaultConfigs, true);
-
 
     // Anytime before we check the device feature level we need to validate we have a device. The device will be null in test
     // causing a null pointer exception here.

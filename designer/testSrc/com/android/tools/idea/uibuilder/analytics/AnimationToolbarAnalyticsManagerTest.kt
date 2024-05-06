@@ -20,11 +20,11 @@ import com.android.tools.idea.uibuilder.editor.AnimationToolbarType
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AnimationPreviewEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
+import java.util.function.Consumer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.util.function.Consumer
 
 @RunWith(JUnit4::class)
 class AnimationToolbarAnalyticsManagerTest {

@@ -46,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
 public final class StringResourceViewPanelTest extends AndroidTestCase {
   private StringResourceViewPanel myPanel;
   private StringResourceTable myTable;
-  private LocalResourceRepository myRepository;
+  private LocalResourceRepository<VirtualFile> myRepository;
 
   @Override
   protected void setUp() throws Exception {

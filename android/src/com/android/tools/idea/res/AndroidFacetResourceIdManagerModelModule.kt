@@ -17,23 +17,14 @@ package com.android.tools.idea.res
 
 import com.android.tools.res.ResourceNamespacing
 import com.android.tools.res.ids.ResourceIdManagerModelModule
-import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 
 /** Studio-specific [ResourceIdManagerModelModule] implementation based on [AndroidFacet]. */
-class AndroidFacetResourceIdManagerModelModule(module: Module) : ResourceIdManagerModelModule {
-
-  private val androidFacet: AndroidFacet by lazy {
-    requireNotNull(AndroidFacet.getInstance(module)) {
-      "${AndroidFacetResourceIdManagerModelModule::class.qualifiedName} used on a non-Android module."
-    }
-  }
-
+class AndroidFacetResourceIdManagerModelModule(private val facet: AndroidFacet) :
+  ResourceIdManagerModelModule {
   override val isAppOrFeature: Boolean
-    get() {
-      return androidFacet.configuration.isAppOrFeature
-    }
+    get() = facet.configuration.isAppOrFeature
 
   override val namespacing: ResourceNamespacing
-    get() = StudioResourceRepositoryManager.getInstance(androidFacet).namespacing
+    get() = StudioResourceRepositoryManager.getInstance(facet).namespacing
 }

@@ -15,37 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.APP_PREFIX;
-import static com.android.SdkConstants.ATTR_BACKGROUND;
-import static com.android.SdkConstants.ATTR_ELEVATION;
-import static com.android.SdkConstants.ATTR_GRAVITY;
-import static com.android.SdkConstants.ATTR_LAYOUT_GRAVITY;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_MIN_HEIGHT;
-import static com.android.SdkConstants.ATTR_NAVIGATION_ICON;
-import static com.android.SdkConstants.ATTR_POPUP_THEME;
-import static com.android.SdkConstants.ATTR_SRC;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.ATTR_TEXT;
-import static com.android.SdkConstants.ATTR_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_THEME;
-import static com.android.SdkConstants.GRAVITY_VALUE_RIGHT;
-import static com.android.SdkConstants.IMAGE_BUTTON;
-import static com.android.SdkConstants.ImageViewAttributes.TINT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.SdkConstants.VALUE_CENTER_VERTICAL;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.SdkConstants.ViewAttributes.MIN_HEIGHT;
-
 import com.android.tools.idea.uibuilder.api.ViewHandler;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
+import static com.android.SdkConstants.ImageViewAttributes.TINT;
+import static com.android.SdkConstants.ViewAttributes.MIN_HEIGHT;
 
 /**
  * Handler for the {@code <Toolbar>} widget from appcompat

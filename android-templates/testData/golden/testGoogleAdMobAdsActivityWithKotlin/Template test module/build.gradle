@@ -42,6 +42,6 @@ dependencies {
     implementation libs.material
     implementation libs.play.services.ads
     testImplementation libs.junit
-    androidTestImplementation libs.androidx.test.ext.junit
+    androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }

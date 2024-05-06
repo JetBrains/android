@@ -157,6 +157,7 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
   }
 
   private fun onRecordingChanged() = with (startStopButton) { when {
+    recordingModel.isLoading    -> { text = LOADING  ; isEnabled = false; setOptionsEnabled(false) }
     !recordingModel.isRecording -> { text = START    ; isEnabled = true ; setOptionsEnabled(true)  }
     recordingModel.canStop()    -> { text = STOP     ; isEnabled = true ; setOptionsEnabled(false) }
     else                        -> { text = RECORDING; isEnabled = false; setOptionsEnabled(false) }
@@ -207,6 +208,7 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
     const val START = "Record"
     const val STOP = "Stop"
     const val RECORDING = "Recording"
+    const val LOADING = "Loading"
     const val EDIT_CONFIG = "Edit Configurations"
     const val DEFAULT_COLUMN_WIDTH = 250
   }

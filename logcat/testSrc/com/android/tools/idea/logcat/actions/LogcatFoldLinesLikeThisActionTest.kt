@@ -26,18 +26,16 @@ import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [LogcatFoldLinesLikeThisAction]
- */
+/** Tests for [LogcatFoldLinesLikeThisAction] */
 @RunsInEdt
 class LogcatFoldLinesLikeThisActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
-  private val editor get() = logcatEditorRule.editor
+  private val editor
+    get() = logcatEditorRule.editor
 
   @Test
   fun update_noSelection_visibleAndEnabled() {
@@ -46,7 +44,8 @@ class LogcatFoldLinesLikeThisActionTest {
       """
       foo
       bar
-      """.trimIndent(),
+      """
+        .trimIndent(),
       caret = 0
     )
     val event = TestActionEvent.createTestEvent()
@@ -64,7 +63,8 @@ class LogcatFoldLinesLikeThisActionTest {
       """
       foo
       bar
-      """.trimIndent(),
+      """
+        .trimIndent(),
       caret = 0,
       selectionEnd = 2
     )
@@ -83,7 +83,8 @@ class LogcatFoldLinesLikeThisActionTest {
       """
       foo
       bar
-      """.trimIndent(),
+      """
+        .trimIndent(),
       caret = 0,
       selectionEnd = 5
     )

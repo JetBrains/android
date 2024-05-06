@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -35,13 +36,18 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   @NotNull
   private List<CpuProfilerConfig> myUserConfigs;
 
+  // Default/updated configs for Task-based UX
+  @NotNull
+  private List<CpuProfilerConfig> myTaskConfigs;
+
   /**
    * Default constructor is required and used by {@link PersistentStateComponent}.
    *
-   * @see <a href="https://plugins.jetbrains.com/docs/intellij/persisting-state-of-components.html">Persisting State of Components (IntelliJ Platform Docs)</a>
+   * @see <a href="http://www.jetbrains.org/intellij/sdk/docs/basics/persisting_state_of_components.html">IntelliJ Platform SDK DevGuide</a>
    */
   public CpuProfilerConfigsState() {
     myUserConfigs = new ArrayList<>();
+    myTaskConfigs = new ArrayList<>();
   }
 
   @NotNull
@@ -58,6 +64,27 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
     myUserConfigs = configs;
   }
 
+  @NotNull
+  public List<CpuProfilerConfig> getSavedTaskConfigsIfPresentOrDefault() {
+    if (myTaskConfigs.isEmpty()) {
+      return getTaskDefaultConfigs();
+    }
+    return myTaskConfigs;
+  }
+
+  /**
+   * This method will be invoked by default during project loading and should return empty list, if not it would result in deserialization
+   * error while reading from xml (storage) file.
+   */
+  @NotNull
+  public List<CpuProfilerConfig> getTaskConfigs() {
+    return myTaskConfigs;
+  }
+
+  public void setTaskConfigs(@NotNull List<CpuProfilerConfig> configs) {
+    myTaskConfigs = configs;
+  }
+
   /**
    * @param config - adds the given {@param config} if there is no configuration with the same name
    *                (including default configurations), otherwise ignores.
@@ -71,6 +98,17 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
     return false;
   }
 
+  public CpuProfilerConfig getNativeAllocationsConfigForTaskConfig() {
+    var nativeAllocationsConfig =
+      myTaskConfigs.stream().filter(x -> CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS.getName().equals(x.getName())).findFirst();
+
+    if (!nativeAllocationsConfig.isPresent()) {
+      // Task config should always have Native allocations config
+      return new CpuProfilerConfig(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS);
+    }
+    return nativeAllocationsConfig.get();
+  }
+
   @NotNull
   public static List<CpuProfilerConfig> getDefaultConfigs() {
     ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
@@ -78,6 +116,17 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
       .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA));
+    return configs.build();
+  }
+
+  @NotNull
+  public static List<CpuProfilerConfig> getTaskDefaultConfigs() {
+    ImmutableList.Builder<CpuProfilerConfig> configs = new ImmutableList.Builder<CpuProfilerConfig>()
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SAMPLED_JAVA))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
+      .add(new CpuProfilerConfig(CpuProfilerConfig.Technology.SYSTEM_TRACE));
     return configs.build();
   }
 
@@ -101,7 +150,7 @@ public class CpuProfilerConfigsState implements PersistentStateComponent<CpuProf
   }
 
   @Override
-  public void loadState(@NotNull CpuProfilerConfigsState state) {
+  public void loadState(CpuProfilerConfigsState state) {
     XmlSerializerUtil.copyBean(state, this);
   }
 }

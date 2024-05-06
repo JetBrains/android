@@ -46,7 +46,7 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
 
   public void testNoNotificationIfSmallRam() {
     stubHostData(4);
-    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     Notification[] notifications = getNotifications();
     assertSize(0, notifications);
   }
@@ -62,8 +62,8 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
     when(myReminder.shouldAsk()).thenReturn(true);
     // set the heap size to be small so there is a recommendation made
     stubHostData(16);
-    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
-    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     Notification[] notifications = getNotifications();
     // Check twice but there should be only one notification
     assertSize(1, notifications);
@@ -78,7 +78,7 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
 
   private Notification[] getNotifications() {
     return NotificationsManager.getNotificationsManager().getNotificationsOfType(
-      MemorySettingsNotification.class, getProject());
+      MemorySettingsNotification.class, myProject);
   }
 
   private void stubHostData(int machineMemInGB) {

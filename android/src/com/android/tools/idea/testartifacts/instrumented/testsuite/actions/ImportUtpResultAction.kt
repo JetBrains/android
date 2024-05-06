@@ -28,6 +28,7 @@ import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.ComponentManagerEx
@@ -51,6 +52,21 @@ import javax.swing.Icon
  * A file name which UTP outputs test results.
  */
 private const val TEST_RESULT_PB_FILE_NAME = "test-result.pb"
+/**
+ * A file name which UTP outputs device info
+ */
+private const val DEVICE_INFO_PB_FILE_NAME = "device-info.pb"
+/**
+ * Top level "flavors" directory
+ */
+private const val FLAVOR_DIRECTORY_NAME = "flavors"
+
+// Type of device that tests run on
+enum class DeviceType(val deviceType: String) {
+  CONNECTED("connected"),
+  MANAGED("managed"),
+  EMPTY("")
+}
 
 /**
  * An action to import Unified Test Platform (UTP) results, and display them in the test result panel.
@@ -141,7 +157,7 @@ class ImportUtpResultAction(icon: Icon? = null,
     }
 
     val defaultPath = getDefaultAndroidGradlePluginTestDirectory(project)?.let {
-      findTestResultProto(it).firstOrNull()
+      findTestResultProto(it, DeviceType.EMPTY).firstOrNull()
     }
     chooseFile(
       FileChooserDescriptor(true, false, false, false, false, false)
@@ -158,6 +174,8 @@ class ImportUtpResultAction(icon: Icon? = null,
    *
    * @param e an action event
    */
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabledAndVisible = (e.project != null
@@ -178,52 +196,64 @@ data class ImportUtpResultActionFromFile(val timestamp: Long, val action: Import
  */
 fun createImportUtpResultActionFromAndroidGradlePluginOutput(project: Project?): List<ImportUtpResultActionFromFile> {
   val testDirectory = getDefaultAndroidGradlePluginTestDirectory(project) ?: return listOf()
-  return findTestResultProtoAndCreateImportActions(testDirectory, deviceType = "connected")
+  return findTestResultProtoAndCreateImportActions(testDirectory, deviceType = DeviceType.CONNECTED)
 }
 
 fun createImportGradleManagedDeviceUtpResults(project: Project?): List<ImportUtpResultActionFromFile> {
   val deviceFolder = getDefaultAndroidGradlePluginDevicesTestDirectory(project) ?: return listOf()
-  return findTestResultProtoAndCreateImportActions(deviceFolder, deviceType = "managed")
+  return findTestResultProtoAndCreateImportActions(deviceFolder, deviceType = DeviceType.MANAGED)
+}
+
+private fun VirtualFile.parent(level: Int): VirtualFile {
+  var targetDir = this
+  repeat(level) { targetDir = targetDir.parent ?: return targetDir }
+  return targetDir
 }
 
 private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile,
-                                                      deviceType: String): List<ImportUtpResultActionFromFile> {
-  val results = mutableMapOf<VirtualFile, ImportUtpResultActionFromFile>()
-
-  findTestResultProtoAndCreateImportActions(dir, flavorName = null, deviceType)
-    .map { requireNotNull(it.action.importFile) to it }
-    .toMap(results)
-
-  dir.findChild("flavors")?.children?.asSequence()
-    ?.filter(VirtualFile::isDirectory)
-    ?.flatMap { findTestResultProtoAndCreateImportActions(it, flavorName = it.name, deviceType) }
-    ?.map { requireNotNull(it.action.importFile) to it }
-    ?.toMap(results)
-
-  return results.values.toList()
+                                                      deviceType: DeviceType): List<ImportUtpResultActionFromFile> {
+  return findTestResultProto(dir, deviceType)
+    .map {
+      val currentFlavor = getFlavorName(it, 3)
+      createImportUtpResultsFromProto(it, currentFlavor, deviceType) }
+    .filterNotNull().toList()
 }
 
-private fun findTestResultProtoAndCreateImportActions(dir: VirtualFile,
-                                                      flavorName: String?,
-                                                      deviceType: String): Sequence<ImportUtpResultActionFromFile> {
-  return findTestResultProto(dir)
-    .map { createImportUtpResultsFromProto(it, flavorName, deviceType) }
-    .filterNotNull()
+/**
+ * Obtains flavor based on test-result.pb location, we either get its parent name or its skip parent name
+ * flavors folder is structured as below
+ * flavors
+ *    |-> flavor1
+ *           |-> test-result.pb
+ *           |-> testDevice1
+ *                  |-> test-result.pb
+ */
+private fun getFlavorName(dir: VirtualFile, layer: Int): String? {
+  if (layer < 2) {
+    return null
+  }
+  return if (dir.parent(layer).name == FLAVOR_DIRECTORY_NAME) {
+    dir.parent(layer - 1).name
+  } else {
+    getFlavorName(dir, layer - 1)
+  }
 }
 
-private fun findTestResultProto(dir: VirtualFile): Sequence<VirtualFile> {
+private fun findTestResultProto(dir: VirtualFile, deviceType: DeviceType): Sequence<VirtualFile> {
   val resultPbFile = dir.findChild(TEST_RESULT_PB_FILE_NAME)
-  if (resultPbFile != null) {
+  // TODO(b/294439844) We skip the aggregated test result file for GMDs until this issue is resolved
+  if (resultPbFile != null &&
+      (deviceType != DeviceType.MANAGED || dir.findChild(DEVICE_INFO_PB_FILE_NAME) != null)) {
     return sequenceOf(resultPbFile)
   }
   return dir.children.asSequence()
     .filter(VirtualFile::isDirectory)
-    .flatMap { findTestResultProto(it) }
+    .flatMap { findTestResultProto(it, deviceType) }
 }
 
 private fun createImportUtpResultsFromProto(file: VirtualFile,
                                             flavorName: String?,
-                                            deviceType: String?): ImportUtpResultActionFromFile? {
+                                            deviceType: DeviceType): ImportUtpResultActionFromFile? {
   val resultProto = try {
     file.inputStream.use {
       TestSuiteResultProto.TestSuiteResult.parseFrom(it)
@@ -243,7 +273,7 @@ private fun createImportUtpResultsFromProto(file: VirtualFile,
     flavorName?.let {
       append(" - $it")
     }
-    append(" - $deviceType")
+    append(" - ${deviceType.deviceType}")
     append(" (${DateFormatUtil.formatDateTime(Date(startTimeMillis))})")
   }.toString()
   return ImportUtpResultActionFromFile(

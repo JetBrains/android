@@ -16,9 +16,14 @@
 package com.android.tools.idea.uibuilder.motion;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
+
+import javax.swing.Action;
+import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.HashMap;
 

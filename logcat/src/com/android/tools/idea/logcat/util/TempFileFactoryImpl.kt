@@ -18,10 +18,8 @@ package com.android.tools.idea.logcat.util
 import com.intellij.openapi.util.io.FileUtil
 import java.nio.file.Path
 
-/**
- * A [TempFileFactory] implementation
- */
-private class TempFileFactoryImpl: TempFileFactory {
+/** A [TempFileFactory] implementation */
+private class TempFileFactoryImpl : TempFileFactory {
   override fun createTempFile(prefix: String, suffix: String): Path {
     return FileUtil.createTempFile(prefix, suffix, true).toPath()
   }

@@ -31,6 +31,7 @@ import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.parseColor
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
@@ -43,10 +44,11 @@ import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.uibuilder.property.support.ColorSelectionAction
@@ -63,6 +65,7 @@ import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
@@ -73,9 +76,12 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
-import org.jetbrains.android.dom.AndroidDomUtil
 import java.awt.Color
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.Icon
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.android.dom.AndroidDomUtil
 
 /**
  * [PropertyItem] for Nele layouts, menus, preferences.
@@ -185,6 +191,7 @@ open class NlPropertyItem(
         override fun uriToPrefix(namespaceUri: String): String? = withTag { tag ->
           tag.getPrefixByNamespace(namespaceUri)
         }
+
         override fun prefixToUri(namespacePrefix: String): String? = withTag { tag ->
           tag.getNamespaceByPrefix(namespacePrefix).nullize()
         }
@@ -195,6 +202,7 @@ open class NlPropertyItem(
     object : HelpSupport {
       override val help = HelpActions.help
       override val secondaryHelp = HelpActions.secondaryHelp
+
       override fun browse() {
         model.browseToValue(this@NlPropertyItem)
       }
@@ -205,6 +213,7 @@ open class NlPropertyItem(
       override val completion: EditorCompletion = { getCompletionValues() }
       override val allowCustomValues: Boolean
         get() = type.allowCustomValues
+
       override val validation = { text: String? -> validate(text) }
       override val execution = { runnable: Runnable ->
         ApplicationManager.getApplication().executeOnPooledThread(runnable)
@@ -260,12 +269,40 @@ open class NlPropertyItem(
     return asResourceValue(resolveValueAsReference(value))
   }
 
+  /**
+   * Resolves the [reference] from a theme overlay IF the component declares one via the
+   * "android:theme" attribute. If there is no overlay in the component for this [NlPropertyItem]
+   * the method returns null.
+   */
+  private fun asResourceValueFromOverlay(reference: ResourceReference?): ResourceValue? {
+    if (reference?.resourceType != ResourceType.ATTR) return null
+    val themeOverlayAttribute =
+      firstComponent?.getAttribute(ANDROID_URI, SdkConstants.ATTR_THEME) ?: return null
+    val themeOverlayUrl = ResourceUrl.parse(themeOverlayAttribute) ?: return null
+
+    val namespace =
+      ResourceNamespace.fromNamespacePrefix(
+        themeOverlayUrl.namespace,
+        ResourceNamespace.RES_AUTO,
+        ResourceNamespace.Resolver.EMPTY_RESOLVER
+      )
+    val themeReference =
+      themeOverlayUrl.resolve(
+        namespace ?: ResourceNamespace.RES_AUTO,
+        ResourceNamespace.Resolver.EMPTY_RESOLVER
+      ) ?: return null
+
+    val themeOverlayStyle = resolver?.getStyle(themeReference) ?: return null
+    return resolver?.findItemInStyle(themeOverlayStyle, reference)
+  }
+
   private fun asResourceValue(reference: ResourceReference?): ResourceValue? {
     if (reference == null) {
       return null
     }
     if (reference.resourceType == ResourceType.ATTR) {
-      val resValue = resolver?.findItemInTheme(reference) ?: return null
+      val resValue =
+        asResourceValueFromOverlay(reference) ?: resolver?.findItemInTheme(reference) ?: return null
       return resolver?.resolveResValue(resValue)
     } else {
       return resolver?.getResolvedResource(reference)
@@ -353,7 +390,7 @@ open class NlPropertyItem(
   }
 
   // Note: This can be called from a non UI thread.
-  protected open fun getCompletionValues(): List<String> {
+  open fun getCompletionValues(): List<String> {
     if (namespace == TOOLS_URI && name == ATTR_PARENT_TAG) {
       val tags =
         ReadAction.compute<Collection<String>, RuntimeException> {
@@ -441,7 +478,7 @@ open class NlPropertyItem(
     return values
   }
 
-  protected open fun validate(text: String?): Pair<EditingErrorCategory, String> {
+  open fun validate(text: String?): Pair<EditingErrorCategory, String> {
     val value = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
     return validateEditedValue(value) ?: lintValidation(value) ?: EDITOR_NO_ERROR
   }
@@ -554,6 +591,8 @@ open class NlPropertyItem(
   }
 
   private inner class ColorActionIconButton : ActionIconButton {
+    private var cachedIcon: AtomicReference<Pair<String, Icon>?> = AtomicReference(null)
+
     override val actionButtonFocusable
       get() = true
 
@@ -592,7 +631,33 @@ open class NlPropertyItem(
         return JBUIScale.scaleIcon(ColorIcon(RESOURCE_ICON_SIZE, color, false))
       }
       val resValue = asResourceValue(value) ?: return null
-      return resolver?.resolveAsIcon(resValue, project, model.facet)
+      cachedIcon.get()?.let {
+        if (rawValue != null && rawValue == it.first) {
+          return it.second
+        }
+      }
+
+      cachedIcon.set(null)
+      val rawValueToCalculate = rawValue
+      if (rawValueToCalculate != null) {
+        model.supervisorScope.launch(workerThread) {
+          val icon = resolver?.resolveAsIcon(resValue, model.facet)
+          if (icon != null) {
+            val currentRawValue = readAction { rawValue }
+            cachedIcon.updateAndGet { previous ->
+              if (rawValueToCalculate == currentRawValue)
+                return@updateAndGet rawValueToCalculate to icon
+              else return@updateAndGet previous
+            }
+
+            withContext(uiThread) {
+              // Trigger refresh of the properties to show the new cached icon
+              model.firePropertyValueChanged()
+            }
+          }
+        }
+      }
+      return null
     }
   }
 

@@ -22,20 +22,14 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.base.utils.fqname.getKotlinFqName
 import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
-import org.jetbrains.kotlin.psi.KtDeclarationWithBody
-import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtForExpression
-import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
-import java.nio.file.Files
-import java.nio.file.Paths
-import kotlin.io.path.exists
+import java.util.HashSet
+import java.util.LinkedHashSet
 
 /**
  * This is a cache of class name (fully qualify name such as java/lang/String) to a inlinable source (bytecode on disk or in memory)
@@ -61,7 +55,7 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
    * Return true if we can populate the KtFile's inline cache entry of the code generation process.
    * IE: Can we have the bytecode available either in memory or on disk somehow.
    */
-  inline fun canFillInlineCache() = bytecode != null
+  inline fun canFillInlineCache() = bytecode != null;
 
   /**
    * Fill the bytecode cache with the .class content from the last build.
@@ -74,22 +68,14 @@ data class SourceInlineCandidate (val sourceFile: KtFile, val className : String
     }
 
     // Fetch the output of the class file from the module's output directory.
-    var vFile = sourceFile.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
+    var classContent = sourceFile.getModuleSystem()?.getClassFileFinderForSourceFile(sourceFile.virtualFile)?.findClassFile(className)
 
-    if (vFile == null) {
+    if (classContent == null) {
       LOGGER.warn("Unable to local $className in the build system.")
+      return
     }
 
-    bytecode = vFile?.let {
-      val file = Paths.get(it.path)
-
-      if (!file.exists()) {
-        LOGGER.warn("Build output $file NOT found")
-        return
-      }
-
-      return@let Files.readAllBytes(file)
-    }
+    bytecode = classContent.content
   }
 
   /**

@@ -24,6 +24,7 @@ import com.google.wireless.android.sdk.stats.EditorPickerEvent
  */
 internal interface ComposePickerTracker {
   fun pickerShown()
+
   fun pickerClosed()
 
   /**

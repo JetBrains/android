@@ -17,11 +17,11 @@ package com.android.tools.idea.common.util
 
 import com.android.testutils.VirtualTimeScheduler
 import com.google.common.truth.Truth.assertThat
-import org.junit.Before
-import org.junit.Test
 import java.time.Duration
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
+import org.junit.Before
+import org.junit.Test
 
 private const val TICKER_STEP_MILLIS = 100L
 

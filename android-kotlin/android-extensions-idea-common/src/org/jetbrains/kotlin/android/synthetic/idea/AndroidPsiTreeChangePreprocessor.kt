@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.synthetic.idea
 
-import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile

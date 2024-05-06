@@ -34,8 +34,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.util.xmlb.annotations.Transient
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.WeakHashMap
+import org.jetbrains.android.facet.AndroidFacet
 
 data class CustomConfigurationSet(
   var title: String = "Custom",
@@ -77,10 +77,10 @@ data class CustomConfigurationAttribute(
 )
 
 private object CustomModelDataContext : DataContext {
-  override fun getData(dataId: String): Any =
+  override fun getData(dataId: String): Any? =
     when (dataId) {
       IS_CUSTOM_MODEL.name -> true
-      else -> false
+      else -> null
     }
 }
 
@@ -115,8 +115,8 @@ class CustomModelsProvider(
     configurationSetListener.onCurrentConfigurationSetUpdated()
   }
 
-  override fun createActions(file: PsiFile, facet: AndroidFacet): ActionGroup {
-    val addAction = AddCustomConfigurationAction(file, facet, this)
+  override fun createActions(): ActionGroup {
+    val addAction = AddCustomConfigurationAction(this)
     return DefaultActionGroup(addAction)
   }
 
@@ -137,8 +137,7 @@ class CustomModelsProvider(
 
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(
-      NlModel.builder(facet, currentFile, currentFileConfig)
-        .withParentDisposable(parentDisposable)
+      NlModel.builder(parentDisposable, facet, currentFile, currentFileConfig)
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
         .apply { modelDisplayName = "Default (Current File)" }
@@ -156,12 +155,10 @@ class CustomModelsProvider(
           config.deviceState?.name,
           config.locale,
           config.target
-        )
-          ?: currentFile
+        ) ?: currentFile
 
       val model =
-        NlModel.builder(facet, betterFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, betterFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .withDataContext(CustomModelDataContext)

@@ -39,29 +39,9 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
 
   @NotNull
   public BuildVariantsToolWindowFixture selectVariantForModule(@NotNull final String module, @NotNull String variant) {
-    activate();
-    Content[] contents = myToolWindow.getContentManager().getContents();
-    assertThat(contents.length).isAtLeast(1);
+    JTableFixture table = getJTableFixture();
 
-    Content content = contents[0];
-    JTable variantsTable = myRobot.finder().findByType(content.getComponent(), JTable.class, true);
-
-    final String moduleColumnText = "Module: '" + module + "'";
-
-    JTableFixture table = new JTableFixture(myRobot, variantsTable);
-    JTableCellFixture moduleCell = table.cell(
-      (jTable, cellReader) -> {
-        int rowCount = jTable.getRowCount();
-        for (int i = 0; i < rowCount; i++) {
-          int moduleColumnIndex = 0;
-          String currentModule = cellReader.valueAt(jTable, i, moduleColumnIndex);
-          if (moduleColumnText.equals(currentModule)) {
-            return row(i).column(moduleColumnIndex);
-          }
-        }
-        throw new AssertionError("Failed to find module '" + module + "' in 'Build Variants' view");
-      });
-
+    JTableCellFixture moduleCell = getModuleCell(table, module);
     TableCell variantCellCoordinates = row(moduleCell.row()).column(1);
     String selectedVariant = table.valueAt(variantCellCoordinates);
 
@@ -75,5 +55,50 @@ public class BuildVariantsToolWindowFixture extends ToolWindowFixture {
     }
 
     return this;
+  }
+
+  public JTableCellFixture getModuleCell(String module) {
+
+    final String moduleColumnText = "Module: '" + module + "'";
+    JTableFixture table = getJTableFixture();
+    return table.cell(
+      (jTable, cellReader) -> {
+        int rowCount = jTable.getRowCount();
+        for (int i = 0; i < rowCount; i++) {
+          int moduleColumnIndex = 0;
+          String currentModule = cellReader.valueAt(jTable, i, moduleColumnIndex);
+          if (moduleColumnText.equals(currentModule)) {
+            return row(i).column(moduleColumnIndex);
+          }
+        }
+        throw new AssertionError("Failed to find module '" + module + "' in 'Build Variants' view");
+      });
+  }
+
+  public JTableCellFixture getModuleCell(JTableFixture table, String module) {
+    final String moduleColumnText = "Module: '" + module + "'";
+    return table.cell(
+      (jTable, cellReader) -> {
+        int rowCount = jTable.getRowCount();
+        for (int i = 0; i < rowCount; i++) {
+          int moduleColumnIndex = 0;
+          String currentModule = cellReader.valueAt(jTable, i, moduleColumnIndex);
+          if (moduleColumnText.equals(currentModule)) {
+            return row(i).column(moduleColumnIndex);
+          }
+        }
+        throw new AssertionError("Failed to find module '" + module + "' in 'Build Variants' view");
+      });
+  }
+
+  @NotNull
+  public JTableFixture getJTableFixture() {
+    activate();
+    Content[] contents = myToolWindow.getContentManager().getContents();
+    assertThat(contents.length).isAtLeast(1);
+
+    Content content = contents[0];
+    JTable variantsTable = myRobot.finder().findByType(content.getComponent(), JTable.class, true);
+    return new JTableFixture(myRobot, variantsTable);
   }
 }

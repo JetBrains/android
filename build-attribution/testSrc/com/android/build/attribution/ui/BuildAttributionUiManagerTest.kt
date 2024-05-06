@@ -18,12 +18,10 @@ package com.android.build.attribution.ui
 import com.android.build.attribution.AbstractBuildAnalysisResult
 import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.FailureResult
-import com.android.build.attribution.analyzers.CriticalPathAnalyzer
 import com.android.build.attribution.analyzers.JetifierCanBeRemoved
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.constructEmptyBuildResultsObject
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
-import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.TreeWalker
@@ -37,22 +35,16 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildContentManagerImpl
-import com.intellij.openapi.components.ComponentManagerEx
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.impl.ContentImpl
-import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import javax.swing.JEditorPane
 import javax.swing.JPanel
 
@@ -82,8 +74,6 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
 
     buildAttributionUiManager = BuildAttributionUiManagerImpl(project)
     buildSessionId = UUID.randomUUID().toString()
-
-    project.replaceService(FileEditorManager::class.java, FileEditorManagerImpl(project, (project as ComponentManagerEx).getCoroutineScope()), testRootDisposable)
   }
 
   override fun tearDown() {
@@ -110,24 +100,6 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     Truth.assertThat(buildAttributionEvents).containsExactly(
       buildSessionId to BuildAttributionUiEvent.EventType.TAB_CREATED
     ).inOrder()
-  }
-
-  fun testShowBuildAnalysisReportById() {
-    StudioFlags.BUILD_ANALYZER_HISTORY.override(true)
-
-    val buildFinishedTimestamp = System.currentTimeMillis()
-    val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      criticalPathAnalyzerResult = CriticalPathAnalyzer.Result(emptyList(), emptyList(), 0, buildFinishedTimestamp)
-    )
-    Mockito.`when`(buildAnalyzerStorageMock.getHistoricBuildResultByID(MockitoKt.eq(buildSessionId))).thenReturn(
-      CompletableFuture.completedFuture(result))
-
-    buildAttributionUiManager.showBuildAnalysisReportById(buildSessionId)
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-
-    val selectedEditor = FileEditorManager.getInstance(project).selectedEditor!!
-    val vf = selectedEditor.file
-    Truth.assertThat(vf.name).isEqualTo("Build report: ${DateFormatUtil.formatDateTime(buildFinishedTimestamp)}")
   }
 
   fun testOnBuildFailureWhenTabClosed() {

@@ -22,11 +22,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DefaultTimeline implements Timeline {
   private static final double DEFAULT_ZOOM_RATIO = 0.75;
+  public static final double PADDING_RATIO = 0.1;
 
   private final Range myDataRange = new Range();
   private final Range myViewRange = new Range();
   private final Range myTooltipRange = new Range();
   private final Range mySelectionRange = new Range();
+  private final Range myZoomLeft = new Range(0, 0);
+  private final TimelineZoomHelper myZoomHelper = new TimelineZoomHelper(myDataRange, myViewRange, myZoomLeft);
 
   /**
    * Ratio to multiply when zooming in and to divide by when zooming out.
@@ -90,7 +93,13 @@ public class DefaultTimeline implements Timeline {
   }
 
   @Override
+  public void zoom(double deltaUs, double ratio) {
+    myZoomHelper.zoom(deltaUs, ratio);
+  }
+
+  @Override
   public void frameViewToRange(@NotNull Range targetRange) {
     myViewRange.set(targetRange.getIntersection(myDataRange));
+    myZoomHelper.updateZoomLeft(targetRange, PADDING_RATIO);
   }
 }

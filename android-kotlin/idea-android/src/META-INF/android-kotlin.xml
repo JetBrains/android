@@ -1,36 +1,9 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-    <extensionPoints>
-        <extensionPoint qualifiedName="org.jetbrains.kotlin.androidDexer"
-                        interface="org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer"
-                        area="IDEA_PROJECT"/>
-    </extensionPoints>
+    <xi:include href="/META-INF/android-kotlin.common.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/android-kotlin.k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
+    <xi:include href="/META-INF/android-kotlin.k2.xml" xpointer="xpointer(/idea-plugin/*)" includeIf="idea.kotlin.plugin.use.k2"/>
 
     <extensions defaultExtensionNs="com.intellij">
-        <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
-
-        <completion.contributor language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor" order="first, before KotlinCompletionContributor"/>
-
-        <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.IllegalIdentifierInspection"
-                         language="kotlin"
-                         displayName="Illegal Android Identifier"
-                         groupName="Kotlin Android"
-                         enabledByDefault="true"
-                         level="ERROR"/>
-
-        <localInspection implementationClass="org.jetbrains.kotlin.android.inspection.TypeParameterFindViewByIdInspection"
-                         displayName="Cast can be converted to findViewById with type parameter"
-                         groupName="Kotlin Android"
-                         enabledByDefault="true"
-                         cleanupTool="true"
-                         level="WEAK WARNING"
-                         language="kotlin" />
-
-        <intentionAction>
-            <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.KotlinAndroidAddStringResource</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
         <intentionAction>
             <language>kotlin</language>
             <className>org.jetbrains.kotlin.android.intention.AddActivityToManifest</className>
@@ -48,51 +21,9 @@
             <className>org.jetbrains.kotlin.android.intention.AddBroadcastReceiverToManifest</className>
             <category>Kotlin Android</category>
         </intentionAction>
-
-        <intentionAction>
-            <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.ImplementParcelableAction</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
-        <intentionAction>
-            <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.RemoveParcelableAction</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
-        <intentionAction>
-            <language>kotlin</language>
-            <className>org.jetbrains.kotlin.android.intention.RedoParcelableAction</className>
-            <category>Kotlin Android</category>
-        </intentionAction>
-
-        <codeInsight.unresolvedReferenceQuickFixProvider
-            implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixProvider"
-            includeUnless="idea.kotlin.plugin.use.k2"/>
-
-        <lang.foldingBuilder language="kotlin" implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
-
-        <registryKey key="kotlin.android.import.mpp.all.transitive"
-                     description="Add all transitive dependencies on MPP modules when Android project is imported"
-                     defaultValue="true"
-                     restartRequired="false"/>
     </extensions>
-
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <quickFixContributor implementation="org.jetbrains.kotlin.android.quickfix.AndroidQuickFixRegistrar"/>
-        <projectConfigurator implementation="org.jetbrains.kotlin.android.configure.KotlinAndroidGradleModuleConfigurator"/>
-
-        <androidDexer implementation="org.jetbrains.kotlin.android.debugger.AndroidDexerImpl"/>
-
-        <highlighterExtension implementation="org.jetbrains.kotlin.android.AndroidHighlighterExtension"/>
-        <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
-        <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixRegistrarK2"
-                                        includeIf="idea.kotlin.plugin.use.k2"/>
         <idea.androidSdkProvider implementation="org.jetbrains.kotlin.android.wizard.AndroidSdkProviderImpl"/>
     </extensions>
 
-    <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
-        <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider" />
-    </extensions>
 </idea-plugin>

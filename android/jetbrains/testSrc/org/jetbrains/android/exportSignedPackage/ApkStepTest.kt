@@ -15,14 +15,22 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
-import com.android.testutils.MockitoAwareLightPlatformTestCase
+import com.android.test.testutils.MockitoAwareLightPlatformTestCase
+import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.help.AndroidWebHelpProvider
 import com.google.common.truth.Truth
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.roots.ModuleRootManager
+import org.jetbrains.android.exportSignedPackage.ApkStep.RUN_PROGUARD_PROPERTY
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetConfiguration
+import org.jetbrains.android.facet.AndroidFacetProperties
 import org.mockito.Mockito
 import java.io.File
+import org.mockito.Mockito.verify
+import java.nio.file.Files.isSameFile
+import kotlin.io.path.Path
 
 class ApkStepTest : MockitoAwareLightPlatformTestCase() {
   private val myWizard = Mockito.mock(ExportSignedPackageWizard::class.java)
@@ -55,5 +63,32 @@ class ApkStepTest : MockitoAwareLightPlatformTestCase() {
 
     // Clean up properties after tests
     properties.setValue(apkPathPropertyName, null)
+  }
+
+  fun testApkDestinationEndsWhiteSpace() {
+    val apkStep = ApkStep(myWizard)
+    val properties = PropertiesComponent.getInstance(project)
+    val destinationPath = "${this.homePath}${File.separator}Apk "
+    val testFacet = Mockito.mock(AndroidFacet::class.java)
+    whenever(testFacet.module).thenReturn(module)
+    val facetConfiguration = Mockito.mock(AndroidFacetConfiguration::class.java)
+    val facetProperties = AndroidFacetProperties()
+    facetProperties.RUN_PROGUARD = false
+    whenever(facetConfiguration.state).thenReturn(facetProperties)
+    whenever(testFacet.configuration).thenReturn(facetConfiguration)
+    whenever(myWizard.facet).thenReturn(testFacet)
+    properties.setValue(apkStep.getApkPathPropertyName(module.name), destinationPath)
+    properties.setValue(RUN_PROGUARD_PROPERTY, "false")
+
+    val apkDir = java.io.File(destinationPath)
+    if (!apkDir.exists()) {
+      Truth.assertThat(apkDir.mkdirs()).isTrue()
+    }
+
+    apkStep._init(testFacet)
+    val captor = argumentCaptor<String>()
+    apkStep._commit(false)
+    verify(myWizard).setApkPath(captor.capture())
+    Truth.assertThat(isSameFile(Path(captor.value), Path(destinationPath))).isTrue()
   }
 }

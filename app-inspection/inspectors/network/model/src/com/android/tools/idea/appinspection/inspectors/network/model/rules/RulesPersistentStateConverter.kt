@@ -20,8 +20,8 @@ import com.intellij.conversion.ProjectConverter
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.util.io.write
-import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 import java.nio.file.Files
+import org.jetbrains.jps.model.serialization.JDomSerializationUtil
 
 const val MISC_XML = "misc.xml"
 const val NAME = "name"

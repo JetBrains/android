@@ -26,6 +26,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.indexing.FileContent
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.name.ClassId
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -263,10 +264,10 @@ class DaggerDataIndexerTest {
           classIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                when (wrapper.getFqName()) {
-                  "com.example.CoffeeMaker" ->
+                when (wrapper.getClassId()) {
+                  ClassId.fromString("com/example/CoffeeMaker") ->
                     indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
-                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                  ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }
@@ -299,10 +300,10 @@ class DaggerDataIndexerTest {
           classIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                when (wrapper.getFqName()) {
-                  "com.example.CoffeeMaker" ->
+                when (wrapper.getClassId()) {
+                  ClassId.fromString("com/example/CoffeeMaker") ->
                     indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
-                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                  ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }
@@ -335,10 +336,10 @@ class DaggerDataIndexerTest {
           classIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                when (wrapper.getFqName()) {
-                  "com.example.CoffeeMaker" ->
+                when (wrapper.getClassId()) {
+                  ClassId.fromString("com/example/CoffeeMaker") ->
                     indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
-                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                  ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }
@@ -557,10 +558,10 @@ class DaggerDataIndexerTest {
           classIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                when (wrapper.getFqName()) {
-                  "com.example.CoffeeMaker" ->
+                when (wrapper.getClassId()) {
+                  ClassId.fromString("com/example/CoffeeMaker") ->
                     indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
-                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                  ClassId.fromString("com/example/CoffeeMaker.CoffeeFilter") ->
                     indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
                 }
               }

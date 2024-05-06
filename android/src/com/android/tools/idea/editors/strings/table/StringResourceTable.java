@@ -19,7 +19,7 @@ import com.android.ide.common.resources.Locale;
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter;
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.OptionalInt;
@@ -134,14 +134,14 @@ public class StringResourceTable extends FrozenColumnTable<StringResourceTableMo
       .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
       .max();
 
-    int minColumnWidth = JBUIScale.scale(20);
+    int minColumnWidth = JBUI.scale(20);
     int columnWidth = Math.max(headerWidth, optionalMaxCellWidth.orElse(minColumnWidth));
 
     if (columnWidth < minColumnWidth) {
       return minColumnWidth;
     }
 
-    int maxColumnWidth = JBUIScale.scale(200);
+    int maxColumnWidth = JBUI.scale(200);
 
     return Math.min(columnWidth, maxColumnWidth);
   }

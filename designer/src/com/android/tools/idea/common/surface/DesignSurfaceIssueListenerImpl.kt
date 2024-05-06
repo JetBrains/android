@@ -17,10 +17,7 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueListener
-import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.intellij.ide.util.PsiNavigationSupport
-import com.intellij.pom.Navigatable
 import java.awt.Dimension
 import kotlin.math.max
 import kotlin.math.min
@@ -32,21 +29,9 @@ private const val MARGIN = 20
  * [DesignSurface]?
  */
 class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListener {
-  override fun onIssueSelected(issue: Issue) {
-    when (val source = issue.source) {
-      is NlComponentIssueSource -> {
-        val component = source.component ?: return
-        surface.selectionModel.setSelection(listOf(component))
-
-        // Navigate to the selected element if possible
-        val element = component.backend.tag?.navigationElement
-        if (element is Navigatable && PsiNavigationSupport.getInstance().canNavigate(element)) {
-          (element as Navigatable).navigate(false)
-        }
-      }
+  override fun onIssueSelected(issue: Issue?) {
+    when (val source = issue?.source) {
       is VisualLintIssueProvider.VisualLintIssueSource -> {
-        // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
-        surface.repaint()
         val sceneViews =
           surface.sceneManagers
             .filter { source.models.contains(it.model) }
@@ -74,8 +59,10 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
 
         surface.setScale(scale)
         surface.setScrollPosition(minX - MARGIN, minY - MARGIN)
+        surface.revalidateScrollArea()
       }
       else -> Unit
     }
+    surface.repaint()
   }
 }

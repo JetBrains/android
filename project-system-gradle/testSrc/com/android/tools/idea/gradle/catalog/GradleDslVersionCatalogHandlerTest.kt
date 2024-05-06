@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.catalog
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.StandardFileSystems
@@ -25,13 +26,23 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.light.LightClass
 import com.intellij.psi.util.PropertyUtilBase.getPropertyName
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.findReferenceByText
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
+import org.junit.Assert.assertNotNull
+import org.junit.Rule
+import org.junit.Test
 
-class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
+@RunsInEdt
+class GradleDslVersionCatalogHandlerTest  {
 
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+  private val project get() = projectRule.project
+
+  @Test
   fun testGetVersionCatalogFiles() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
     val catalogMap = GradleDslVersionCatalogHandler().getVersionCatalogFiles(project)
 
     assertThat(catalogMap).hasSize(2)
@@ -41,16 +52,18 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
     assertThat(catalogMap.keys).isEqualTo(setOf("libs", "libsTest"))
   }
 
+  @Test
   fun testExternallyHandledExtension() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
     val handler = GradleDslVersionCatalogHandler()
     val catalogAliases = handler.getExternallyHandledExtension(project)
 
     assertThat(catalogAliases).isEqualTo(setOf("libs", "libsTest"))
   }
 
+  @Test
   fun testGetAccessorDependenciesMultiCatalog() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val source = root.findFileByRelativePath("app/build.gradle")!!
@@ -60,19 +73,20 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
 
     val handler = GradleDslVersionCatalogHandler()
 
-    val accessor1 = handler.getAccessorClass(psiFile, "libs")
+    val accessor1 = handler.getAccessorClass(psiFile, "libs")!!
     val names1 = accessor1.methods.map { it.name }.toSet()
     assertThat(names1).contains("getGuava")
     assertThat(names1).doesNotContain("getJunit") // from libsTest
 
-    val accessor2 = handler.getAccessorClass(psiFile, "libsTest")
+    val accessor2 = handler.getAccessorClass(psiFile, "libsTest")!!
     val names2 = accessor2.methods.map { it.name }.toSet()
     assertThat(names2).contains("getJunit")
     assertThat(names2).doesNotContain("getGuava") // from libs
   }
 
+  @Test
   fun testGetAllAccessorsMultiCatalog() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val source = root.findFileByRelativePath("app/build.gradle")!!
@@ -82,7 +96,7 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
 
     val handler = GradleDslVersionCatalogHandler()
 
-    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")
+    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
     assertThat(dependencies).containsExactly("constraint.layout", "guava", "androidx.room.ktx",
                                              "plugins.android.application", "plugins.kotlinAndroid",
@@ -90,6 +104,7 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
                                              "bundles.both")
   }
 
+  @Test
   fun testAccessorUnderscoreNotation() {
     testWithCustomCatalogFile("""
       [versions]
@@ -110,6 +125,7 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
                             "bundles.both.bundle"))
   }
 
+  @Test
   fun testAccessorHyphenNotation() {
     testWithCustomCatalogFile("""
       [versions]
@@ -130,6 +146,7 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
                             "bundles.both.bundle"))
   }
 
+  @Test
   fun testAccessorDotNotation() {
     testWithCustomCatalogFile("""
       [versions]
@@ -149,6 +166,7 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
                             "versions.gradlePlugins.agp", "bundles.both.bundle"))
   }
 
+  @Test
   fun testAccessorExtNotation() {
     testWithCustomCatalogFile("""
       [versions]
@@ -170,7 +188,7 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
   }
 
   private fun testWithCustomCatalogFile(catalogContent:String, dependencies:Set<String>){
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG)
 
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val catalog = root.findFileByRelativePath("gradle/libs.versions.toml")!!
@@ -184,7 +202,7 @@ class GradleDslVersionCatalogHandlerTest: AndroidGradleTestCase()  {
 
     val handler = GradleDslVersionCatalogHandler()
 
-    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")
+    val accessor: PsiClass = handler.getAccessorClass(psiFile, "libs")!!
     val dependencies = extractDependenciesInGradleFormat(accessor)
     assertThat(dependencies).containsExactly(*dependencies.toTypedArray())
   }

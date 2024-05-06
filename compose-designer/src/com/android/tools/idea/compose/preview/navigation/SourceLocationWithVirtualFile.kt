@@ -90,8 +90,7 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(
         filesWithName.size == 1 -> filesWithName.single()
         else -> null
       }
-    }
-      ?: return null
+    } ?: return null
 
   return SourceLocationWithVirtualFile(originalPsiFile.virtualFile, lineNumber, this.packageHash)
 }

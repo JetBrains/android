@@ -15,10 +15,9 @@
  */
 package com.android.tools.sdk;
 
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
 import com.android.SdkConstants;
 import com.android.io.CancellableFileIo;
+import com.google.common.base.Strings;
 import java.io.File;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +68,7 @@ public class SdkPaths {
     else if (checkForWritable && !CancellableFileIo.isWritable(sdkPath)) {
       cause = "is not writable.";
     }
-    if (isNotEmpty(cause)) {
+    if (!Strings.isNullOrEmpty(cause)) {
       String message;
       if (includePathInMessage) {
         message = String.format("The %1$s path\n'%2$s'\n%3$s", sdkName, sdkPath, cause);

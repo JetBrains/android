@@ -29,10 +29,6 @@
     <target name="preBuild" depends="bazel-dependencies, android-plugin">
     </target>
 
-    <target name="bazel-dependencies" unless="${skip.bazel.dependencies}">
-
-    </target>
-
     <condition property="build.gradle.plugin">
         <or>
             <isset property="bundle.gradle.plugin" />

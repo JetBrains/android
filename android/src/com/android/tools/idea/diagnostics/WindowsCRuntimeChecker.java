@@ -45,6 +45,7 @@ public class WindowsCRuntimeChecker implements StartupActivity.Background {
     Path dllPath = Paths.get(System.getenv("SystemRoot"), "system32", "ucrtbase.dll");
     if (!dllPath.toFile().exists()) {
       var systemHealthMonitor = AndroidStudioSystemHealthMonitor.getInstance();
+      if (systemHealthMonitor == null) return;
       systemHealthMonitor.showNotification("windows.ucrt.warn.message", AndroidStudioSystemHealthMonitor.detailsAction(
         "https://support.microsoft.com/en-ca/help/2999226/update-for-universal-c-runtime-in-windows"));
     }

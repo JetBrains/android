@@ -49,11 +49,11 @@ import com.intellij.platform.ide.documentation.DOCUMENTATION_TARGETS
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
+import java.util.concurrent.TimeUnit
 import org.jetbrains.concurrency.resolvedPromise
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.TimeUnit
 
 internal const val EXPECTED_TEXT_DOCUMENTATION =
   "<html><body><div class='content-only'><b>android:text</b><br/><br/>Formats: string<br/><br/>Text to display.</div>"
@@ -100,8 +100,7 @@ class HelpActionsTest {
     val popup = popupRule.fakePopupFactory.getNextPopup<Unit, FakeComponentPopup>()
     val doc =
       UIUtil.findComponentsOfType(popup.contentPanel, DocumentationEditorPane::class.java)
-        .singleOrNull()
-        ?: error("No doc?")
+        .singleOrNull() ?: error("No doc?")
     Disposer.dispose(popup)
     return doc.text
   }

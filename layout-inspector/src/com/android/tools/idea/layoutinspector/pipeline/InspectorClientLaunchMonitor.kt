@@ -35,12 +35,13 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorNotificationPanel.Status
-import com.intellij.util.concurrency.AppExecutorUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.seconds
 
 @VisibleForTesting val CONNECTED_STATE = AttachErrorState.MODEL_UPDATED
 @VisibleForTesting const val CONNECT_TIMEOUT_SECONDS: Long = 30L
@@ -53,13 +54,13 @@ class InspectorClientLaunchMonitor(
   private val notificationModel: NotificationModel,
   private val attachErrorStateListeners: ListenerCollection<(AttachErrorState) -> Unit>,
   private val stats: SessionStatistics,
-  @TestOnly
-  private val executorService: ScheduledExecutorService =
-    AppExecutorUtil.getAppScheduledExecutorService()
+  coroutineScope: CoroutineScope,
+  private val timeoutScope: CoroutineScope = coroutineScope,
+  private val debuggerCheckScope: CoroutineScope = coroutineScope
 ) {
   private var lastUpdate: Long = 0L
-  private var timeoutFuture: ScheduledFuture<*>? = null
-  private var debuggerFuture: ScheduledFuture<*>? = null
+  private var timeoutJob: Job? = null
+  private var debuggerJob: Job? = null
   private val clientLock = Any()
 
   var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
@@ -73,10 +74,12 @@ class InspectorClientLaunchMonitor(
     assert(this.client == null)
     synchronized(clientLock) { this.client = client }
     updateProgress(AttachErrorState.NOT_STARTED)
+    debuggerJob = debuggerCheckScope.launch { debuggerCheck() }
+    timeoutJob = timeoutScope.launch { timeoutCheck() }
   }
 
   val timeoutHandlerScheduled: Boolean
-    @TestOnly get() = timeoutFuture != null
+    @TestOnly get() = timeoutJob != null
 
   fun updateProgress(progress: AttachErrorState) {
     attachErrorStateListeners.forEach { it.invoke(progress) }
@@ -84,90 +87,56 @@ class InspectorClientLaunchMonitor(
     if (progress <= currentProgress) {
       return
     }
-    timeoutFuture?.cancel(true)
-    debuggerFuture?.cancel(true)
     currentProgress = progress
     stats.currentProgress = progress
     if (currentProgress < CONNECTED_STATE) {
       lastUpdate = System.currentTimeMillis()
-      synchronized(clientLock) {
-        if (client != null) {
-          timeoutFuture =
-            executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-          debuggerFuture =
-            executorService.schedule(
-              ::handleDebuggerCheck,
-              DEBUGGER_CHECK_SECONDS,
-              TimeUnit.SECONDS
-            )
-        }
-      }
+    } else {
+      stopAsyncJobs()
     }
     notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
     notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
   }
 
-  private fun handleDebuggerCheck() {
-    val currentClient = adbClient
-    if (currentClient == null || !isPausedInDebugger(currentClient)) {
-      if (currentClient?.isDebuggerAttached == true) {
-        client?.stats?.debuggerInUse(isPaused = false)
-      }
-      notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
-      debuggerFuture =
-        executorService.schedule(::handleDebuggerCheck, DEBUGGER_CHECK_SECONDS, TimeUnit.SECONDS)
-      return
-    }
-    client?.stats?.debuggerInUse(isPaused = true)
-    // Cancel the timeout check since we now know that the attach delay is caused by a debugging
-    // session:
-    timeoutFuture?.cancel(true)
-    val resumeDebugger =
-      StatusNotificationAction("Resume Debugger") {
+  private suspend fun debuggerCheck() {
+    while (true) {
+      delay(DEBUGGER_CHECK_SECONDS.seconds)
+
+      val adb = adbClient
+      val currentClient = synchronized(clientLock) { client } ?: return
+      if (adb == null || !isPausedInDebugger(adb)) {
+        currentClient.stats.debuggerInUse(isPaused = false)
         notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
-        synchronized(clientLock) {
-          if (client != null) {
-            adbClient?.let { resumeDebugger(it) }
-            debuggerFuture =
-              executorService.schedule(
-                ::handleDebuggerCheck,
-                DEBUGGER_CHECK_SECONDS,
-                TimeUnit.SECONDS
-              )
-          }
-        }
+      } else {
+        currentClient.stats.debuggerInUse(isPaused = true)
+        val resumeDebuggerAction = createResumeDebuggerAction()
+        val disconnectAction = createDisconnectAction(attemptDumpViews = false)
+        notificationModel.addNotification(
+          DEBUGGER_CHECK_MESSAGE_KEY,
+          LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY),
+          Status.Error,
+          listOf(resumeDebuggerAction, disconnectAction)
+        )
+        notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
       }
-    val disconnect =
-      createDisconnectAction(
-        attemptDumpViews = false
-      ) // The legacy inspector cannot get information either...
-    notificationModel.addNotification(
-      DEBUGGER_CHECK_MESSAGE_KEY,
-      LayoutInspectorBundle.message(DEBUGGER_CHECK_MESSAGE_KEY),
-      Status.Error,
-      listOf(resumeDebugger, disconnect)
-    )
-    notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
+    }
   }
 
-  private fun handleTimeout() {
-    if (adbClient?.let { isPausedInDebugger(it) } == true) {
+  private suspend fun timeoutCheck() {
+    delay(CONNECT_TIMEOUT_SECONDS.seconds)
+
+    synchronized(clientLock) {
+      if (client == null || currentProgress == CONNECTED_STATE) {
+        // We are disconnected or connected: stop the timeout check
+        return
+      }
+    }
+    val adb = adbClient
+    if (adb?.let { isPausedInDebugger(it) } == true) {
       // Ignore the timeout if we know we are stuck in the debugger
       return
     }
-    // Allow the user to wait as long as they want in case it takes a long time to connect.
-    // This action simply removes the banner and schedules another check after
-    // CONNECT_TIMEOUT_SECONDS.
-    val continueWaiting =
-      StatusNotificationAction("Continue Waiting") {
-        notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
-        synchronized(clientLock) {
-          if (client != null) {
-            timeoutFuture =
-              executorService.schedule(::handleTimeout, CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-          }
-        }
-      }
+    val continueWaiting = createContinueWaitingAction()
     // Only offer option to dump views in standalone Layout Inspector
     // The embedded LI is meant to work only with live app inspection client.
     val attemptDumpViews = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
@@ -179,6 +148,16 @@ class InspectorClientLaunchMonitor(
       listOf(continueWaiting, disconnect)
     )
   }
+
+  private fun createContinueWaitingAction() =
+    StatusNotificationAction("Continue Waiting") {
+      notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
+      synchronized(clientLock) {
+        if (client != null) {
+          timeoutJob = timeoutScope.launch { timeoutCheck() }
+        }
+      }
+    }
 
   private fun createDisconnectAction(attemptDumpViews: Boolean): StatusNotificationAction {
     val disconnectText =
@@ -194,6 +173,16 @@ class InspectorClientLaunchMonitor(
       client?.disconnect()
     }
   }
+
+  private fun createResumeDebuggerAction() =
+    StatusNotificationAction("Resume Debugger") {
+      notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
+      synchronized(clientLock) {
+        if (client != null) {
+          adbClient?.let { resumeDebugger(it) }
+        }
+      }
+    }
 
   private val adbClient: Client?
     get() = client?.process?.let { AdbUtils.getAdbFuture(project).get()?.findClient(it) }
@@ -212,9 +201,13 @@ class InspectorClientLaunchMonitor(
 
   fun stop() {
     synchronized(clientLock) { client = null }
-    timeoutFuture?.cancel(true)
-    timeoutFuture = null
-    debuggerFuture?.cancel(true)
-    debuggerFuture = null
+    stopAsyncJobs()
+  }
+
+  private fun stopAsyncJobs() {
+    timeoutJob?.cancel()
+    timeoutJob = null
+    debuggerJob?.cancel()
+    debuggerJob = null
   }
 }

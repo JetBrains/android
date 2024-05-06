@@ -24,10 +24,10 @@ import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.presentation.TargetPresentation
 import com.intellij.pom.Navigatable
 import icons.StudioIcons
-import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import javax.swing.Icon
+import org.jetbrains.concurrency.Promise
 
 /** DocumentationTarget for Nele properties. */
 class NlPropertyDocumentationTarget(

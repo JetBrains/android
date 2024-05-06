@@ -22,6 +22,8 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapDumpAnalysisNotificatio
 import com.android.tools.idea.diagnostics.report.HeapReportProperties
 import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport
+import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.HeapReportConfig
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.utils.TraceUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -74,14 +76,14 @@ class HeapDumpSnapshotRunnable(
 
     if (analysisOption == AnalysisOption.SCHEDULE_ON_NEXT_START) {
       try {
-        val instance = AndroidStudioSystemHealthMonitor.getInstance()
+        val instance = AndroidStudioSystemHealthMonitor.getInstance() ?: return
 
         if (instance == null) {
           LOG.error(ApplicationNamesInfo.getInstance().fullProductName+ " System Health Monitor not initialized.")
           return
         }
 
-        val isHeapReportPending = instance?.hasPendingHeapReport() ?: false
+        val isHeapReportPending = instance.hasPendingHeapReport()
         if (isHeapReportPending) {
           if (userInvoked) {
             val productName = ApplicationNamesInfo.getInstance().fullProductName
@@ -146,8 +148,13 @@ class HeapDumpSnapshotRunnable(
         return false
       }
 
-      if (!ApplicationManager.getApplication().isEAP) {
-        LOG.info("Heap dump analysis is enabled only on EAP builds.")
+      var minHeapSizeThreshold = if (ApplicationManager.getApplication().isEAP) MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB else -1
+      val heapReportConfig = ServerFlagService.instance.getProtoOrNull("diagnostics/heap_reports", HeapReportConfig.getDefaultInstance())
+      if (heapReportConfig != null) {
+        minHeapSizeThreshold = heapReportConfig.minUsedMemoryMb.toInt()
+      }
+      if (minHeapSizeThreshold == -1) {
+        LOG.info("Heap dump analysis disabled")
         return false
       }
 
@@ -162,8 +169,8 @@ class HeapDumpSnapshotRunnable(
       val usedMemoryMB = usedMemory(false) / 1_000_000
 
       // Capture only large memory heaps, unless explicitly requested by the user
-      if (usedMemoryMB < MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB) {
-        LOG.info("Heap dump too small: $usedMemoryMB MB < $MINIMUM_USED_MEMORY_TO_CAPTURE_HEAP_DUMP_IN_MB MB")
+      if (usedMemoryMB < minHeapSizeThreshold) {
+        LOG.info("Heap dump too small: $usedMemoryMB MB < $minHeapSizeThreshold MB")
         UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
           HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.HEAP_TOO_SMALL).build()))
         return false
@@ -210,7 +217,7 @@ class HeapDumpSnapshotRunnable(
 
     private fun confirmRestart() {
       val title = AndroidBundle.message("heap.dump.snapshot.restart.dialog.title")
-      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message", ApplicationNamesInfo.getInstance().fullProductName)
+      val message = AndroidBundle.message("heap.dump.snapshot.restart.dialog.message", ApplicationNamesInfo.getInstance().getFullProductName())
       val yesString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.now")
       val noString = AndroidBundle.message("heap.dump.snapshot.restart.dialog.restart.later")
       val result = MessageDialogBuilder.yesNo(title, message)
@@ -253,7 +260,8 @@ class HeapDumpSnapshotRunnable(
 
       when (analysisOption) {
         AnalysisOption.SCHEDULE_ON_NEXT_START -> {
-          AndroidStudioSystemHealthMonitor.getInstance()?.addHeapReportToDatabase(report)
+          val instance = AndroidStudioSystemHealthMonitor.getInstance() ?: return
+          instance.addHeapReportToDatabase(report)
           ApplicationManager.getApplication().invokeLater {
             val notification = HeapDumpAnalysisNotificationGroup.GROUP.createNotification(
               AndroidBundle.message("heap.dump.analysis.notification.title"),

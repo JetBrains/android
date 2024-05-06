@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutI
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.impl.model.util.FakeAction
+import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -35,7 +36,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Rule
 import org.junit.Test
@@ -99,7 +99,12 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
 
   private fun createToolbar(): ActionToolbar {
     val fakeAction = FakeAction("fake action")
-    return createLayoutInspectorMainToolbar(JPanel(), layoutInspectorRule.inspector, fakeAction)
+    return createStandaloneLayoutInspectorToolbar(
+      projectRule.testRootDisposable,
+      JPanel(),
+      layoutInspectorRule.inspector,
+      fakeAction
+    )
   }
 
   private fun getPresentation(button: ActionButton): Presentation {

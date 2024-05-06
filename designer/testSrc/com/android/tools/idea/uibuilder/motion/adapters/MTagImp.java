@@ -301,7 +301,7 @@ public class MTagImp implements MTag, MTag.TagWriter {
     HashSet<MTagImp> props = new HashSet<>();
     try {
       InputStream inputStream = new ByteArrayInputStream(str.getBytes(Charset.forName("UTF-8")));
-      SAXParserFactory factory = SAXParserFactory.newDefaultInstance();
+      SAXParserFactory factory = SAXParserFactory.newInstance();
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(inputStream, new DefaultHandler() {
         MTagImp currentTag = null;
@@ -373,7 +373,7 @@ public class MTagImp implements MTag, MTag.TagWriter {
     HashSet<MTagImp> props = new HashSet<>();
     try {
       FileInputStream inputStream = new FileInputStream(file);
-      SAXParserFactory factory = SAXParserFactory.newDefaultInstance();
+      SAXParserFactory factory = SAXParserFactory.newInstance();
       SAXParser saxParser = factory.newSAXParser();
       saxParser.parse(inputStream, new DefaultHandler() {
         MTagImp currentTag = null;

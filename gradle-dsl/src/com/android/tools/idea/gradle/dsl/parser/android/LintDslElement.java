@@ -60,10 +60,12 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class LintDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
@@ -165,15 +167,69 @@ public class LintDslElement extends GradleDslBlockElement {
     {"warning", property, WARNING, VAL},
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"abortOnError", property, ABORT_ON_ERROR, VAR},
+    {"absolutePaths", property, ABSOLUTE_PATHS, VAR},
+    {"checkAllWarnings", property, CHECK_ALL_WARNINGS, VAR},
+    {"checkDependencies", property, CHECK_DEPENDENCIES, VAR},
+    {"checkGeneratedSources", property, CHECK_GENERATED_SOURCES, VAR},
+    {"checkReleaseBuilds", property, CHECK_RELEASE_BUILDS, VAR},
+    {"checkTestSources", property, CHECK_TEST_SOURCES, VAR},
+    {"explainIssues", property, EXPLAIN_ISSUES, VAR},
+    {"ignoreTestSources", property, IGNORE_TEST_SOURCES, VAR},
+    {"ignoreWarnings", property, IGNORE_WARNINGS, VAR},
+    {"noLines", property, NO_LINES, VAR},
+    {"quiet", property, QUIET, VAR},
+    {"showAll", property, SHOW_ALL, VAR},
+    {"warningsAsErrors", property, WARNINGS_AS_ERRORS, VAR},
+
+    {"baseline", property, BASELINE, VAR},
+    {"lintConfig", property, LINT_CONFIG, VAR},
+    {"htmlOutput", property, HTML_OUTPUT, VAR},
+    {"htmlReport", property, HTML_REPORT, VAR},
+    {"sarifOutput", property, SARIF_OUTPUT, VAR},
+    {"sarifReport", property, SARIF_REPORT, VAR},
+    {"textOutput", property, TEXT_OUTPUT, VAR},
+    {"textReport", property, TEXT_REPORT, VAR},
+    {"xmlOutput", property, XML_OUTPUT, VAR},
+    {"xmlReport", property, XML_REPORT, VAR},
+
+    {"checkOnly", atLeast(0), CHECK_ONLY, AUGMENT_LIST},
+    {"disable", atLeast(0), DISABLE, AUGMENT_LIST},
+    {"enable", atLeast(0), ENABLE, AUGMENT_LIST},
+    {"error", atLeast(0), ERROR, AUGMENT_LIST},
+    {"fatal", atLeast(0), FATAL, AUGMENT_LIST},
+    {"ignore", atLeast(0), IGNORE, AUGMENT_LIST},
+    {"informational", atLeast(0), INFORMATIONAL, AUGMENT_LIST},
+    {"warning", atLeast(0), WARNING, AUGMENT_LIST},
+  }).collect(toModelMap());
+
   public static final PropertiesElementDescription<LintDslElement> LINT =
-    new PropertiesElementDescription<>("lint", LintDslElement.class, LintDslElement::new);
+    new PropertiesElementDescription<>("lint",
+                                       LintDslElement.class,
+                                       LintDslElement::new,
+                                       LintDslElementSchema::new);
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public LintDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class LintDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.Lint";
+    }
   }
 }

@@ -15,15 +15,18 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.TestToolWindowManager
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -39,16 +42,10 @@ class ToggleIssueDetailActionTest {
 
   @Before
   fun setup() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
-
     rule.replaceProjectService(ToolWindowManager::class.java, TestToolWindowManager(rule.project))
+    HeadlessDataManager.fallbackToProductionDataManager(rule.testRootDisposable)
     val manager = ToolWindowManager.getInstance(rule.project)
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
-    val contentManager = toolWindow.contentManager
-    val content =
-      contentManager.factory.createContent(null, "Current File", true).apply { isCloseable = false }
-    contentManager.addContent(content)
-    contentManager.setSelectedContent(content)
 
     invokeAndWaitIfNeeded {
       service = IssuePanelService.getInstance(rule.project)
@@ -59,24 +56,23 @@ class ToggleIssueDetailActionTest {
   @Test
   fun testUpdate() {
     val action = ToggleIssueDetailAction()
+    val dataContext = runInEdtAndGet {
+      DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
+    }
 
-    service.setSharedIssuePanelVisibility(false)
-    TestActionEvent.createTestEvent {
-        if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null
-      }
-      .let { event ->
-        action.update(event)
-        assertEquals("Show Issue Detail", event.presentation.text)
-        assertTrue(event.presentation.isVisible)
-        assertFalse(event.presentation.isEnabled)
-      }
+    service.getSharedIssuePanel()!!.sidePanelVisible = false
+    TestActionEvent.createTestEvent(dataContext).let { event ->
+      action.update(event)
+      assertEquals("Show Issue Detail", event.presentation.text)
+      assertTrue(event.presentation.isVisible)
+      assertFalse(event.presentation.isEnabled)
+    }
 
-    service.setSharedIssuePanelVisibility(true)
+    service.getSharedIssuePanel()!!.sidePanelVisible = true
     TestActionEvent.createTestEvent {
         when {
-          PlatformDataKeys.PROJECT.`is`(it) -> rule.project
           PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestNode()
-          else -> null
+          else -> dataContext.getData(it)
         }
       }
       .let { event ->
@@ -88,9 +84,8 @@ class ToggleIssueDetailActionTest {
 
     TestActionEvent.createTestEvent {
         when {
-          PlatformDataKeys.PROJECT.`is`(it) -> rule.project
           PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestIssueNode(TestIssue())
-          else -> null
+          else -> dataContext.getData(it)
         }
       }
       .let { event ->
@@ -104,31 +99,37 @@ class ToggleIssueDetailActionTest {
   @Test
   fun testIsSelected() {
     val action = ToggleIssueDetailAction()
+    val dataContext = runInEdtAndGet {
+      DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
+    }
     val event =
       TestActionEvent.createTestEvent {
-        if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null
+        when (it) {
+          // Ensure that an element is "selected" to enable the action
+          PlatformDataKeys.SELECTED_ITEM.name -> TestIssueNode(TestIssue())
+          else -> dataContext.getData(it)
+        }
       }
 
-    service.setSharedIssuePanelVisibility(false)
+    service.getSharedIssuePanel()!!.sidePanelVisible = false
     assertFalse(action.isSelected(event))
 
-    service.setSharedIssuePanelVisibility(true)
+    service.getSharedIssuePanel()!!.sidePanelVisible = true
     assertTrue(action.isSelected(event))
   }
 
   @Test
   fun testSelect() {
     val action = ToggleIssueDetailAction()
-    val event =
-      TestActionEvent.createTestEvent {
-        if (PlatformDataKeys.PROJECT.`is`(it)) rule.project else null
-      }
-    service.setSharedIssuePanelVisibility(true)
+    val dataContext = runInEdtAndGet {
+      DataManager.getInstance().getDataContext(toolWindow.contentManager.selectedContent?.component)
+    }
+    val event = TestActionEvent.createTestEvent(dataContext)
 
     action.setSelected(event, false)
-    assertFalse(service.getSelectedSharedIssuePanel()!!.sidePanelVisible)
+    assertFalse(service.getSharedIssuePanel()!!.sidePanelVisible)
 
     action.setSelected(event, true)
-    assertTrue(service.getSelectedSharedIssuePanel()!!.sidePanelVisible)
+    assertTrue(service.getSharedIssuePanel()!!.sidePanelVisible)
   }
 }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF;
@@ -41,6 +40,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF;
 import static com.android.SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.SHERPA_URI;
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;

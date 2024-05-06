@@ -15,17 +15,18 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertEquals;
-
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.ClassDb;
-import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,10 +36,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.junit.Before;
-import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.TestCase.assertNull;
+import static org.junit.Assert.assertEquals;
 
 public class CaptureObjectLoaderTest {
 

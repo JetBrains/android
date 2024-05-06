@@ -66,7 +66,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.never
@@ -130,7 +130,7 @@ class AndroidPositionManagerTest {
       }
     }
     whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManagerImpl)
-    whenever(mockRequestManagerImpl.createClassPrepareRequest(any(), ArgumentMatchers.anyString())).thenAnswer { invocation ->
+    whenever(mockRequestManagerImpl.createClassPrepareRequest(any(), Mockito.anyString())).thenAnswer { invocation ->
       FakeClassPrepareRequest(invocation.arguments[1].toString())
     }
 

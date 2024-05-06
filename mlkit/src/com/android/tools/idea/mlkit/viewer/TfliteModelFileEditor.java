@@ -44,7 +44,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
@@ -80,7 +79,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -167,7 +165,7 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
       }
       else {
         // Falls back to build model info from model file.
-        modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(Files.readAllBytes(VfsUtilCore.virtualToIoFile(myFile).toPath())));
+        modelInfo = ModelInfo.buildFrom(ByteBuffer.wrap(myFile.contentsToByteArray()));
       }
 
       if (!modelInfo.isMinParserVersionSatisfied()) {
@@ -864,6 +862,14 @@ public class TfliteModelFileEditor extends UserDataHolderBase implements FileEdi
   @Override
   public boolean isValid() {
     return myFile.isValid();
+  }
+
+  @Override
+  public void selectNotify() {
+  }
+
+  @Override
+  public void deselectNotify() {
   }
 
   @Override

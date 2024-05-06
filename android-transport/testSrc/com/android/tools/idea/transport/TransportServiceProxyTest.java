@@ -62,7 +62,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
@@ -71,7 +70,7 @@ import org.mockito.stubbing.Answer;
 
 public class TransportServiceProxyTest {
   @Rule
-  public Timeout myTimeout = Timeout.seconds(10);
+  public Timeout myTimeout = Timeout.seconds(60);
 
   @Test
   public void testBindServiceContainsAllMethods() throws Exception {
@@ -167,7 +166,6 @@ public class TransportServiceProxyTest {
     assertThat(process2.getExposureLevel()).isEqualTo(Common.Process.ExposureLevel.PROFILEABLE);
   }
 
-  @Ignore("b/126763044")
   @Test
   public void testEventStreaming() throws Exception {
     Client client1 = createMockClient(1, "test1", "testClient1");

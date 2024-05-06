@@ -1,8 +1,21 @@
 <component name="libraryTable">
-  <library name="tomlj">
+  <library name="tomlj" type="repository">
+    <properties include-transitive-deps="false" maven-id="org.tomlj:tomlj:1.1.0">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/tomlj/tomlj/1.1.0/tomlj-1.1.0.jar">
+          <sha256sum>22063766a0001fbb6fad2e1d9e7788e505b1085967d5d331b73c2eb0d254a0db</sha256sum>
+        </artifact>
+        <artifact url="file://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.11.1/antlr4-runtime-4.11.1.jar">
+          <sha256sum>4f65283c267bc17507d43b48637ff66275a37a49246db001217d55a45885955c</sha256sum>
+        </artifact>
+      </verification>
+      <exclude>
+        <dependency maven-id="org.checkerframework:checker-qual" />
+      </exclude>
+    </properties>
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/tomlj/tomlj/1.1.0/tomlj-1.1.0.jar!/" />
-	  <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/org/antlr/antlr4-runtime/4.11.1/antlr4-runtime-4.11.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/tomlj/tomlj/1.1.0/tomlj-1.1.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.11.1/antlr4-runtime-4.11.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

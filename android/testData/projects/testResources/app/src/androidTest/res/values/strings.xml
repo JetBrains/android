@@ -14,5 +14,8 @@
      limitations under the License.
 -->
 <resources>
-    <string name="testString">@string/made_up</string>
+  <string name="brokenReference">@string/made_up</string>
+
+  <string name="androidTestAppString">String defined in Application androidTest</string>
+  <string name="androidTestAppStringReference">@string/androidTestAppString</string>
 </resources>

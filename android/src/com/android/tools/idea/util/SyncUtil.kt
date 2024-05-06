@@ -71,10 +71,10 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
   LOG.debug { "runWhenSmartAndSynced isDumb=${dumbService.isDumb} runOnEdt=${runOnEdt} callback=${callback}" }
   if (dumbService.isDumb) {
     if (runOnEdt) {
-      dumbService.smartInvokeLater { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt = true, syncManager) }
+      dumbService.smartInvokeLater { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     }
     else {
-      dumbService.runWhenSmart { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt = false, syncManager) }
+      dumbService.runWhenSmart { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     }
     return
   }
@@ -86,19 +86,30 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
     return
   }
 
+
   if (syncManager.isSyncInProgress()) {
     LOG.debug { "runWhenSmartAndSynced waiting for sync callback=${callback}" }
-    listenUntilNextSync(parentDisposable, object : SyncResultListener {
-      override fun syncEnded(result: SyncResult) {
-        runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager)
-      }
-    })
+    listenUntilNextSync(parentDisposable) { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
+    return
+  }
+
+  val lastSyncResult = syncManager.getLastSyncResult()
+  // This is a workaround for b/299881938:
+  // This change will listen until the next sync if the last sync result state is of type UNKNOWN.
+  // When opening a project the sync status could be of UNKNOWN type and the code/split/design panes aren't shown.
+  // The UNKNOWN state is the very first status when a project is opened. When on this status, the sync of the project has not started yet.
+  // After this method is called with UNKNOWN, it's triggered again by other sync listeners while the status will be SKIPPED,
+  // i.e. the project state will be loaded from a cache.
+  // If the callback is accepted with the SKIPPED status, the code/split/design panes will be shown as expected.
+  if (lastSyncResult == SyncResult.UNKNOWN) {
+    LOG.debug { "last sync result is in unknown state=${callback}" }
+    listenUntilNextSync(parentDisposable) { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     return
   }
 
   if (runOnEdt && !ApplicationManager.getApplication().isDispatchThread) {
     LOG.debug { "runWhenSmartAndSynced needs EDT callback=${callback}" }
-    UIUtil.invokeLaterIfNeeded { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt = true, syncManager) }
+    UIUtil.invokeLaterIfNeeded { runWhenSmartAndSynced(parentDisposable, callback, runOnEdt, syncManager) }
     return
   }
 
@@ -107,7 +118,7 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
     return
   }
   LOG.debug { "runWhenSmartAndSynced all conditions met callback=${callback}" }
-  callback.accept(syncManager.getLastSyncResult())
+  callback.accept(lastSyncResult)
 }
 
 /**
@@ -116,7 +127,7 @@ fun Project.runWhenSmartAndSynced(parentDisposable: Disposable = this,
  *  then the callback will never be called.
  * @param callback callback that receives the result of the sync operation and will only run once we are in Smart Mode
  *  and the sync has completed.
- * @param syncManager optional [ProjectSystemSyncManager] for testing
+ * @param syncManager optional [ProjectSystemSyncManager] for testing.
  */
 @JvmOverloads
 fun Project.runWhenSmartAndSyncedOnEdt(parentDisposable: Disposable = this,

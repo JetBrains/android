@@ -175,6 +175,7 @@ class TreeTableHeaderTest {
   }
 
   private fun FakeKeyboard.pressTab() = pressAndRelease(KeyEvent.VK_TAB)
+
   private fun FakeKeyboard.pressBackTab() =
     with(this) {
       press(KeyEvent.VK_SHIFT)
@@ -217,6 +218,7 @@ class TreeTableHeaderTest {
     constructor(text: String) {
       this.text = text
     }
+
     constructor(icon: Icon) {
       this.icon = icon
     }
@@ -229,9 +231,11 @@ class TreeTableHeaderTest {
         override fun mousePressed(event: MouseEvent) {
           pressCount++
         }
+
         override fun mouseReleased(event: MouseEvent) {
           releaseCount++
         }
+
         override fun mouseClicked(event: MouseEvent) {
           clickCount++
         }

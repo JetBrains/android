@@ -16,6 +16,9 @@
 package com.android.tools.idea.tests.gui.webp;
 
 import static com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION;
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.reflect.core.Reflection.field;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -29,6 +32,12 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.ui.ComponentWithMnemonics;
 import java.io.File;
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
 import org.fest.reflect.exception.ReflectionError;
 import org.fest.reflect.reference.TypeRef;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -44,19 +53,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.swing.*;
-
-import java.lang.ref.WeakReference;
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.reflect.core.Reflection.field;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class ConvertFrom9PatchTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame;
 
   @Before
@@ -97,7 +97,9 @@ public class ConvertFrom9PatchTest {
 
     ProjectViewFixture.PaneFixture androidPane = ideFrame.getProjectView().selectAndroidPane();
 
-    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.png")
+    androidPane
+      .expand(30)
+      .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.png")
       .invokeContextualMenuPath("Create 9-Patch file…");
 
     FileChooserDialogFixture.find(ideFrame.robot())

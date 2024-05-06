@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import java.awt.event.ActionEvent;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.event.ActionEvent;
 
 /**
  * Create a new {@link com.android.sdklib.devices.Device}

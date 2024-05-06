@@ -19,21 +19,26 @@ import com.android.SdkConstants
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.events.BuildEvent
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@RunsInEdt
 class EmptyDimensionSyncErrorTest {
 
   @get:Rule
@@ -53,13 +58,13 @@ class EmptyDimensionSyncErrorTest {
   }
 
   @Test
-  fun testSyncErrorOnEmptyFavorDimension() {
+  fun testSyncErrorOnEmptyFavorDimension_firstSync() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
 
     val buildFile = preparedProject.root.resolve("app").resolve(SdkConstants.FN_BUILD_GRADLE)
     buildFile.appendText(
       """
-        
+        // Line needed to ensure line break
         android {
           flavorDimensions 'flv_dim1', 'flv_dim3'
           productFlavors {
@@ -77,7 +82,7 @@ class EmptyDimensionSyncErrorTest {
       updateOptions = {
         it.copy(
           verifyOpened = { project ->
-            Truth.assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult())
+            assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult())
               .isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
           },
           syncExceptionHandler = { e: Exception ->
@@ -93,12 +98,38 @@ class EmptyDimensionSyncErrorTest {
     val failureEvent = usageTracker.usages
       .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
     assertThat(failureEvent.studioEvent.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
+    assertThat(usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES }).isEmpty()
+  }
 
-    //TODO(b/292231180): Fix this. This is not working because on since there is still no modules, and logic breaks
-    // in AndroidGradleProjectResolver.getUserFriendlyError where reporting of this is triggered.
-    // It can only be reported on second sync now.
-    //val issuesEvent = usageTracker.usages
-    //  .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES }
-    //assertThat(issuesEvent.studioEvent.gradleSyncIssuesList.map { it.type }).containsExactly(GradleSyncIssueType.TYPE_EMPTY_FLAVOR_DIMENSION)
+  @Test
+  fun testSyncErrorOnEmptyFavorDimension_subsequentSync() {
+    projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION).open {
+      val buildFile = VfsUtil.findFileByIoFile(this.projectRoot.resolve("app/build.gradle"), true)!!
+      runWriteAction {
+        val buildFileText = VfsUtil.loadText(buildFile) + "\n" + """
+          // Line needed to ensure line break
+          android {
+            flavorDimensions 'flv_dim1', 'flv_dim3'
+            productFlavors {
+              flv1 {
+                  dimension 'flv_dim1'
+              }
+            }
+          }
+        """.trimIndent()
+        buildFile.setBinaryContent(buildFileText.toByteArray())
+      }
+      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
+
+      val failureEvent = usageTracker.usages
+        .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+        .single { it.studioEvent.gradleSyncFailure == AndroidStudioEvent.GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND }
+      assertThat(failureEvent.studioEvent.gradleSyncFailure).isNotNull()
+      val issuesEvent = usageTracker.usages
+        .single { it.studioEvent.gradleSyncIssuesList.any {it.type == AndroidStudioEvent.GradleSyncIssueType.TYPE_EMPTY_FLAVOR_DIMENSION} }
+      assertThat(issuesEvent).isNotNull()
+    }
   }
 }

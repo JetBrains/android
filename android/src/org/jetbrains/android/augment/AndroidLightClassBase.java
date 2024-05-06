@@ -254,13 +254,13 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   }
 
   @Override
-  public PsiMethod findMethodBySignature(@NotNull PsiMethod patternMethod, boolean checkBases) {
+  public PsiMethod findMethodBySignature(PsiMethod patternMethod, boolean checkBases) {
     return null;
   }
 
   @NotNull
   @Override
-  public PsiMethod[] findMethodsBySignature(@NotNull PsiMethod patternMethod, boolean checkBases) {
+  public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
     return PsiMethod.EMPTY_ARRAY;
   }
 
@@ -278,7 +278,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
 
   @NotNull
   @Override
-  public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(@NonNls @NotNull String name, boolean checkBases) {
+  public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(@NonNls String name, boolean checkBases) {
     return Collections.emptyList();
   }
 
@@ -325,7 +325,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   }
 
   @Override
-  public boolean isInheritorDeep(@NotNull PsiClass baseClass, @Nullable PsiClass classToByPass) {
+  public boolean isInheritorDeep(PsiClass baseClass, @Nullable PsiClass classToByPass) {
     return InheritanceImplUtil.isInheritorDeep(this, baseClass, classToByPass);
   }
 

@@ -46,33 +46,26 @@ internal class SourceCodePreview(
   private val afterSyncUpdateScheduled = AtomicBoolean(false)
 
   init {
+    // Update the representation in case we are at the project startup.
+    // Because we couldn't get into non-Smart Mode, we need to update
+    // the representations when this object is initialised.
+    scheduleRepresentationsUpdates()
     project.messageBus
       .connect(this as Disposable)
       .subscribe(
         DUMB_MODE,
         object : DumbService.DumbModeListener {
           /**
-           * In case we are at the project startup we do not want to get
-           * [updateRepresentationsAsync] executed simply on the [exitDumbMode] for the project is
-           * not started yet and AndroidModel is not initialized. Instead, we want to schedule
-           * [runWhenSmartAndSynced] during the Dumb Mode so that it gets scheduled with
-           * [DumbService.runWhenSmart] that waits for the project to finish initialization.
+           * Update representations in case we are at the project startup and we get into non-Smart
+           * Mode. We do not want to get [updateRepresentationsAsync] executed simply on the
+           * [exitDumbMode] as the project is not started yet and AndroidModel is not initialized.
+           * Instead, we want to schedule the representation updates during the non-Smart Mode.
            */
           override fun enteredDumbMode() {
             if (afterSyncUpdateScheduled.getAndSet(true)) {
               return
             }
-            // invokeLater required due to IDEA-321276: calling runWhenSmart() inside
-            // DumbModeListener does not work properly.
-            invokeLater {
-              project.runWhenSmartAndSynced(
-                parentDisposable = this@SourceCodePreview,
-                callback = {
-                  afterSyncUpdateScheduled.set(false)
-                  updateRepresentationsAsync()
-                }
-              )
-            }
+            scheduleRepresentationsUpdates()
           }
         }
       )
@@ -88,5 +81,23 @@ internal class SourceCodePreview(
       },
       this
     )
+  }
+
+  /**
+   * Schedules [runWhenSmartAndSynced] so that it gets scheduled with [DumbService.runWhenSmart]
+   * that waits for the project to finish initialization.
+   */
+  private fun scheduleRepresentationsUpdates() {
+    // invokeLater required due to IDEA-321276: calling runWhenSmart() inside
+    // DumbModeListener does not work properly.
+    invokeLater {
+      project.runWhenSmartAndSynced(
+        parentDisposable = this@SourceCodePreview,
+        callback = {
+          afterSyncUpdateScheduled.set(false)
+          updateRepresentationsAsync()
+        }
+      )
+    }
   }
 }

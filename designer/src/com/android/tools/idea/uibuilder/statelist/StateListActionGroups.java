@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.statelist;
 
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.configurations.ThemeMenuAction;
+import com.android.tools.idea.actions.ThemeMenuAction;
 import com.android.tools.idea.uibuilder.actions.DrawableBackgroundMenuAction;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -33,7 +33,7 @@ public final class StateListActionGroups extends ToolbarActionGroups {
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
     // TODO(b/136258816): Update to support multi-model
-    group.add(new ThemeMenuAction(mySurface::getConfiguration));
+    group.add(new ThemeMenuAction());
     group.add(new DrawableBackgroundMenuAction());
     return group;
   }

@@ -44,16 +44,19 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR [ResourceRepository] that's assumed not to change.
+ * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR [ResourceRepository]
+ * that's assumed not to change.
  *
- * It only contains entries for resources included in the library itself, not any of its dependencies.
+ * It only contains entries for resources included in the library itself, not any of its
+ * dependencies.
  *
- * @param psiManager        [PsiManager] of project used to create light elements
- * @param library           [Library] of AAR which is added to module info of class so that it is found by Kotlin plugin
- * @param packageName       Package of resources taken from AAR
- * @param aarResources      The resources in the AAR
+ * @param psiManager [PsiManager] of project used to create light elements
+ * @param library [Library] of AAR which is added to module info of class so that it is found by
+ *   Kotlin plugin
+ * @param packageName Package of resources taken from AAR
+ * @param aarResources The resources in the AAR
  * @param resourceNamespace Namespace taken from package name of AAR
- * @param aarAddress        Address of an AAR eg. com.android.support:recyclerview-v7:28.0.0@aar
+ * @param aarAddress Address of an AAR eg. com.android.support:recyclerview-v7:28.0.0@aar
  */
 class SmallAarRClass(
   psiManager: PsiManager,
@@ -74,17 +77,20 @@ class SmallAarRClass(
   override fun getQualifiedName(): String? = "$packageName.R"
 
   override fun doGetInnerClasses(): Array<PsiClass> {
-    return aarResources.getResourceTypes(resourceNamespace)
-      .mapNotNull { if (it.hasInnerClass) SmallAarInnerRClass(this, it, resourceNamespace, aarResources) else null }
+    return aarResources
+      .getResourceTypes(resourceNamespace)
+      .mapNotNull {
+        if (it.hasInnerClass) SmallAarInnerRClass(this, it, resourceNamespace, aarResources)
+        else null
+      }
       .toTypedArray()
   }
 
-  override fun getInnerClassesDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
+  override fun getInnerClassesDependencies(): ModificationTracker =
+    ModificationTracker.NEVER_CHANGED
 }
 
-/**
- * Implementation of [InnerRClassBase] used by [SmallAarRClass].
- */
+/** Implementation of [InnerRClassBase] used by [SmallAarRClass]. */
 private class SmallAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
@@ -96,28 +102,28 @@ private class SmallAarInnerRClass(
     return buildResourceFields(
       aarResources,
       resourceNamespace,
-      null,
       FieldModifier.NON_FINAL,
-      { true},
       resourceType,
-      this
+      this,
     )
   }
 
-  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
+  override val fieldsDependencies: ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
  * Top-level R class for an AAR used in non-namespaced mode, created from the symbol file (`R.txt`).
  *
- * It contains entries for resources present in the AAR as well as all its dependencies, which is how the build system generates the R class
- * from the symbol file at build time.
+ * It contains entries for resources present in the AAR as well as all its dependencies, which is
+ * how the build system generates the R class from the symbol file at build time.
  *
- * @param psiManager  [PsiManager] of project used to create light elements
- * @param library     [Library] of AAR which is added to module info of class so that it is found by Kotlin plugin
+ * @param psiManager [PsiManager] of project used to create light elements
+ * @param library [Library] of AAR which is added to module info of class so that it is found by
+ *   Kotlin plugin
  * @param packageName Package of resources taken from AAR
- * @param symbolFile  Symbol file (`R.txt`) containing information needed to generate non-namespaced R class
- * @param aarAddress  Address of an AAR eg. com.android.support:recyclerview-v7:28.0.0@aar
+ * @param symbolFile Symbol file (`R.txt`) containing information needed to generate non-namespaced
+ *   R class
+ * @param aarAddress Address of an AAR eg. com.android.support:recyclerview-v7:28.0.0@aar
  */
 class TransitiveAarRClass(
   psiManager: PsiManager,
@@ -141,38 +147,37 @@ class TransitiveAarRClass(
   override fun getInnerClasses(): Array<PsiClass> {
     return if (myClassCache.hasUpToDateValue()) {
       myClassCache.value
-    }
-    else {
+    } else {
       // Make sure we don't start parsing symbolFile from multiple threads in parallel.
-      parsingLock.withLock {
-        myClassCache.value
-      }
+      parsingLock.withLock { myClassCache.value }
     }
   }
 
   override fun doGetInnerClasses(): Array<out PsiClass> {
-    val symbolTable = symbolFile.takeIf { it.exists() }?.let {
-      try {
-        LOG.debug { "Parsing ${symbolFile.path}" }
-        SymbolIo.readFromAaptNoValues(it, packageName)
-      }
-      catch (e: IOException) {
-        LOG.warn("Failed to build R class from ${symbolFile.path}", e)
-        null
-      }
-    } ?: SymbolTable.builder().build()
+    val symbolTable =
+      symbolFile
+        .takeIf { it.exists() }
+        ?.let {
+          try {
+            LOG.debug { "Parsing ${symbolFile.path}" }
+            SymbolIo.readFromAaptNoValues(it, packageName)
+          } catch (e: IOException) {
+            LOG.warn("Failed to build R class from ${symbolFile.path}", e)
+            null
+          }
+        } ?: SymbolTable.builder().build()
 
-    return symbolTable
-             .resourceTypes
-             .map { TransitiveAarInnerRClass(this, it, symbolTable) }
-             .toTypedArray()
+    return symbolTable.resourceTypes
+      .map { TransitiveAarInnerRClass(this, it, symbolTable) }
+      .toTypedArray()
   }
 
   companion object {
     private val LOG: Logger = Logger.getInstance(TransitiveAarRClass::class.java)
   }
 
-  override fun getInnerClassesDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
+  override fun getInnerClassesDependencies(): ModificationTracker =
+    ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -196,19 +201,27 @@ private class TransitiveAarInnerRClass(
     val styleableAttrFieldsBuilder = ImmutableList.builder<StyleableAttrFieldUrl>()
     for (symbol in symbolTable.getSymbolByResourceType(resourceType)) {
       when (symbol.javaType) {
-        SymbolJavaType.INT -> otherFieldsBuilder.put(symbol.canonicalName, symbol.resourceVisibility)
+        SymbolJavaType.INT ->
+          otherFieldsBuilder.put(symbol.canonicalName, symbol.resourceVisibility)
         SymbolJavaType.INT_LIST -> {
           styleableFieldsBuilder.put(symbol.canonicalName, symbol.resourceVisibility)
           (symbol as? Symbol.StyleableSymbol)?.children?.forEach {
             val (packageName, attrName) = getNameComponents(it)
-            val attrNamespace = if (packageName.isNullOrEmpty()) {
-              ResourceNamespace.RES_AUTO
-            } else {
-              ResourceNamespace.fromPackageName(packageName)
-            }
-            styleableAttrFieldsBuilder.add(StyleableAttrFieldUrl(
-              ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.STYLEABLE, symbol.canonicalName),
-              ResourceReference.attr(attrNamespace, attrName))
+            val attrNamespace =
+              if (packageName.isNullOrEmpty()) {
+                ResourceNamespace.RES_AUTO
+              } else {
+                ResourceNamespace.fromPackageName(packageName)
+              }
+            styleableAttrFieldsBuilder.add(
+              StyleableAttrFieldUrl(
+                ResourceReference(
+                  ResourceNamespace.RES_AUTO,
+                  ResourceType.STYLEABLE,
+                  symbol.canonicalName
+                ),
+                ResourceReference.attr(attrNamespace, attrName)
+              )
             )
           }
         }
@@ -222,17 +235,14 @@ private class TransitiveAarInnerRClass(
   }
 
   /**
-   * The R.txt for an Aar gets transformed into a [SymbolTable].
-   * Example R.txt:
-   *    int[] styleable NewView { 0x0101016e, 0x01010393}
-   *    int styleable NewView_android_drawableBottom 0
-   *    int styleable NewView_otherAttr 1
-   * The styleable attr in the symbol table are available as a list of attrs for each styleables, in the form:
-   *    ${package_name}:${attr_name} eg. android:drawableBottom
-   * or if there is no package name, just the attr_name eg. otherAttr
+   * The R.txt for an Aar gets transformed into a [SymbolTable]. Example R.txt: int[] styleable
+   * NewView { 0x0101016e, 0x01010393} int styleable NewView_android_drawableBottom 0 int styleable
+   * NewView_otherAttr 1 The styleable attr in the symbol table are available as a list of attrs for
+   * each styleables, in the form: ${package_name}:${attr_name} eg. android:drawableBottom or if
+   * there is no package name, just the attr_name eg. otherAttr
    *
-   * Note that there is no way to know from the R.txt alone, whether a styleable attr is an overridden framework attr, or simply an attr
-   * with the android_ prefix.
+   * Note that there is no way to know from the R.txt alone, whether a styleable attr is an
+   * overridden framework attr, or simply an attr with the android_ prefix.
    */
   private fun getNameComponents(name: String): Pair<String?, String> {
     // This only work on non-namespaced aars, or where the only namespace used is "android".
@@ -254,5 +264,5 @@ private class TransitiveAarInnerRClass(
     )
   }
 
-  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
+  override val fieldsDependencies: ModificationTracker = ModificationTracker.NEVER_CHANGED
 }

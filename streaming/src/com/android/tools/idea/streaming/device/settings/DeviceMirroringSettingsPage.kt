@@ -16,156 +16,131 @@
 package com.android.tools.idea.streaming.device.settings
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
-import com.android.tools.idea.streaming.StreamingBundle.message
 import com.android.tools.idea.streaming.device.dialogs.MirroringConfirmationDialog
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
-import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.layout.and
 import com.intellij.ui.layout.selected
 import org.jetbrains.annotations.Nls
-
-private const val MIRRORING_HELP_LINK = "https://d.android.com/r/studio-ui/device-mirroring/help"
 
 /**
  * Implementation of Settings > Tools > Device Mirroring preference page.
  */
 class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScroll {
 
-  private lateinit var disposable: Disposable
-  private lateinit var deviceMirroringEnabledCheckBox: JBCheckBox
   private lateinit var synchronizeClipboardCheckBox: JBCheckBox
+  private lateinit var activateOnConnectionCheckBox: JBCheckBox
+  private lateinit var activateOnAppLaunchCheckBox: JBCheckBox
+  private lateinit var activateOnTestLaunchCheckBox: JBCheckBox
+  private lateinit var maxSyncedClipboardLengthTextField: JBTextField
+  private lateinit var turnOffDisplayWhileMirroringCheckBox: JBCheckBox
 
   private val state = DeviceMirroringSettings.getInstance()
 
   override fun getId() = "device.mirroring.options"
 
-  private val myPanel = if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) panel {
-    deviceMirroringEnabledCheckBox = JBCheckBox().apply { isSelected = true }
+  override fun createComponent() = panel {
     row {
-      checkBox(message("android.checkbox.activate.mirroring.when.device.connected"))
-        .bindSelected(state::activateOnConnection)
-        .component.apply {
-          addActionListener {
-            if (isSelected && !state.activateOnConnection) {
-              onMirroringEnabled(this)
-            }
-          }
-        }
-    }
-    row {
-      checkBox(message("android.checkbox.activate.mirroring.when.launching.app"))
-        .bindSelected(state::activateOnAppLaunch)
-        .component.apply {
-          addActionListener {
-            if (isSelected && !state.activateOnAppLaunch) {
-              onMirroringEnabled(this)
-            }
-          }
-        }
-    }
-    row {
-      checkBox(message("android.checkbox.activate.mirroring.when.launching.test"))
-        .bindSelected(state::activateOnTestLaunch)
-        .component.apply {
-          addActionListener {
-            if (isSelected && !state.activateOnTestLaunch) {
-              onMirroringEnabled(this)
-            }
-          }
-        }
-    }
-    commonMirroringSettings()
-  }
-  else panel {
-    row {
-      deviceMirroringEnabledCheckBox =
-        checkBox(message("android.checkbox.enable.mirroring"))
-          .comment(message("android.checkbox.enable.mirroring.comment", MIRRORING_HELP_LINK))
-          .bindSelected(state::deviceMirroringEnabled)
+      activateOnConnectionCheckBox =
+        checkBox("Activate mirroring when a new physical device is connected")
+          .bindSelected(state::activateOnConnection)
           .component.apply {
             addActionListener {
-              if (isSelected && !state.deviceMirroringEnabled) {
+              if (isSelected && !state.activateOnConnection) {
                 onMirroringEnabled(this)
               }
             }
           }
     }
-    panel {
-      row {
-        checkBox(message("android.checkbox.open.tool.window.when.device.connected"))
-          .bindSelected(state::activateOnConnection)
-      }.topGap(TopGap.SMALL)
-      row {
-        checkBox(message("android.checkbox.open.tool.window.when.launching.app"))
+    row {
+      activateOnAppLaunchCheckBox =
+        checkBox("Activate mirroring when launching an app on a physical device")
           .bindSelected(state::activateOnAppLaunch)
-      }
-      row {
-        checkBox(message("android.checkbox.open.tool.window.when.launching.test"))
+          .component.apply {
+            addActionListener {
+              if (isSelected && !state.activateOnAppLaunch) {
+                onMirroringEnabled(this)
+              }
+            }
+          }
+    }
+    row {
+      activateOnTestLaunchCheckBox =
+        checkBox("Activate mirroring when launching a test on a physical device")
           .bindSelected(state::activateOnTestLaunch)
-      }
-    }.enabledIf(deviceMirroringEnabledCheckBox.selected)
-    commonMirroringSettings()
-  }
-
-  override fun createComponent() = myPanel.apply {
-    disposable = Disposer.newDisposable("${this@DeviceMirroringSettingsPage::class.simpleName} validators disposable")
-    registerValidators(disposable)
+          .component.apply {
+            addActionListener {
+              if (isSelected && !state.activateOnTestLaunch) {
+                onMirroringEnabled(this)
+              }
+            }
+          }
+    }
+    row {
+      synchronizeClipboardCheckBox =
+        checkBox("Enable clipboard sharing")
+          .bindSelected(state::synchronizeClipboard)
+          .component
+    }.topGap(TopGap.SMALL)
+    indent {
+      row("Maximum length of synchronized clipboard text:") {
+        maxSyncedClipboardLengthTextField =
+          intTextField(range = 10..10_000_000, keyboardStep = 1000)
+            .bindIntText(state::maxSyncedClipboardLength)
+            .component
+      }.enabledIf(synchronizeClipboardCheckBox.selected)
+    }
+    row {
+      turnOffDisplayWhileMirroringCheckBox =
+        checkBox("Turn off device display while mirroring")
+          .comment("(not supported on Android 14)")
+          .bindSelected(state::turnOffDisplayWhileMirroring)
+          .component
+    }.topGap(TopGap.SMALL)
   }
 
   override fun isModified(): Boolean {
-    return myPanel.isModified()
+    return activateOnConnectionCheckBox.isSelected != state.activateOnConnection ||
+           activateOnAppLaunchCheckBox.isSelected != state.activateOnAppLaunch ||
+           activateOnTestLaunchCheckBox.isSelected != state.activateOnTestLaunch ||
+           synchronizeClipboardCheckBox.isSelected != state.synchronizeClipboard ||
+           maxSyncedClipboardLengthTextField.text.trim() != state.maxSyncedClipboardLength.toString() ||
+           turnOffDisplayWhileMirroringCheckBox.isSelected != state.turnOffDisplayWhileMirroring
   }
 
   @Throws(ConfigurationException::class)
   override fun apply() {
-    myPanel.apply()
+    maxSyncedClipboardLengthTextField.validate()
+    state.activateOnConnection = activateOnConnectionCheckBox.isSelected
+    state.activateOnAppLaunch = activateOnAppLaunchCheckBox.isSelected
+    state.activateOnTestLaunch = activateOnTestLaunchCheckBox.isSelected
+    state.synchronizeClipboard = synchronizeClipboardCheckBox.isSelected
+    state.maxSyncedClipboardLength = maxSyncedClipboardLengthTextField.text.trim().toInt()
+    state.turnOffDisplayWhileMirroring = turnOffDisplayWhileMirroringCheckBox.isSelected
   }
 
   override fun reset() {
-    myPanel.reset()
+    activateOnConnectionCheckBox.isSelected = state.activateOnConnection
+    activateOnAppLaunchCheckBox.isSelected = state.activateOnAppLaunch
+    activateOnTestLaunchCheckBox.isSelected = state.activateOnTestLaunch
+    synchronizeClipboardCheckBox.isSelected = state.synchronizeClipboard
+    maxSyncedClipboardLengthTextField.text = state.maxSyncedClipboardLength.toString()
+    turnOffDisplayWhileMirroringCheckBox.isSelected = state.turnOffDisplayWhileMirroring
   }
 
   @Nls
-  override fun getDisplayName() = if (IdeInfo.getInstance().isAndroidStudio) message("android.configurable.DeviceMirroringConfigurable.displayName.simple") else message("android.configurable.DeviceMirroringConfigurable.displayName")
-
-  override fun disposeUIResources() {
-    super.disposeUIResources()
-    Disposer.dispose(disposable)
-  }
-
-  private fun Panel.commonMirroringSettings() {
-    row {
-      synchronizeClipboardCheckBox =
-        checkBox(message("android.checkbox.clipboard.sharing"))
-          .bindSelected(state::synchronizeClipboard)
-          .component
-    }.topGap(TopGap.SMALL).enabledIf(deviceMirroringEnabledCheckBox.selected)
-    indent {
-      row(message("android.maximum.length.clipboard")) {
-        intTextField(range = 10..10_000_000, keyboardStep = 1000)
-          .bindIntText(state::maxSyncedClipboardLength)
-      }.enabledIf(deviceMirroringEnabledCheckBox.selected.and(synchronizeClipboardCheckBox.selected))
-    }
-    row {
-      checkBox(message("android.checkbox.turn.off.device.display.while.mirroring"))
-        .bindSelected(state::turnOffDisplayWhileMirroring)
-    }.topGap(TopGap.SMALL).enabledIf(deviceMirroringEnabledCheckBox.selected)
-  }
+  override fun getDisplayName() = if (IdeInfo.getInstance().isAndroidStudio) "Device Mirroring" else "Android Device Mirroring"
 
   private fun onMirroringEnabled(checkBox: JBCheckBox) {
     if (!state.confirmationDialogShown) {
-      val title = message("android.mirroring.dialog.privacy.notice.title")
+      val title = "Privacy Notice"
       val dialogWrapper = MirroringConfirmationDialog(title).createWrapper(parent = checkBox).apply { show() }
       if (dialogWrapper.exitCode == MirroringConfirmationDialog.ACCEPT_EXIT_CODE) {
         state.confirmationDialogShown = true

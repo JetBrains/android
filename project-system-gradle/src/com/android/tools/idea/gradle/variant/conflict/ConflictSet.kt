@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 
 /**
  * Set of all variant-selection-related conflicts.There are two reasons for conflicts to happen:
@@ -124,4 +125,34 @@ class ConflictSet private constructor(
       return allModuleLibraries.filterIsInstance<IdeModuleLibrary>().distinct()
     }
   }
+}
+
+data class DependencyVariantConflict(val dependencyName: String, val expectedVariant: String, val actualVariant: String)
+
+/**
+ * Compute a display message for a given module when there are dependencies with conflicting variants selected.
+ */
+fun Module.variantConflictMessage(conflicts: ImmutableList<Conflict>): String {
+  val affectedModules = conflicts.flatMap { conflict -> conflict.affectedModules }
+    .filter { affectedModule -> affectedModule.target.name == this.name }
+  val dependenciesVariantConflict = affectedModules.map { affectedModule -> DependencyVariantConflict(
+    affectedModule.conflict.source.displayName,
+    affectedModule.expectedVariant,
+    affectedModule.conflict.selectedVariant) }
+
+  return buildString {
+    append("Only a single variant of a Android Gradle project can be loaded at a time in Android Studio.<br>")
+    append("Dependencies of ${this@variantConflictMessage.displayName} are different to what it expects due to variant conflicts.<br>")
+
+    append(dependenciesVariantConflict.joinToString("<br>") {
+      "Gradle project ${it.dependencyName}(Expected variant: ${it.expectedVariant}, Loaded variant: ${it.actualVariant})"
+    })
+  }
+}
+
+val Module.displayName: String
+  get() {
+  val modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(this)
+  // Note: modulePath should never be null here.
+  return modulePath ?: this.name
 }

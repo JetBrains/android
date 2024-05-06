@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.junit.Test;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class TextInputLayoutHandlerTest {
 

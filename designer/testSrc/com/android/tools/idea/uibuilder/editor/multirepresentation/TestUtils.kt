@@ -19,9 +19,9 @@ import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import javax.swing.JPanel
 
 open class TestPreviewRepresentation : PreviewRepresentation {
   internal var state: PreviewRepresentationState? = null
@@ -32,7 +32,9 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   override val preferredInitialVisibility: PreferredVisibility? = null
 
   override val component = JPanel()
+
   override fun updateNotifications(parentEditor: FileEditor) {}
+
   override fun dispose() {}
 
   override fun onActivate() {
@@ -68,5 +70,6 @@ open class TestPreviewRepresentationProvider(
   private val representation: PreviewRepresentation = TestPreviewRepresentation()
 ) : PreviewRepresentationProvider {
   override suspend fun accept(project: Project, psiFile: PsiFile) = isAccept
+
   override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation
 }

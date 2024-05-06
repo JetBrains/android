@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -34,7 +35,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class ComposeOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<ComposeOptionsDslElement> COMPOSE_OPTIONS =
-    new PropertiesElementDescription<>("composeOptions", ComposeOptionsDslElement.class, ComposeOptionsDslElement::new);
+    new PropertiesElementDescription<>("composeOptions",
+                                       ComposeOptionsDslElement.class,
+                                       ComposeOptionsDslElement::new,
+                                       ComposeOptionsDslElementSchema::new);
 
   public static final ExternalToModelMap ktsToModelMap = Stream.of(new Object[][]{
     {"kotlinCompilerExtensionVersion", property, KOTLIN_COMPILER_EXTENSION_VERSION, VAR},
@@ -48,12 +52,31 @@ public class ComposeOptionsDslElement extends GradleDslBlockElement {
     {"kotlinCompilerVersion", exactly(1), KOTLIN_COMPILER_VERSION, SET}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelMap = Stream.of(new Object[][]{
+    {"kotlinCompilerExtensionVersion", property, KOTLIN_COMPILER_EXTENSION_VERSION, VAR},
+    {"kotlinCompilerVersion", property, KOTLIN_COMPILER_VERSION, VAR}
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelMap, ktsToModelMap);
+    return getExternalToModelMap(converter, groovyToModelMap, ktsToModelMap, declarativeToModelMap);
   }
 
   ComposeOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class ComposeOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelMap, ktsToModelMap, declarativeToModelMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.ComposeOptions";
+    }
   }
 }

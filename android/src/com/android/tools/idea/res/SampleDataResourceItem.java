@@ -20,7 +20,6 @@ import static com.android.SdkConstants.EXT_JSON;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValueImpl;
 import com.android.ide.common.resources.ResourceItem;
@@ -367,20 +366,8 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
 
   @Override
   @NotNull
-  public ResourceReference getReferenceToSelf() {
-    return new ResourceReference(getNamespace(), getType(), getName());
-  }
-
-  @Override
-  @NotNull
   public FolderConfiguration getConfiguration() {
     return DEFAULT_CONFIGURATION;
-  }
-
-  @Override
-  @NotNull
-  public String getKey() {
-    return getType() + "/" + getName();
   }
 
   @Override

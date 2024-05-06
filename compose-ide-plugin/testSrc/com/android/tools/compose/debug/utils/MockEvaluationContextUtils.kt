@@ -23,7 +23,10 @@ import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.sun.jdi.ObjectReference
 
-internal fun mockEvaluationContext(debugProcess: DebugProcessImpl, objectReference: ObjectReference): EvaluationContextImpl {
+internal fun mockEvaluationContext(
+  debugProcess: DebugProcessImpl,
+  objectReference: ObjectReference
+): EvaluationContextImpl {
   val mockSuspendContext = MockitoKt.mock<SuspendContextImpl>()
   whenever(mockSuspendContext.debugProcess).thenReturn(debugProcess)
 

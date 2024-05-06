@@ -18,10 +18,10 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.parseColor
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
-import com.android.tools.idea.res.parseColor
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
@@ -136,8 +136,7 @@ open class InspectorPropertyItem(
         val location =
           lookup.resourceLookup
             .findFileLocations(this@InspectorPropertyItem, view, 1)
-            .singleOrNull()
-            ?: return
+            .singleOrNull() ?: return
         location.navigatable?.navigate(true)
       }
     }
@@ -250,9 +249,11 @@ open class InspectorPropertyItem(
     override val action: AnAction? = null
     override val actionIcon: Icon?
       get() {
-        val view = property.lookup[property.viewId] ?: return null
-        property.lookup.resourceLookup.resolveAsIcon(property, view)?.let {
-          return it
+        val view = property.lookup[property.viewId]
+        if (view != null) {
+          property.lookup.resourceLookup.resolveAsIcon(property, view)?.let {
+            return it
+          }
         }
         val value = property.value
         val color = value?.let { parseColor(value) } ?: return null

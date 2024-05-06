@@ -24,7 +24,6 @@ import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 
@@ -50,10 +49,10 @@ class DeepLinkLaunchTest {
     assertTaskPresentedInStats(usageTrackerRule.usages, "LAUNCH_DEEP_LINK")
 
     Mockito.verify(device).executeShellCommand(
-      ArgumentMatchers.eq(
+      Mockito.eq(
         "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'com.example'"),
-      ArgumentMatchers.any(IShellOutputReceiver::class.java),
-      ArgumentMatchers.eq(15L),
-      ArgumentMatchers.eq(TimeUnit.SECONDS))
+      Mockito.any(IShellOutputReceiver::class.java),
+      Mockito.eq(15L),
+      Mockito.eq(TimeUnit.SECONDS))
   }
 }

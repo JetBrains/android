@@ -16,7 +16,7 @@
 package com.android.tools.profilers.performance
 
 import java.sql.Connection
-import java.util.Random
+import java.util.*
 
 abstract class DataGenerator(protected val connection: Connection) {
   val random = Random(javaClass.name.hashCode().toLong())

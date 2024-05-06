@@ -28,6 +28,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public class RefreshLinkedCppProjectsAction extends SyncProjectAction {
 
+  public RefreshLinkedCppProjectsAction() {
+    super("Refresh Linked C++ Projects");
+  }
+
   @Override
   protected void doPerform(@NotNull AnActionEvent e, @NotNull Project project) {
     // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true, which

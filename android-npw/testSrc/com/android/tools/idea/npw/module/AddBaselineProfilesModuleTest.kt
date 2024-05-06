@@ -16,11 +16,11 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.baselineprofiles.ConfigureBaselineProfilesModuleStep
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
-import com.android.tools.idea.npw.project.determineAgpVersion
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -80,7 +80,7 @@ class AddBaselineProfilesModuleTest(
       targetModule.value = project.findAppModule()
       useGradleKts.set(useGradleKtsParam)
       useGmd.set(useGmdParam)
-      agpVersion.value = determineAgpVersion(project, false)
+      agpVersion.set(GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(project)!!)
     }
 
     model.handleFinished() // Generate module files
@@ -133,8 +133,8 @@ class ConfigureBaselineProfilesModuleStepTest {
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(4, step.targetModuleCombo.itemCount)
     assertTrue(step.useGmdCheck.isEnabled)
-    assertTrue(step.useGmdCheck.isSelected)
-    assertTrue(model.useGmd.get())
+    assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
 
     step.targetModuleCombo.selectedItem = projectRule.project.findModule("automotiveApp")
     assertFalse(step.useGmdCheck.isEnabled)
@@ -153,8 +153,8 @@ class ConfigureBaselineProfilesModuleStepTest {
 
     step.targetModuleCombo.selectedItem = projectRule.project.findAppModule()
     assertTrue(step.useGmdCheck.isEnabled)
-    assertTrue(step.useGmdCheck.isSelected)
-    assertTrue(model.useGmd.get())
+    // Can be true or false depending on GMD selection state.
+    assertEquals(step.useGmdCheck.isSelected, model.useGmd.get())
   }
 
   @Test
@@ -175,8 +175,8 @@ class ConfigureBaselineProfilesModuleStepTest {
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(1, step.targetModuleCombo.itemCount)
     assertTrue(step.useGmdCheck.isEnabled)
-    assertTrue(step.useGmdCheck.isSelected)
-    assertTrue(model.useGmd.get())
+    assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
   }
 
   @Test

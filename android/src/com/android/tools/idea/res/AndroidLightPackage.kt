@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.res
 
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.base.MoreObjects
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.impl.file.PsiPackageImpl
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.augment.AndroidLightClassBase
 
 /**
@@ -33,10 +37,8 @@ import org.jetbrains.android.augment.AndroidLightClassBase
  * @see ProjectSystemPsiElementFinder
  * @see com.android.tools.idea.projectsystem.LightResourceClassService
  */
-class AndroidLightPackage private constructor(
-  manager: PsiManager,
-  qualifiedName: String
-) : PsiPackageImpl(manager, qualifiedName) {
+class AndroidLightPackage private constructor(manager: PsiManager, qualifiedName: String) :
+  PsiPackageImpl(manager, qualifiedName) {
 
   companion object {
     @JvmStatic
@@ -46,17 +48,16 @@ class AndroidLightPackage private constructor(
   }
 
   /**
-   * Overrides [PsiPackageImpl.isValid] to ignore what files exist on disk. [AndroidLightPackage] instances are only used if the right
-   * [PsiElementFinder] decided there are light R classes with this package name, so the package is valid even if there are no physical
-   * files in corresponding directories.
+   * Overrides [PsiPackageImpl.isValid] to ignore what files exist on disk. [AndroidLightPackage]
+   * instances are only used if the right [PsiElementFinder] decided there are light R classes with
+   * this package name, so the package is valid even if there are no physical files in corresponding
+   * directories.
    */
   override fun isValid(): Boolean {
     return project.isDisposed.not()
   }
 
-  /**
-   * Returns true if there are corresponding physical directories to navigate to.
-   */
+  /** Returns true if there are corresponding physical directories to navigate to. */
   override fun canNavigate(): Boolean {
     return super.isValid()
   }
@@ -65,15 +66,46 @@ class AndroidLightPackage private constructor(
     return MoreObjects.toStringHelper(this).addValue(qualifiedName).toString()
   }
 
+  override fun getFiles(scope: GlobalSearchScope): Array<PsiFile> {
+    // Return any light `R` classes defined in modules within the search scope.
+    //
+    // When an `R` class is defined in a package that contains no other Java/Kotlin classes, the
+    // system ends up checking with this package to determine whether the class is accessible in a
+    // given scope; see b/292491619. To enable that check to pass, this function must return the
+    // `R` class.
+    //
+    // It's possible that other light classes also reside in this package (or other real classes,
+    // for that matter), but there's no need to return them at this time. If we run into a similar
+    // situation with other synthetic classes that are defined in unique packages, they can be
+    // added here.
+
+    // Find all modules with the required package name that are in the search scope.
+    val projectSystem = project.getProjectSystem()
+    val modulesInScope =
+      projectSystem
+        .getAndroidFacetsWithPackageName(project, qualifiedName)
+        .map { it.module }
+        .filter { scope.isSearchInModuleContent(it) }
+
+    // Return the containing files for `R` classes defined by those modules.
+    val lightResourceClassService = projectSystem.getLightResourceClassService()
+    return modulesInScope
+      .flatMap { lightResourceClassService.getLightRClassesDefinedByModule(it) }
+      .mapNotNull { it.containingFile }
+      .toTypedArray()
+  }
+
   /**
    * Project service responsible for interning instances of [AndroidLightPackage] with a given name.
    */
-  class InstanceCache(private val project: Project) {
-    /**
-     * Cache of [PsiPackage] instances for a given package name.
-     */
-    private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
+  @Service(Service.Level.PROJECT)
+  class InstanceCache(val project: Project) {
 
-    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
+    /** Cache of [PsiPackage] instances for a given package name. */
+    private val packageCache: Cache<String, PsiPackage> =
+      CacheBuilder.newBuilder().softValues().build()
+
+    fun get(name: String): PsiPackage =
+      packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
   }
 }

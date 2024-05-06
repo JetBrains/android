@@ -69,7 +69,7 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
         .newline()
         .add("Material Design recommends buttons to be no wider than ${MAX_BUTTON_WIDTH_DP}dp")
     }
-    return VisualLintIssueContent(view, summary, provider)
+    return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
   }
 }
 

@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 public class Updater implements StopwatchTimer.TickHandler {
 
   public static final float DEFAULT_LERP_FRACTION = 0.99f;
-  public static final float DEFAULT_LERP_THRESHOLD_PERCENTAGE = 0.001f;
+  public static final float DEFAULT_LERP_THRESHOLD_RATIO = 0.001f;
 
   private final List<Updatable> mComponents;
   private List<Updatable> mToRegister;

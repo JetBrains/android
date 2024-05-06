@@ -2,7 +2,6 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
-import static com.android.tools.idea.io.IdeFileUtils.getDesktopDirectoryVirtualFile;
 import static icons.StudioIcons.Common.WARNING_INLINE;
 
 import com.android.annotations.concurrency.Slow;
@@ -20,20 +19,15 @@ import com.intellij.ide.wizard.CommitStepException;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ModalityUiUtil;
-import java.awt.Cursor;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -66,8 +60,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private JPanel myContentPanel;
   private JButton myCreateKeyStoreButton;
-  private JBCheckBox myExportKeysCheckBox;
-  private HyperlinkLabel myGoogleAppSigningLabel;
   private JPasswordField myKeyStorePasswordField;
   private JPasswordField myKeyPasswordField;
   private TextFieldWithBrowseButton.NoPathCompletion myKeyAliasField;
@@ -82,12 +74,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   private JBLabel myKeyStorePasswordLabel;
   private JBLabel myKeyAliasLabel;
   private JBLabel myKeyPasswordLabel;
-  private JPanel myExportKeyPanel;
-  @VisibleForTesting
-  JBLabel myExportKeyPathLabel;
-  @VisibleForTesting
-  TextFieldWithBrowseButton myExportKeyPathField;
-
   private final ExportSignedPackageWizard myWizard;
   private final boolean myUseGradleForSigning;
   private boolean myIsBundle;
@@ -122,17 +108,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myGradlePanel.setVisible(false);
     myModuleCombo.addActionListener(e -> updateSelection((AndroidFacet)myModuleCombo.getSelectedItem()));
 
-    myExportKeysCheckBox.addActionListener(e -> {
-      myExportKeyPathLabel.setVisible(myExportKeysCheckBox.isSelected());
-      myExportKeyPathField.setVisible(myExportKeysCheckBox.isSelected());
-    });
-    FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-    myExportKeyPathField.addBrowseFolderListener("Select Encrypted Key Destination Folder", null, myWizard.getProject(), descriptor);
-    VirtualFile desktopDir = getDesktopDirectoryVirtualFile();
-    if (desktopDir != null) {
-      myExportKeyPathField.setText(desktopDir.getPath());
-    }
-
     ExportSignedPackageUtil.initSigningSettingsForm(project, this);
   }
 
@@ -142,23 +117,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myIsBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
     updateModuleDropdown();
 
-    if (myIsBundle) {
-      GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myWizard.getProject());
-      myExportKeysCheckBox.setSelected(settings.EXPORT_PRIVATE_KEY);
-      myGoogleAppSigningLabel.setHyperlinkText("Google Play App Signing");
-      myGoogleAppSigningLabel.setHyperlinkTarget("https://support.google.com/googleplay/android-developer/answer/7384423");
-      myGoogleAppSigningLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-      myExportKeysCheckBox.setVisible(true);
-      myGoogleAppSigningLabel.setVisible(true);
-      myExportKeyPathLabel.setVisible(myExportKeysCheckBox.isVisible() && myExportKeysCheckBox.isSelected());
-      myExportKeyPathField.setVisible(myExportKeysCheckBox.isVisible() && myExportKeysCheckBox.isSelected());
-    }
-    else {
-      myExportKeysCheckBox.setVisible(false);
-      myGoogleAppSigningLabel.setVisible(false);
-      myExportKeyPathLabel.setVisible(false);
-      myExportKeyPathField.setVisible(false);
-    }
     // Treat TextField actions as selections and try to refresh.
     myKeyStorePathField.addActionListener((action) -> keyStoreSelected());
     myKeyAliasField.getTextField().addActionListener((action) -> keyAliasSelected());
@@ -221,9 +179,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     myKeyPasswordLabel.setVisible(!showError);
     myKeyAliasLabel.setVisible(!showError);
     myKeyStorePathLabel.setVisible(!showError);
-    myExportKeyPanel.setVisible(!showError);
-    myExportKeyPathLabel.setVisible(!showError);
-    myExportKeyPathField.setVisible(!showError);
 
     // gradle error fields
     myGradlePanel.setVisible(showError);
@@ -469,24 +424,6 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     boolean rememberPasswords = myRememberPasswordCheckBox.isSelected();
     settings.REMEMBER_PASSWORDS = rememberPasswords;
 
-    if (myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE)) {
-      boolean exportPrivateKey = myExportKeysCheckBox.isSelected();
-      settings.EXPORT_PRIVATE_KEY = exportPrivateKey;
-      myWizard.setExportPrivateKey(exportPrivateKey);
-      if (exportPrivateKey) {
-        String keyFolder = myExportKeyPathField.getText().trim();
-        if (keyFolder.isEmpty()) {
-          throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.missing.destination", myWizard.getTargetType()));
-        }
-
-        File f = new File(keyFolder);
-        if (!f.isDirectory() || !f.canWrite()) {
-          throw new CommitStepException(AndroidBundle.message("android.apk.sign.gradle.invalid.destination"));
-        }
-        myWizard.setExportKeyPath(keyFolder);
-      }
-    }
-
     trySavePasswords(keyStoreLocation, keyStorePassword, keyAlias, keyPassword, rememberPasswords);
 
     myWizard.setFacet(getSelectedFacet());
@@ -580,10 +517,5 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   @Override
   public JPasswordField getKeyPasswordField() {
     return myKeyPasswordField;
-  }
-
-  @VisibleForTesting
-  JBCheckBox getExportKeysCheckBox() {
-    return myExportKeysCheckBox;
   }
 }

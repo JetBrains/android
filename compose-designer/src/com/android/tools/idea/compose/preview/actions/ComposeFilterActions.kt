@@ -16,12 +16,13 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.compose.ComposeStatus
-import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -40,10 +41,10 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
 /** The action to start the query mode in compose preview. */
-class ComposeShowFilterAction(private val surface: DesignSurface<*>) :
+class ComposeShowFilterAction :
   AnAction(message("action.scene.view.control.start.filter.preview.mode")) {
   override fun actionPerformed(e: AnActionEvent) {
-    val manager = COMPOSE_PREVIEW_MANAGER.getData(surface) ?: return
+    val manager = COMPOSE_PREVIEW_MANAGER.getData(e.dataContext) ?: return
     manager.isFilterEnabled = true
   }
 
@@ -51,7 +52,7 @@ class ComposeShowFilterAction(private val surface: DesignSurface<*>) :
 }
 
 /** The action to exit the query mode in compose preview. */
-class ComposeHideFilterAction(private val surface: DesignSurface<*>) :
+class ComposeHideFilterAction :
   AnAction(null, null, AllIcons.Actions.Close), CustomComponentAction, RightAlignedToolbarAction {
   init {
     templatePresentation.putClientProperty(ComposeStatus.TEXT_POSITION, SwingConstants.LEADING)
@@ -60,8 +61,9 @@ class ComposeHideFilterAction(private val surface: DesignSurface<*>) :
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible =
-      COMPOSE_PREVIEW_MANAGER.getData(surface)?.isFilterEnabled ?: false
-    val views = surface.sceneManagers.flatMap { it.sceneViews }
+      COMPOSE_PREVIEW_MANAGER.getData(e.dataContext)?.isFilterEnabled ?: false
+    val views =
+      DESIGN_SURFACE.getData(e.dataContext)?.sceneManagers?.flatMap { it.sceneViews } ?: emptyList()
     val visibleCount = views.count { it.isVisible }
     e.presentation.text =
       when (visibleCount) {
@@ -72,10 +74,10 @@ class ComposeHideFilterAction(private val surface: DesignSurface<*>) :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val manager = COMPOSE_PREVIEW_MANAGER.getData(surface) ?: return
+    val manager = COMPOSE_PREVIEW_MANAGER.getData(e.dataContext) ?: return
     manager.isFilterEnabled = false
 
-    surface.updateSceneViewVisibilities { true }
+    DESIGN_SURFACE.getData(e.dataContext)?.updateSceneViewVisibilities { true }
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
@@ -117,6 +119,7 @@ class ComposeFilterTextAction(private val filter: ComposeViewFilter) :
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
     val field = JBTextField()
+    val dataContext = DataManager.getInstance().getDataContext(field)
     field.document.addDocumentListener(
       object : DocumentListener {
         override fun insertUpdate(e: DocumentEvent) {
@@ -132,7 +135,7 @@ class ComposeFilterTextAction(private val filter: ComposeViewFilter) :
         }
 
         private fun filterSceneViews(text: String?) {
-          filter.filter(text)
+          filter.filter(text, dataContext)
         }
       }
     )
@@ -143,5 +146,5 @@ class ComposeFilterTextAction(private val filter: ComposeViewFilter) :
     return field
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }

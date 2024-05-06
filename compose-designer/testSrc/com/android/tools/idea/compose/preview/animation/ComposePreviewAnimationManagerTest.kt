@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
@@ -26,6 +26,7 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.findLabel
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
 import com.android.tools.idea.compose.preview.animation.managers.UnsupportedAnimationManager
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.rendering.classloading.NopClassLocator
 import com.android.tools.idea.rendering.classloading.PreviewAnimationClockMethodTransform
 import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoader
@@ -35,7 +36,7 @@ import com.android.tools.rendering.classloading.toClassTransform
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -43,6 +44,8 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.util.containers.getIfSingle
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.createUrlClassLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -240,7 +243,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -271,7 +274,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), animatedVisibilityAnimation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -301,7 +304,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
           setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI
@@ -340,7 +343,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
           setOf(AnimationState.State1, AnimationState.State2, AnimationState.State3)
       }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
       PlatformTestUtil
         .dispatchAllInvocationEventsInIdeEventQueue() // Wait for the tab to be added on the UI
@@ -424,7 +427,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     ComposePreviewAnimationManager.onAnimationSubscribed(getClock(), transitionAnimation)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -473,23 +476,25 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
 
     assertEquals(5, inspector.tabCount())
 
-    assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
-    assertEquals(
-      "repeatedLabel (1)",
-      inspector.getAnimationTitleAt(1)
-    ) // repeated titles get their index incremented
-    assertEquals(
-      "Animated Value",
-      inspector.getAnimationTitleAt(2)
-    ) // null labels use default title
-    assertEquals(
-      "Transition Animation",
-      inspector.getAnimationTitleAt(3)
-    ) // null labels use default title
-    assertEquals(
-      "Animated Visibility",
-      inspector.getAnimationTitleAt(4)
-    ) // null labels use default title
+    ApplicationManager.getApplication().invokeAndWait {
+      assertEquals("repeatedLabel", inspector.getAnimationTitleAt(0))
+      assertEquals(
+        "repeatedLabel (1)",
+        inspector.getAnimationTitleAt(1)
+      ) // repeated titles get their index incremented
+      assertEquals(
+        "Animated Value",
+        inspector.getAnimationTitleAt(2)
+      ) // null labels use default title
+      assertEquals(
+        "Transition Animation",
+        inspector.getAnimationTitleAt(3)
+      ) // null labels use default title
+      assertEquals(
+        "Animated Visibility",
+        inspector.getAnimationTitleAt(4)
+      ) // null labels use default title
+    }
   }
 
   @Test
@@ -498,7 +503,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     val clock = getClock()
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
       val cards = TestUtils.findAllCards(inspector.component)
       val timeline = TestUtils.findTimeline(inspector.component)
@@ -520,6 +525,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
       assertEquals(1, inspector.tabbedPane.tabCount)
     }
   }
+
   @Test
   fun `managers are created for each animation`() {
     val inspector = createAndOpenInspector()
@@ -539,6 +545,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[9])
     assertInstanceOf<UnsupportedAnimationManager>(inspector.animations[10])
   }
+
   @Test
   fun `preview inspector`() {
     val inspector = createAndOpenInspector()
@@ -546,7 +553,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     animations.forEach { ComposePreviewAnimationManager.onAnimationSubscribed(clock, it) }
     UIUtil.pump() // Wait for cards to be added on the UI thread
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.apply { component.size = Dimension(600, 500) }.component)
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -578,7 +585,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     lateinit var psiPointerTwo: SmartPsiElementPointer<PsiFile>
     lateinit var anotherPsiPointer: SmartPsiElementPointer<PsiFile>
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       psiPointerOne = SmartPointerManager.createPointer(psiFile)
       psiPointerTwo = SmartPointerManager.createPointer(psiFile)
       anotherPsiPointer = SmartPointerManager.createPointer(anotherPsiFile)
@@ -695,11 +702,12 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
     } catch (ignored: NullPointerException) {}
   }
 
-  private fun AnimationPreview.tabCount() = invokeAndWaitIfNeeded { animationsCount() }
-
-  private fun AnimationPreview.getAnimationTitleAt(index: Int): String = invokeAndWaitIfNeeded {
-    TestUtils.findAllCards(this.component)[index].findLabel().text
+  private fun AnimationPreview.tabCount(): Int = runBlocking {
+    withContext(uiThread) { animationsCount() }
   }
+
+  private fun AnimationPreview.getAnimationTitleAt(index: Int): String =
+    TestUtils.findAllCards(this.component)[index].findLabel().text
 
   private fun AnimationPreview.noAnimationsPanel() =
     TreeWalker(this.component)
@@ -707,7 +715,7 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
       .filter { it.name == "Loading Animations Panel" }
       .getIfSingle()
 
-  private fun AnimationPreview.animationPreviewCardsCount() = invokeAndWaitIfNeeded {
-    coordinationTab.cards.size
+  private fun AnimationPreview.animationPreviewCardsCount(): Int = runBlocking {
+    withContext(uiThread) { coordinationTab.cards.size }
   }
 }

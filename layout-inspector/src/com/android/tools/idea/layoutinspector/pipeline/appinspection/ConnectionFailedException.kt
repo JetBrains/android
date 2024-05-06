@@ -23,9 +23,9 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
-import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.MINIMUM_COMPOSE_COORDINATE
 import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.intellij.openapi.diagnostic.Logger
@@ -38,10 +38,7 @@ const val GMAVEN_HOSTNAME = "maven.google.com"
  * @param message User visible error message.
  * @param code The error code used for analytics.
  */
-class ConnectionFailedException(
-  message: String,
-  val code: AttachErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
-) : Exception(message)
+class ConnectionFailedException(message: String, val code: AttachErrorCode) : Exception(message)
 
 /**
  * An error description with an error [code] and optional [args] for generating a message.
@@ -73,24 +70,25 @@ fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
     is AppInspectionArtifactNotFoundException -> this.toAttachErrorInfo()
     is AppInspectionServiceException -> AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.toInfo()
-    else -> AttachErrorCode.UNKNOWN_ERROR_CODE.toInfo()
+    else -> AttachErrorCode.UNEXPECTED_ERROR.toInfo()
   }
 }
 
 /**
- * Convert a [LibraryCompatbilityInfo.Status] to [AttachErrorInfo].
+ * Convert a [LibraryCompatibilityInfo.Status] to [AttachErrorInfo].
  *
  * An unexpected status will be logged to the crash db.
  */
-fun LibraryCompatbilityInfo.Status?.toAttachErrorInfo(): AttachErrorInfo {
+fun LibraryCompatibilityInfo.Status?.toAttachErrorInfo(): AttachErrorInfo {
   val errorCode =
     when (this) {
-      LibraryCompatbilityInfo.Status.INCOMPATIBLE ->
+      LibraryCompatibilityInfo.Status.INCOMPATIBLE ->
         AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION
-      LibraryCompatbilityInfo.Status.APP_PROGUARDED -> AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
-      LibraryCompatbilityInfo.Status.VERSION_MISSING ->
+      LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
+        AttachErrorCode.APP_INSPECTION_PROGUARDED_APP
+      LibraryCompatibilityInfo.Status.VERSION_MISSING ->
         AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND
-      LibraryCompatbilityInfo.Status.LIBRARY_MISSING ->
+      LibraryCompatibilityInfo.Status.LIBRARY_MISSING ->
         AttachErrorCode.APP_INSPECTION_MISSING_LIBRARY
       else -> {
         logUnexpectedError(InspectorConnectionError("Unexpected status $this"))
@@ -119,7 +117,8 @@ private fun AppInspectionArtifactNotFoundException.toAttachErrorInfo(): AttachEr
         AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
       message?.contains(GMAVEN_HOSTNAME) == true ->
         AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
-      artifactCoordinate.sameArtifact(MINIMUM_COMPOSE_COORDINATE) ->
+      MinimumArtifactCoordinate.COMPOSE_UI.sameArtifact(artifactCoordinate) ||
+        MinimumArtifactCoordinate.COMPOSE_UI_ANDROID.sameArtifact(artifactCoordinate) ->
         AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
       else -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
     }

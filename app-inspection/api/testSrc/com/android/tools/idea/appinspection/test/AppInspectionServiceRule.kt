@@ -39,6 +39,8 @@ import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.android.tools.idea.transport.manager.TransportStreamManager
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -46,8 +48,6 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.runBlocking
 import org.junit.runner.Description
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 val DEFAULT_TEST_INSPECTION_STREAM =
   Common.Stream.newBuilder()
@@ -105,14 +105,10 @@ class AppInspectionServiceRule(
   override fun before(description: Description) {
     client = TransportClient(grpcServer.name)
     executorService = Executors.newSingleThreadExecutor()
-    streamManager =
-      TransportStreamManager.createManager(
-        client.transportStub,
-        executorService.asCoroutineDispatcher()
-      )
     streamChannel =
       TransportStreamChannel(stream, client.transportStub, executorService.asCoroutineDispatcher())
     scope = CoroutineScope(executorService.asCoroutineDispatcher() + SupervisorJob())
+    streamManager = TransportStreamManager(client.transportStub, scope)
     transport = AppInspectionTransport(client, process, streamChannel)
     jarCopier = AppInspectionTestUtils.TestTransportJarCopier
     targetManager = AppInspectionTargetManager(client, scope)
@@ -130,7 +126,6 @@ class AppInspectionServiceRule(
   }
 
   override fun after(description: Description) = runBlocking {
-    TransportStreamManager.unregisterManager(streamManager)
     scope.coroutineContext[Job]!!.cancelAndJoin()
     executorService.shutdownNow()
     timer.currentTimeNs += 1

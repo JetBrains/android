@@ -21,9 +21,10 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 /** Replaces all tags in the current file named {@code wrongTag} into {@code rightTag} */
 public class ReplaceTagFix implements Runnable {

@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.ABSOLUTE_LAYOUT;
+import static com.android.SdkConstants.ANDROIDX_RECYCLER_VIEW_ARTIFACT;
 import static com.android.SdkConstants.BUTTON;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
+import static com.android.SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
@@ -70,10 +71,14 @@ public class RecyclerViewHandlerTest extends LayoutTestCase {
                  "    android:layout_width=\"980dp\"\n" +
                  "    android:layout_height=\"980dp\"/>");
 
-    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-      // Should not able to drag into RecyclerView
-      assertEmpty(screen.get("@id/myView").getSceneComponent().getChildren());
-    }
+    // Should not able to drag into RecyclerView
+    assertEmpty(screen.get("@id/myView").getSceneComponent().getChildren());
+  }
+
+  public void testGetGradleCoordinateId() {
+    RecyclerViewHandler handler = new RecyclerViewHandler();
+    assertThat(handler.getGradleCoordinateId(RECYCLER_VIEW.oldName()).toString()).isEqualTo(RECYCLER_VIEW_LIB_ARTIFACT);
+    assertThat(handler.getGradleCoordinateId(RECYCLER_VIEW.newName()).toString()).isEqualTo(ANDROIDX_RECYCLER_VIEW_ARTIFACT);
   }
 
   @NotNull

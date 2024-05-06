@@ -22,10 +22,10 @@ import com.intellij.xml.XmlElementDescriptor
 import org.jetbrains.android.dom.layout.DataBindingElement
 
 /**
- * [DataBindingDomElementDescriptorProvider] provides [DataBindingXmlTagDescriptor] for tags that are [DataBindingElement].
- * Returns null, if tag is not [DataBindingElement].
+ * [DataBindingDomElementDescriptorProvider] provides [DataBindingXmlTagDescriptor] for tags that
+ * are [DataBindingElement]. Returns null, if tag is not [DataBindingElement].
  */
-class DataBindingDomElementDescriptorProvider: XmlElementDescriptorProvider {
+class DataBindingDomElementDescriptorProvider : XmlElementDescriptorProvider {
   override fun getDescriptor(tag: XmlTag): XmlElementDescriptor? {
     val domElement = DomManagerImpl.getDomManager(tag.project).getDomElement(tag)
     if (domElement !is DataBindingElement) {

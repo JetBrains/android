@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.intellij.openapi.Disposable
@@ -28,13 +29,14 @@ import com.intellij.openapi.project.Project
 internal class DeviceDisplayPanel(
   disposableParent: Disposable,
   deviceClient: DeviceClient,
+  displayId: Int,
   initialDisplayOrientation: Int,
   project: Project,
   zoomToolbarVisible: Boolean,
 ) : AbstractDisplayPanel<DeviceView>(disposableParent, zoomToolbarVisible), DataProvider {
 
   init {
-    displayView = DeviceView(this, deviceClient, initialDisplayOrientation, project)
+    displayView = DeviceView(this, deviceClient, displayId, initialDisplayOrientation, project)
 
     loadingPanel.setLoadingText("Connecting to the device")
     loadingPanel.startLoading() // The stopLoading method is called by DeviceView after a connection to the device is established.
@@ -42,7 +44,10 @@ internal class DeviceDisplayPanel(
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
+      DEVICE_CLIENT_KEY.name -> displayView.deviceClient
+      DEVICE_CONTROLLER_KEY.name -> displayView.deviceController
       DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> displayView
+      SERIAL_NUMBER_KEY.name -> displayView.deviceClient.deviceSerialNumber
       else -> null
     }
   }

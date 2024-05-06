@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "concurrent_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -59,6 +60,7 @@ private:
   static void NotifyListeners(int32_t device_state);
 
   static std::mutex static_initialization_mutex_;
+  static bool initialized_;  // GUARDED_BY(static_initialization_mutex_)
   // DeviceStateManager class.
   static JObject device_state_manager_;  // GUARDED_BY(static_initialization_mutex_)
   static jmethodID get_device_state_info_method_;  // GUARDED_BY(static_initialization_mutex_)
@@ -70,8 +72,8 @@ private:
   // Binder class.
   static JClass binder_class_;  // GUARDED_BY(static_initialization_mutex_)
   static jmethodID binder_constructor_;  // GUARDED_BY(static_initialization_mutex_)
-  // Copy-on-write set of clipboard listeners.
-  static std::atomic<std::vector<DeviceStateManager::DeviceStateListener*>*> device_state_listeners_;
+  // List of device state listeners.
+  static ConcurrentList<DeviceStateListener> device_state_listeners_;
 
   static std::mutex state_mutex_;
   static int32_t current_base_state_;  // GUARDED_BY(state_mutex_)

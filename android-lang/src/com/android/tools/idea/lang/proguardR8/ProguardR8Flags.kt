@@ -68,7 +68,8 @@ private val COMMON_FLAGS = setOf(
 val R8_FLAGS = COMMON_FLAGS + setOf(
   "alwaysinline",
   "checkdiscard",
-  "identifiernamestring"
+  "identifiernamestring",
+  "shrinkunusedprotofields",
 )
 
 val PROGUARD_FLAGS = COMMON_FLAGS + setOf(

@@ -16,7 +16,8 @@
 package org.jetbrains.android
 
 import com.android.SdkConstants.DOT_JAVA
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.test.testutils.TestUtils.getWorkspaceRoot
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.visibility.VisibilityInspection
 import com.intellij.openapi.util.io.FileUtil
@@ -32,9 +33,7 @@ class FragmentMustBePublicTest : LightJavaInspectionTestCase() {
     return myVisibilityInspection!!.sharedLocalInspectionTool
   }
 
-  override fun getProjectDescriptor(): LightProjectDescriptor {
-    return LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor()
-  }
+  override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.java()
 
   override fun setUp() {
     // Compute the workspace root before any IDE code starts messing with user.dir:

@@ -28,7 +28,9 @@ import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.Thumb
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import java.nio.file.Path
 
 /**

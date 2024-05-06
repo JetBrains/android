@@ -75,50 +75,51 @@ class LayoutInspectorProjectServiceTest {
   }
 
   @Test
-  fun testIsNotPreferredProcessWhenDifferentFromForcedProcess() {
-    val recentProcess = RecentProcess("serial", "process_name")
-    RecentProcess.set(projectRule.project, recentProcess)
+  fun testIsNotPreferredProcessWhenDifferentFromForcedProcess() =
+    withEmbeddedLayoutInspector(false) {
+      val recentProcess = RecentProcess("serial", "process_name")
+      RecentProcess.set(projectRule.project, recentProcess)
 
-    val deviceDescriptor = createDeviceDescriptor("serial")
-    val processDescriptor = createProcessDescriptor("process_name", deviceDescriptor)
+      val deviceDescriptor = createDeviceDescriptor("serial")
+      val processDescriptor = createProcessDescriptor("process_name", deviceDescriptor)
 
-    var deviceModel: DeviceModel? = null
+      var deviceModel: DeviceModel? = null
 
-    val processDiscovery = TestProcessDiscovery()
-    val processModel =
-      createProcessesModel(
-        projectRule.project,
-        disposableRule.disposable,
-        processDiscovery,
-        MoreExecutors.directExecutor()
-      ) {
-        deviceModel
+      val processDiscovery = TestProcessDiscovery()
+      val processModel =
+        createProcessesModel(
+          projectRule.project,
+          disposableRule.disposable,
+          processDiscovery,
+          MoreExecutors.directExecutor()
+        ) {
+          deviceModel
+        }
+      deviceModel = DeviceModel(disposableRule.disposable, processModel)
+
+      val isPreferredProcess1 =
+        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
+      assertThat(isPreferredProcess1).isTrue()
+
+      deviceModel.forcedDeviceSerialNumber = "different_serial"
+
+      val isPreferredProcess2 =
+        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
+      assertThat(isPreferredProcess2).isTrue()
+
+      withEmbeddedLayoutInspector {
+        // If embedded LI is on, we want to connect only to the forced device.
+        val isPreferredProcess3 =
+          isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
+        assertThat(isPreferredProcess3).isFalse()
+
+        deviceModel.forcedDeviceSerialNumber = "serial"
+
+        val isPreferredProcess4 =
+          isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
+        assertThat(isPreferredProcess4).isTrue()
       }
-    deviceModel = DeviceModel(disposableRule.disposable, processModel)
-
-    val isPreferredProcess1 =
-      isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-    assertThat(isPreferredProcess1).isTrue()
-
-    deviceModel.forcedDeviceSerialNumber = "different_serial"
-
-    val isPreferredProcess2 =
-      isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-    assertThat(isPreferredProcess2).isTrue()
-
-    withEmbeddedLayoutInspector {
-      // If embedded LI is on, we want to connect only to the forced device.
-      val isPreferredProcess3 =
-        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-      assertThat(isPreferredProcess3).isFalse()
-
-      deviceModel.forcedDeviceSerialNumber = "serial"
-
-      val isPreferredProcess4 =
-        isPreferredProcess(projectRule.project, processDescriptor) { deviceModel }
-      assertThat(isPreferredProcess4).isTrue()
     }
-  }
 }
 
 private fun createProcessDescriptor(

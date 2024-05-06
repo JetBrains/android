@@ -21,7 +21,18 @@ import android.view.IRotationWatcher;
  * Simple implementation of the {@link IRotationWatcher} interface delegating to the native code
  * in window_manager.cc.
  */
+@SuppressWarnings("unused") // Called through JNI.
 public class RotationWatcher extends IRotationWatcher.Stub {
+  private final int displayId;
+
+  public RotationWatcher(int displayId) {
+    this.displayId = displayId;
+  }
+
   @Override
-  public native void onRotationChanged(int rotation);
+  public void onRotationChanged(int rotation) {
+    onRotationChanged(displayId, rotation);
+  };
+
+  public native void onRotationChanged(int displayId, int rotation);
 }

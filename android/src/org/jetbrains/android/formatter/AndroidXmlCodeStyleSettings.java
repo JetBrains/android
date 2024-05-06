@@ -1,11 +1,6 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
-import static com.android.SdkConstants.TAG_ITEM;
-import static com.android.SdkConstants.TAG_PLURALS;
-import static com.android.SdkConstants.TAG_STRING;
-import static com.android.SdkConstants.TAG_STRING_ARRAY;
-
 import com.intellij.configurationStore.XmlSerializer;
 import com.intellij.formatting.FormattingDocumentModel;
 import com.intellij.openapi.util.JDOMExternalizable;
@@ -19,6 +14,8 @@ import com.intellij.util.xml.DomManager;
 import org.jdom.Element;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 public class AndroidXmlCodeStyleSettings extends CustomCodeStyleSettings {
   public boolean USE_CUSTOM_SETTINGS = false;

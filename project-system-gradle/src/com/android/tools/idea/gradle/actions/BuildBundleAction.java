@@ -18,10 +18,12 @@ package com.android.tools.idea.gradle.actions;
 import static com.intellij.notification.NotificationType.ERROR;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.project.AndroidNotification;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -37,6 +39,12 @@ public class BuildBundleAction extends DumbAwareAction {
     super(ACTION_TEXT);
   }
 
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
@@ -46,7 +54,7 @@ public class BuildBundleAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
+  public void actionPerformed(AnActionEvent e) {
     Project project = e.getProject();
     if (isProjectBuildWithGradle(project)) {
       List<Module> appModules = GradleProjectSystemUtil.getAppHolderModulesSupportingBundleTask(project);
@@ -63,7 +71,6 @@ public class BuildBundleAction extends DumbAwareAction {
   }
 
   private static boolean isProjectBuildWithGradle(@Nullable Project project) {
-    return project != null &&
-           GradleProjectInfo.getInstance(project).isBuildWithGradle();
+    return project != null && ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem;
   }
 }

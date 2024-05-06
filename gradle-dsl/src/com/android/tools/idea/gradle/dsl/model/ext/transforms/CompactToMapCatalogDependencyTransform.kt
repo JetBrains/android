@@ -43,7 +43,7 @@ class CompactToMapCatalogDependencyTransform : PropertyTransform() {
   override fun bind(holder: GradleDslElement, oldElement: GradleDslElement?, value: Any, name: String): GradleDslExpression? {
     if (oldElement is FakeArtifactElement) {
       val literal = when(value) {
-        is ReferenceTo -> GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.create(name), value)
+        is ReferenceTo -> GradleVersionCatalogFile.GradleDslVersionLiteral(holder, GradleNameElement.create(name), value.javaClass)
         else -> oldElement
       }
       literal.setValue(value)

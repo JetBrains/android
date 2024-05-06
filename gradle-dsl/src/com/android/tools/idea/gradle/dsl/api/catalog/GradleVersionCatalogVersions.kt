@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.api.catalog
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec
-import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
 interface GradleVersionCatalogVersions : GradleBlockModel {
@@ -28,9 +27,9 @@ interface GradleVersionCatalogVersions : GradleBlockModel {
   /**
    * Adds version declaration. Returns null if string has invalid format.
    */
-  fun addDeclaration(alias: String, version: String): ReferenceTo?
+  fun addDeclaration(alias: String, version: String): VersionDeclarationModel?
 
-  fun addDeclaration(alias: String, version: VersionDeclarationSpec): ReferenceTo?
+  fun addDeclaration(alias: String, version: VersionDeclarationSpec): VersionDeclarationModel?
 
   fun remove(alias: String)
 }

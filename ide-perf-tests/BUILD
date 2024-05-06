@@ -8,11 +8,28 @@ iml_module(
     split_test_targets = {
         "SantaTrackerBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerBenchmark",
+            "tags": [
+                "cpu:3",
+                "perfgate",
+            ],
         },
         "SantaTrackerKotlinBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinBenchmark",
+            "tags": [
+                "cpu:3",
+                "perfgate",
+            ],
         },
-        "other": {},
+        "tests": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests",
+            "timeout": "long",
+        },
+        "other": {
+            "tags": [
+                "cpu:3",
+                "perfgate",
+            ],
+        },
     },
     test_class = "com.android.tools.idea.benchmarks.IdeBenchmarkTestSuite",
     # keep sorted
@@ -34,10 +51,6 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "cpu:3",
-        "perfgate",
-    ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -66,7 +79,7 @@ maven_repository(
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.2.2",
         "@maven//:androidx.compose.compiler.compiler_1.2.0",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.2.0",
         "@maven//:androidx.compose.ui.ui-tooling_1.2.0",
@@ -134,6 +147,6 @@ maven_repository(
         "@maven//:javax.annotation.javax.annotation-api_1.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
-        "@maven//:org.mockito.mockito-core_4.8.0",
+        "@maven//:org.mockito.mockito-core_5.6.0",
     ],
 )

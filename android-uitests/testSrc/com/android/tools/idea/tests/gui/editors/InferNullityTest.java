@@ -72,17 +72,20 @@ public class InferNullityTest {
    *   </pre>
    */
   @Test
-  public void inferNullity() throws Exception {
+  public void inferNullity() {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
 
     guiTest.waitForBackgroundTasks();
 
     editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
-      .moveBetween(" }", "")
-      .enterText("\npublic Color myMethod() {\nColor color = null;\nreturn color;\n}\n\npublic Color myMethod1() {\nColor color = new Color();\nreturn color;\n}\n")
-      .select("()public class MainActivity")
-      .enterText("import android.graphics.Color;\n\n");
+      .moveBetween("MainActivity extends AppCompatActivity {", "")
+      .enterText("\npublic Color myMethod() {\nColor color = null;\nreturn color;\n}\n\npublic Color myMethod1() {\nColor color = new Color();\nreturn color;\n}\n");
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    editor.moveBetween("package com.google.myapplication;", "")
+      .enterText("\n\nimport android.graphics.Color;\n");
 
     guiTest.waitForBackgroundTasks();
 

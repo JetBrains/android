@@ -1,0 +1,7 @@
+[dependencies]
+# Dependency without a version
+compile = [{ notation = 'com.cool.company:artifact' },
+   # Dependency with blank group
+   { notation = ':gson-2.2.4:+' },
+   # Since this notation doesn't have a name is it invalid and Gradle will complain
+   { notation = 'invalid' }]

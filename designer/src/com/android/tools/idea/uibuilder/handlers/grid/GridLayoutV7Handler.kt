@@ -16,10 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.grid
 
 import com.android.SdkConstants
-import com.android.support.AndroidxNameUtils
-import com.android.tools.idea.common.scene.target.Target
-import com.android.tools.idea.uibuilder.handlers.grid.targets.GridDragTarget
-import com.google.common.collect.ImmutableList
+import com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_GRID_LAYOUT_V7
+import com.android.ide.common.repository.GoogleMavenArtifactId.GRID_LAYOUT_V7
 
 /** Handler for the `<android.support.v7.widget.GridLayout>` layout from AppCompat */
 class GridLayoutV7Handler : GridLayoutHandler() {
@@ -27,11 +25,8 @@ class GridLayoutV7Handler : GridLayoutHandler() {
   override val namespace = SdkConstants.AUTO_URI
 
   override fun getGradleCoordinateId(viewTag: String) =
-    if (viewTag.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX))
-      AndroidxNameUtils.getCoordinateMapping(SdkConstants.GRID_LAYOUT_LIB_ARTIFACT)
-    else SdkConstants.GRID_LAYOUT_LIB_ARTIFACT
-
-  override fun createDragTarget(listBuilder: ImmutableList.Builder<Target>) {
-    listBuilder.add(GridDragTarget(isSupportLibrary = true))
-  }
+    when {
+      viewTag.startsWith(SdkConstants.ANDROIDX_PKG_PREFIX) -> ANDROIDX_GRID_LAYOUT_V7
+      else -> GRID_LAYOUT_V7
+    }
 }

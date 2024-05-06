@@ -20,21 +20,20 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import org.jetbrains.annotations.NotNull;
 
-class ResolvedDependenciesTreeStructure extends AbstractBaseTreeStructure {
+public class ResolvedDependenciesTreeStructure extends AbstractBaseTreeStructure {
   @NotNull private final ResolvedDependenciesTreeRootNode myRootNode;
 
-  ResolvedDependenciesTreeStructure(@NotNull PsModule module,
+  public ResolvedDependenciesTreeStructure(@NotNull PsModule module,
                                     @NotNull PsUISettings uiSettings) {
     myRootNode = new ResolvedDependenciesTreeRootNode(module, uiSettings);
   }
 
-  @NotNull
   @Override
   public Object getRootElement() {
     return myRootNode;
   }
 
-  void reset() {
+  public void reset() {
     myRootNode.reset();
   }
 }

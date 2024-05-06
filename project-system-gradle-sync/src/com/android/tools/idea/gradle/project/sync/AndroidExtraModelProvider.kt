@@ -52,8 +52,8 @@ class AndroidExtraModelProvider(private val syncOptions: SyncActionOptions) : Pr
   override fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,
-    modelConsumer: GradleModelConsumer
-  ) = impl.populateBuildModels(controller, buildModel, modelConsumer)
+    consumer: GradleModelConsumer
+  ) = impl.populateBuildModels(controller, buildModel, consumer)
 
   override fun populateProjectModels(
     controller: BuildController,
@@ -144,16 +144,18 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
     projectModel: BasicGradleProject,
     modelConsumer: GradleModelConsumer
   ) {
-    val pluginModel = controller.findModel(projectModel, GradlePluginModel::class.java) ?: return
-    modelConsumer.consumeProjectModel(projectModel, pluginModel, GradlePluginModel::class.java)
+    controller.findModel(projectModel, GradlePluginModel::class.java)
+      ?.also { pluginModel -> modelConsumer.consumeProjectModel(projectModel, pluginModel, GradlePluginModel::class.java) }
   }
 
-  private fun populateDebugInfo(buildModel: GradleBuild, consumer: GradleModelConsumer) {
+  private fun populateDebugInfo(buildModel: GradleBuild,
+                                consumer: GradleModelConsumer) {
     val classLoader = javaClass.classLoader
-    if (classLoader is URLClassLoader) {
+    if(classLoader is URLClassLoader) {
       val classpath = classLoader.urLs.joinToString { url -> url.toURI()?.let { File(it).absolutePath }.orEmpty() }
-      val debugInfo = IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath))
-      consumer.consumeBuildModel(buildModel, debugInfo, IdeDebugInfo::class.java)
+      consumer.consumeBuildModel(buildModel,
+                       IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath)),
+                       IdeDebugInfo::class.java)
     }
   }
 }

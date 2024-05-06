@@ -16,11 +16,14 @@
 package com.android.tools.asdriver.tests;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +33,7 @@ public class Emulator implements AutoCloseable {
   private final TestFileSystem fileSystem;
   private final AndroidSdk sdk;
   private final LogFile logFile;
+  private final LogFile logCat;
   private final String portString;
   private final Process process;
 
@@ -77,10 +81,17 @@ public class Emulator implements AutoCloseable {
     }
   }
 
-  public static Emulator start(TestFileSystem fileSystem, AndroidSdk sdk, Display display, String name, int grpcPort) throws IOException, InterruptedException {
+  public static Emulator start(TestFileSystem fileSystem,
+                               AndroidSdk sdk,
+                               Display display,
+                               String name,
+                               int grpcPort,
+                               List<String> extraEmulatorFlags) throws IOException, InterruptedException {
     Path logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "emulator_logs");
 
-    ProcessBuilder pb = new ProcessBuilder(
+    LogFile logCat = new LogFile(logsDir.resolve(name + "_logcat.txt"));
+
+    List<String> procArgs = new ArrayList<>(Arrays.asList(
       sdk.getSourceDir().resolve(SdkConstants.FD_EMULATOR).resolve("emulator").toString(),
       "@" + name,
       // This port value needs to be unique for each emulator
@@ -92,7 +103,16 @@ public class Emulator implements AutoCloseable {
       "-ModemSimulator,-Vulkan",
       "-delay-adb",
       "-no-boot-anim",
-      "-verbose");
+      "-verbose",
+      "-logcat",
+      "*:V",
+      "-logcat-output",
+      logCat.getPath().toFile().getAbsolutePath()
+    ));
+
+    procArgs.addAll(extraEmulatorFlags);
+
+    ProcessBuilder pb = new ProcessBuilder(procArgs.toArray(new String[0]));
     pb.environment().put("ANDROID_EMULATOR_HOME", fileSystem.getAndroidHome().toString());
     pb.environment().put("ANDROID_AVD_HOME", getAvdHome(fileSystem).toString());
     pb.environment().put("ANDROID_SDK_ROOT", sdk.getSourceDir().toString());
@@ -132,13 +152,14 @@ public class Emulator implements AutoCloseable {
     String portString =
       logFile.waitForMatchingLine(".*control console listening on port (\\d+), ADB on port \\d+", 2, TimeUnit.MINUTES).group(1);
 
-    return new Emulator(fileSystem, sdk, logFile, portString, process);
+    return new Emulator(fileSystem, sdk, logFile, logCat, portString, process);
   }
 
-  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, String portString, Process process) {
+  private Emulator(TestFileSystem fileSystem, AndroidSdk sdk, LogFile logFile, LogFile logCat, String portString, Process process) {
     this.fileSystem = fileSystem;
     this.sdk = sdk;
     this.logFile = logFile;
+    this.logCat = logCat;
     this.portString = portString;
     this.process = process;
   }
@@ -156,6 +177,10 @@ public class Emulator implements AutoCloseable {
 
   public AndroidSdk getSdk() {
     return sdk;
+  }
+
+  public LogFile getLogCat() {
+    return logCat;
   }
 
   public String getPortString() {

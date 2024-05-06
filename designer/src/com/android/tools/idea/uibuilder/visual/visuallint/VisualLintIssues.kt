@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.tools.idea.common.error.Issue
 import java.util.concurrent.ConcurrentHashMap
 
 /** List of visual lint issues. */
 class VisualLintIssues {
 
   /** Range based hashed map - used for detecting different config same issues. Source of truth. */
-  private val _map = ConcurrentHashMap<Int, Issue>()
+  private val _map = ConcurrentHashMap<Int, VisualLintRenderIssue>()
 
   /** For accessing by type. To be used later for categorization. */
-  private val _mapByType = ConcurrentHashMap<VisualLintErrorType, Issue>()
+  private val _mapByType = ConcurrentHashMap<VisualLintErrorType, VisualLintRenderIssue>()
 
-  val list: Collection<Issue>
+  val list: Collection<VisualLintRenderIssue>
     get() = _map.values
 
   fun clear() {
@@ -35,32 +34,24 @@ class VisualLintIssues {
     _mapByType.clear()
   }
 
-  fun add(errorType: VisualLintErrorType, issue: Issue) {
-    if (issue is VisualLintRenderIssue) {
-      val original = _map[issue.rangeBasedHashCode()]
+  fun add(issue: VisualLintRenderIssue) {
+    val original = _map[issue.rangeBasedHashCode()]
 
-      when {
-        original == null -> {
-          // new issue. Add to map
-          _map[issue.rangeBasedHashCode()] = issue
-          _mapByType[errorType] = issue
-        }
-        original != issue -> {
-          // original.rangeBasedHashCode() == issue.rangeBasedHashCode()
-          // original and issue are same issue, diff config.
-          // TODO: Check if components already exist (set instead of list)
-          (original as VisualLintRenderIssue).components.addAll(issue.components)
-          original.models.addAll(issue.models)
-          issue.components.forEach { original.source.addComponent(it) }
-          issue.models.forEach { original.source.addModel(it) }
-        }
-        else -> {
-          // Same issue, same config. ignore.
-        }
+    when {
+      original == null -> {
+        // new issue. Add to map
+        _map[issue.rangeBasedHashCode()] = issue
+        _mapByType[issue.type] = issue
       }
-    } else {
-      _mapByType[errorType] = issue
-      _map[issue.hashCode()] = issue
+      original != issue -> {
+        // original.rangeBasedHashCode() == issue.rangeBasedHashCode()
+        // original and issue are same issue, diff config.
+        // TODO: Check if components already exist (set instead of list)
+        original.combineWithIssue(issue)
+      }
+      else -> {
+        // Same issue, same config. ignore.
+      }
     }
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.NoDevicesSelectedException
@@ -30,9 +31,10 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
 
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
-    var result = delegate.transition(state, tracker)
+    var result = delegate.transition(state, tracker, key)
     if (result.newState.connections.selected?.isConfigured != true) {
       return StateTransition(
         result.newState.copy(
@@ -41,6 +43,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
               "Currently selected app is not configured with the current insights tool.",
               UnconfiguredAppException
             ),
+          currentIssueVariants = LoadingState.Ready(null),
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
           filters =
@@ -58,6 +61,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoTypesSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),
@@ -72,6 +76,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoVersionsSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),
@@ -86,6 +91,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoDevicesSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),
@@ -100,6 +106,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         StateTransition(
           result.newState.copy(
             issues = LoadingState.UnknownFailure(null, NoOperatingSystemsSelectedException),
+            currentIssueVariants = LoadingState.Ready(null),
             currentIssueDetails = LoadingState.Ready(null),
             currentNotes = LoadingState.Ready(null)
           ),

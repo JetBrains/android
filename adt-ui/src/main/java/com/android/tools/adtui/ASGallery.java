@@ -21,13 +21,14 @@ import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.components.JBList;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.IconUtil;
 import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.JBDimension;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -40,7 +41,6 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -94,7 +94,7 @@ public class ASGallery<E> extends JBList {
   /**
    * Caches item images, is reset if different image provider is supplied.
    */
-  @NotNull private Map<E, CellRenderer> myCellRenderers = new HashMap<>();
+  @NotNull private Map<E, CellRenderer> myCellRenderers = Maps.newHashMap();
 
   @Nullable private Action myDefaultAction;
 
@@ -371,7 +371,7 @@ public class ASGallery<E> extends JBList {
   @Override
   public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
     // 10 pixels, so that mouse wheel/track pad scrolling is smoother.
-    return JBUIScale.scale(10);
+    return JBUI.scale(10);
   }
 
   @Override

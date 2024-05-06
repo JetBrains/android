@@ -148,7 +148,7 @@ class VitalsConnectionSelectorPopup(
         }
 
         override fun mouseClicked(e: MouseEvent) {
-          onSelect(connectionsList.selectedValue)
+          connectionsList.selectedValue?.let { onSelect(it) }
         }
       }
     )

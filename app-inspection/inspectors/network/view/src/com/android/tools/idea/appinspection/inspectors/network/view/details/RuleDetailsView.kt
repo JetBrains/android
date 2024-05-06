@@ -30,8 +30,6 @@ import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleD
 import com.android.tools.idea.appinspection.inspectors.network.view.constants.NetworkInspectorBundle
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.registerTabKeyAction
 import com.intellij.icons.AllIcons
-import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import com.intellij.openapi.actionSystem.ActionToolbarPosition
 import com.intellij.openapi.roots.ui.componentsList.components.ScrollablePanel
 import com.intellij.openapi.ui.MessageDialogBuilder
@@ -48,16 +46,11 @@ import com.intellij.util.applyIf
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.Dimension
-import java.awt.Insets
-import java.awt.Rectangle
-import java.awt.geom.RectangularShape
 import java.net.URI
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.plaf.ComboBoxUI
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
@@ -375,33 +368,6 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     decorator.actionsPanel.setToolbarLabel(infoLabel, ActionToolbarPosition.RIGHT)
     ActionToolbarUtil.makeToolbarNavigable(decorator.actionsPanel.toolbar)
     return decoratedTableView
-  }
-}
-
-private class BorderlessComboBox(model: DefaultCommonComboBoxModel<String>) :
-  CommonComboBox<String, DefaultCommonComboBoxModel<String>>(model) {
-  override fun setUI(ui: ComboBoxUI?) {
-    super.setUI(BorderlessComboBoxUI())
-  }
-}
-
-private class BorderlessComboBoxUI :
-  DarculaComboBoxUI(DarculaUIUtil.COMPONENT_ARC.float, JBUI.insets(0), true) {
-  override fun installDefaults() {
-    super.installDefaults()
-    padding = JBUI.emptyInsets()
-  }
-
-  override fun getBorderInsets(c: Component?): Insets {
-    return JBUI.insets(0, 7)
-  }
-
-  override fun getOuterShape(r: Rectangle?, bw: Float, arc: Float): RectangularShape {
-    return super.getOuterShape(r, 0f, arc)
-  }
-
-  override fun getInnerShape(r: Rectangle, bw: Float, lw: Float, arc: Float): RectangularShape? {
-    return super.getInnerShape(r, 0f, lw, arc)
   }
 }
 

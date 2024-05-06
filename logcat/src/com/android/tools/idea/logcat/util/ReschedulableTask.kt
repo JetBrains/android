@@ -22,20 +22,23 @@ import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.atomic.AtomicReference
 
-/**
- * A delayed task that can be replaced by another task before it is executed.
- */
+/** A delayed task that can be replaced by another task before it is executed. */
 internal class ReschedulableTask(private val coroutineScope: CoroutineScope) {
   private val job = AtomicReference<Job?>()
 
   /**
-   * Schedule a task for execution with a given delay. If a task has already been scheduled, try to cancel it before executing the new one.
+   * Schedule a task for execution with a given delay. If a task has already been scheduled, try to
+   * cancel it before executing the new one.
    */
   fun reschedule(delayMs: Long, task: () -> Unit) {
-    job.getAndSet(coroutineScope.launch {
-      delay(delayMs)
-      task()
-    })?.cancel()
+    job
+      .getAndSet(
+        coroutineScope.launch {
+          delay(delayMs)
+          task()
+        }
+      )
+      ?.cancel()
   }
 
   @TestOnly

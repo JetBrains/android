@@ -227,13 +227,18 @@ open class ViewNode(
   interface ReadAccess {
     val ViewNode.children: MutableList<ViewNode>
       get() = children
+
     val ViewNode.parent: ViewNode?
       get() = parent
+
     val ViewNode.drawChildren: MutableList<DrawViewNode>
       get() = drawChildren
+
     val ViewNode.parentSequence: Sequence<ViewNode>
       get() = parentSequence
+
     fun ViewNode.flatten(): Sequence<ViewNode> = flatten()
+
     fun ViewNode.preOrderFlatten(): Sequence<ViewNode> = preOrderFlatten()
   }
 

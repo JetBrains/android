@@ -20,6 +20,7 @@ import static com.android.SdkConstants.TYPE_DEF_VALUE_ATTRIBUTE;
 
 import com.android.AndroidXConstants;
 import com.android.tools.lint.detector.api.ResourceEvaluator;
+import com.google.common.collect.Maps;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -48,7 +49,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PropertyUtilBase;
 import com.intellij.psi.util.PsiTreeUtil;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import javax.swing.Icon;
 import org.jetbrains.android.inspections.ResourceTypeCompletionContributor;
@@ -295,7 +295,7 @@ public class AndroidResolveHelper {
                                                ? ((PsiArrayInitializerMemberValue)intValues).getInitializers()
                                                : PsiAnnotationMemberValue.EMPTY_ARRAY;
 
-    Map<Integer,String> valuesMap = new HashMap<>();
+    Map<Integer,String> valuesMap = Maps.newHashMap();
 
     for (PsiAnnotationMemberValue value : allowedValues) {
       if (!(value instanceof PsiReference)) {

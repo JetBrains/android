@@ -23,6 +23,7 @@ import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.layoutlib.getLayoutLibrary
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderService
+import com.android.tools.rendering.RenderTask
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -70,21 +71,17 @@ open class StudioRenderService {
   }
 }
 
-fun RenderService.createLogger(project: Project?): RenderLogger {
-  return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory, ::StudioHtmlLinkManager)
-}
+/**
+ * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
+ */
+fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
+  taskBuilder(AndroidFacetRenderModelModule(facet), configuration, createLogger(facet.module.project))
 
 /**
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderService.RenderTaskBuilder =
   taskBuilder(AndroidFacetRenderModelModule(facet), configuration, logger)
-
-/**
- * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
- */
-fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createLogger(facet.module.project))
 
 fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
   val context = StudioLayoutlibContext(module.project)

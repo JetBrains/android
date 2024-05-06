@@ -54,7 +54,7 @@ internal val WEAR_TILE_SCREEN_VIEW_PROVIDER =
             }
             .build()
         }
-        .withShapePolicy { SceneView.SQUARE_SHAPE_POLICY.getShape(it) }
+        .withShapePolicy { SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY.getShape(it) }
         .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
         .build()
 

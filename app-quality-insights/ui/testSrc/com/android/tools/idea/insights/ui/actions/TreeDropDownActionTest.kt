@@ -63,6 +63,7 @@ data class SimpleValue(val groupingKey: String, val title: String)
 
 data class SimpleGroup(val name: String) : GroupAware<SimpleGroup> {
   override fun compareTo(other: SimpleGroup) = name.compareTo(other.name)
+
   override val groupName = name
 }
 

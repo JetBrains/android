@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.npw.importing;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleDefaultPath;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getModuleDefaultPath;
 import static com.android.tools.idea.projectsystem.gradle.GradleProjectPathKt.getGradleIdentityPath;
 
 import com.android.tools.idea.gradle.project.ModuleToImport;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.util.FormatUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.module.Module;
@@ -41,8 +42,6 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -57,9 +56,9 @@ public final class ModuleListModel {
   private Map<ModuleToImport, ModuleValidationState> myModules;
   private Multimap<ModuleToImport, ModuleToImport> myRequiredModules;
   @Nullable private VirtualFile mySelectedDirectory;
-  private Map<ModuleToImport, String> myNameOverrides = new HashMap<>();
+  private Map<ModuleToImport, String> myNameOverrides = Maps.newHashMap();
   private ModuleToImport myPrimaryModule;
-  private Map<ModuleToImport, Boolean> myExplicitSelection = new HashMap<>();
+  private Map<ModuleToImport, Boolean> myExplicitSelection = Maps.newHashMap();
 
   public ModuleListModel(@Nullable Project project) {
     myProject = project;
@@ -99,7 +98,7 @@ public final class ModuleListModel {
       return segmentStart == 0; // Only allowed at string start to allow for absolute paths
     }
     String segment = string.substring(segmentStart, segmentEnd);
-    return !StringUtil.isEmpty(segment) && GradleUtil.isValidGradlePath(segment) < 0;
+    return !StringUtil.isEmpty(segment) && GradleProjectSystemUtil.isValidGradlePath(segment) < 0;
   }
 
   private static String getNameErrorMessage(String moduleName) {
@@ -118,7 +117,7 @@ public final class ModuleListModel {
       namesToModules.put(module.name, module);
     }
     Multimap<ModuleToImport, ModuleToImport> requiredModules = LinkedListMultimap.create();
-    Queue<ModuleToImport> queue = new LinkedList<>();
+    Queue<ModuleToImport> queue = Lists.newLinkedList();
 
     for (ModuleToImport module : modules) {
       if (Objects.equal(module, myPrimaryModule) || !isUnselected(module, false)) {
@@ -260,7 +259,7 @@ public final class ModuleListModel {
   }
 
   private Map<ModuleToImport, ModuleValidationState> validateModules(Iterable<ModuleToImport> modules) {
-    Map<ModuleToImport, ModuleValidationState> result = new HashMap<>();
+    Map<ModuleToImport, ModuleValidationState> result = Maps.newHashMap();
     for (ModuleToImport module : modules) {
       result.put(module, validateModule(module));
     }

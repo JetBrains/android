@@ -15,33 +15,24 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import com.android.annotations.NonNull;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.google.common.base.Splitter;
 import com.intellij.openapi.util.IconLoader;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.swing.Icon;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElements;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.*;
+import java.io.Reader;
+import java.util.*;
 
 /**
  * A {@link Palette} contains a list of palette groups and items.
@@ -100,8 +91,8 @@ public class Palette {
   }
 
   @NotNull
-  public Set<String> getGradleCoordinateIds() {
-    Set<String> gradleCoordinateIds = new HashSet<>();
+  public Set<GoogleMavenArtifactId> getGoogleMavenArtifactIds() {
+    Set<GoogleMavenArtifactId> gradleCoordinateIds = new HashSet<>();
     accept(item -> item.addGradleCoordinateId(gradleCoordinateIds));
     return gradleCoordinateIds;
   }
@@ -319,10 +310,11 @@ public class Palette {
       return myHandler.getIcon(myTagName);
     }
 
-    @NonNull
-    public String getGradleCoordinateId() {
+    @Nullable
+    public GoogleMavenArtifactId getGradleCoordinateId() {
       if (myGradleCoordinateId != null) {
-        return myGradleCoordinateId;
+        GoogleMavenArtifactId id = GoogleMavenArtifactId.find(myGradleCoordinateId);
+        if (id != null) return id;
       }
       return myHandler.getGradleCoordinateId(myTagName);
     }
@@ -417,10 +409,10 @@ public class Palette {
       }
     }
 
-    private void addGradleCoordinateId(@NotNull Set<String> coordinateIds) {
-      String coordinateId = getGradleCoordinateId();
+    private void addGradleCoordinateId(@NotNull Set<GoogleMavenArtifactId> coordinateIds) {
+      GoogleMavenArtifactId coordinateId = getGradleCoordinateId();
 
-      if (!coordinateId.isEmpty()) {
+      if (coordinateId != null) {
         coordinateIds.add(coordinateId);
       }
     }

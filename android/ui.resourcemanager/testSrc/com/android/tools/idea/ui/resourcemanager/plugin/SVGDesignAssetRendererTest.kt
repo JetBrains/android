@@ -32,6 +32,8 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class SVGDesignAssetRendererTest {
+
+  @Suppress("MemberVisibilityCanBePrivate")
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 

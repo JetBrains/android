@@ -18,6 +18,6 @@ public class GradleCompilerSettingsConfigurableProvider extends ConfigurableProv
     if (myProject == null) {
       return null;
     }
-    return new GradleCompilerSettingsConfigurable(myProject);
+    return new GradleCompilerSettingsConfigurable(myProject, "Gradle-Android Compiler");
   }
 }

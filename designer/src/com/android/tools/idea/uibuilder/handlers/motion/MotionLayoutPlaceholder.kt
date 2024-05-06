@@ -25,7 +25,7 @@ import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget
-import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutDragTarget
+import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutDropHandler
 import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.scout.Scout
@@ -64,7 +64,7 @@ class MotionLayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
       GuidelineTarget.GuidelineDropHandler(sceneComponent, horizontal)
         .updateAttributes(attributes, x, y)
     } else if (sceneComponent !is TemporarySceneComponent) {
-      MotionLayoutDragTarget.DropHandler(sceneComponent).updateAttributes(attributes, host, x, y)
+      MotionLayoutDropHandler(sceneComponent).updateAttributes(attributes, host, x, y)
     } else {
       val nlComponent = sceneComponent.authoritativeNlComponent
       var horizontalMatchParent = false

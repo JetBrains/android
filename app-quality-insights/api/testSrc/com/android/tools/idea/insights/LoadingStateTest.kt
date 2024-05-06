@@ -41,6 +41,12 @@ class LoadingStateTest {
   }
 
   @Test
+  fun `map ServerFailure state should be a noop`() {
+    val state = LoadingState.ServerFailure("failure")
+    assertThat(state.map(Int::toString)).isEqualTo(state)
+  }
+
+  @Test
   fun `map Unknown state should be a noop`() {
     val state = LoadingState.UnknownFailure("failure")
     assertThat(state.map(Int::toString)).isEqualTo(state)

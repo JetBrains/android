@@ -16,10 +16,13 @@
 package com.android.tools.idea.adb.wireless;
 
 import com.android.annotations.concurrency.UiThread;
+import com.android.utils.TraceUtils;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -99,16 +102,60 @@ public class PairingCodeContentPanel {
         myDeviceList.repaint();
       }
 
-      // Assert various lists are equivalent
-      assert myPanels.size() == myDeviceList.getComponentCount();
-      assert services.size() == myDeviceList.getComponentCount();
-      for(int i = 0; i < myPanels.size(); i++) {
-        // Reference equality (since components are always updated together)
-        assert myPanels.get(i).getComponent() == myDeviceList.getComponent(i);
-        // Value equality (since service instances are coming from external source)
-        assert myPanels.get(i).getMdnsService().equals(services.get(i));
+      if (!checkConsistency(services)) {
+        Logger.getInstance(PairingCodeContentPanel.class).error("Detected internal inconsistency:\n" + getDataStructuresDump(services));
       }
     }
+  }
+
+  /** Checks consistency between services, myPanels and myDeviceList. */
+  private boolean checkConsistency(@NotNull List<MdnsService> services) {
+    if (myPanels.size() != myDeviceList.getComponentCount() || services.size() != myDeviceList.getComponentCount()) {
+      return false;
+    }
+    for (int i = 0; i < myPanels.size(); i++) {
+      // Reference equality (since components are always updated together)
+      if (myPanels.get(i).getComponent() != myDeviceList.getComponent(i)) {
+        return false;
+      }
+      // Value equality (since service instances are coming from external source)
+      if (!myPanels.get(i).getMdnsService().equals(services.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Dumps contents of services, myPanels and subcomponents of myDeviceList to a string. */
+  private String getDataStructuresDump(@NotNull List<MdnsService> services) {
+    StringBuilder buf = new StringBuilder();
+    buf.append("services:");
+    String separator = " ";
+    for (MdnsService service : services) {
+      buf.append(separator);
+      buf.append(service);
+      separator = ", ";
+    }
+    buf.append("\npanels:");
+    separator = " ";
+    for (PairingCodeDevicePanel panel : myPanels) {
+      buf.append(separator);
+      buf.append("(");
+      buf.append(panel.getMdnsService());
+      buf.append(" ");
+      buf.append(TraceUtils.getSimpleId(panel.getComponent()));
+      buf.append(")");
+      separator = ", ";
+    }
+    buf.append("\ndevice components:");
+    separator = " ";
+    for (Component component : myDeviceList.getComponents()) {
+      buf.append(separator);
+      buf.append(TraceUtils.getSimpleId(component));
+      separator = ", ";
+    }
+
+    return buf.toString();
   }
 
   private static boolean isPanelDeleted(@NotNull List<MdnsService> services, @NotNull PairingCodeDevicePanel panel) {

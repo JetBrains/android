@@ -15,11 +15,9 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-
-  <!--suppress PluginXmlValidity -->
-    <applicationInitializedListener id="Startup.AndroidDisableFloatingSplitSelector"
-                                  implementation="com.android.tools.idea.initialization.AndroidDisableFloatingSplitSelector"/>
-
+    <!-- Disables the floating split/code/design selector by overriding the corresponding registry flag. -->
+    <registryKey key="ide.text.editor.with.preview.show.floating.toolbar" defaultValue="false"
+                 description="Show floating toolbar with layouts instead of permanent toolbar"/>
   </extensions>
 
   <actions>

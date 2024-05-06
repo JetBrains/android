@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.TEXT_VIEW;
-
 import com.android.SdkConstants;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -32,13 +28,16 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.intellij.psi.PsiFile;
 import java.awt.Point;
 import java.awt.event.InputEvent;
+import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+
+import static com.android.SdkConstants.BUTTON;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
 
 public class ConstraintAnchorTargetTest extends SceneTest {
 
@@ -414,30 +413,31 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     ConstraintAnchorTarget topEdge = new ConstraintAnchorTarget(AnchorTarget.Type.TOP, true);
     topEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
     picker.find(inner.getCenterX(), inner.getDrawY() - 200);
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(topEdge), ArgumentMatchers.anyDouble());
+    Mockito.verify(listener, Mockito.never()).over(Mockito.eq(topEdge), Mockito.anyDouble());
 
     ConstraintAnchorTarget leftEdge = new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, true);
     leftEdge.addHit(myScreen.getScreen().getContext(), picker, InputEvent.BUTTON3_DOWN_MASK);
     picker.find(inner.getDrawX() - 200, inner.getCenterY());
-    Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(leftEdge), ArgumentMatchers.anyDouble());
+    Mockito.verify(listener, Mockito.never()).over(Mockito.eq(leftEdge), Mockito.anyDouble());
   }
 
   public void testAttributesInStyle() {
-    PsiFile file = myFixture.addFileToProject("res/values/styles.xml", """
+    SceneComponent component = myScene.getSceneComponent("textview");
+    String attribute = Objects.requireNonNull(component)
+      .getNlComponent()
+      .getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    assertEquals("parent", attribute);
+  }
+
+  @Override
+  public ModelBuilder createModel() {
+    myFixture.addFileToProject("res/values/styles.xml", """
         <resources>
           <style name="CustomStyle">
               <item name="layout_constraintBottom_toBottomOf">parent</item>
           </style>
         </resources>
       """);
-    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
-    SceneComponent component = myScene.getSceneComponent("textview");
-    String attribute = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
-    assertEquals("parent", attribute);
-  }
-
-  @Override
-  public ModelBuilder createModel() {
     return model("model.xml", component(CONSTRAINT_LAYOUT.defaultName())
       .id("@+id/root")
       .withBounds(0, 0, 1000, 1000)

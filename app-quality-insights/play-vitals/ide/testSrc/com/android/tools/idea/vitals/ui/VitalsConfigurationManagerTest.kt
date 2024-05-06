@@ -26,6 +26,7 @@ import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.google.gct.login.LoginStatus
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectIndexed
@@ -57,7 +58,13 @@ class VitalsConfigurationManagerTest {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
       val configManager =
-        VitalsConfigurationManager(projectRule.project, cache, client, MutableStateFlow(true))
+        VitalsConfigurationManager(
+          projectRule.project,
+          cache,
+          MutableStateFlow(LoginStatus.LoggedIn("test@goog.com")),
+          projectRule.testRootDisposable,
+          client
+        )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.refreshConfiguration()
@@ -82,8 +89,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(true)
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -100,8 +108,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(false)
+          MutableStateFlow(LoginStatus.LoggedOut),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -119,8 +128,9 @@ class VitalsConfigurationManagerTest {
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          MutableStateFlow(true)
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -152,22 +162,23 @@ class VitalsConfigurationManagerTest {
     runBlocking<Unit> {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.Ready(listOf(APP_CONNECTION1)))
-      val loggedInFlow = MutableStateFlow(true)
+      val loggedInFlow = MutableStateFlow<LoginStatus>(LoginStatus.LoggedIn("goo@goog.com"))
 
       val configManager =
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          loggedInFlow
+          loggedInFlow,
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
       configManager.refreshConfiguration()
       configManager.configuration.first { it is AppInsightsModel.Authenticated }
-      loggedInFlow.value = false
+      loggedInFlow.value = LoginStatus.LoggedOut
       configManager.configuration.first { it is AppInsightsModel.Unauthenticated }
-      loggedInFlow.value = true
+      loggedInFlow.value = LoginStatus.LoggedIn("goo@goog.com")
       configManager.configuration.first { it is AppInsightsModel.Authenticated }
     }
 
@@ -176,14 +187,14 @@ class VitalsConfigurationManagerTest {
     runBlocking<Unit> {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("error"))
-      val loggedInFlow = MutableStateFlow(true)
 
       val configManager =
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          loggedInFlow
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 
@@ -203,14 +214,14 @@ class VitalsConfigurationManagerTest {
     runBlocking<Unit> {
       val client = mock<AppInsightsClient>()
       `when`(client.listConnections()).thenReturn(LoadingState.NetworkFailure("error"))
-      val loggedInFlow = MutableStateFlow(true)
 
       val configManager =
         VitalsConfigurationManager(
           projectRule.project,
           AppInsightsCacheImpl(),
-          client,
-          loggedInFlow
+          MutableStateFlow(LoginStatus.LoggedIn("goo@goo.com")),
+          projectRule.testRootDisposable,
+          client
         )
       Disposer.register(projectRule.testRootDisposable, configManager)
 

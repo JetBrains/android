@@ -16,10 +16,11 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents a map of {@link GradleDslElement}s from their names.

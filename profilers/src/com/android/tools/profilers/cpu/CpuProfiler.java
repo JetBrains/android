@@ -15,44 +15,50 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.ImportedSessionUtils.importFile;
+import static com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent;
+import static com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent;
+import static com.android.tools.profilers.cpu.CpuCaptureParserUtil.getFileTraceType;
+
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Trace.TraceInfo;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.TraceConfigOptionsUtils;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.transporteventutils.TransportUtils;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,12 +74,21 @@ public class CpuProfiler implements StudioProfiler {
   }
 
   private void onImportSessionSelected() {
+    long traceId = profilers.getSession().getStartTimestamp();
     profilers.getIdeServices().runAsync(
       () -> CpuCaptureStage.create(profilers, new ImportedConfiguration(), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN,
-                                   profilers.getSession().getStartTimestamp()),
+                                   traceId),
       captureStage -> {
         if (captureStage != null) {
           profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(captureStage));
+        }
+        else if (captureStage == null && Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false) &&
+                 PerfettoTraceWebLoader.INSTANCE.getHandledTraceIds().contains(traceId)) {
+          // special case when [PerfettoTraceWebLoader] had intercepted [captureStage] creation and opened the trace in the browser
+          // TODO(297379481): add verification that the trace was successfully loaded by [PerfettoTraceWebLoader]
+          profilers.getIdeServices().getMainExecutor().execute(() -> profilers.setStage(
+            new NullMonitorStage(profilers, PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION))
+          );
         }
         else {
           profilers.getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
@@ -105,34 +120,39 @@ public class CpuProfiler implements StudioProfiler {
     sessionsManager.registerImportHandler("perfetto-trace", this::loadCapture);
   }
 
-  private void loadCapture(File file) {
-    SessionsManager sessionsManager = profilers.getSessionsManager();
-    // The time when the session is created. Will determine the order in sessions panel.
-    long startTimestampEpochMs = System.currentTimeMillis();
-    Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
-    long startTimestampNs = timestampsNs.first;
+  private void loadCapture(File file) throws IllegalStateException {
+    boolean isTaskBasedUxEnabled = profilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
 
-    // Select the session if it is already imported. Do not re-import.
-    if (sessionsManager.setSessionById(startTimestampNs)) {
-      return;
+    TraceType traceType = getFileTraceType(file, TraceType.UNSPECIFIED);
+    if (isTaskBasedUxEnabled) {
+      if (traceType == null || traceType == TraceType.UNSPECIFIED) {
+        throw new IllegalStateException("Cannot import trace with type:\n" + traceType);
+      }
     }
 
-    long endTimestampNs = timestampsNs.second;
-    try {
-      // Use the shared byte cache instead of storing the file locally, as this CpuProfiler instance does not persist across projects.
-      byte[] fileBytes = Files.readAllBytes(Paths.get(file.getPath()));
-      Map<String, ByteString> byteCacheMap = Collections.singletonMap(String.valueOf(startTimestampNs), ByteString.copyFrom(fileBytes));
-      sessionsManager.createImportedSession(file.getName(),
-                                            Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
-                                            startTimestampNs,
-                                            endTimestampNs,
-                                            startTimestampEpochMs,
-                                            byteCacheMap);
-      // NOTE - New imported session will be auto selected by SessionsManager once it is queried
+    if (isTaskBasedUxEnabled) {
+      Function2<Long, Long, Common.Event> makeEvent = (start, end) -> {
+        Trace.TraceInfo.Builder importedTraceInfo = Trace.TraceInfo.newBuilder()
+          .setTraceId(start)
+          .setFromTimestamp(start)
+          .setToTimestamp(end);
+
+        Trace.TraceConfiguration.Builder config = Trace.TraceConfiguration.newBuilder();
+        TraceConfigOptionsUtils.addDefaultTraceOptions(config, traceType);
+        importedTraceInfo.setConfiguration(config);
+
+        return makeEndedEvent(start, end, Common.Event.Kind.CPU_TRACE, builder -> {
+          builder.setTraceData(
+            Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)));
+          return Unit.INSTANCE;
+        });
+      };
+
+      importFileWithArtifactEvent(profilers.getSessionsManager(), file, Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
+                          makeEvent);
     }
-    catch (IOException ex) {
-      getLogger().warn("Importing Session Failed: cannot read from " + file.getPath());
-      return;
+    else {
+      importFile(profilers.getSessionsManager(), file, Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE);
     }
 
     profilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
@@ -164,11 +184,14 @@ public class CpuProfiler implements StudioProfiler {
   /**
    * Copies the content of the trace file corresponding to a {@link CpuTraceInfo} to a given {@link FileOutputStream}.
    */
-  static void saveCaptureToFile(@NotNull StudioProfilers profilers, @NotNull TraceInfo info, @NotNull OutputStream outputStream) {
+  static void saveCaptureToFile(@NotNull StudioProfilers profilers,
+                                @NotNull Common.Session session,
+                                @NotNull TraceInfo info,
+                                @NotNull OutputStream outputStream) {
 
     try {
       Transport.BytesRequest traceRequest = Transport.BytesRequest.newBuilder()
-        .setStreamId(profilers.getSession().getStreamId())
+        .setStreamId(session.getStreamId())
         .setId(String.valueOf(info.getTraceId()))
         .build();
       Transport.BytesResponse traceResponse = profilers.getClient().getTransportClient().getBytes(traceRequest);
@@ -369,6 +392,7 @@ public class CpuProfiler implements StudioProfiler {
     Commands.Command stopCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())
+      .setSessionId(session.getSessionId())
       .setType(Commands.Command.CommandType.STOP_TRACE)
       .setStopTrace(Trace.StopTrace.newBuilder()
                       .setProfilerType(Trace.ProfilerType.CPU)

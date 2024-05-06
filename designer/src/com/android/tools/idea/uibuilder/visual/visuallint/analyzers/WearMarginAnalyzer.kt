@@ -85,7 +85,7 @@ object WearMarginAnalyzer : VisualLintAnalyzer() {
             " and ${MIN_ROUND_MARGIN_RATIO * 100}% for round devices."
         )
     }
-    return VisualLintIssueContent(view, summary, provider)
+    return VisualLintIssueContent(view = view, message = summary, descriptionProvider = provider)
   }
 }
 

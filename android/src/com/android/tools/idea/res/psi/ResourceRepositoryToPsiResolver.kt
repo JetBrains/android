@@ -51,8 +51,12 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
-  override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
-    val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(context) ?: return PsiFile.EMPTY_ARRAY
+  override fun getGotoDeclarationFileBasedTargets(
+    resourceReference: ResourceReference,
+    context: PsiElement
+  ): Array<PsiFile> {
+    val studioResourceRepositoryManager =
+      StudioResourceRepositoryManager.getInstance(context) ?: return PsiFile.EMPTY_ARRAY
     return getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager)
       ?.getResources(resourceReference)
       ?.filter { it.isFileBased }
@@ -65,15 +69,15 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun resolveToDeclaration(resource: ResourceItem, project: Project): PsiElement? {
     return if (resource.isFileBased) {
       resource.getSourceAsVirtualFile()?.let(PsiManager.getInstance(project)::findFile)
-    }
-    else {
+    } else {
       getDeclaringAttributeValue(project, resource)
     }
   }
 
   /**
-   * Resolves the reference to a {@link ResourceReferencePsiElement} if any matching resources exist. We should avoid using the
-   * [ResourceValue] parameter and instead provide [ResourceReference] via the other implementation below.
+   * Resolves the reference to a {@link ResourceReferencePsiElement} if any matching resources
+   * exist. We should avoid using the [ResourceValue] parameter and instead provide
+   * [ResourceReference] via the other implementation below.
    */
   override fun resolveReference(
     resourceValue: ResourceValue,
@@ -103,7 +107,8 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       resourceName = SampleDataManager.getResourceNameFromSampleReference(resourceName)
     }
     val resourceReference =
-      ResourceUrl.create(resourceValue.`package`, resourceType, resourceName).resolve(context) ?: return ResolveResult.EMPTY_ARRAY
+      ResourceUrl.create(resourceValue.`package`, resourceType, resourceName).resolve(context)
+        ?: return ResolveResult.EMPTY_ARRAY
     return resolveReference(resourceReference, context, facet, includeDynamicFeatures)
   }
 
@@ -115,9 +120,17 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     includeDynamicFeatures: Boolean = false
   ): Array<out ResolveResult> {
     val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(facet)
-    val resourceRepository = getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager) ?: return ResolveResult.EMPTY_ARRAY
+    val resourceRepository =
+      getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager)
+        ?: return ResolveResult.EMPTY_ARRAY
     val allItems = mutableListOf<ResolveResult>()
-    if (resourceRepository.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
+    if (
+      resourceRepository.hasResources(
+        resourceReference.namespace,
+        resourceReference.resourceType,
+        resourceReference.name
+      )
+    ) {
       allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(context, resourceReference)))
     }
     if (includeDynamicFeatures) {
@@ -125,8 +138,16 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       val dynamicFeatureModules = moduleSystem.getDynamicFeatureModules()
       for (module in dynamicFeatureModules) {
         val moduleResources = StudioResourceRepositoryManager.getModuleResources(module) ?: continue
-        if (moduleResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
-          allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(context, resourceReference)))
+        if (
+          moduleResources.hasResources(
+            resourceReference.namespace,
+            resourceReference.resourceType,
+            resourceReference.name
+          )
+        ) {
+          allItems.add(
+            PsiElementResolveResult(ResourceReferencePsiElement(context, resourceReference))
+          )
         }
       }
     }
@@ -138,8 +159,12 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
           repository.traceHasResources(resourceReference)
         }
       }
-      val file = ResourceUpdateTracer.pathForLogging(context.getParentOfType<PsiFile>(true)) ?: "unknown file"
-      ResourceUpdateTracer.dumpTrace("Unresolved resource reference \"${resourceReference.resourceUrl}\" in $file")
+      val file =
+        ResourceUpdateTracer.pathForLogging(context.getParentOfType<PsiFile>(true))
+          ?: "unknown file"
+      ResourceUpdateTracer.dumpTrace(
+        "Unresolved resource reference \"${resourceReference.resourceUrl}\" in $file"
+      )
     }
 
     return allItems.toArray(ResolveResult.EMPTY_ARRAY)
@@ -148,9 +173,19 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   private fun ResourceRepository.traceHasResources(resourceReference: ResourceReference) {
     if (this !is SingleNamespaceResourceRepository || resourceReference.namespace == namespace) {
       ResourceUpdateTracer.log {
-        TraceUtils.getSimpleId(this) + ".hasResources(" + resourceReference.namespace + ", " + resourceReference.resourceType +
-            ", " + resourceReference.name + ") returned " +
-            hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)
+        TraceUtils.getSimpleId(this) +
+          ".hasResources(" +
+          resourceReference.namespace +
+          ", " +
+          resourceReference.resourceType +
+          ", " +
+          resourceReference.name +
+          ") returned " +
+          hasResources(
+            resourceReference.namespace,
+            resourceReference.resourceType,
+            resourceReference.name
+          )
       }
     }
   }
@@ -163,20 +198,32 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     return getGotoDeclarationTargets(ResourceReference.attr(namespace, attributeName), context)
   }
 
-  override fun getGotoDeclarationTargets(resourceReference: ResourceReference, context: PsiElement): Array<out PsiElement> {
+  override fun getGotoDeclarationTargets(
+    resourceReference: ResourceReference,
+    context: PsiElement
+  ): Array<out PsiElement> {
     return getGotoDeclarationElements(resourceReference, context).toTypedArray()
   }
 
-  override fun getGotoDeclarationTargetsWithDynamicFeatureModules(resourceReference: ResourceReference,
-                                                                  context: PsiElement): Array<PsiElement> {
+  override fun getGotoDeclarationTargetsWithDynamicFeatureModules(
+    resourceReference: ResourceReference,
+    context: PsiElement
+  ): Array<PsiElement> {
     val mainResources = getGotoDeclarationElements(resourceReference, context)
-    val dynamicFeatureResources = getGotoDeclarationElementsFromDynamicFeatureModules(resourceReference, context)
+    val dynamicFeatureResources =
+      getGotoDeclarationElementsFromDynamicFeatureModules(resourceReference, context)
     return (mainResources + dynamicFeatureResources).toTypedArray()
   }
 
-  private fun getGotoDeclarationElements(resourceReference: ResourceReference, context: PsiElement): List<PsiElement> {
-    val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(context) ?: return emptyList()
-    val repository = getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager) ?: return emptyList()
+  private fun getGotoDeclarationElements(
+    resourceReference: ResourceReference,
+    context: PsiElement
+  ): List<PsiElement> {
+    val studioResourceRepositoryManager =
+      StudioResourceRepositoryManager.getInstance(context) ?: return emptyList()
+    val repository =
+      getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager)
+        ?: return emptyList()
     return repository
       .getResources(resourceReference)
       .filterDefinitions(context.project)
@@ -192,40 +239,50 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     val dynamicFeatureModules = moduleSystem.getDynamicFeatureModules()
     for (module in dynamicFeatureModules) {
       val moduleResources = StudioResourceRepositoryManager.getModuleResources(module) ?: continue
-      resourceList.addAll(moduleResources.getResources(resourceReference).mapNotNull { resolveToDeclaration(it, context.project) })
+      resourceList.addAll(
+        moduleResources.getResources(resourceReference).mapNotNull {
+          resolveToDeclaration(it, context.project)
+        }
+      )
     }
     return resourceList
   }
 
   /**
-   * Returns the [SearchScope] for a resource based on the context element. This scope contains files that can contain references to the
-   * same resource as the context element. This is necessary for a ReferencesSearch to only find references to resources that are in
-   * modules which are in use scope.
+   * Returns the [SearchScope] for a resource based on the context element. This scope contains
+   * files that can contain references to the same resource as the context element. This is
+   * necessary for a ReferencesSearch to only find references to resources that are in modules which
+   * are in use scope.
    *
    * @param resourceReference [ResourceReference] of a resource.
-   * @param context           [PsiElement] context element from which an action is being performed.
-   * @return [SearchScope] a scope that contains the files of the project which can reference same resource as context element.
+   * @param context [PsiElement] context element from which an action is being performed.
+   * @return [SearchScope] a scope that contains the files of the project which can reference same
+   *   resource as context element.
    */
   @Slow
   @JvmStatic
-  fun getResourceSearchScope(resourceReference: ResourceReference, context: PsiElement): SearchScope {
+  fun getResourceSearchScope(
+    resourceReference: ResourceReference,
+    context: PsiElement
+  ): SearchScope {
     val gotoDeclarationTargets = getGotoDeclarationTargets(resourceReference, context)
     val allScopes = gotoDeclarationTargets.map { ResolveScopeManager.getElementUseScope(it) }
     return if (allScopes.isEmpty()) {
       ProjectScope.getAllScope(context.project)
-    }
-    else {
+    } else {
       GlobalSearchScope.union(allScopes)
     }
   }
 
   /**
-   * For areas of the IDE which want to pick a single resource declaration to navigate to, we pick the best possible [ResourceItem] based on
-   * the supplied [FolderConfiguration], and if none exists, returns the first item returned by the [ResourceRepository]
+   * For areas of the IDE which want to pick a single resource declaration to navigate to, we pick
+   * the best possible [ResourceItem] based on the supplied [FolderConfiguration], and if none
+   * exists, returns the first item returned by the [ResourceRepository]
    *
    * @param resourceReference [ResourceReference] of a resource.
-   * @param context           [PsiElement] context element from which an action is being performed.
-   * @param configuration     [FolderConfiguration] configuration provided that is used to pick a matching [ResourceItem].
+   * @param context [PsiElement] context element from which an action is being performed.
+   * @param configuration [FolderConfiguration] configuration provided that is used to pick a
+   *   matching [ResourceItem].
    * @return [PsiElement] of the best matching resource declaration.
    */
   fun getBestGotoDeclarationTarget(
@@ -233,10 +290,13 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     context: PsiElement,
     configuration: FolderConfiguration
   ): PsiElement? {
-    val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(context) ?: return null
+    val studioResourceRepositoryManager =
+      StudioResourceRepositoryManager.getInstance(context) ?: return null
     val resources =
-      getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager)?.getResources(resourceReference) ?: return null
-    val resourceItem = configuration.findMatchingConfigurable(resources) ?: resources.firstOrNull() ?: return null
+      getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager)
+        ?.getResources(resourceReference) ?: return null
+    val resourceItem =
+      configuration.findMatchingConfigurable(resources) ?: resources.firstOrNull() ?: return null
     return resolveToDeclaration(resourceItem, context.project)
   }
 
@@ -249,12 +309,14 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
 }
 
 /**
- * Filters a collection of resources of the same type. If the collection contains non-ID
- * resources, returns the whole collection. If the collection contains ID resources, returns
- * a subset corresponding to ID definitions, unless this subset is empty, in which case
- * returns all resources.
+ * Filters a collection of resources of the same type. If the collection contains non-ID resources,
+ * returns the whole collection. If the collection contains ID resources, returns a subset
+ * corresponding to ID definitions, unless this subset is empty, in which case returns all
+ * resources.
  */
-internal fun Collection<ResourceItem>.filterDefinitions(project: Project): Collection<ResourceItem> {
+internal fun Collection<ResourceItem>.filterDefinitions(
+  project: Project
+): Collection<ResourceItem> {
   if (size <= 1 || first().type != ResourceType.ID) {
     return this // Nothing to filter out.
   }

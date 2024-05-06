@@ -28,20 +28,16 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
-/**
- * Tests for inspections in data binding expressions.
- */
+/** Tests for inspections in data binding expressions. */
 @RunWith(Parameterized::class)
 class DataBindingInspectionTest(private val mode: DataBindingMode) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.SUPPORT,
-                         DataBindingMode.ANDROIDX)
+    fun modes() = listOf(DataBindingMode.SUPPORT, DataBindingMode.ANDROIDX)
   }
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -55,16 +51,19 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
          <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
            <application />
          </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // Add a fake "BindingAdapter" to this project so the tests resolve the dependency; this is
     // easier than finding a way to add a real dependency on the data binding library, which
     // usually requires Gradle plugin support.
     val databindingPackage = mode.packageName.removeSuffix(".") // Without trailing '.'
-    with(fixture.addFileToProject(
-      "src/${databindingPackage.replace('.', '/')}/BindingAdapter.java",
-      // language=java
-      """
+    with(
+      fixture.addFileToProject(
+        "src/${databindingPackage.replace('.', '/')}/BindingAdapter.java",
+        // language=java
+        """
         package $databindingPackage;
 
         import java.lang.annotation.ElementType;
@@ -74,7 +73,10 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
         public @interface BindingAdapter {
           String[] value();
         }
-      """.trimIndent())) {
+      """
+          .trimIndent()
+      )
+    ) {
       // The following line is needed or else we get an error for referencing a file out of bounds
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
@@ -85,17 +87,20 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
 
   @Test
   fun testDataBindingInspection_kotlinShowsWarningIfKaptNotApplied() {
-    val useBindingAdapterFile = fixture.addFileToProject(
-      "src/test/db/UseBindingAdapter.kt",
-      // language=kotlin
-      """
+    val useBindingAdapterFile =
+      fixture.addFileToProject(
+        "src/test/db/UseBindingAdapter.kt",
+        // language=kotlin
+        """
         package test.langdb
         import ${mode.bindingAdapter}
 
         <error descr="To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle">@BindingAdapter("sampleValue")</error>
         fun sampleFunction() {
         }
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(useBindingAdapterFile.virtualFile)
     fixture.checkHighlighting()
@@ -103,10 +108,11 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
 
   @Test
   fun testDataBindingInspection_javaDoesntShowWarningBecauseAnnotationProcessorsRunAutomatically() {
-    val useBindingAdapterFile = fixture.addFileToProject(
-      "src/test/db/UseBindingAdapter.java",
-      // language=java
-      """
+    val useBindingAdapterFile =
+      fixture.addFileToProject(
+        "src/test/db/UseBindingAdapter.java",
+        // language=java
+        """
         package test.langdb;
         import ${mode.bindingAdapter};
 
@@ -115,7 +121,9 @@ class DataBindingInspectionTest(private val mode: DataBindingMode) {
           public void unusedFunction() {
           }
         }
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(useBindingAdapterFile.virtualFile)
     fixture.checkHighlighting()

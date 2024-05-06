@@ -27,21 +27,19 @@ internal fun AnActionEvent.getLogcatPresenter() = getData(LogcatPresenter.LOGCAT
 
 internal fun AnActionEvent.getConnectedDevice() = getData(LogcatPresenter.CONNECTED_DEVICE)
 
-/**
- * Gets the Logcat message surrounding the caret position or null if there is none
- */
+/** Gets the Logcat message surrounding the caret position or null if there is none */
 internal fun AnActionEvent.getLogcatMessage(): LogcatMessage? {
   val offset = getEditor()?.caretModel?.offset ?: return null
   return getLogcatMessages(offset, offset).firstOrNull()
 }
 
-/**
- * Gets the Logcat messages intersecting with the current selection
- */
+/** Gets the Logcat messages intersecting with the current selection */
 internal fun AnActionEvent.getLogcatMessages(): List<LogcatMessage> {
   val editor = getEditor() ?: return emptyList()
   val selectionModel = editor.selectionModel
-  val end = if (selectionModel.endsOnLineBreak()) selectionModel.selectionEnd - 1 else selectionModel.selectionEnd
+  val end =
+    if (selectionModel.endsOnLineBreak()) selectionModel.selectionEnd - 1
+    else selectionModel.selectionEnd
   return getLogcatMessages(selectionModel.selectionStart, end)
 }
 

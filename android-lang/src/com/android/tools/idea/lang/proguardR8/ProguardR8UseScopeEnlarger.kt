@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lang.proguardR8
 
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -40,9 +42,17 @@ class ProguardR8UseScopeEnlarger : UseScopeEnlarger() {
     if ((element is PsiMember || element is KtProperty && !element.isLocal) && element.containingFile != null) {
       val project = element.project
 
+      if (ApplicationManager.getApplication().isDispatchThread) {
+        with (DumbService.getInstance(project)) {
+          // When indexing is happening and alternative resolve is enabled, FileTypeIndex will wait for indexing to be complete.
+          // Return null here to avoid a deadlock if this is being called from the event thread.
+          if (isDumb && isAlternativeResolveEnabled) return null
+        }
+      }
+
       val cachedValuesManager = CachedValuesManager.getManager(project)
       val files = cachedValuesManager.getCachedValue(project) {
-        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.allScope(project))
+        val proguardFiles = FileTypeIndex.getFiles(ProguardR8FileType.INSTANCE, GlobalSearchScope.projectScope(project))
         CachedValueProvider.Result(proguardFiles, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
       }
       return if (files.isEmpty()) null else GlobalSearchScope.filesScope(project, files)

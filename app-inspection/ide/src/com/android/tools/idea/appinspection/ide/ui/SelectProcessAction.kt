@@ -36,6 +36,7 @@ val NO_PROCESS_ACTION =
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = false
     }
+
     override fun actionPerformed(event: AnActionEvent) {}
   }
 
@@ -44,6 +45,7 @@ val NO_DEVICE_ACTION =
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = false
     }
+
     override fun actionPerformed(event: AnActionEvent) {}
   }
 
@@ -174,6 +176,7 @@ class SelectProcessAction(
         override fun update(e: AnActionEvent) {
           e.presentation.isEnabled = (model.selectedProcess?.isRunning == true)
         }
+
         override fun actionPerformed(e: AnActionEvent) {
           onStopAction?.invoke(model.selectedProcess!!)
         }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.analysis.ComposeGroupTree
 import com.android.tools.idea.run.deployment.liveedit.analysis.FunctionKeyMeta
@@ -26,6 +28,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.isInline
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.idea.base.psi.getLineEndOffset
 import org.jetbrains.kotlin.idea.base.psi.getLineStartOffset
@@ -34,13 +37,14 @@ import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.TimeUnit
 
+private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
+
 // PLEASE someone help me name this better
-internal object LiveEditOutputBuilder {
+internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvider) {
   internal fun getGeneratedCode(sourceFile: KtFile,
                                 compiledFiles: List<OutputFile>,
                                 irCache: IrClassCache,
                                 inlineCandidateCache: SourceInlineCandidateCache,
-                                classesSentToDevice: Set<String>,
                                 outputs: LiveEditCompilerOutput.Builder) {
     val startTimeNs = System.nanoTime()
     val outputFiles = compiledFiles.filter { it.relativePath.endsWith(".class") }
@@ -62,7 +66,7 @@ internal object LiveEditOutputBuilder {
       if (isKeyMeta(classFile)) {
         continue
       }
-      val newClass = handleClassFile(classFile, sourceFile, groupTree, irCache, inlineCandidateCache, classesSentToDevice, outputs)
+      val newClass = handleClassFile(classFile, sourceFile, groupTree, irCache, inlineCandidateCache, outputs)
       outputs.addIrClass(newClass)
     }
 
@@ -75,17 +79,24 @@ internal object LiveEditOutputBuilder {
                               groupTree: ComposeGroupTree?,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
-                              classesSentToDevice: Set<String>,
                               output: LiveEditCompilerOutput.Builder): IrClass {
     val classBytes = classFile.asByteArray()
     val newClass = IrClass(classBytes)
-    val oldClass = irCache[newClass.name]
+    val oldClass = irCache[newClass.name] ?: run {
+      logger.info("Live Edit: No cache entry for ${newClass.name}; using the APK for class diff")
+      apkClassProvider.getClass(sourceFile, newClass.name)
+    }
 
-    val isNewClass = oldClass == null
-    val isSynthetic = isSyntheticClass(newClass)
+    val isFirstDiff = newClass.name !in irCache
+    val classType = if (isSyntheticClass(newClass)) LiveEditClassType.SUPPORT_CLASS else LiveEditClassType.NORMAL_CLASS
 
     // Live Edit supports adding new synthetic classes in order to handle the lambda classes that Compose generates
-    if (isNewClass && isSynthetic) {
+    if (oldClass == null) {
+      if (classType != LiveEditClassType.SUPPORT_CLASS) {
+        throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
+                                      "added new class ${newClass.name} in ${newClass.sourceFile}", sourceFile, null)
+      }
+
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
       output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
 
@@ -98,41 +109,28 @@ internal object LiveEditOutputBuilder {
       return newClass
     }
 
-    if (isNewClass) {
-      // TODO: throw exception if not synthetic class; we don't support adding a new class yet.
-      return newClass
+    val diff = Differ.diff(oldClass, newClass)
+
+    // If we have a class diff, or it is the first time we've diffed this class, send it to the device. The first time we see a class, we
+    // need to send it to the device in case it or one of its dependencies has a different name than the version in the APK.
+    if (diff != null || isFirstDiff) {
+      // Update the inline cache for all classes, both normal and support.
+      inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
+      output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, classType))
     }
 
-    val diff = Differ.diff(oldClass!!, newClass)
-
-    // If we have no changes, and we've seen this class before, don't send it to the device. The first time we see a class, we need to send
-    // it to the device in case it or one of its dependencies has a different name than the version in the APK.
-    if (diff == null && newClass.name in classesSentToDevice) {
-      return newClass
-    }
-
-    // Update the inline cache for all classes, both normal and support.
-    inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
-
-    val classType = if (isSynthetic) {
-      LiveEditClassType.SUPPORT_CLASS
-    } else {
-      LiveEditClassType.NORMAL_CLASS
-    }
-
-    output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, classType))
-
+    // If we have no diff, we don't need to check for incompatible changes or resolve group IDs.
     if (diff == null) {
       return newClass
     }
 
     // Run validation on the class and get a list of method diffs containing all modified methods
-    val modifiedMethods = if (isSynthetic) {
+    val modifiedMethods = if (classType == LiveEditClassType.SUPPORT_CLASS) {
       val validator = SyntheticClassVisitor(newClass.name)
       diff.accept(validator)
       validator.modifiedMethods
     } else {
-      val validator = RegularClassVisitor(newClass.name)
+      val validator = RegularClassVisitor(newClass.name, logger)
       diff.accept(validator)
       validator.modifiedMethods
     }
@@ -144,12 +142,15 @@ internal object LiveEditOutputBuilder {
       if (isNonPrivateInline(irMethod)) {
         throw nonPrivateInlineFunctionFailure(sourceFile)
       }
+      if (classType == LiveEditClassType.NORMAL_CLASS) {
+        checkForInit(newClass, irMethod, !isFirstDiff)
+      }
       modifiedIrMethods.add(irMethod)
     }
 
     // Skip group ID resolution if the user's change modified any non-composable methods. Synthetic classes may not have @Composable
     // annotations, so still perform group ID resolution in that case.
-    if (!isSynthetic && modifiedIrMethods.any { !isComposableMethod(it) }) {
+    if (classType == LiveEditClassType.NORMAL_CLASS && modifiedIrMethods.any { !isComposableMethod(it) }) {
       output.resetState = true
     } else {
       if (groupTree == null) {
@@ -211,6 +212,29 @@ private fun isSyntheticClass(clazz: IrClass): Boolean {
   //   - that implement a single interface
   //   - that implement exactly one public method
   return clazz.enclosingMethod != null && clazz.interfaces.size == 1 && clazz.methods.singleOrNull(::isPublicSAMMethod) != null
+}
+
+
+// First diff is against the APK, so the diff for the constructors and static initializers is likely to be noisy. We skip this check
+// for that particular case, and rely on the PSI validation that happened before.
+private fun checkForInit(irClass: IrClass, irMethod: IrMethod, throwOnFail: Boolean) {
+  if (irMethod.name == "<init>") {
+    if (throwOnFail) {
+      throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
+                                    "in ${irClass.name.replace('/', '.')}, modified constructor ${irMethod.desc}", null, null)
+    } else {
+      logger.warning("Live Edit detected modified constructor ${irClass.name}${irMethod.desc} in ${irClass.sourceFile}")
+    }
+  }
+
+  if (irMethod.name == "<clinit>") {
+    if (throwOnFail) {
+      throw LiveEditUpdateException(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE,
+                                    "in ${irClass.name.replace('/', '.')}, modified static initializer", null, null)
+    } else {
+      logger.warning("Live Edit detected modified static initializer block in class ${irClass.name} of ${irClass.sourceFile}")
+    }
+  }
 }
 
 private fun isKeyMeta(classFile: OutputFile) = classFile.relativePath.endsWith("\$KeyMeta.class")

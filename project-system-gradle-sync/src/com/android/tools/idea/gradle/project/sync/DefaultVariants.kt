@@ -18,15 +18,48 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.builder.model.v2.dsl.BuildType
 import com.android.builder.model.v2.dsl.ProductFlavor
 import com.android.builder.model.v2.ide.BasicVariant
+import com.android.tools.idea.gradle.model.IdeVariantCore
+import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
+import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import org.jetbrains.annotations.VisibleForTesting
 
-fun List<BasicVariant>.getDefaultVariant(buildTypes: List<BuildType>, productFlavors: List<ProductFlavor>): String? {
-  return map { VariantDef(it.name, it.buildType, it.productFlavors) }
-    .getDefaultVariant(
+
+fun List<IdeVariantCore>.getDefaultVariantFromIdeModels(
+  buildTypes: Collection<IdeBuildTypeContainerImpl>,
+  productFlavors: Collection<IdeProductFlavorContainerImpl>
+): String? =
+  map { VariantDef(it.name, it.buildType, it.productFlavors) }
+    .getDefaultVariantInternal(
+      buildTypes.map {
+        BuildTypeDef(it.buildType.name, it.buildType.isDefault)
+      },
+      productFlavors.map {
+        ProductFlavorDef(it.productFlavor.name, it.productFlavor.isDefault)
+      }
+    )
+
+fun List<BasicVariant>.getDefaultVariant(buildTypes: List<BuildType>, productFlavors: List<ProductFlavor>): String? =
+  map { VariantDef(it.name, it.buildType, it.productFlavors) }.getDefaultVariantInternal(
+    buildTypes.map {
+      BuildTypeDef(it.name, it.isDefault)
+    },
+    productFlavors.map {
+      ProductFlavorDef(it.name, it.isDefault)
+    })
+
+
+private fun List<VariantDef>.getDefaultVariantInternal(buildTypes: List<BuildTypeDef>, productFlavors: List<ProductFlavorDef>): String? {
+  return getDefaultVariant(
       userPreferredBuildTypes = buildTypes.filter { it.isDefault == true }.map { it.name }.toSet(),
       userPreferredProductFlavors = productFlavors.filter { it.isDefault == true }.map { it.name }.toSet(),
     )
 }
+
+@VisibleForTesting
+class BuildTypeDef(val name: String, val isDefault: Boolean?)
+
+@VisibleForTesting
+class ProductFlavorDef(val name: String, val isDefault: Boolean?)
 
 @VisibleForTesting
 class VariantDef(val name: String, val buildType: String?, val productFlavors: List<String>)

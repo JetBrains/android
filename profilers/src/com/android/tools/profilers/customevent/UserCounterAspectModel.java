@@ -17,6 +17,7 @@ package com.android.tools.profilers.customevent;
 
 import com.android.tools.adtui.model.AspectModel;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 

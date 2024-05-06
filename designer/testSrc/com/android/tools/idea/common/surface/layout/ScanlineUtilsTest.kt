@@ -18,11 +18,11 @@ package com.android.tools.idea.common.surface.layout
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.intellij.util.ui.JBInsets
+import java.awt.Dimension
+import java.awt.Insets
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.awt.Dimension
-import java.awt.Insets
 
 class TestPositionableContent(
   override var x: Int = 0,
@@ -35,10 +35,7 @@ class TestPositionableContent(
 
   private val dimension = Dimension(width, height)
 
-  override val groupId: String? = null
-
-  override val isVisible: Boolean
-    get() = true
+  override val organizationGroup: String? = null
 
   override fun setLocation(x: Int, y: Int) {
     this.x = x

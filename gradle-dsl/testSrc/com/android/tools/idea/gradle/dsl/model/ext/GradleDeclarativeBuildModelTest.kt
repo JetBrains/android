@@ -46,12 +46,12 @@ class GradleDeclarativeBuildModelTest : GradleFileModelTestCase() {
 
   @After
   fun clearFlags() {
-    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(false)
+    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault()
   }
 
   @Test
   fun flagTest(){
-    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(false)
+    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault()
     writeToSettingsFile(subModuleSettingsText)
     writeToSubModuleBuildFile("""
       [[plugins]]
@@ -313,10 +313,7 @@ class GradleDeclarativeBuildModelTest : GradleFileModelTestCase() {
      [android]
      compileSdkVersion = 33
      """.trimIndent()
-    val expected = """
-      [android]
-
-      """.trimIndent()
+    val expected = ""
 
     doTest(given, expected) {
       android().compileSdkVersion().delete()
@@ -334,7 +331,6 @@ class GradleDeclarativeBuildModelTest : GradleFileModelTestCase() {
     val expected = """
       [android]
       compileSdkVersion = 33
-      [android.defaultConfig]
 
       """.trimIndent()
 

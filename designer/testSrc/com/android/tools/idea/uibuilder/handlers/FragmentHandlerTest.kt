@@ -26,9 +26,9 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
+import java.util.*
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito.eq
-import java.util.*
 
 class FragmentHandlerTest : LayoutTestCase() {
   // http://b/242129835

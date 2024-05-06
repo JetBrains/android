@@ -27,14 +27,17 @@ class MockVirtualMachineProxy(
   referencesByName: Map<String, ReferenceType>
 ) : VirtualMachineProxyImpl(debugProcessImpl, MockVirtualMachine(referencesByName)) {
   override fun allClasses(): List<ReferenceType> = virtualMachine.allClasses()
+
   override fun classesByName(s: String): List<ReferenceType> = virtualMachine.classesByName(s)
 }
 
-private class MockVirtualMachine(
-  private val referencesByName: Map<String, ReferenceType>
-) : VirtualMachine by MockitoKt.mock() {
+private class MockVirtualMachine(private val referencesByName: Map<String, ReferenceType>) :
+  VirtualMachine by MockitoKt.mock() {
   override fun name(): String = "MockDalvik"
+
   override fun allClasses(): List<ReferenceType> = referencesByName.values.toList()
+
   override fun classesByName(s: String): List<ReferenceType> = listOfNotNull(referencesByName[s])
+
   override fun topLevelThreadGroups(): List<ThreadGroupReference> = emptyList()
 }

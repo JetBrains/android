@@ -16,7 +16,7 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.sdklib.devices.Storage.Unit;
-import com.android.tools.idea.devicemanager.Tables;
+import com.android.tools.adtui.table.Tables;
 import com.google.common.annotations.VisibleForTesting;
 import com.ibm.icu.number.LocalizedNumberFormatter;
 import com.ibm.icu.number.NumberFormatter;

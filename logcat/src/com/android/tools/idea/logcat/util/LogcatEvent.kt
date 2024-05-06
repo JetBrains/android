@@ -27,26 +27,28 @@ import java.util.concurrent.atomic.AtomicBoolean
 private val logger = Logger.getInstance(LogcatEvent::class.java)
 
 /**
- * An event containing Logcat messages or an indication of the visibility of the target Logcat panel.
+ * An event containing Logcat messages or an indication of the visibility of the target Logcat
+ * panel.
  */
 sealed class LogcatEvent {
   class LogcatMessagesEvent(val messages: List<LogcatMessage>) : LogcatEvent()
+
   data class LogcatPanelVisibility(val visible: Boolean) : LogcatEvent()
 }
 
 /**
  * Handles a [Flow<LogcatEvent>]
  *
- * This function handles [LogcatMessage]s getting sent to a [LogcatPresenter] (panel) than can be invisible.
- * When a panel becomes invisible, it is moved to an "invisible mode" where it reduces its memory footprint.
- * While invisible, messages are not sent to the panel, rather they are stored in a temporary file.
- * When panel becomes visible again, the temporary file is read and the messages are sent to the panel again.
+ * This function handles [LogcatMessage]s getting sent to a [LogcatPresenter] (panel) than can be
+ * invisible. When a panel becomes invisible, it is moved to an "invisible mode" where it reduces
+ * its memory footprint. While invisible, messages are not sent to the panel, rather they are stored
+ * in a temporary file. When panel becomes visible again, the temporary file is read and the
+ * messages are sent to the panel again.
  */
 internal suspend fun Flow<LogcatEvent>.consume(
   logcatPresenter: LogcatPresenter,
   id: String,
   maxSizeBytes: Int,
-
 ) {
   val messagesFile = MessagesFile(id, maxSizeBytes)
   val visible = logcatPresenter.isShowing()
@@ -57,17 +59,21 @@ internal suspend fun Flow<LogcatEvent>.consume(
 
   try {
     collect { event ->
-      // Note that onPanelVisible & onPanelInvisible are extracted to functions for readability and can be treated as inlined. Therefore,
-      // it is safe for them to access their parameters without being concerned about the threading model.
+      // Note that onPanelVisible & onPanelInvisible are extracted to functions for readability and
+      // can be treated as inlined. Therefore,
+      // it is safe for them to access their parameters without being concerned about the threading
+      // model.
       when {
-        event == LogcatPanelVisibility(true) -> onPanelVisible(logcatPresenter, id, messagesFile, isPanelVisible)
-        event == LogcatPanelVisibility(false) -> onPanelInvisible(logcatPresenter, id, messagesFile, isPanelVisible)
-        isPanelVisible.get() -> logcatPresenter.processMessages((event as LogcatMessagesEvent).messages)
+        event == LogcatPanelVisibility(true) ->
+          onPanelVisible(logcatPresenter, id, messagesFile, isPanelVisible)
+        event == LogcatPanelVisibility(false) ->
+          onPanelInvisible(logcatPresenter, id, messagesFile, isPanelVisible)
+        isPanelVisible.get() ->
+          logcatPresenter.processMessages((event as LogcatMessagesEvent).messages)
         else -> messagesFile.appendMessages((event as LogcatMessagesEvent).messages)
       }
     }
-  }
-  finally {
+  } finally {
     logger.debug { "Cleaning up for panel $id" }
     messagesFile.delete()
   }
@@ -90,7 +96,9 @@ private suspend fun onPanelInvisible(
   messagesFile: MessagesFile,
   isPanelVisible: AtomicBoolean
 ) {
-  logger.debug { "Panel for $id is now invisible. Initializing message file and entering invisible mode" }
+  logger.debug {
+    "Panel for $id is now invisible. Initializing message file and entering invisible mode"
+  }
   isPanelVisible.set(false)
   messagesFile.initialize()
   messagesFile.appendMessages(logcatPresenter.getBacklogMessages())

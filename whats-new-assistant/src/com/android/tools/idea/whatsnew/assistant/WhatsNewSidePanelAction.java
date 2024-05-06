@@ -118,7 +118,8 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
       SimpleMessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect(disposable);
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
-      project.getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
+      // noinspection UnstableApiUsage
+      connection.subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
         @Override
         public void projectClosed(@NotNull Project project) {
           if (!project.equals(myProject)) {

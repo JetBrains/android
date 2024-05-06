@@ -17,6 +17,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator;
 
 import com.android.tools.idea.uibuilder.handlers.constraint.animation.AnimatedColor;
+
 import java.awt.Color;
 
 /**

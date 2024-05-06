@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.SdkConstants.FN_GRADLE_CONFIG_PROPERTIES;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.annotations.concurrency.GuardedBy;
@@ -37,6 +38,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
@@ -124,10 +127,16 @@ public class GradleFiles implements Disposable.Default {
 
     if (myProject.isDefault()) return;
 
+    Application application = ApplicationManager.getApplication();
+    for (FileEditor editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
+      application.runReadAction(() -> maybeAddOrRemovePsiTreeListener(editor.getFile(), fileChangeListener));
+    }
+
     // Add a listener to see when gradle files are being edited.
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
   }
 
+  // requires read action because of findFile
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
     if (file == null || !file.isValid()) {
       return;
@@ -383,6 +392,15 @@ public class GradleFiles implements Disposable.Default {
           }
         }
       }
+      ProgressManager.checkCanceled();
+      File gradleCachePath = new File(rootFolderPath, ".gradle");
+      if (gradleCachePath.isDirectory()) {
+        File gradleConfigProperties = new File(gradleCachePath, FN_GRADLE_CONFIG_PROPERTIES);
+        VirtualFile virtualFile = findFileByIoFile(gradleConfigProperties, false);
+        if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
+          application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+        }
+      }
     };
     if (rootFolder != null) {
       Future<?> projectWideFilesFuture = executorService.submit(
@@ -551,8 +569,7 @@ public class GradleFiles implements Disposable.Default {
         return;
       }
 
-      // This code may be run before the project is initialized, and we need the project to be initialized to get the PsiManager.
-      if (!myGradleFiles.myProject.isInitialized() || !PsiManager.getInstance(myGradleFiles.myProject).isInProject(psiFile)) {
+      if (myGradleFiles.myProject != psiFile.getProject()) {
         return;
       }
 

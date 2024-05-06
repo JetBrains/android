@@ -19,7 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.application.ApplicationManager;
@@ -91,6 +92,6 @@ public class AndroidSdkDataTest extends AndroidTestCase {
     Sdk sdk = mock(Sdk.class);
     when(sdk.getHomePath()).thenReturn(TestUtils.getSdk().toString());
 
-    assertEquals(sdkData, AndroidSdkData.getSdkData(sdk));
+    assertEquals(sdkData, AndroidSdks.getSdkData(sdk));
   }
 }

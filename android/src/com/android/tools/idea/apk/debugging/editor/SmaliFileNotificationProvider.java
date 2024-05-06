@@ -31,7 +31,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiAnchor;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorNotificationPanel;
@@ -41,32 +43,47 @@ import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SmaliFileNotificationProvider implements EditorNotificationProvider {
+public final class SmaliFileNotificationProvider implements EditorNotificationProvider {
 
+  @Override
   @Nullable
   public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
-    DexSourceFiles myDexSourceFiles = DexSourceFiles.getInstance(project);
     Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
-    if (module == null || ApkFacet.getInstance(module) == null || !myDexSourceFiles.isSmaliFile(file)) return null;
-    File outputFolderPath = myDexSourceFiles.getDefaultSmaliOutputFolderPath();
+    if (module == null) return null;
+    DexSourceFiles dexSourceFiles = DexSourceFiles.getInstance(project);
+    if (ApkFacet.getInstance(module) == null || !dexSourceFiles.isSmaliFile(file)) return null;
+    File outputFolderPath = dexSourceFiles.getDefaultSmaliOutputFolderPath();
     File filePath = virtualToIoFile(file);
     if (!isAncestor(outputFolderPath, filePath, false)) return null;
     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
     String classFqn = (psiFile instanceof SmaliFile) ? findJavaClassName((SmaliFile)psiFile) : null;
-    PsiClass javaPsiClass = (isNotEmpty(classFqn)) ? myDexSourceFiles.findJavaPsiClass(classFqn) : null;
+    PsiClass javaPsiClass = (isNotEmpty(classFqn)) ? dexSourceFiles.findJavaPsiClass(classFqn) : null;
+    PsiAnchor psiClassAnchor = javaPsiClass != null ? PsiAnchor.create(javaPsiClass) : null;
     // The smali file is inside the folder where baksmali generated the smali files by disassembling classes.dex.
-    return (fileEditor) -> {
-      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
-      panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.");
-      if (javaPsiClass != null) {
-        panel.createActionLabel("Open Kotlin/Java file", () -> openFileWithPsiElement(javaPsiClass, true, true));
+    return (fileEditor) -> createPanel(module, fileEditor, psiClassAnchor, classFqn);
+  }
+
+  @NotNull
+  private static EditorNotificationPanel createPanel(@NotNull Module module,
+                                                     @NotNull FileEditor fileEditor,
+                                                     @Nullable PsiAnchor psiClassAnchor,
+                                                     @Nullable String classFqn) {
+    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
+    panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.");
+    if (isNotEmpty(classFqn)) {
+      if (psiClassAnchor != null) {
+        panel.createActionLabel("Open Kotlin/Java file", () -> {
+          PsiElement javaPsiClass = psiClassAnchor.retrieve();
+          if (javaPsiClass == null) return;
+          openFileWithPsiElement(javaPsiClass, true, true);
+        });
       }
-      else if (isNotEmpty(classFqn)) {
+      else {
         panel.createActionLabel("Attach Kotlin/Java Sources...",
-                                new ChooseAndAttachJavaSourcesTask(classFqn, module, myDexSourceFiles));
+                                new ChooseAndAttachJavaSourcesTask(classFqn, module, DexSourceFiles.getInstance(module.getProject())));
       }
-      return panel;
-    };
+    }
+    return panel;
   }
 
   @Nullable

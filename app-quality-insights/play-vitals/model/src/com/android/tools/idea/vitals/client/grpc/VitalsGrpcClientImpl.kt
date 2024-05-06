@@ -54,6 +54,7 @@ import com.google.play.developer.reporting.VitalsErrorsServiceGrpc
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Disposer
+import com.intellij.util.application
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.guava.await
@@ -244,6 +245,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
     private val LOG = Logger.getInstance(VitalsGrpcClientImpl::class.java)
 
     fun create(parentDisposable: Disposable): VitalsGrpcClientImpl {
+      application.assertIsNonDispatchThread()
       val address = StudioFlags.PLAY_VITALS_GRPC_SERVER.get()
       LOG.info("Play Vitals gRpc server connected at $address")
       return VitalsGrpcClientImpl(

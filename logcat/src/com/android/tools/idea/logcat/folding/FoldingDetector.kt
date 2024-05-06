@@ -17,9 +17,7 @@ package com.android.tools.idea.logcat.folding
 
 import com.android.annotations.concurrency.UiThread
 
-/**
- * Detects foldings in a region of text.
- */
+/** Detects foldings in a region of text. */
 internal interface FoldingDetector {
   /**
    * Detects foldings in a region of text.
@@ -27,6 +25,5 @@ internal interface FoldingDetector {
    * @param startLine Start line of region to process (zero based)
    * @param endLine End line of region to process (zero based)
    */
-  @UiThread
-  fun detectFoldings(startLine: Int, endLine: Int)
+  @UiThread fun detectFoldings(startLine: Int, endLine: Int)
 }

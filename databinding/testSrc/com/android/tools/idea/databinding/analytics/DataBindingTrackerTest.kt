@@ -45,13 +45,10 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
   companion object {
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun modes() = listOf(DataBindingMode.NONE,
-                         DataBindingMode.ANDROIDX)
+    fun modes() = listOf(DataBindingMode.NONE, DataBindingMode.ANDROIDX)
   }
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
   private val fixture: JavaCodeInsightTestFixture by lazy {
     projectRule.fixture as JavaCodeInsightTestFixture
@@ -60,47 +57,52 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    projectRule.fixture.addFileToProject("AndroidManifest.xml", """
+    projectRule.fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_FOR_TRACKING, "src")
 
-    val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
+    val androidFacet =
+      FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
     LayoutBindingModuleCache.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test
   fun testDataBindingPollingMetadataTracking() {
     val tracker = TestUsageTracker(VirtualTimeScheduler())
-      try {
-        UsageTracker.setWriterForTest(tracker)
-        DataBindingTrackerSyncListener(projectRule.project).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
-        val dataBindingPollMetadata = tracker.usages
+    try {
+      UsageTracker.setWriterForTest(tracker)
+      DataBindingTrackerSyncListener(projectRule.project)
+        .syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      val dataBindingPollMetadata =
+        tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
           .map { it.dataBindingEvent.pollMetadata }
           .lastOrNull()
 
-        if (mode == DataBindingMode.NONE) {
-          assertThat(dataBindingPollMetadata).isNull()
-        }
-        else {
-          dataBindingPollMetadata!!
-          assertThat(dataBindingPollMetadata.dataBindingEnabled).isTrue()
-          assertThat(dataBindingPollMetadata.layoutXmlCount).isEqualTo(4)
-          assertThat(dataBindingPollMetadata.importCount).isEqualTo(0)
-          assertThat(dataBindingPollMetadata.variableCount).isEqualTo(7)
-          assertThat(dataBindingPollMetadata.moduleCount).isEqualTo(1)
-          assertThat(dataBindingPollMetadata.dataBindingEnabledModuleCount).isEqualTo(1)
-        }
+      if (mode == DataBindingMode.NONE) {
+        assertThat(dataBindingPollMetadata).isNull()
+      } else {
+        dataBindingPollMetadata!!
+        assertThat(dataBindingPollMetadata.dataBindingEnabled).isTrue()
+        assertThat(dataBindingPollMetadata.layoutXmlCount).isEqualTo(4)
+        assertThat(dataBindingPollMetadata.importCount).isEqualTo(0)
+        assertThat(dataBindingPollMetadata.variableCount).isEqualTo(7)
+        assertThat(dataBindingPollMetadata.moduleCount).isEqualTo(1)
+        assertThat(dataBindingPollMetadata.dataBindingEnabledModuleCount).isEqualTo(1)
       }
-      finally {
-        tracker.close()
-        UsageTracker.cleanAfterTesting()
-      }
+    } finally {
+      tracker.close()
+      UsageTracker.cleanAfterTesting()
+    }
   }
 
   @Test
@@ -109,7 +111,8 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
     try {
       UsageTracker.setWriterForTest(tracker)
 
-      fixture.addClass("""
+      fixture.addClass(
+        """
       package test.langdb;
 
       import android.view.View;
@@ -117,9 +120,14 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
       public class ModelWithBindableMethodsJava {
         public static void doSomethingStatic(View view) {}
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-      val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      val file =
+        fixture.addFileToProject(
+          "res/layout/test_layout.xml",
+          """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -132,33 +140,37 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             android:gravity="center"
             android:onClick="@{ModelWithBindableMethodsJava::d${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+            .trimIndent()
+        )
       fixture.configureFromExistingVirtualFile(file.virtualFile)
 
       fixture.completeBasic()
 
-      val completionSuggestedEvent = tracker.usages
-        .map { it.studioEvent }
-        .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-        .mapNotNull { it.dataBindingEvent }
-        .lastOrNull { it.type == DATA_BINDING_COMPLETION_SUGGESTED }
+      val completionSuggestedEvent =
+        tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .mapNotNull { it.dataBindingEvent }
+          .lastOrNull { it.type == DATA_BINDING_COMPLETION_SUGGESTED }
 
-      val completionAcceptedEvent = tracker.usages
-        .map { it.studioEvent }
-        .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-        .mapNotNull { it.dataBindingEvent }
-        .lastOrNull { it.type == DATA_BINDING_COMPLETION_ACCEPTED }
+      val completionAcceptedEvent =
+        tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .mapNotNull { it.dataBindingEvent }
+          .lastOrNull { it.type == DATA_BINDING_COMPLETION_ACCEPTED }
 
       if (mode == DataBindingMode.NONE) {
         assertThat(completionSuggestedEvent).isNull()
         assertThat(completionAcceptedEvent).isNull()
+      } else {
+        assertThat(completionSuggestedEvent!!.context)
+          .isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
+        assertThat(completionAcceptedEvent!!.context)
+          .isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
       }
-      else {
-        assertThat(completionSuggestedEvent!!.context).isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
-        assertThat(completionAcceptedEvent!!.context).isEqualTo(DATA_BINDING_CONTEXT_METHOD_REFERENCE)
-      }
-    }
-    finally {
+    } finally {
       tracker.close()
       UsageTracker.cleanAfterTesting()
     }
@@ -170,7 +182,8 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
     try {
       UsageTracker.setWriterForTest(tracker)
 
-      fixture.addClass("""
+      fixture.addClass(
+        """
       package test.langdb;
 
       import android.view.View;
@@ -178,9 +191,14 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
       public class ModelWithBindableMethodsJava {
         public void doSomething(View view) {}
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-      val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      val file =
+        fixture.addFileToProject(
+          "res/layout/test_layout.xml",
+          """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <data>
@@ -194,33 +212,35 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
             android:gravity="center"
             android:onClick="@{() -> member.do${caret}}"/>
       </layout>
-    """.trimIndent())
+    """
+            .trimIndent()
+        )
       fixture.configureFromExistingVirtualFile(file.virtualFile)
 
       fixture.completeBasic()
 
-      val completionSuggestedEvent = tracker.usages
-        .map { it.studioEvent }
-        .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-        .mapNotNull { it.dataBindingEvent }
-        .lastOrNull { it.type == DATA_BINDING_COMPLETION_SUGGESTED }
+      val completionSuggestedEvent =
+        tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .mapNotNull { it.dataBindingEvent }
+          .lastOrNull { it.type == DATA_BINDING_COMPLETION_SUGGESTED }
 
-      val completionAcceptedEvent = tracker.usages
-        .map { it.studioEvent }
-        .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
-        .mapNotNull { it.dataBindingEvent }
-        .lastOrNull { it.type == DATA_BINDING_COMPLETION_ACCEPTED }
+      val completionAcceptedEvent =
+        tracker.usages
+          .map { it.studioEvent }
+          .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }
+          .mapNotNull { it.dataBindingEvent }
+          .lastOrNull { it.type == DATA_BINDING_COMPLETION_ACCEPTED }
 
       if (mode == DataBindingMode.NONE) {
         assertThat(completionSuggestedEvent).isNull()
         assertThat(completionAcceptedEvent).isNull()
-      }
-      else {
+      } else {
         assertThat(completionSuggestedEvent!!.context).isEqualTo(DATA_BINDING_CONTEXT_LAMBDA)
         assertThat(completionAcceptedEvent!!.context).isEqualTo(DATA_BINDING_CONTEXT_LAMBDA)
       }
-    }
-    finally {
+    } finally {
       tracker.close()
       UsageTracker.cleanAfterTesting()
     }

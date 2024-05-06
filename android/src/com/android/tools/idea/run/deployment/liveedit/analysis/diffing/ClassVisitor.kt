@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis.diffing
 
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.EnclosingMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.EnclosingMethod
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod

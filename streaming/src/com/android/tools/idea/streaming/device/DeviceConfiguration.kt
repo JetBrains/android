@@ -18,8 +18,6 @@ package com.android.tools.idea.streaming.device
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.google.wireless.android.sdk.stats.DeviceInfo
-import com.intellij.openapi.util.text.StringUtil
 
 /**
  * Characteristics of a mirrored Android device.
@@ -45,10 +43,6 @@ class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName
   val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.
 }
 
-fun DeviceInfo.Builder.fillFrom(deviceConfiguration: DeviceConfiguration): DeviceInfo.Builder {
-  return fillFrom(deviceConfiguration.deviceProperties)
-}
-
 internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false): String {
   if (this == null) {
     return "Unknown"
@@ -63,7 +57,7 @@ internal fun DeviceProperties?.composeDeviceName(useTitleAsName: Boolean = false
     if (!model.startsWith("Pixel")) {
       val manufacturer = manufacturer
       if (!manufacturer.isNullOrBlank() && manufacturer != "unknown") {
-        name.append(StringUtil.capitalize(manufacturer)).append(' ')
+        name.append(manufacturer).append(' ')
       }
     }
     name.append(model)

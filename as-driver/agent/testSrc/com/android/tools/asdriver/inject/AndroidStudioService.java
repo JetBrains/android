@@ -23,6 +23,7 @@ import com.android.tools.idea.bleak.BleakResult;
 import com.android.tools.idea.bleak.StudioBleakOptions;
 import com.android.tools.idea.io.grpc.Server;
 import com.android.tools.idea.io.grpc.ServerBuilder;
+import com.android.tools.idea.io.grpc.netty.NettyServerBuilder;
 import com.android.tools.idea.io.grpc.stub.StreamObserver;
 import com.google.common.base.Objects;
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl;
@@ -62,6 +63,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +74,9 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +86,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
   private static BleakOptions bleakOptions = StudioBleakOptions.getDefaults();
 
   static public void start() {
-    ServerBuilder<?> builder = ServerBuilder.forPort(0);
+    ServerBuilder<?> builder = NettyServerBuilder.forAddress(new InetSocketAddress("localhost", 0));
     builder.addService(new AndroidStudioService());
     Server server = builder.build();
 
@@ -103,6 +108,30 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ApplicationInfo info = ApplicationInfo.getInstance();
     String version = info.getFullApplicationName() + " @ " + info.getBuild();
     responseObserver.onNext(ASDriver.GetVersionResponse.newBuilder().setVersion(version).build());
+    responseObserver.onCompleted();
+  }
+
+  /**
+   * Kicks off a scheduled thread to capture screenshots. This is only intended to be called on
+   * Windows where we don't have a better way of visually representing what's going on in the
+   * tests. If we could ever get proper screen capturing on Windows, then this wouldn't be needed.
+   */
+  @Override
+  public void startCapturingScreenshots(ASDriver.StartCapturingScreenshotsRequest request, StreamObserver<ASDriver.StartCapturingScreenshotsResponse> responseObserver) {
+    ASDriver.StartCapturingScreenshotsResponse.Builder builder = ASDriver.StartCapturingScreenshotsResponse.newBuilder();
+
+    try {
+      Path destination = Path.of(request.getDestinationPath());
+      String screenshotNameFormat = request.getScreenshotNameFormat();
+      ScreenshotCapturer screenshotCapturer = new ScreenshotCapturer(destination, screenshotNameFormat);
+      screenshotCapturer.start();
+      builder.setResult(ASDriver.StartCapturingScreenshotsResponse.Result.OK);
+    } catch (Exception e) {
+      builder.setErrorMessage(e.getMessage());
+      builder.setResult(ASDriver.StartCapturingScreenshotsResponse.Result.ERROR);
+    }
+
+    responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 
@@ -348,36 +377,62 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ASDriver.AnalyzeFileResponse.Builder builder = ASDriver.AnalyzeFileResponse.newBuilder();
     builder.setStatus(ASDriver.AnalyzeFileResponse.Status.ERROR);
     String fileNameOnly = request.getFile();
+    Project project = getSingleProject();
+
+    AtomicReference<Document> document = new AtomicReference<>();
+    AtomicReference<File> filePath = new AtomicReference<>();
     ApplicationManager.getApplication().invokeAndWait(() -> {
+      File localFilePath;
       try {
-        Project project = getSingleProject();
-        File filePath = Path.of(project.getBasePath(), fileNameOnly).toFile().getCanonicalFile();
-        VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(filePath);
-        if (virtualFile == null) {
-          System.err.println("File does not exist on filesystem with path: " + filePath);
-          return;
-        }
+        localFilePath = Path.of(project.getBasePath(), fileNameOnly).toFile().getCanonicalFile();
+      } catch (IOException e) {
+        System.err.println(e.toString());
+        return;
+      }
 
-        FileEditorManager manager = FileEditorManager.getInstance(project);
-        Editor editor = manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
-        if (editor == null) {
-          System.err.println("Could not open an editor with file: " + filePath);
-          return;
-        }
-        Document document = editor.getDocument();
+      filePath.set(localFilePath);
+      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByIoFile(localFilePath);
+      if (virtualFile == null) {
+        System.err.println("File does not exist on filesystem with path: " + localFilePath);
+        return;
+      }
 
-        System.out.println("Creating a TrafficLightRenderer to determine analysis issues of " + filePath);
-        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, document);
+      FileEditorManager manager = FileEditorManager.getInstance(project);
+      Editor editor = manager.openTextEditor(new OpenFileDescriptor(project, virtualFile), true);
+      if (editor == null) {
+        System.err.println("Could not open an editor with file: " + localFilePath);
+        return;
+      }
+      document.set(editor.getDocument());
+    });
+
+    // TODO(b/312735732): Requiring smart mode might be able to be removed if `waitForIndex` can ensure all indexing has completed.
+    CountDownLatch latch = new CountDownLatch(1);
+    DumbService.getInstance(project).runWhenSmart(() -> {
+      try {
+        System.out.println("Creating a TrafficLightRenderer to determine analysis issues of " + filePath.get());
+        Collection<HighlightInfo> highlightInfoList = analyzeViaTrafficLightRenderer(project, document.get());
 
         System.out.printf("Found %d analysis result(s)%n", highlightInfoList.size());
-        processHighlightInfo(builder, document, highlightInfoList);
+        processHighlightInfo(builder, document.get(), highlightInfoList);
 
         builder.setStatus(ASDriver.AnalyzeFileResponse.Status.OK);
       }
       catch (Exception e) {
+        builder.setStatus(ASDriver.AnalyzeFileResponse.Status.ERROR);
         e.printStackTrace();
       }
+      finally {
+        latch.countDown();
+      }
     });
+
+    try {
+      latch.await();
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
 
     responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
@@ -390,10 +445,11 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
    */
   private static Collection<HighlightInfo> analyzeViaTrafficLightRenderer(Project project, Document document)
     throws ExecutionException, InterruptedException {
-    TrafficLightRenderer renderer = ReadAction.nonBlocking(() -> new TrafficLightRenderer(project, document)).submit(
-      AppExecutorUtil.getAppExecutorService()).get();
+    ExecutorService appExecService = AppExecutorUtil.getAppExecutorService();
+    TrafficLightRenderer renderer = ReadAction.nonBlocking(() -> new TrafficLightRenderer(project, document)).submit(appExecService).get();
     while (true) {
-      TrafficLightRenderer.DaemonCodeAnalyzerStatus status = renderer.getDaemonCodeAnalyzerStatus();
+      TrafficLightRenderer.DaemonCodeAnalyzerStatus status =
+        ReadAction.nonBlocking(renderer::getDaemonCodeAnalyzerStatus).submit(appExecService).get();
       if (status.reasonWhyDisabled != null) {
         // One reason I've seen for why it can be disabled is loading a file through the
         // "wrong" path, e.g. loading through the "/var" symlink on macOS will have

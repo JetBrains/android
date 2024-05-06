@@ -202,8 +202,7 @@ class GradleBuildFileNamespaceRClassesTest : AndroidGradleTestCase() {
               com.example.projectwithappandlib.app.test.R.string.${"libTestResource" highlightedAs HighlightSeverity.ERROR},
 
               // Fully qualified reference to lib module with package name from build.gradle DSL:
-              // TODO(b/257997627): This is wrong, the library R class should be resolved
-              com.example.foo.libmodule.${"R" highlightedAs HighlightSeverity.ERROR}.string.libResource,
+              com.example.foo.libmodule.R.string.libResource,
 
               androidx.appcompat.R.color.primary_material_dark,
 

@@ -24,7 +24,7 @@ import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.layoutinspector.InspectorModelDescriptor
 import com.android.tools.idea.layoutinspector.InspectorViewDescriptor
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture

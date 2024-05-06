@@ -23,9 +23,6 @@ HIDDEN = [
     # This annotation jar is nonexistent, despite being referenced by product-info.json.
     # Probably this happens because BaseIdeaProperties.copyAdditionalFiles() moves this jar.
     "/lib/annotations-java5.jar",
-    # Hide JUnit3 to avoid clashing with JUnit4 (b/271338952, IDEA-315065).
-    # This emulates IntelliJ commit 1dc8b1360c which is coming in IJ 232.
-    "/lib/junit.jar",
 ]
 
 ALL = "all"
@@ -183,6 +180,24 @@ def gen_lib(project_dir, name, jars, srcs):
     file.write(xml)
 
 
+# Generates a module containing IntelliJ and all its bundled plugins.
+# This module helps form the runtime classpath for dev builds.
+def gen_platform_module(iml_file, libs):
+  xml = ''
+  xml += '<?xml version="1.0" encoding="UTF-8"?>\n'
+  xml += '<module type="JAVA_MODULE" version="4">\n'
+  xml += '  <component name="NewModuleRootManager" inherit-compiler-output="true">\n'
+  xml += '    <orderEntry type="inheritedJdk" />\n'
+  xml += '    <orderEntry type="sourceFolder" forTests="false" />\n'
+  for lib in libs:
+    xml += f'    <orderEntry type="library" scope="RUNTIME" name="{lib}" level="project" />\n'
+  xml += '  </component>\n'
+  xml += '</module>'
+
+  with open(iml_file, "w") as file:
+    file.write(xml)
+
+
 def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
   project_dir = os.path.join(workspace, "tools/adt/idea")
   rel_workspace = os.path.relpath(workspace, project_dir)
@@ -194,16 +209,16 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
-    if lib == "studio_plugin_rust.xml":
-      continue  # Special case: the Rust plugin is built separately.
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
-
 
   for plugin, jars in plugin_jars[ALL].items():
     add = sorted(set(plugin_jars[WIN][plugin] + plugin_jars[MAC][plugin] + plugin_jars[MAC_ARM][plugin] + plugin_jars[LINUX][plugin]))
     paths = [ rel_workspace + sdk + f"/$SDK_PLATFORM$" + j for j in jars + add]
     gen_lib(project_dir, "studio-plugin-" + plugin, paths, [workspace + sdk + "/android-studio-sources.zip"])
+
+  common_platform_libs = ["studio-sdk"] + [f"studio-plugin-{plugin}" for plugin, jars in plugin_jars[ALL].items() if jars]
+  gen_platform_module(f"{project_dir}/studio/studio-sdk-all-plugins.iml", common_platform_libs)
 
   updater_jar = rel_workspace + sdk + "/updater-full.jar"
   if os.path.exists(project_dir + "/" + updater_jar):

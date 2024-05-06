@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.surface;
 
 import com.android.tools.idea.common.surface.Layer;
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
@@ -41,6 +41,7 @@ import java.awt.image.BufferedImage;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Responsible for painting a screen view
@@ -86,13 +87,10 @@ public class ScreenViewLayer extends Layer {
   /**
    * Create a new ScreenViewLayer for the given screenView.
    * @param screenView The screenView containing the model to render
+   * @param colorBlindFilter the image filter to apply when rendering
    * @param parentDisposable parent [Disposable] for this component
    * @param rotation extra rotation for this layer
    */
-  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
-    this(screenView, ColorBlindMode.NONE, parentDisposable, rotation);
-  }
-
   public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull ColorBlindMode colorBlindFilter, @NotNull Disposable parentDisposable, @NotNull ExtraRotation rotation) {
     this(screenView, colorBlindFilter == ColorBlindMode.NONE ? null : new ColorConverter(colorBlindFilter), parentDisposable, rotation);
   }
@@ -255,17 +253,21 @@ public class ScreenViewLayer extends Layer {
   }
 
   /**
-   * Check whether the provided render result has new image to draw. We only accept successful renders. If the new result is
-   * an error, we prefer to keep the last successful one.
+   * Check whether the provided render result has new image to draw. We only accept renders containing a valid image. If the new result is
+   * an error without image, we prefer to keep the last valid image..
    *
    * @param renderResult The renderResult from {@link LayoutlibSceneManager#getRenderResult()}
    * @return false if renderResult is null or the same as the previous one or if no image is available, true otherwise
    */
   private boolean newRenderImageAvailable(@Nullable RenderResult renderResult) {
     return renderResult != null &&
-           renderResult.getRenderResult().isSuccess() &&
            renderResult.getRenderedImage().isValid() &&
            renderResult != myLastRenderResult;
+  }
+
+  @TestOnly
+  public ColorConverter getColorConverterForTest() {
+    return myImageFilter;
   }
 
   @Override

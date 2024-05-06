@@ -28,7 +28,7 @@ import com.android.resources.ScreenRound
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
+import com.android.test.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
@@ -626,7 +626,7 @@ class DeviceViewContentPanelTest {
     assertEquals(0.01, panel.renderModel.yOff)
 
     // Simulate a connection change. This should reset the rotation
-    model.connectionListeners.forEach { it(client) }
+    model.connectionListeners.forEach { it.onConnectionChanged(client) }
     assertEquals(0.0, panel.renderModel.xOff)
     assertEquals(0.0, panel.renderModel.yOff)
   }
@@ -1359,9 +1359,13 @@ class DeviceViewContentPanelTest {
     val popup: JPopupMenu = mock()
 
     override fun getComponent(): JPopupMenu = popup
+
     override fun getActionGroup(): ActionGroup = group
+
     override fun getPlace(): String = error("Not implemented")
+
     override fun setTargetComponent(component: JComponent) = error("Not implemented")
+
     override fun setDataContext(dataProvider: Supplier<out DataContext>) = error("Not implemented")
 
     fun assertSelectViewActionAndGotoDeclaration(vararg expected: Long) {

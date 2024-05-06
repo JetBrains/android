@@ -25,8 +25,8 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * A [Filter] that redirects Android SDKSource results from a delegate filter.
  *
- * The filter reads the results of the delegate and replaces results that have a [HyperlinkInfo] for a file with a result that
- * has a [SdkSourceRedirectLinkInfo].
+ * The filter reads the results of the delegate and replaces results that have a [HyperlinkInfo] for
+ * a file with a result that has a [SdkSourceRedirectLinkInfo].
  */
 internal class SdkSourceRedirectFilter(
   private val project: Project,
@@ -39,27 +39,33 @@ internal class SdkSourceRedirectFilter(
     return apiLevel?.let { result.convert(it) } ?: result
   }
 
-  private fun Filter.Result.convert(sdk: Int): Filter.Result = Filter.Result(resultItems.map { it.convert(sdk) })
+  private fun Filter.Result.convert(sdk: Int): Filter.Result =
+    Filter.Result(resultItems.map { it.convert(sdk) })
 
   @Suppress("UnstableApiUsage") // MultipleFilesHyperlinkInfo is marked as @ApiStatus.Internal
   private fun Filter.ResultItem.convert(sdk: Int): Filter.ResultItem {
     return when (val info = hyperlinkInfo) {
-      is MultipleFilesHyperlinkInfo -> Filter.ResultItem(highlightStartOffset, highlightEndOffset, info.convert(sdk))
-      is OpenFileHyperlinkInfo -> Filter.ResultItem(highlightStartOffset, highlightEndOffset, info.convert(sdk))
+      is MultipleFilesHyperlinkInfo ->
+        Filter.ResultItem(highlightStartOffset, highlightEndOffset, info.convert(sdk))
+      is OpenFileHyperlinkInfo ->
+        Filter.ResultItem(highlightStartOffset, highlightEndOffset, info.convert(sdk))
       else -> this
     }
   }
 
   @Suppress("UnstableApiUsage") // MultipleFilesHyperlinkInfo is marked as @ApiStatus.Internal
   private fun MultipleFilesHyperlinkInfo.convert(sdk: Int): HyperlinkInfo {
-    // If there's no descriptor, MultipleFilesHyperlinkInfo won't be able to navigate anyway so there's nothing more we need to do
-    val descriptor = descriptor?: return this
+    // If there's no descriptor, MultipleFilesHyperlinkInfo won't be able to navigate anyway so
+    // there's nothing more we need to do
+    val descriptor = descriptor ?: return this
     return SdkSourceRedirectLinkInfo(project, filesVariants, descriptor, sdk)
   }
 
   private fun OpenFileHyperlinkInfo.convert(sdk: Int): HyperlinkInfo {
-    // If there's no descriptor, OpenFileHyperlinkInfo won't be able to navigate anyway so there's nothing more we need to do
-    val descriptor = descriptor?: return this // should not happen
-    return virtualFile?.let { SdkSourceRedirectLinkInfo(project, listOf(it), descriptor, sdk) } ?: this
+    // If there's no descriptor, OpenFileHyperlinkInfo won't be able to navigate anyway so there's
+    // nothing more we need to do
+    val descriptor = descriptor ?: return this // should not happen
+    return virtualFile?.let { SdkSourceRedirectLinkInfo(project, listOf(it), descriptor, sdk) }
+      ?: this
   }
 }

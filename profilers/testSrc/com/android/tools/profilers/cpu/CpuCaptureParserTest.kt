@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
@@ -37,7 +37,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.doReturn
 import java.io.File
 import java.io.IOException
-import java.util.Optional
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
@@ -72,25 +71,23 @@ class CpuCaptureParserTest {
     }
   }
 
-  private fun spyInitializeProcessTraceAction(traceType: TraceType) : ProcessTraceAction {
-    val mockFile = MockitoKt.mock<File>()
+  private fun spyInitializeProcessTraceAction(filename: String, traceType: TraceType): ProcessTraceAction {
+    val traceFile = CpuProfilerTestUtils.getTraceFile(filename)
     val traceId = 1000
     val processId = 100
     val processNameHint = "processNameHint"
     val mockIdeProfilerServices = MockitoKt.mock<IdeProfilerServices>()
-    doReturn("samplePath").whenever(mockFile).absolutePath;
-    return Mockito.spy(ProcessTraceAction(mockFile, traceId.toLong(),
-                                                            traceType, processId, processNameHint, mockIdeProfilerServices))
+    return Mockito.spy(
+      ProcessTraceAction(traceFile, traceId.toLong(), traceType, processId, processNameHint, mockIdeProfilerServices))
   }
 
   @Test
-  fun artKnownTypeParseToCaptureTest() {
+  fun artStreamingKnownTypeParseToCaptureTest() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.ART)
+    val processTraceAction = spyInitializeProcessTraceAction("art_streaming.trace", TraceType.ART)
     val resultCapture = MockitoKt.mock<CpuCapture>()
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
 
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.ART)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -100,20 +97,30 @@ class CpuCaptureParserTest {
   @Test(expected = FileHeaderParsingFailureException::class)
   fun artKnownTypeVerificationError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.ART)
-
+    val processTraceAction = spyInitializeProcessTraceAction("simpleperf.trace", TraceType.ART)
     // Trace verification fails
-    doReturn(Optional.of(getTypeVerifier(false))).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
     processTraceAction.apply(MockitoKt.mock<Void>())
+  }
+
+  @Test
+  fun artNonStreamingKnownTypeParseToCaptureTest() {
+    // Known trace type
+    val processTraceAction = spyInitializeProcessTraceAction("art_non_streaming.trace", TraceType.ART)
+    val resultCapture = MockitoKt.mock<CpuCapture>()
+    val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
+
+    doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.ART)
+    val result = processTraceAction.apply(MockitoKt.mock<Void>())
+    // File successfully parsed
+    assertThat(result).isEqualTo(resultCapture)
   }
 
   @Test(expected = CpuCaptureParser.ParsingFailureException::class)
   fun artKnownTypeParseError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.ART)
+    val processTraceAction = spyInitializeProcessTraceAction("art_streaming.trace", TraceType.ART)
     val supplierParseWithError = Supplier<TraceParser> { SampleParserWithException() }
 
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
     // Error while parsing the trace
     doReturn(supplierParseWithError).whenever(processTraceAction).getParserSupplier(TraceType.ART)
     processTraceAction.apply(MockitoKt.mock<Void>())
@@ -122,11 +129,10 @@ class CpuCaptureParserTest {
   @Test
   fun simpleperfKnownTypeParseToCaptureTest() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.SIMPLEPERF)
+    val processTraceAction = spyInitializeProcessTraceAction("simpleperf.trace", TraceType.SIMPLEPERF)
     val resultCapture = MockitoKt.mock<CpuCapture>()
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
 
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.SIMPLEPERF)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -136,20 +142,17 @@ class CpuCaptureParserTest {
   @Test(expected = FileHeaderParsingFailureException::class)
   fun simpleprefKnownTypeVerificationError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.SIMPLEPERF)
-
+    val processTraceAction = spyInitializeProcessTraceAction("art_streaming.trace", TraceType.SIMPLEPERF)
     // Fail trace verification
-    doReturn(Optional.of(getTypeVerifier(false))).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
     processTraceAction.apply(MockitoKt.mock<Void>())
   }
 
   @Test(expected = CpuCaptureParser.ParsingFailureException::class)
   fun simpleprefKnownTypeParseError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.SIMPLEPERF)
+    val processTraceAction = spyInitializeProcessTraceAction("simpleperf.trace", TraceType.SIMPLEPERF)
     val supplierParseWithError = Supplier<TraceParser> { SampleParserWithException() }
 
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
     // Error while parsing the trace
     doReturn(supplierParseWithError).whenever(processTraceAction).getParserSupplier(TraceType.SIMPLEPERF)
     processTraceAction.apply(MockitoKt.mock<Void>())
@@ -158,11 +161,10 @@ class CpuCaptureParserTest {
   @Test
   fun atraceKnownTypeParseToCaptureTest() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.ATRACE)
+    val processTraceAction = spyInitializeProcessTraceAction("atrace.ctrace",TraceType.ATRACE)
     val resultCapture = MockitoKt.mock<CpuCapture>()
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
 
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.ATRACE)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -172,20 +174,17 @@ class CpuCaptureParserTest {
   @Test(expected = FileHeaderParsingFailureException::class)
   fun atraceKnownTypeVerificationError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.ATRACE)
-
+    val processTraceAction = spyInitializeProcessTraceAction("simpleperf.trace", TraceType.ATRACE)
     // Fail trace verification
-    doReturn(Optional.of(getTypeVerifier(false))).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
     processTraceAction.apply(MockitoKt.mock<Void>())
   }
 
   @Test(expected = CpuCaptureParser.ParsingFailureException::class)
   fun atraceKnownTypeParseError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.ATRACE)
+    val processTraceAction = spyInitializeProcessTraceAction("atrace.ctrace", TraceType.ATRACE)
     val supplierParseWithError = Supplier<TraceParser> { SampleParserWithException() }
 
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
     // Error while parsing the trace
     doReturn(supplierParseWithError).whenever(processTraceAction).getParserSupplier(TraceType.ATRACE)
     processTraceAction.apply(MockitoKt.mock<Void>())
@@ -194,11 +193,9 @@ class CpuCaptureParserTest {
   @Test
   fun perfettoKnownTypeParseToCaptureTest() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.PERFETTO)
+    val processTraceAction = spyInitializeProcessTraceAction("perfetto.trace", TraceType.PERFETTO)
     val resultCapture = MockitoKt.mock<CpuCapture>()
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
-
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.PERFETTO)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -208,20 +205,16 @@ class CpuCaptureParserTest {
   @Test(expected = FileHeaderParsingFailureException::class)
   fun perfettoKnownTypeVerificationError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.PERFETTO)
-
+    val processTraceAction = spyInitializeProcessTraceAction("atrace.ctrace", TraceType.PERFETTO)
     // Fail trace verification
-    doReturn(Optional.of(getTypeVerifier(false))).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     processTraceAction.apply(MockitoKt.mock<Void>())
   }
 
   @Test(expected = CpuCaptureParser.ParsingFailureException::class)
   fun perfettoKnownTypeParseError() {
     // Known trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.PERFETTO)
+    val processTraceAction = spyInitializeProcessTraceAction("perfetto.trace", TraceType.PERFETTO)
     val supplierParseWithError = Supplier<TraceParser> { SampleParserWithException() }
-
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     // Error while parsing the trace
     doReturn(supplierParseWithError).whenever(processTraceAction).getParserSupplier(TraceType.PERFETTO)
     processTraceAction.apply(MockitoKt.mock<Void>())
@@ -230,16 +223,10 @@ class CpuCaptureParserTest {
   @Test
   fun artUnknownTypeParseToCapture() {
     // Unknown trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.UNSPECIFIED)
-    val typeVerifier = getTypeVerifier(false)
+    val processTraceAction = spyInitializeProcessTraceAction("art_streaming.trace", TraceType.UNSPECIFIED)
     val resultCapture = MockitoKt.mock<CpuCapture>()
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
 
-    // Set to return true for trace type art
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.ART)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -249,16 +236,10 @@ class CpuCaptureParserTest {
   @Test
   fun simpleperfUnknownTypeParseToCapture() {
     // Unknown trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.UNSPECIFIED)
-    val typeVerifier = getTypeVerifier(false)
+    val processTraceAction = spyInitializeProcessTraceAction("simpleperf.trace", TraceType.UNSPECIFIED)
     val resultCapture = MockitoKt.mock<CpuCapture>()
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
 
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
-    // Set to return true for trace type simpleperf
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.SIMPLEPERF)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -268,16 +249,10 @@ class CpuCaptureParserTest {
   @Test
   fun atraceUnknownTypeParseToCapture() {
     // Unknown trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.UNSPECIFIED)
-    val typeVerifier = getTypeVerifier(false)
+    val processTraceAction = spyInitializeProcessTraceAction("atrace.ctrace",TraceType.UNSPECIFIED)
     val resultCapture = MockitoKt.mock<CpuCapture>();
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
 
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
-    // Set to return true for trace type atrace
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.ATRACE)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -287,16 +262,10 @@ class CpuCaptureParserTest {
   @Test
   fun perfettoUnknownTypeParseToCapture() {
     // Unknown trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.UNSPECIFIED)
-    val typeVerifier = getTypeVerifier(false)
+    val processTraceAction = spyInitializeProcessTraceAction("perfetto.trace", TraceType.UNSPECIFIED)
     val resultCapture = MockitoKt.mock<CpuCapture>()
     val supplierParseWithoutError = Supplier<TraceParser> { SampleParserWithoutException(resultCapture) }
 
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
-    // Set to return true for trace type perfetto
-    doReturn(Optional.of(getTypeVerifier(true))).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     doReturn(supplierParseWithoutError).whenever(processTraceAction).getParserSupplier(TraceType.PERFETTO)
     val result = processTraceAction.apply(MockitoKt.mock<Void>())
     // File successfully parsed
@@ -306,14 +275,8 @@ class CpuCaptureParserTest {
   @Test(expected = CpuCaptureParser.UnknownParserParsingFailureException::class)
   fun unknownTypeParseToCaptureNoneTypeMatches() {
     // Unknown trace type
-    val processTraceAction = spyInitializeProcessTraceAction(TraceType.UNSPECIFIED)
-    val typeVerifier = getTypeVerifier(false)
-
+    val processTraceAction = spyInitializeProcessTraceAction("simpleperf_trace_without_symbols.trace", TraceType.UNSPECIFIED)
     // Trace verification fails
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ART)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.SIMPLEPERF)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.ATRACE)
-    doReturn(Optional.of(typeVerifier)).whenever(processTraceAction).getTraceInputVerification(TraceType.PERFETTO)
     processTraceAction.apply(MockitoKt.mock<Void>())
   }
 

@@ -1,0 +1,5 @@
+[dependencies]
+compile = [
+    { notation = 'com.google.code.guice:guice:1.0' },
+    { notation = 'com.google.guava:guava:18.0' }
+]

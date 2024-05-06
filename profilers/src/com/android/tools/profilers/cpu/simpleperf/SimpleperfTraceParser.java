@@ -15,19 +15,18 @@
  */
 package com.android.tools.profilers.cpu.simpleperf;
 
-import com.android.tools.adtui.model.Range;
 import com.android.tools.perflib.vmtrace.ClockType;
-import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.BaseCpuCapture;
+import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.profiler.proto.SimpleperfReport;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
 import com.android.tools.profilers.cpu.TraceParser;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.NoSymbolModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -47,6 +46,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 /**
  * Parses a trace file obtained using simpleperf to a map threadId -> {@link CaptureNode}.
@@ -294,6 +294,9 @@ public class SimpleperfTraceParser implements TraceParser {
           myEventTypes = info.getEventTypeList();
           myAppPackageName = info.getAppPackageName();
           myAppDataFolderPrefix = String.format("%s/%s", DATA_APP_DIR, myAppPackageName);
+          break;
+        case CONTEXT_SWITCH:
+          // Not using this type of data in profiler yet.
           break;
         default:
           getLog().warn("Unexpected record data type " + record.getRecordDataCase());

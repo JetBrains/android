@@ -25,8 +25,6 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
@@ -49,31 +47,24 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.VisibleForTesting
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -249,7 +240,7 @@ fun CoroutineScope.launchWithProgress(
 interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope {
 
   companion object {
-    private val CONTEXT: Key<CoroutineContext> = Key.create(::CONTEXT.qualifiedName)
+    private val CONTEXT: Key<CoroutineContext> = Key.create(::CONTEXT.qualifiedName<AndroidCoroutinesAware>())
   }
 
   /** @see AndroidCoroutineScope */
@@ -259,7 +250,7 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
     }
 }
 
-private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName)
+private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName<AndroidCoroutinesAware>())
 
 val Project.coroutineScope: CoroutineScope
   get() = getUserData(PROJECT_SCOPE) ?: (this as UserDataHolderEx).putUserDataIfAbsent(PROJECT_SCOPE, AndroidCoroutineScope(this))
@@ -354,55 +345,6 @@ suspend fun <T> runWriteActionAndWait(compute: Computable<T>): T = coroutineScop
  * [Exception] thrown by [runReadActionWithWritePriority] when `maxRetries` has been exceeded.
  */
 class RetriesExceededException(message: String? = null) : Exception(message)
-
-/**
- * Runs the given [callable] in a read action with action priority (see [ProgressIndicatorUtils.runInReadActionWithWriteActionPriority]).
- * The [callable] will be retried [maxRetries] if cancelled because a write action taking priority. This will wait [maxWaitTime] [maxWaitTimeUnit]
- * before throwing a [TimeoutException].
- *
- * [callable] will receive a `checkCancelled` function that must be invoked frequently to ensure the operation can continue. [callable]
- * will throw a [ProcessCanceledException] if the operation is not needed anymore, for example when the timeout has been exceeded.
- */
-@kotlin.jvm.Throws(TimeoutException::class, RetriesExceededException::class)
-suspend fun <T> runReadActionWithWritePriority(
-  maxRetries: Int = 3,
-  maxWaitTime: Long = 10,
-  maxWaitTimeUnit: TimeUnit = TimeUnit.SECONDS,
-  callable: (checkCancelled: ()-> Unit) -> T
-): T {
-  try {
-    return withTimeout(maxWaitTimeUnit.toMillis(maxWaitTime)) {
-      var retries = 0
-      while (retries++ < maxRetries) {
-        val result = AtomicReference<T?>(null)
-        ensureActive()
-        val executed = runInterruptible(workerThread) {
-            ProgressIndicatorUtils.runInReadActionWithWriteActionPriority {
-              if (isActive) result.set(callable {
-                ProgressManager.checkCanceled()
-                ensureActive()
-              })
-            }
-          }
-        if (executed) return@withTimeout result.get()!!
-        /**
-         * If we end up here it means that the [runReadActionWithWritePriority] call was interrupted by some [WriteAction].
-         * Retrying straight away will most probably fail again since that [WriteAction] is still happening.
-         * Thus, we are waiting for the end of the [WriteAction] by blocking on a no-op `ReadAction`. After that read action happens it
-         * is only makes sense to retry again.
-         */
-        readAction { }
-      }
-      throw RetriesExceededException("Could you complete the action after $maxRetries retries.")
-    }
-  }
-  catch (timeout: TimeoutCancellationException) {
-    throw TimeoutException("Deadline $maxWaitTime $maxWaitTimeUnit exceeded.")
-  }
-  catch (_: CancellationException) {
-    throw ProcessCanceledException()
-  }
-}
 
 /**
  * Similar to [AndroidPsiUtils#getPsiFileSafely] but using a suspendable function.

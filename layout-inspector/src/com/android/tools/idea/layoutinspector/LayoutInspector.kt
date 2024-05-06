@@ -155,7 +155,7 @@ private constructor(
 
   init {
     // refresh the rendering each time the inspector model changes
-    inspectorModel.modificationListeners.add { _, newAndroidWindow, _ ->
+    inspectorModel.addModificationListener { _, newAndroidWindow, _ ->
       newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
       renderModel.refresh()
     }
@@ -285,6 +285,7 @@ private constructor(
   companion object {
     fun get(component: Component): LayoutInspector? =
       DataManager.getInstance().getDataContext(component).getData(LAYOUT_INSPECTOR_DATA_KEY)
+
     fun get(event: AnActionEvent): LayoutInspector? = event.getData(LAYOUT_INSPECTOR_DATA_KEY)
   }
 }

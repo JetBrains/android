@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.simpleperf
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.TracePreProcessor
@@ -61,8 +61,9 @@ class SimpleperfSampleReporterTest {
 
   @Test
   fun preProcessingRawTraceReturnsValidTrace() {
-    val processedTrace = sampleReporter.preProcessTrace(CpuProfilerTestUtils.traceFileToByteString("simpleperf_raw_trace.trace"),
-                                                        emptyList())
+    val processedTrace = sampleReporter.preProcessTrace(
+      CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace"),
+      emptyList())
     assertThat(processedTrace).isNotEqualTo(TracePreProcessor.FAILURE)
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
@@ -73,57 +74,49 @@ class SimpleperfSampleReporterTest {
     assertThat(parsedTrace).isNotNull()
   }
 
-  @Test
-  fun unknownSymbolsSymbolizedWhenProvidingSymDir() {
-    val symDir = listOf(resolveWorkspacePath("tools/adt/idea/profilers/testData").toString())
+  private fun unknownRawSymbolsSymbolizedOnlyIfValidSymDirProvided(symDir: List<String>, expectedName: String) {
     val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
 
     // When providing a path to SimpleperfSampleReporter, we should include the --symdir flag in the report-sample command.
-    assertThat(sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), symDir)).contains("--symdir")
+    // That happens even if the path does not contain valid .so files.
+    val command = sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), symDir)
+    if (symDir.isEmpty()) {
+      assertThat(command).doesNotContain("--symdir")
+    } else {
+      assertThat(command).contains("--symdir")
+    }
 
     val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
     FileOutputStream(trace).use { out -> out.write(sampleReporter.preProcessTrace(rawTrace, symDir).toByteArray()) }
     val parsedTrace = SimpleperfTraceParser().parse(trace, 0)
 
-    val unknownSymbol = parsedTrace.getCaptureNode(27465)!!.children[0].children[0].children[0].data.name
+    // Find the target node in a given thread, at a particular location in the tree
+    var target = parsedTrace.getCaptureNode(15496)!!
+    for (i in intArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)) {
+      target = target.children[i]
+    }
+    assertThat(target!!.data.name).isEqualTo(expectedName)
+  }
+
+  @Test
+  fun unknownSymbolsSymbolizedWhenProvidingSymDir() {
+    val symDir = listOf(resolveWorkspacePath("tools/adt/idea/profilers/testData").toString())
     // The unknown symbol should be properly symbolized
-    assertThat(unknownSymbol).isEqualTo("android_app_entry")
+    unknownRawSymbolsSymbolizedOnlyIfValidSymDirProvided(symDir, "DoExpensiveFpuCalculation")
   }
 
   @Test
   fun unknownSymbolsNotSymbolizedWhenSymDirNotProvided() {
-    val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
-
-    // When not providing a path to SimpleperfSampleReporter, we shouldn't include the --symdir flag in the report-sample command.
-    assertThat(sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), emptyList())).doesNotContain(
-      "--symdir")
-
-    val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
-    FileOutputStream(trace).use { out -> out.write(sampleReporter.preProcessTrace(rawTrace, emptyList()).toByteArray()) }
-    val parsedTrace = SimpleperfTraceParser().parse(trace, 0)
-
-    val unknownSymbol = parsedTrace.getCaptureNode(27465)!!.children[0].children[0].children[0].data.name
-    // The unknown symbol should not be properly symbolized
-    assertThat(unknownSymbol).isEqualTo("libgame.so+0x29508")
+    // The unknown symbol should not be properly symbolized, if no paths to symbols are provided.
+    unknownRawSymbolsSymbolizedOnlyIfValidSymDirProvided(emptyList(), "libnative_cpu.so+0xdb18")
   }
 
   @Test
   fun unknownSymbolsNotSymbolizedWhenProvidingInvalidSymDir() {
     val symDir = listOf(
       resolveWorkspacePath("tools/adt/idea/profilers/testData/cputraces").toString()) // Dir without valid .so files
-    val rawTrace = CpuProfilerTestUtils.traceFileToByteString("simpleperf_trace_without_symbols.trace")
-
-    // When providing a path to SimpleperfSampleReporter, we should include the --symdir flag in the report-sample command.
-    // That happens even if the path does not contain valid .so files.
-    assertThat(sampleReporter.getReportSampleCommand(rawTrace, FileUtil.createTempFile("any", "file", true), symDir)).contains("--symdir")
-
-    val trace = FileUtil.createTempFile("cpu_trace", ".trace", true)
-    FileOutputStream(trace).use { out -> out.write(sampleReporter.preProcessTrace(rawTrace, symDir).toByteArray()) }
-    val parsedTrace = SimpleperfTraceParser().parse(trace, 0)
-
-    val unknownSymbol = parsedTrace.getCaptureNode(27465)!!.children[0].children[0].children[0].data.name
-    // The unknown symbol should be properly symbolized
-    assertThat(unknownSymbol).isEqualTo("libgame.so+0x29508")
+    // The unknown symbol should NO be properly symbolized
+    unknownRawSymbolsSymbolizedOnlyIfValidSymDirProvided(symDir, "libnative_cpu.so+0xdb18")
   }
 
   @Test

@@ -23,22 +23,45 @@ import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.psi.PsiElement
 
 /**
- * An [Annotator] that highlights errors in the [com.android.tools.idea.logcat.filters.parser.LogcatFilterLanguage]
+ * An [Annotator] that highlights errors in the
+ * [com.android.tools.idea.logcat.filters.parser.LogcatFilterLanguage]
  */
 internal class LogcatFilterErrorAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     if (element is LogcatFilterLiteralExpression) {
       when (element.firstChild.text) {
-        "level:" -> element.lastChild.checkForError(holder, String::isValidLogLevel, message("logcat.filter.error.log.level"))
-        "age:" -> element.lastChild.checkForError(holder, String::isValidLogAge, message("logcat.filter.error.duration"))
-        "is:" -> element.lastChild.checkForError(holder, String::isValidIsFilter, message("logcat.filter.error.qualifier"))
+        "level:" ->
+          element.lastChild.checkForError(
+            holder,
+            String::isValidLogLevel,
+            message("logcat.filter.error.log.level")
+          )
+        "age:" ->
+          element.lastChild.checkForError(
+            holder,
+            String::isValidLogAge,
+            message("logcat.filter.error.duration")
+          )
+        "is:" ->
+          element.lastChild.checkForError(
+            holder,
+            String::isValidIsFilter,
+            message("logcat.filter.error.qualifier")
+          )
       }
     }
   }
 }
 
-private fun PsiElement.checkForError(holder: AnnotationHolder, isValid: (String) -> Boolean, message: String) {
+private fun PsiElement.checkForError(
+  holder: AnnotationHolder,
+  isValid: (String) -> Boolean,
+  message: String
+) {
   if (!isValid(text)) {
-    holder.newAnnotation(ERROR, message("logcat.filter.error", message, text)).range(textRange).create()
+    holder
+      .newAnnotation(ERROR, message("logcat.filter.error", message, text))
+      .range(textRange)
+      .create()
   }
 }

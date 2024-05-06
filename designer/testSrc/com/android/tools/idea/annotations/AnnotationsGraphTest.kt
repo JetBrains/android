@@ -49,6 +49,7 @@ private class TestNodeInfo(
 
   // Flag used to distinguish back edges
   private var traversing = false
+
   override fun onSkippedChildTraversal(child: NodeInfo<DfsSubtreeEdges>) {
     // Skipped edges are back, forward or cross
     if ((child as TestNodeInfo).traversing) subtreeInfo.backEdgesCount++
@@ -118,6 +119,7 @@ class AnnotationsGraphTest {
 
   private val project
     get() = projectRule.project
+
   private val fixture
     get() = projectRule.fixture
 

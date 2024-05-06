@@ -26,7 +26,6 @@ import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.io.File
 import java.io.IOException
@@ -79,7 +78,7 @@ class KnownGradlePluginsServiceImplTest {
     val downloadableFileDescription = DownloadableFileDescriptionImpl(distributionUrl.toString(), fileName, "json")
 
     val downloader = Mockito.mock(FileDownloader::class.java)
-    whenever(downloader.download(ArgumentMatchers.any(File::class.java)))
+    whenever(downloader.download(Mockito.any(File::class.java)))
       .thenReturn(listOf(Pair(distributionFile, downloadableFileDescription)))
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)
@@ -92,7 +91,7 @@ class KnownGradlePluginsServiceImplTest {
     val outputDir = temporaryFolder.newFolder()
     val localCache = FileUtils.join(outputDir, "cache")
     val downloader = Mockito.mock(FileDownloader::class.java)
-    whenever(downloader.download(ArgumentMatchers.any(File::class.java)))
+    whenever(downloader.download(Mockito.any(File::class.java)))
       .thenThrow(IOException())
 
     val service = KnownGradlePluginsServiceImpl(downloader, localCache)

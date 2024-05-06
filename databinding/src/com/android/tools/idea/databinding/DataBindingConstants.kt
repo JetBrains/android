@@ -18,12 +18,15 @@ package com.android.tools.idea.databinding
 const val BINDING_METHODS_ANNOTATION = "BindingMethods"
 const val INVERSE_BINDING_METHODS_ANNOTATION = "InverseBindingMethods"
 
-val DATA_BINDING_ANNOTATIONS = listOf("Bindable",
-                                      "BindingAdapter",
-                                      "BindingConversion",
-                                      "BindingMethod",
-                                      BINDING_METHODS_ANNOTATION,
-                                      "InverseBindingAdapter",
-                                      "InverseBindingMethod",
-                                      INVERSE_BINDING_METHODS_ANNOTATION,
-                                      "InverseMethod")
+val DATA_BINDING_ANNOTATIONS =
+  listOf(
+    "Bindable",
+    "BindingAdapter",
+    "BindingConversion",
+    "BindingMethod",
+    BINDING_METHODS_ANNOTATION,
+    "InverseBindingAdapter",
+    "InverseBindingMethod",
+    INVERSE_BINDING_METHODS_ANNOTATION,
+    "InverseMethod"
+  )

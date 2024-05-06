@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 @Service
 public final class ProjectMlModelFileTracker extends SimpleModificationTracker {
   public ProjectMlModelFileTracker(@NotNull Project project) {
-    project.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+    project.getMessageBus().connect(project).subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {
         boolean hasModelFile = false;

@@ -17,7 +17,7 @@ package org.jetbrains.kotlin.android;
 
 
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -52,7 +52,7 @@ public final class InTextDirectivesUtils {
 
   @NotNull
   public static String[] findArrayWithPrefixes(@NotNull String fileText, @NotNull String... prefixes) {
-    return ArrayUtilRt.toStringArray(findListWithPrefixes(fileText, prefixes));
+    return ArrayUtil.toStringArray(findListWithPrefixes(fileText, prefixes));
   }
 
   @NotNull

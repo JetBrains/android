@@ -16,7 +16,6 @@
 package com.android.tools.idea.diagnostics
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.diagnostics.SystemHealthDataCollection.Clock
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SystemHealthEvent
@@ -32,7 +31,6 @@ import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.EDT
 import org.jetbrains.annotations.VisibleForTesting
-import java.io.File
 import java.lang.management.ManagementFactory
 import java.nio.file.Path
 import java.time.Duration
@@ -140,8 +138,8 @@ class SystemHealthDataCollection: Disposable {
       triggers::gcThresholdMetAfterCollection,
       LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC, this)
 
-    AndroidStudioSystemHealthMonitor.getInstance()?.registerOutOfMemoryErrorListener(
-      Runnable { triggers.outOfMemoryErrorRaised() }, this)
+    AndroidStudioSystemHealthMonitor.getInstance()
+      ?.registerOutOfMemoryErrorListener({ triggers.outOfMemoryErrorRaised() }, this)
   }
 
   private fun logLowMemoryWarning(type: LowMemoryWatcher.LowMemoryWatcherType) {

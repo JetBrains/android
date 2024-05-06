@@ -15,26 +15,27 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
-
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
-import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidgetConstants;
 import com.android.tools.property.panel.api.HelpSupport;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
-import java.util.HashMap;
 import java.util.function.Supplier;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
 
 /**
  * Utility functions

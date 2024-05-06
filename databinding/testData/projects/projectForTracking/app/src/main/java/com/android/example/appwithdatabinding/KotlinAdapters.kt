@@ -19,10 +19,18 @@ import androidx.databinding.BindingMethod
 import androidx.databinding.BindingMethods
 import androidx.databinding.InverseMethod
 
-@BindingMethods(BindingMethod(type = View::class, attribute = "android:backgroundTint", method = "setBackgroundTintList"),
-                BindingMethod(type = View::class, attribute = "android:fadeScrollbars", method = "setScrollbarFadingEnabled"))
+@BindingMethods(
+  BindingMethod(
+    type = View::class,
+    attribute = "android:backgroundTint",
+    method = "setBackgroundTintList"
+  ),
+  BindingMethod(
+    type = View::class,
+    attribute = "android:fadeScrollbars",
+    method = "setScrollbarFadingEnabled"
+  )
+)
 class KotlinAdapters {
-  @InverseMethod("inverseMethod")
-  fun setImageNumber(num: Int) {
-  }
+  @InverseMethod("inverseMethod") fun setImageNumber(num: Int) {}
 }

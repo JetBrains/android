@@ -77,7 +77,6 @@ import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.dom.raw.RawDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomFileDescription;
 import org.jetbrains.android.dom.transition.TransitionDomUtil;
-import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.XmlResourceDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
@@ -222,8 +221,8 @@ public class AndroidXmlCompletionContributor extends CompletionContributor {
       addAll(AndroidAnimatorUtil.getPossibleRoots(), resultSet);
       return false;
     }
-    else if (XmlResourceDomFileDescription.isXmlResourceFile(xmlFile)) {
-      addAll(AndroidXmlResourcesUtil.ROOT_TAGS, resultSet);
+    else if (XmlResourceDomFileDescription.Util.isXmlResourceFile(xmlFile)) {
+      addAll(XmlResourceDomFileDescription.Util.SUPPORTED_TAGS, resultSet);
       return false;
     }
     else if (TransitionDomFileDescription.isTransitionFile(xmlFile)) {

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.actions
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -29,7 +29,7 @@ class GenerateSourcesModuleAction : AndroidStudioGradleAction(ACTION_TEXT) {
   override fun doUpdate(e: AnActionEvent, project: Project) {
     val dataContext = e.dataContext
 
-    val modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(dataContext)
+    val modules = Info.getInstance(project).getModulesToBuildFromSelection(dataContext)
 
     e.presentation.isEnabled = modules.isNotEmpty()
     e.presentation.text = MENU_TEXT
@@ -37,7 +37,7 @@ class GenerateSourcesModuleAction : AndroidStudioGradleAction(ACTION_TEXT) {
   }
 
   override fun doPerform(e: AnActionEvent, project: Project) {
-    val modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
+    val modules = Info.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
     GradleBuildInvoker.getInstance(project).generateSources(modules)
   }
 

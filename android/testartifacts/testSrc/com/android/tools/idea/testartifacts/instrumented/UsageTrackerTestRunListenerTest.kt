@@ -35,10 +35,10 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.google.wireless.android.sdk.stats.TestRun
-import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.testFramework.PlatformTestCase
 import org.mockito.Mockito.mock
 
-class UsageTrackerTestRunListenerTest : HeavyPlatformTestCase() {
+class UsageTrackerTestRunListenerTest : PlatformTestCase() {
   private val serial = "my serial"
 
   private fun checkLoggedEvent(instrumentationOutput: String, block: (AndroidStudioEvent) -> Unit) {

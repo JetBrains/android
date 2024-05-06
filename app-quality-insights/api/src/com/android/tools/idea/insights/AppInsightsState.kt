@@ -27,7 +27,9 @@ data class Filters(
 ) {
   fun withVersions(value: Set<Version>) =
     copy(versions = versions.selectMatching { it.value in value })
+
   fun withTimeInterval(value: TimeIntervalFilter?) = copy(timeInterval = timeInterval.select(value))
+
   fun withFatalityToggle(vararg toggles: FailureType) =
     copy(
       failureTypeToggles =
@@ -60,11 +62,17 @@ data class AppInsightsState(
    */
   val issues: LoadingState<Timed<Selection<AppInsightsIssue>>>,
 
+  /** Issue variants associated with the currently selected issue. */
+  val currentIssueVariants: LoadingState<Selection<IssueVariant>?> = LoadingState.Ready(null),
+
   /**
    * Issue details whose state depends on the above selection and is loaded asynchronously over the
    * network.
    */
   val currentIssueDetails: LoadingState<DetailedIssueStats?> = LoadingState.Ready(null),
+
+  /** List of events associated with the current issue. */
+  val currentEvents: LoadingState<DynamicEventGallery?> = LoadingState.Ready(null),
 
   /**
    * Notes whose state depends on the issue selection and is loaded asynchronously over the network.
@@ -77,6 +85,13 @@ data class AppInsightsState(
 ) {
   val selectedIssue: AppInsightsIssue?
     get() = if (issues is LoadingState.Ready) issues.value.value.selected else null
+
+  val selectedVariant: IssueVariant?
+    get() =
+      if (currentIssueVariants is LoadingState.Ready) currentIssueVariants.value?.selected else null
+
+  val selectedEvent: Event?
+    get() = (currentEvents as? LoadingState.Ready)?.value?.selected
 
   /** Returns a new state with a new [TimeIntervalFilter] selected. */
   fun selectTimeInterval(value: TimeIntervalFilter?): AppInsightsState =

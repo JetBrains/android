@@ -30,10 +30,10 @@ import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
+import com.google.common.base.Charsets;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -184,7 +184,7 @@ public class StudioReportDatabaseTest {
   public void testCorruptedDatabaseFile() throws IOException {
     Path t1 = createTempFileWithThreadDump("T1");
     db.appendReport(new PerformanceThreadDumpReport(t1, "Performance thread dump description"));
-    Files.write(databaseFile.toPath(), "Corrupted json".getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
+    Files.write(databaseFile.toPath(), "Corrupted json".getBytes(Charsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
     List<DiagnosticReport> details = db.reapReports();
 
     // If the db file contains corrupted of malformed json, return no reports.
@@ -221,7 +221,7 @@ public class StudioReportDatabaseTest {
   @NotNull
   private Path createTempFileWithThreadDump(@NotNull String contents) throws IOException {
     File file = myTestFolder.newFile();
-    Files.write(file.toPath(), contents.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+    Files.write(file.toPath(), contents.getBytes(Charsets.UTF_8), StandardOpenOption.CREATE);
     return file.toPath();
   }
 }

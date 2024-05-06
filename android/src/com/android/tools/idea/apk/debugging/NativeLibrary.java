@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.apk.debugging;
 
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.sdklib.devices.Abi;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -172,7 +172,7 @@ public class NativeLibrary {
     String folderName = parent.getName();
     Abi abi = Abi.getEnum(folderName);
     if (abi == null) {
-      throw new IllegalArgumentException("Failed to find ABI for file: '" + FileUtilRt.toSystemDependentName(file.getPath()) + "'");
+      throw new IllegalArgumentException("Failed to find ABI for file: '" + toSystemDependentName(file.getPath()) + "'");
     }
     return abi;
   }

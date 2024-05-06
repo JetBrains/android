@@ -19,14 +19,14 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.res.LocalResourceRepository
 import com.google.common.truth.Truth.assertThat
 import com.intellij.BundleBase
 import com.intellij.ide.IdeBundle
@@ -42,6 +42,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.application
@@ -85,14 +86,15 @@ class StringResourceWriterTest {
     get() = projectRule.project
 
   private lateinit var resourceDirectory: VirtualFile
-  private lateinit var localResourceRepository: LocalResourceRepository
+  private lateinit var localResourceRepository: ResourceRepository
   private lateinit var facet: AndroidFacet
 
   private val stringResourceWriter = StringResourceWriter.INSTANCE
+
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath =
-        resolveWorkspacePath("tools/adt/idea/android/testData").toString()
+      resolveWorkspacePath("tools/adt/idea/android/testData").toString()
 
     facet = AndroidFacet.getInstance(projectRule.module)!!
 
@@ -114,7 +116,7 @@ class StringResourceWriterTest {
 
     assertThat(xmlFile).isNotNull()
     assertThat(xmlFile?.virtualFile)
-        .isEqualTo(resourceDirectory.findFileByRelativePath(defaultLocaleFile))
+      .isEqualTo(resourceDirectory.findFileByRelativePath(defaultLocaleFile))
   }
 
   @Test
@@ -133,7 +135,8 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNull()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, KOREAN_LOCALE)).isTrue()
+    assertThat(stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, KOREAN_LOCALE))
+      .isTrue()
 
     assertThat(resourceDirectory.findFileByRelativePath(KOREAN_STRINGS_FILE)).isNotNull()
     assertThat(getText(KOREAN_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
@@ -145,7 +148,8 @@ class StringResourceWriterTest {
     assertThat(resourceDirectory.findFileByRelativePath(FRENCH_STRINGS_FILE)).isNotNull()
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, FRENCH_LOCALE)).isTrue()
+    assertThat(stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, FRENCH_LOCALE))
+      .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
@@ -159,7 +163,8 @@ class StringResourceWriterTest {
 
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.addTranslationToFile(project, xmlFile, resourceKey, NEW_VALUE)).isTrue()
+    assertThat(stringResourceWriter.addTranslationToFile(project, xmlFile, resourceKey, NEW_VALUE))
+      .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(FRENCH_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE)).isNull()
@@ -169,12 +174,14 @@ class StringResourceWriterTest {
   fun add_notTranslatable() {
     val resourceKey = StringResourceKey(NEW_KEY, resourceDirectory)
 
-    assertThat(stringResourceWriter.addDefault(project, resourceKey, NEW_VALUE, translatable = false))
-        .isTrue()
+    assertThat(
+        stringResourceWriter.addDefault(project, resourceKey, NEW_VALUE, translatable = false)
+      )
+      .isTrue()
 
     assertThat(getText(DEFAULT_STRINGS_FILE, NEW_KEY)).isEqualTo(NEW_VALUE_ESCAPED)
     assertThat(getAttribute(DEFAULT_STRINGS_FILE, NEW_KEY, SdkConstants.ATTR_TRANSLATABLE))
-        .isEqualTo(false.toString())
+      .isEqualTo(false.toString())
   }
 
   @Test
@@ -195,12 +202,19 @@ class StringResourceWriterTest {
 
     val insertBefore = StringResourceKey(KEY2, resourceDirectory)
     assertThat(
-            stringResourceWriter.addTranslation(project, resourceKey, NEW_VALUE, FRENCH_LOCALE, insertBefore = insertBefore))
-        .isTrue()
+        stringResourceWriter.addTranslation(
+          project,
+          resourceKey,
+          NEW_VALUE,
+          FRENCH_LOCALE,
+          insertBefore = insertBefore
+        )
+      )
+      .isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, NEW_KEY)).isTrue()
     assertThat(textPosition(FRENCH_STRINGS_FILE, KEY2) - textPosition(FRENCH_STRINGS_FILE, NEW_KEY))
-        .isEqualTo(1)
+      .isEqualTo(1)
   }
 
   @Test
@@ -209,8 +223,16 @@ class StringResourceWriterTest {
     val resourceFileName = "atypical-strings.xml"
     val resourceKey = StringResourceKey(key, resourceDirectory)
     val value = "la touche atypique 1"
-    assertThat(StringResourceWriter.INSTANCE
-                 .addTranslation(project, resourceKey, value, locale = FRENCH_LOCALE, resourceFileName = resourceFileName)).isTrue()
+    assertThat(
+        StringResourceWriter.INSTANCE.addTranslation(
+          project,
+          resourceKey,
+          value,
+          locale = FRENCH_LOCALE,
+          resourceFileName = resourceFileName
+        )
+      )
+      .isTrue()
     assertThat(getText("values-fr/${resourceFileName}", key)).isEqualTo(value)
   }
 
@@ -231,29 +253,31 @@ class StringResourceWriterTest {
     val resourceItem = getResourceItem(KEY2, FRENCH_LOCALE)
     val attributeValue = "such a great attribute, dude!"
     assertThat(
-            stringResourceWriter.setAttribute(project, attributeName, attributeValue, resourceItem))
-        .isTrue()
+        stringResourceWriter.setAttribute(project, attributeName, attributeValue, resourceItem)
+      )
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEqualTo(attributeValue)
     // Change it to something new.
     val nextAttributeValue = "This attribute is even better."
     assertThat(
-            stringResourceWriter.setAttribute(
-                project, attributeName, nextAttributeValue, resourceItem))
-        .isTrue()
+        stringResourceWriter.setAttribute(project, attributeName, nextAttributeValue, resourceItem)
+      )
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEqualTo(nextAttributeValue)
 
     // Now show we can set to the empty string.
     assertThat(stringResourceWriter.setAttribute(project, attributeName, value = "", resourceItem))
-        .isTrue()
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEmpty()
 
     // Now remove by setting to null.
     assertThat(
-            stringResourceWriter.setAttribute(project, attributeName, value = null, resourceItem))
-        .isTrue()
+        stringResourceWriter.setAttribute(project, attributeName, value = null, resourceItem)
+      )
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isNull()
   }
@@ -270,12 +294,14 @@ class StringResourceWriterTest {
     // Start by creating the attribute from nothing
     val attributeValue = "such a great attribute, dude!"
     assertThat(
-            stringResourceWriter.setAttribute(
-                project,
-                attributeName,
-                attributeValue,
-                listOf(frenchResourceItem, englishResourceItem)))
-        .isTrue()
+        stringResourceWriter.setAttribute(
+          project,
+          attributeName,
+          attributeValue,
+          listOf(frenchResourceItem, englishResourceItem)
+        )
+      )
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEqualTo(attributeValue)
     assertThat(getAttribute(ENGLISH_STRINGS_FILE, KEY2, attributeName)).isEqualTo(attributeValue)
@@ -283,37 +309,43 @@ class StringResourceWriterTest {
     // Change it to something new.
     val nextAttributeValue = "This attribute is even better."
     assertThat(
-            stringResourceWriter.setAttribute(
-                project,
-                attributeName,
-                nextAttributeValue,
-                listOf(frenchResourceItem, englishResourceItem)))
-        .isTrue()
+        stringResourceWriter.setAttribute(
+          project,
+          attributeName,
+          nextAttributeValue,
+          listOf(frenchResourceItem, englishResourceItem)
+        )
+      )
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEqualTo(nextAttributeValue)
     assertThat(getAttribute(ENGLISH_STRINGS_FILE, KEY2, attributeName))
-        .isEqualTo(nextAttributeValue)
+      .isEqualTo(nextAttributeValue)
 
     // Now show we can set to the empty string.
     assertThat(
-            stringResourceWriter.setAttribute(
-                project,
-                attributeName,
-                value = "",
-                listOf(frenchResourceItem, englishResourceItem)))
-        .isTrue()
+        stringResourceWriter.setAttribute(
+          project,
+          attributeName,
+          value = "",
+          listOf(frenchResourceItem, englishResourceItem)
+        )
+      )
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isEmpty()
     assertThat(getAttribute(ENGLISH_STRINGS_FILE, KEY2, attributeName)).isEmpty()
 
     // Now remove by setting to null.
     assertThat(
-            stringResourceWriter.setAttribute(
-                project,
-                attributeName,
-                value = null,
-                listOf(frenchResourceItem, englishResourceItem)))
-        .isTrue()
+        stringResourceWriter.setAttribute(
+          project,
+          attributeName,
+          value = null,
+          listOf(frenchResourceItem, englishResourceItem)
+        )
+      )
+      .isTrue()
 
     assertThat(getAttribute(FRENCH_STRINGS_FILE, KEY2, attributeName)).isNull()
     assertThat(getAttribute(ENGLISH_STRINGS_FILE, KEY2, attributeName)).isNull()
@@ -339,11 +371,12 @@ class StringResourceWriterTest {
     assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isTrue()
 
     assertThat(
-            stringResourceWriter.delete(
-                project,
-                listOf(
-                    getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))))
-        .isTrue()
+        stringResourceWriter.delete(
+          project,
+          listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))
+        )
+      )
+      .isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
     assertThat(textExists(ENGLISH_STRINGS_FILE, KEY2)).isFalse()
@@ -369,7 +402,8 @@ class StringResourceWriterTest {
     respondToNextDialogWith(Messages.CANCEL)
 
     dumbSafeDelete(
-        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE)))
+      listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))
+    )
 
     assertThat(dialogMessages).hasSize(1)
     assertThat(dialogMessages[0]).startsWith("Delete 2 XML tags?")
@@ -398,7 +432,8 @@ class StringResourceWriterTest {
     respondToNextDialogWith(Messages.OK)
 
     dumbSafeDelete(
-        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE)))
+      listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))
+    )
 
     assertThat(dialogMessages).hasSize(1)
     assertThat(dialogMessages[0]).startsWith("Delete 2 XML tags?")
@@ -445,7 +480,8 @@ class StringResourceWriterTest {
     enableHeadlessDialogs(project)
 
     interactWithSafeDeleteDialog(
-        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))) {
+      listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))
+    ) {
       it.getSafeDeleteCheckbox().isSelected = true
       it.click("OK")
     }
@@ -477,7 +513,8 @@ class StringResourceWriterTest {
     enableHeadlessDialogs(project)
 
     interactWithSafeDeleteDialog(
-        listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))) {
+      listOf(getResourceItem(KEY2, FRENCH_LOCALE), getResourceItem(KEY2, ENGLISH_LOCALE))
+    ) {
       // Deselect the checkbox so that it runs a not-safe delete.
       it.getSafeDeleteCheckbox().isSelected = false
       it.click("OK")
@@ -493,9 +530,13 @@ class StringResourceWriterTest {
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo(KEY2_INITIAL_VALUE_FRENCH)
 
     assertThat(
-            stringResourceWriter.setItemText(
-                project, getResourceItem(KEY2, FRENCH_LOCALE), "L'Étranger"))
-        .isTrue()
+        stringResourceWriter.setItemText(
+          project,
+          getResourceItem(KEY2, FRENCH_LOCALE),
+          "L'Étranger"
+        )
+      )
+      .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("""L\'Étranger""")
   }
@@ -505,9 +546,13 @@ class StringResourceWriterTest {
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo(KEY2_INITIAL_VALUE_FRENCH)
 
     assertThat(
-            stringResourceWriter.setItemText(
-                project, getResourceItem(KEY2, FRENCH_LOCALE), "<![CDATA[L'Étranger]]>"))
-        .isTrue()
+        stringResourceWriter.setItemText(
+          project,
+          getResourceItem(KEY2, FRENCH_LOCALE),
+          "<![CDATA[L'Étranger]]>"
+        )
+      )
+      .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("<![CDATA[L'Étranger]]>")
   }
@@ -517,9 +562,13 @@ class StringResourceWriterTest {
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo(KEY2_INITIAL_VALUE_FRENCH)
 
     assertThat(
-            stringResourceWriter.setItemText(
-                project, getResourceItem(KEY2, FRENCH_LOCALE), "<xliff:g>L'Étranger</xliff:g>"))
-        .isTrue()
+        stringResourceWriter.setItemText(
+          project,
+          getResourceItem(KEY2, FRENCH_LOCALE),
+          "<xliff:g>L'Étranger</xliff:g>"
+        )
+      )
+      .isTrue()
 
     assertThat(getText(FRENCH_STRINGS_FILE, KEY2)).isEqualTo("""<xliff:g>L\'Étranger</xliff:g>""")
   }
@@ -529,36 +578,35 @@ class StringResourceWriterTest {
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isTrue()
 
     assertThat(stringResourceWriter.setItemText(project, getResourceItem(KEY2, FRENCH_LOCALE), ""))
-        .isTrue()
+      .isTrue()
 
     assertThat(textExists(FRENCH_STRINGS_FILE, KEY2)).isFalse()
   }
 
   private fun getResourceItem(name: String, locale: Locale): ResourceItem =
-      localResourceRepository
-          .getResources(ResourceNamespace.RES_AUTO, ResourceType.STRING, name)
-          .find { locale.qualifier == it.configuration.localeQualifier }
-          ?: throw AssertionError()
+    localResourceRepository
+      .getResources(ResourceNamespace.RES_AUTO, ResourceType.STRING, name)
+      .find { locale.qualifier == it.configuration.localeQualifier } ?: throw AssertionError()
 
   private fun getText(path: String, name: String): String {
     val virtualFile = resourceDirectory.findFileByRelativePath(path)!!
     val psiFile = PsiManager.getInstance(project).findFile(virtualFile)!!
     val xmlTag = (psiFile as XmlFile).rootTag!!
     return xmlTag
-        .findSubTags("string")
-        .find { name == it.getAttributeValue(SdkConstants.ATTR_NAME) }
-        ?.value
-        ?.text
-        ?: throw AssertionError()
+      .findSubTags("string")
+      .find { name == it.getAttributeValue(SdkConstants.ATTR_NAME) }
+      ?.value
+      ?.text ?: throw AssertionError()
   }
+
   private fun getAttribute(path: String, name: String, attribute: String): String? {
     val virtualFile = resourceDirectory.findFileByRelativePath(path)!!
     val psiFile = PsiManager.getInstance(project).findFile(virtualFile)!!
     val xmlTag = (psiFile as XmlFile).rootTag!!
     return xmlTag
-        .findSubTags("string")
-        .find { name == it.getAttributeValue(SdkConstants.ATTR_NAME) }
-        ?.getAttributeValue(attribute)
+      .findSubTags("string")
+      .find { name == it.getAttributeValue(SdkConstants.ATTR_NAME) }
+      ?.getAttributeValue(attribute)
   }
 
   private fun textExists(path: String, name: String): Boolean {
@@ -609,13 +657,13 @@ class StringResourceWriterTest {
   }
 
   private fun interactWithSafeDeleteDialog(
-      item: ResourceItem,
-      dialogInteraction: (DialogWrapper) -> Unit
+    item: ResourceItem,
+    dialogInteraction: (DialogWrapper) -> Unit
   ) = interactWithSafeDeleteDialog(listOf(item), dialogInteraction)
 
   private fun interactWithSafeDeleteDialog(
-      items: List<ResourceItem>,
-      dialogInteraction: (DialogWrapper) -> Unit
+    items: List<ResourceItem>,
+    dialogInteraction: (DialogWrapper) -> Unit
   ) {
     assertThat(DumbService.isDumb(project)).isFalse()
     runBlocking {
@@ -623,7 +671,9 @@ class StringResourceWriterTest {
         suspendCancellableCoroutine<Unit> { cont ->
           createModalDialogAndInteractWithIt({
             stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
-          }) { dialogInteraction.invoke(it) }
+          }) {
+            dialogInteraction.invoke(it)
+          }
         }
       }
     }
@@ -643,8 +693,8 @@ class StringResourceWriterTest {
     private const val NEW_VALUE = "Hey, I'm a new value!"
     private const val NEW_VALUE_ESCAPED = """Hey, I\'m a new value!"""
     private val SAFE_DELETE_CHECKBOX_MSG =
-        IdeBundle.message("checkbox.safe.delete.with.usage.search")
-            .replace("${BundleBase.MNEMONIC}", "")
+      IdeBundle.message("checkbox.safe.delete.with.usage.search")
+        .replace("${BundleBase.MNEMONIC}", "")
 
     private fun DialogWrapper.click(text: String) {
       getTextComponent<JButton>(text) { it.text }.doClick()
@@ -654,14 +704,13 @@ class StringResourceWriterTest {
       getTextComponent(SAFE_DELETE_CHECKBOX_MSG) { it.text }
 
     private inline fun <reified T> DialogWrapper.getTextComponent(
-        text: String,
-        getText: (T) -> String
+      text: String,
+      getText: (T) -> String
     ): T {
       val components = TreeWalker(rootPane).descendants().toList()
       return TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull {
         getText(it) == text
-      }
-          ?: fail("${T::class.simpleName} '$text' not found in $components")
+      } ?: fail("${T::class.simpleName} '$text' not found in $components")
     }
   }
 }

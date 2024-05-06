@@ -28,7 +28,8 @@ import org.junit.runner.RunWith;
 @JarTestSuiteRunner.ExcludeClasses({
   GradleProjectSystemUpgradeIntegrationTestSuite.class,
   GradleProjectSystemUpgradeTestSuite.class,
-  ManualUtilityTest.class
+  ManualUtilityTest.class,
+  BaseProjectsMatchingTargetsTest.class
 })
 public class GradleProjectSystemUpgradeIntegrationTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule daemons = new GradleDaemonsRule();

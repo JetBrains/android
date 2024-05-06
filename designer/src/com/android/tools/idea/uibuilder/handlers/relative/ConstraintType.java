@@ -15,32 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_ABOVE;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BASELINE;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_BOTTOM;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_LEFT;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_BOTTOM;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_LEFT;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_RIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_TOP;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_RIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_TOP;
-import static com.android.SdkConstants.ATTR_LAYOUT_BELOW;
-import static com.android.SdkConstants.ATTR_LAYOUT_CENTER_HORIZONTAL;
-import static com.android.SdkConstants.ATTR_LAYOUT_CENTER_IN_PARENT;
-import static com.android.SdkConstants.ATTR_LAYOUT_CENTER_VERTICAL;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_LEFT_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_RIGHT_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
-
-import com.android.tools.idea.uibuilder.model.SegmentType;
-import java.util.HashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.idea.uibuilder.model.SegmentType;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Each constraint type corresponds to a type of constraint available for the

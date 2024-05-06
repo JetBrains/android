@@ -15,19 +15,24 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.util.GradleConfigProperties
-import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.Jdks
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkProvider
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.projectRoots.JavaSdkVersion
+import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
+import com.intellij.openapi.util.Disposer
+import org.jetbrains.plugins.gradle.GradleManager
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 
 object JdkUtils {
 
   @JvmStatic
   fun getEmbeddedJdkPathWithVersion(version: JavaSdkVersion): File {
-    if (!IdeInfo.getInstance().isAndroidStudio) return IdeSdks.getInstance().jdkPath?.toFile()!!
-
     val embeddedJdkPath = when (version) {
       JavaSdkVersion.JDK_17 -> JdkConstants.JDK_17_PATH
       JavaSdkVersion.JDK_11 -> JdkConstants.JDK_11_PATH
@@ -44,10 +49,24 @@ object JdkUtils {
       Jdks.getInstance().findVersion(it)
     }
     if (currentJdkVersion != jdkVersion) {
-      IdeSdks.getInstance().jdkPath?.toFile()!!.also {
+      getEmbeddedJdkPathWithVersion(jdkVersion).also {
         configProperties.javaHome = it
         configProperties.save()
       }
     }
+  }
+
+  fun createNewGradleJvmProjectJdk(project: Project, parent: Disposable): ProjectJdkImpl {
+    val gradleExecutionSettings =
+      (ExternalSystemApiUtil.getManager(GradleConstants.SYSTEM_ID) as GradleManager).executionSettingsProvider.`fun`(
+        com.intellij.openapi.util.Pair(
+          project,
+          project.guessProjectDir()?.path
+        )
+      )
+    @Suppress("UnstableApiUsage")
+    val sdk = ExternalSystemJdkProvider.getInstance().createJdk(null, gradleExecutionSettings.javaHome.orEmpty())
+    Disposer.register(parent, sdk as Disposable)
+    return sdk as ProjectJdkImpl
   }
 }

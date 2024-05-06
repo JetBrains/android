@@ -44,8 +44,10 @@ sealed class TestTabProvider(override val displayName: String) : AppInsightsTabP
     object : AppInsightsConfigurationManager {
       override val project: Project
         get() = throw RuntimeException()
+
       override val configuration: StateFlow<AppInsightsModel>
         get() = modelFlow
+
       override val offlineStatusManager = OfflineStatusManagerImpl()
     }
 

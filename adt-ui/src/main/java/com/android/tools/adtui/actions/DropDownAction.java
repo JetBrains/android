@@ -18,6 +18,7 @@ package com.android.tools.adtui.actions;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -43,7 +44,6 @@ import java.util.function.Supplier;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,8 +146,9 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
 
   private void showPopupMenu(@NotNull AnActionEvent eve, @NotNull ActionButton button) {
     ActionManagerImpl am = (ActionManagerImpl)ActionManager.getInstance();
-    JPopupMenu component = am.createActionPopupMenu(eve.getPlace(), this).getComponent();
-    JBPopupMenu.showBelow(button, component);
+    ActionPopupMenu popUpMenu = am.createActionPopupMenu(eve.getPlace(), this);
+    popUpMenu.setDataContext(eve::getDataContext);
+    JBPopupMenu.showBelow(button, popUpMenu.getComponent());
   }
 
   private static ActionButton getActionButton(@NotNull AnActionEvent eve) {
@@ -201,6 +202,7 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
   protected boolean updateActions(@NotNull DataContext context) {
     return false;
   }
+
 
   /**
    * Create the {@link DefaultActionGroup} used by this dropdown action. This group can be used when all the {@link AnAction}s in the

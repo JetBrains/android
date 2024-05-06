@@ -22,6 +22,8 @@ import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
+import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -41,15 +43,13 @@ internal class WearTileAdapterLightVirtualFile(
   originFileProvider: () -> VirtualFile?
 ) : InMemoryLayoutVirtualFile(name, content, originFileProvider)
 
-internal class WearTilePreviewToolbar(surface: DesignSurface<*>) :
-  ToolbarActionGroups(surface) {
+internal class WearTilePreviewToolbar(surface: DesignSurface<*>) : ToolbarActionGroups(surface) {
 
   override fun getNorthGroup(): ActionGroup {
-    return DefaultActionGroup()
+    return DefaultActionGroup(StopInteractivePreviewAction(forceDisable = { isPreviewRefreshing(it.dataContext) }))
   }
 
-  override fun getNorthEastGroup(): ActionGroup =
-    DefaultActionGroup(listOf())
+  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup(listOf())
 }
 
 /** Provider of the [PreviewRepresentation] for Glance App Widget code primitives. */
@@ -69,7 +69,7 @@ class WearTilePreviewRepresentationProvider(
     DesignerTypeRegistrar.register(WearTileEditorFileType)
   }
   /**
-   * Checks if the input [psiFile] contains wear tile services and therefore can be provided with
+   * Checks if the input [psiFile] contains wear tile previews and therefore can be provided with
    * the [PreviewRepresentation] of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
@@ -77,7 +77,8 @@ class WearTilePreviewRepresentationProvider(
     if (!virtualFile.isSourceFileType()) return false
     if (DumbService.isDumb(project)) return false
 
-    return StudioFlags.WEAR_TILE_PREVIEW.get() && filePreviewElementFinder.hasPreviewElements(project, virtualFile)
+    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
+      filePreviewElementFinder.hasPreviewElements(project, virtualFile)
   }
 
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */

@@ -28,9 +28,7 @@ private const val KEYMAP_SECTION_NAME = "Logcat"
 /** The action group defining the contents of the Settings > Keymap > Running Devices section. */
 private const val ACTION_GROUP = "Logcat.LogcatActions"
 
-/**
- * Adds the Settings -> Keymap > Logcat section.
- */
+/** Adds the Settings -> Keymap > Logcat section. */
 internal class LogcatKeymapExtension : KeymapExtension {
   override fun createGroup(filtered: Condition<in AnAction>?, project: Project?): KeymapGroup? {
     val keymapGroup = KeymapGroupFactory.getInstance().createGroup(KEYMAP_SECTION_NAME)

@@ -122,6 +122,9 @@ class GradleBuildOutputUtilTest {
     writeToFile(outputFile, multiAPKsOutputFileText)
 
     val logger = LogWrapper(Logger.getInstance(GradleBuildOutputUtilTest::class.java))
-    assertEquals("com.example.myapplication", GenericBuiltArtifactsLoader.loadFromFile(File(outputFile.path), logger)!!.applicationId)
+    val artifact = GenericBuiltArtifactsLoader.loadFromFile(File(outputFile.path), logger)!!
+    assertEquals("com.example.myapplication", artifact.applicationId)
+    assertEquals(null, artifact.minSdkVersionForDexing)
+    assertEquals(null, artifact.baselineProfiles)
   }
 }

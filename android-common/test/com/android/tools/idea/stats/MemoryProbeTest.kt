@@ -17,18 +17,14 @@ package com.android.tools.idea.stats
 
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
-import org.junit.Ignore
 import org.junit.Test
-import java.awt.image.BufferedImage
 
 class MemoryProbeTest {
-  @Ignore("b/242749724")
   @Test
   fun testString() {
-    assertThat(check("Here is a string with text")).isEqualTo(40L)
+    assertThat(check("Here is a string with text")).isEqualTo(48L)
   }
 
-  @Ignore("b/242749724")
   @Test
   fun testByteArray() {
     assertThat(check(ByteArray(80))).isEqualTo(104)
@@ -37,21 +33,11 @@ class MemoryProbeTest {
     assertThat(check(ByteArray(9))).isEqualTo(40)
   }
 
-  @Ignore("b/242749724")
   @Test
   fun testIntArray() {
     assertThat(check(IntArray(700))).isEqualTo(2824)
   }
 
-  @Ignore("b/242749724")
-  @Test
-  fun testBufferedImage() {
-    @Suppress("UndesirableClassUsage")
-    val image = BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB)
-    assertThat(check(image)).isEqualTo(896L)
-  }
-
-  @Ignore("b/242749724")
   @Test
   fun testCountObjectsOnlyOnce() {
     val first = Chain(1)

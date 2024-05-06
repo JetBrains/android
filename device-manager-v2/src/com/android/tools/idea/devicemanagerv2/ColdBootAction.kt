@@ -16,10 +16,12 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.idea.deviceprovisioner.deviceHandle
+import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_COLD_BOOT_NOW_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
-import kotlinx.coroutines.launch
 
 /** Activates the device with a cold boot. */
 class ColdBootAction() : DumbAwareAction("Cold Boot") {
@@ -33,6 +35,10 @@ class ColdBootAction() : DumbAwareAction("Cold Boot") {
     val deviceHandle = e.deviceHandle()
     val coldBootAction = deviceHandle?.coldBootAction ?: return
 
-    deviceHandle.scope.launch { coldBootAction.activate() }
+    DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_COLD_BOOT_NOW_ACTION)
+
+    deviceHandle.launchCatchingDeviceActionException(project = e.project) {
+      coldBootAction.activate()
+    }
   }
 }

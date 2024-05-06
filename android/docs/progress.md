@@ -19,7 +19,7 @@ the task and whoever started it to exchange information. A task should generally
 caller to pick the right indicator and run tasks using it.
 
 The task should call `checkCancelled()` from time to time, which will throw a
-[`ProcessCanceledException`](../../../../idea/platform/util/src/com/intellij/openapi/progress/ProcessCanceledException.java) if the task
+[`ProcessCancelledException`](../../../../idea/platform/util/src/com/intellij/openapi/progress/ProcessCanceledException.java) if the task
 has indeed been cancelled. `ProcessCanceledException` is not considered a crash by the IDE, so you don't have to catch it and should avoid
 wrapping it in `RuntimeException`, `ExecutionException` or `UncheckedExecutionException`. If you do catch it, finish what you're doing
 quickly and avoid running for a long time after your task has been cancelled.

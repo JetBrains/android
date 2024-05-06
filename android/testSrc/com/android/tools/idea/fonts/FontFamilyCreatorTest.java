@@ -24,6 +24,7 @@ import com.android.SdkConstants;
 import com.android.ide.common.fonts.FontDetail;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.lint.checks.FontDetector;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.ByteArrayInputStream;
@@ -32,7 +33,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
 
@@ -236,7 +236,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
     File folder = makeFile(myFontPath, GOOGLE_FONT_AUTHORITY, "fonts", fontFolder, versionFolder);
     FileUtil.ensureExists(folder);
     File file = new File(folder, fontFileName);
-    InputStream inputStream = new ByteArrayInputStream("TrueType file".getBytes(StandardCharsets.UTF_8.toString()));
+    InputStream inputStream = new ByteArrayInputStream("TrueType file".getBytes(Charsets.UTF_8.toString()));
     try (OutputStream outputStream = new FileOutputStream(file)) {
       FileUtil.copy(inputStream, outputStream);
     }

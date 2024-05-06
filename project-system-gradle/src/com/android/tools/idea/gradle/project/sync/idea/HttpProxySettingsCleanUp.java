@@ -23,8 +23,8 @@ import static com.intellij.util.ExceptionUtil.getRootCause;
 
 import com.android.tools.idea.gradle.project.ProxySettingsDialog;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.gradle.util.ProxySettings;
 import com.android.tools.idea.project.AndroidNotification;
 import com.intellij.openapi.application.Application;
@@ -44,7 +44,7 @@ public class HttpProxySettingsCleanUp {
                             || ideHttpProxySettings.USE_PROXY_PAC;
     GradleProperties properties;
     try {
-      properties = new GradleProperties(GradleUtil.getUserGradlePropertiesFile(project));
+      properties = new GradleProperties(GradleProjectSystemUtil.getUserGradlePropertiesFile(project));
     }
     catch (IOException e) {
       Logger.getInstance(HttpProxySettingsCleanUp.class).info("Failed to read gradle.properties file", e);
@@ -101,7 +101,7 @@ public class HttpProxySettingsCleanUp {
       properties.save();
       if (needsPassword) {
         String msg = "Proxy passwords are not defined.";
-        OpenFileHyperlink openLink = new OpenFileHyperlink(GradleUtil.getUserGradlePropertiesFile(project).getPath());
+        OpenFileHyperlink openLink = new OpenFileHyperlink(GradleProjectSystemUtil.getUserGradlePropertiesFile(project).getPath());
         AndroidNotification.getInstance(project).showBalloon("Proxy Settings", msg, WARNING, openLink);
       }
     }

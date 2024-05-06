@@ -22,7 +22,7 @@ import com.android.tools.idea.compose.preview.animation.validation.DoubleValidat
 import com.android.tools.idea.compose.preview.animation.validation.DpValidation
 import com.android.tools.idea.compose.preview.animation.validation.FloatValidation
 import com.android.tools.idea.compose.preview.animation.validation.IntValidation
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.intellij.ui.ColorUtil
 import java.lang.reflect.Method
 
@@ -31,10 +31,12 @@ object ComposeUnit {
 
   class TimelineUnit(val propertyLabel: String, val unit: NumberUnit<*>?)
 
-  /** Multi-dimensional property with each dimension of the type [A]. */
+  /** Multidimensional property with each dimension of the type [A]. */
   interface Unit<A> {
     val components: List<A>
+
     fun toString(componentId: Int): String
+
     override fun toString(): String
 
     fun createProperties(prefix: String): List<AnimatedPropertyItem> =
@@ -47,7 +49,7 @@ object ComposeUnit {
     fun getPickerTitle(): String
   }
 
-  /** Multi-dimensional property with each dimension of the type [A]. */
+  /** Multidimensional property with each dimension of the type [A]. */
   interface NumberUnit<A> : Unit<A> where A : Number, A : Comparable<A> {
     /**
      * Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]
@@ -58,12 +60,15 @@ object ComposeUnit {
 
   abstract class Unit1D<A>(val component1: A) : Unit<A> {
     override val components = listOf(component1)
+
     override fun toString(componentId: Int) = component1.toString()
-    override fun toString(): String = components.joinToString() { it.toString() }
+
+    override fun toString(): String = components.joinToString { it.toString() }
   }
 
   abstract class Unit2D<A>(val component1: A, val component2: A) : Unit<A> {
     override val components = listOf(component1, component2)
+
     override fun toString(componentId: Int) =
       "( " +
         "${if (componentId == 0) component1 else "_"} , " +
@@ -75,6 +80,7 @@ object ComposeUnit {
 
   abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) : Unit<A> {
     override val components = listOf(component1, component2, component3)
+
     override fun toString(componentId: Int) =
       "( " +
         "${if (componentId == 0) component1 else "_"} , " +
@@ -92,6 +98,7 @@ object ComposeUnit {
     val component4: A
   ) : Unit<A> {
     override val components = listOf(component1, component2, component3, component4)
+
     override fun toString(componentId: Int) =
       "( " +
         "${if (componentId == 0) component1 else "_"} , " +
@@ -198,13 +205,17 @@ object ComposeUnit {
   class StringUnit(value: String) : Unit1D<String>(value) {
     override fun createProperties(prefix: String) =
       listOf(AnimatedPropertyItem(prefix, component1, { EDITOR_NO_ERROR }, "String"))
+
     override fun parseUnit(getValue: (Int) -> String?) = getValue(0)?.let { StringUnit(it) }
+
     override fun getPickerTitle() = message("animation.inspector.picker.string")
   }
 
   open class UnitUnknown(val any: Any) : Unit1D<Int>(0) {
     override val components = listOf(0)
+
     override fun toString(componentId: Int) = any.toString()
+
     override fun toString(): String = any.toString()
 
     override fun createProperties(prefix: String) =
@@ -225,6 +236,7 @@ object ComposeUnit {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.unit.IntSize"
       private val COMPONENT_NAMES = arrayOf("width", "height")
+
       fun create(property: Any?): IntSize? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -263,6 +275,7 @@ object ComposeUnit {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.unit.IntOffset"
       private val COMPONENT_NAMES = arrayOf("x", "y")
+
       fun create(property: Any?): IntOffset? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -299,6 +312,7 @@ object ComposeUnit {
   class Dp(component1: Float) : Unit1D<Float>(component1), NumberUnit<Float> {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.unit.Dp"
+
       fun create(property: Any?): Dp? {
         property?.also {
           val value = findMethodByName("getValue", property)?.invoke(property)
@@ -309,6 +323,7 @@ object ComposeUnit {
     }
 
     override fun toString(componentId: Int) = "${component1}dp"
+
     override fun toString(): String = "${component1}dp"
 
     override fun createProperties(prefix: String) =
@@ -330,6 +345,7 @@ object ComposeUnit {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.geometry.Size"
       private val COMPONENT_NAMES = arrayOf("width", "height")
+
       fun create(property: Any?): Size? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -368,6 +384,7 @@ object ComposeUnit {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.geometry.Rect"
       private val COMPONENT_NAMES = arrayOf("left", "top", "right", "bottom")
+
       fun create(property: Any?): Rect? {
         property?.also {
           val left = findMethodByName("getLeft", property)?.invoke(property)
@@ -409,6 +426,7 @@ object ComposeUnit {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.geometry.Offset"
       private val COMPONENT_NAMES = arrayOf("x", "y")
+
       fun create(property: Any?): Offset? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)
@@ -447,6 +465,7 @@ object ComposeUnit {
     companion object {
       const val CLASS_NAME = "androidx.compose.ui.graphics.Color"
       private val COMPONENT_NAMES = arrayOf("red", "green", "blue", "alpha")
+
       fun create(property: Any?): Color? {
         property?.also {
           val value = findMethodByName("unbox-impl", property)?.invoke(property)

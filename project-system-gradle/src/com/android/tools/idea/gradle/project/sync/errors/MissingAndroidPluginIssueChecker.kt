@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.processor.AddRepoProcessor
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenPluginBuildFileQuickFix
-import com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
@@ -94,7 +94,9 @@ class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
   private fun addGoogleMavenRepoPreview(pluginInfo: AndroidPluginInfo?, project: Project) {
     val projectBuildModel: ProjectBuildModel = ProjectBuildModel.getOrLog(project) ?: return
     val buildFile: VirtualFile = pluginInfo?.pluginBuildFile
-                                 ?: getGradleBuildFile(getBaseDirPath(project))
+                                 ?: getGradleBuildFile(
+                                   getBaseDirPath(project)
+                                 )
                                  ?: return
 
     val gradleBuildModel: GradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile)

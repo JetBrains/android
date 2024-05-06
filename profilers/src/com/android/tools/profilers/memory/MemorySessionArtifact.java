@@ -16,8 +16,10 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.idea.protobuf.GeneratedMessageV3;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.ExportableArtifact;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An artifact representation of a memory capture.
  */
-public abstract class MemorySessionArtifact<T extends GeneratedMessageV3> implements SessionArtifact<T> {
+public abstract class MemorySessionArtifact<T extends GeneratedMessageV3> implements SessionArtifact<T>, ExportableArtifact {
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final Common.Session mySession;
@@ -73,6 +75,18 @@ public abstract class MemorySessionArtifact<T extends GeneratedMessageV3> implem
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @NotNull
+  public String getSubtitle() {
+    if (mySessionMetaData.getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE) {
+      return TimeFormatter.getLocalizedDateTime(TimeUnit.NANOSECONDS.toMillis(mySession.getStartTimestamp()));
+    }
+    else {
+      return isOngoing()
+             ? CAPTURING_SUBTITLE
+             : TimeFormatter.getFullClockString(TimeUnit.NANOSECONDS.toMicros(getTimestampNs()));
+    }
   }
 
   protected abstract long getStartTime();

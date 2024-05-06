@@ -127,7 +127,7 @@ abstract class BaseMemoryProfilerStage(profilers: StudioProfilers, protected val
       canLoad -> load.run()
       else -> studioProfilers.ideServices.openYesNoDialog(
         "The hprof file is large, and " +
-        ApplicationNamesInfo.getInstance().fullProductName +
+        ApplicationNamesInfo.getInstance().getFullProductName() +
         " may become unresponsive while " +
         "it parses the data and afterwards. Do you want to continue?",
         "Heap Dump File Too Large",

@@ -23,7 +23,6 @@ import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneComponent.DrawState
 import com.android.tools.idea.common.scene.target.CommonDragTarget
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.junit.Assert.assertNotEquals
 
@@ -65,8 +64,6 @@ open class SceneComponentTest : SceneTest() {
   }
 
   fun testDoNotCreateCommonDragTargetOnRootComponent() {
-    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true)
-
     val root = myScene.getSceneComponent("parent")!!
     root.updateTargets()
     val rootCommonDragTargets = root.targets.filterIsInstance<CommonDragTarget>()
@@ -76,8 +73,6 @@ open class SceneComponentTest : SceneTest() {
     child.updateTargets()
     val childCommonDragTargets = child.targets.filterIsInstance<CommonDragTarget>()
     assertSize(1, childCommonDragTargets)
-
-    StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
   }
 
   fun testDrawStates() {

@@ -55,6 +55,7 @@ data class IdeVariantCoreImpl(
   override val testInstrumentationRunner: String?,
   override val testInstrumentationRunnerArguments: Map<String, String>,
   override val testedTargetVariants: List<IdeTestedTargetVariantImpl>,
+  override val runTestInSeparateProcess: Boolean,
   // TODO(b/178961768); Review usages and replace with the correct alternatives or rename.
   override val deprecatedPreMergedApplicationId: String?,
   override val deprecatedPreMergedTestApplicationId: String?,

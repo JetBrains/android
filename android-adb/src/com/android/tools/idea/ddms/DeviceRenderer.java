@@ -20,12 +20,12 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_NAME;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.google.common.collect.Sets;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ColoredTableCellRenderer;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.StudioIcons;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -106,7 +106,7 @@ public class DeviceRenderer {
   }
 
   public static boolean shouldShowSerialNumbers(@NotNull List<IDevice> devices, @NotNull DeviceNamePropertiesProvider provider) {
-    Set<String> myNames = new HashSet<>();
+    Set<String> myNames = Sets.newHashSet();
     for (IDevice currentDevice : devices) {
       if (currentDevice.isEmulator()) {
         continue;

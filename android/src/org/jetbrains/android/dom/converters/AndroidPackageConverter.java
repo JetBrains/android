@@ -18,24 +18,14 @@ package org.jetbrains.android.dom.converters;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.ElementManipulators;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementResolveResult;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiPackage;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.ResolveResult;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PackageReferenceSet;
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.PsiPackageReference;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Processor;
-import com.intellij.util.xml.ConvertContext;
-import com.intellij.util.xml.Converter;
-import com.intellij.util.xml.CustomReferenceConverter;
-import com.intellij.util.xml.GenericAttributeValue;
-import com.intellij.util.xml.GenericDomValue;
+import com.intellij.util.xml.*;
 import org.jetbrains.android.AndroidApplicationPackageRenameProcessor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
@@ -45,12 +35,12 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidPackageConverter extends Converter<String> implements CustomReferenceConverter<String> {
 
   @Override
-  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
     return s;
   }
 
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 

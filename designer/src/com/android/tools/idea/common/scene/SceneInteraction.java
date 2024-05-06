@@ -168,8 +168,9 @@ public class SceneInteraction extends Interaction {
   @Override
   public void cancel(@NotNull InteractionEvent event) {
     resumeScanner();
-    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
+    Scene scene = mySceneView.getScene();
+    scene.mouseCancel();
+    mySceneView.getSurface().repaint();
   }
 
   private void resumeScanner() {
@@ -177,20 +178,6 @@ public class SceneInteraction extends Interaction {
     if (scannerControl != null && mySceneView.getScene().isLiveRenderingEnabled()) {
       scannerControl.resume();
     }
-  }
-
-  /**
-   * Ends the mouse interaction and commit the modifications if any
-   *
-   * @param x         The most recent mouse x coordinate applicable to this interaction
-   * @param y         The most recent mouse y coordinate applicable to this interaction
-   * @param modifiersEx current modifier key mask
-   */
-  @Override
-  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    Scene scene = mySceneView.getScene();
-    scene.mouseCancel();
-    mySceneView.getSurface().repaint();
   }
 
   @Override

@@ -13,13 +13,13 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import com.android.tools.idea.res.IdeResourcesUtil;
 
 public class AndroidProblemFileHighlightingFilter implements Condition<VirtualFile> {
   private final Project myProject;

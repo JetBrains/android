@@ -26,32 +26,39 @@ interface ConfigurationSet {
   val name: String
   val visible: Boolean
     get() = true
+
   fun createModelsProvider(listener: ConfigurationSetListener): VisualizationModelsProvider
 
   object PixelDevices : ConfigurationSet {
     override val id = "pixelDevices"
     override val name = "Pixel Devices"
+
     override fun createModelsProvider(listener: ConfigurationSetListener) =
       PixelDeviceModelsProvider
+
     override val visible = false
   }
 
   object WearDevices : ConfigurationSet {
     override val id = "wearOsDevices"
     override val name = "Wear OS Devices"
+
     override fun createModelsProvider(listener: ConfigurationSetListener) = WearDeviceModelsProvider
   }
 
   object ProjectLocal : ConfigurationSet {
     override val id = "projectLocales"
     override val name = "Project Locales"
+
     override fun createModelsProvider(listener: ConfigurationSetListener) = LocaleModelsProvider
+
     override val visible = true
   }
 
   object ColorBlindMode : ConfigurationSet {
     override val id = "colorBlind"
     override val name = "Color Blind"
+
     override fun createModelsProvider(listener: ConfigurationSetListener) =
       ColorBlindModeModelsProvider
   }
@@ -59,6 +66,7 @@ interface ConfigurationSet {
   object LargeFont : ConfigurationSet {
     override val id = "fontSizes"
     override val name = "Font Sizes"
+
     override fun createModelsProvider(listener: ConfigurationSetListener) = LargeFontModelsProvider
   }
 
@@ -66,7 +74,9 @@ interface ConfigurationSet {
   object WindowSizeDevices : ConfigurationSet {
     override val id = "windowSizeDevices"
     override val name = "Reference Devices"
+
     override fun createModelsProvider(listener: ConfigurationSetListener) = WindowSizeModelsProvider
+
     override val visible = true
   }
 }
@@ -80,8 +90,10 @@ class UserDefinedCustom(
   val customConfigurationSet: CustomConfigurationSet
 ) : ConfigurationSet {
   override val name: String = customConfigurationSet.title
+
   override fun createModelsProvider(listener: ConfigurationSetListener) =
     CustomModelsProvider(id, customConfigurationSet, listener)
+
   fun setCustomName(customName: String) {
     this.customConfigurationSet.title = customName
     VisualizationUtil.setCustomConfigurationSet(id, this.customConfigurationSet)

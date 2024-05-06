@@ -115,7 +115,7 @@ class RenderModel(
   private var rootBounds = Rectangle()
 
   init {
-    model.modificationListeners.add { _, new, _ ->
+    model.addModificationListener { _, new, _ ->
       if (new == null) {
         overlay = null
       }
@@ -194,8 +194,7 @@ class RenderModel(
             .flatten()
             .filter { model.isVisible(it) }
             .map { it.transitiveBounds.bounds }
-            .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } }
-            ?: Rectangle()
+            .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
 
         fun lowestVisible(node: ViewNode): Sequence<ViewNode> {
           return if (model.isVisible(node)) sequenceOf(node)
@@ -206,8 +205,7 @@ class RenderModel(
           model.root.children
             .flatMap { lowestVisible(it) }
             .map { it.renderBounds.bounds }
-            .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } }
-            ?: Rectangle()
+            .reduceOrNull { acc, bounds -> acc.apply { add(bounds) } } ?: Rectangle()
       }
 
       root.layoutBounds.x = rootBounds.x

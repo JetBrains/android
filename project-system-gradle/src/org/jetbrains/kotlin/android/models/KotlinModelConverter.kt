@@ -15,7 +15,6 @@
  */
 package org.jetbrains.kotlin.android.models
 
-import com.android.builder.model.AndroidProject
 import com.android.builder.model.proto.ide.AndroidGradlePluginProjectFlags
 import com.android.builder.model.proto.ide.AndroidVersion
 import com.android.builder.model.proto.ide.Library
@@ -29,6 +28,8 @@ import com.android.kotlin.multiplatform.models.AndroidCompilation
 import com.android.kotlin.multiplatform.models.AndroidTarget
 import com.android.kotlin.multiplatform.models.SourceProvider
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_ANDROID_TEST
+import com.android.tools.idea.gradle.model.ARTIFACT_NAME_UNIT_TEST
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
@@ -79,9 +80,6 @@ import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinSourceDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.extras.documentationClasspath
 import org.jetbrains.kotlin.gradle.idea.tcs.extras.sourcesClasspath
-//import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring
-//import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
-//import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.tooling.core.WeakInterner
@@ -192,9 +190,6 @@ class KotlinModelConverter {
     useAndroidX = booleanFlagValuesList.first {
       it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X
     }.value,
-    enableVcsInfo = booleanFlagValuesList.first {
-      it.flag == AndroidGradlePluginProjectFlags.BooleanFlag.ENABLE_VCS_INFO
-    }.value
   )
 
   private fun SigningConfig.convert() = IdeSigningConfigImpl(
@@ -377,7 +372,8 @@ class KotlinModelConverter {
       )
     }
 
-    val mainKotlinCompilerOptions = parseCommandLineArguments<K2JVMCompilerArguments>(mainKotlinCompilation.compilerArguments.orEmpty())
+    val mainKotlinCompilerOptions =
+      parseCommandLineArguments<K2JVMCompilerArguments>(mainKotlinCompilation.compilerArguments ?: emptyList())
 
     val mainBuildInformation = IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = mainAndroidCompilation.assembleTaskName,
@@ -404,12 +400,12 @@ class KotlinModelConverter {
           sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
         },
         extraSourceProviders = listOf(
-          AndroidProject.ARTIFACT_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+          ARTIFACT_NAME_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
             it.name == unitTestAndroidCompilation?.defaultSourceSetName
           }?.let { sourceSet ->
             sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
           },
-          AndroidProject.ARTIFACT_ANDROID_TEST to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
+          ARTIFACT_NAME_ANDROID_TEST  to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
             it.name == androidTestAndroidCompilation?.defaultSourceSetName
           }?.let { sourceSet ->
             sourceSet.extras[androidSourceSetKey]?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
@@ -494,10 +490,10 @@ class KotlinModelConverter {
       abiFilters = emptySet(),
       buildInformation = mainBuildInformation,
       codeShrinker = CodeShrinker.R8.takeIf { mainAndroidCompilation.mainInfo.minificationEnabled },
-      modelSyncFiles = emptyList(),
       privacySandboxSdkInfo = null,
       desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
-      generatedClassPaths = emptyMap()
+      generatedClassPaths = emptyMap(),
+      bytecodeTransforms = null,
     )
 
     val unitTestArtifact = unitTestAndroidCompilation?.let {
@@ -519,7 +515,8 @@ class KotlinModelConverter {
         ),
         unresolvedDependencies = emptyList(),
         mockablePlatformJar = unitTestAndroidCompilation.unitTestInfo.mockablePlatformJar.convertAndDeduplicate(),
-        generatedClassPaths = emptyMap()
+        generatedClassPaths = emptyMap(),
+        bytecodeTransforms = null,
       )
     }
 
@@ -557,10 +554,10 @@ class KotlinModelConverter {
           apkFromBundleTaskOutputListingFile = null
         ),
         codeShrinker = mainArtifact.codeShrinker,
-        modelSyncFiles = emptyList(),
         privacySandboxSdkInfo = null,
         desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate(),
-        generatedClassPaths = emptyMap()
+        generatedClassPaths = emptyMap(),
+        bytecodeTransforms = null,
       )
     }
 
@@ -589,6 +586,7 @@ class KotlinModelConverter {
       testInstrumentationRunner = androidTestAndroidCompilation?.instrumentedTestInfo?.testInstrumentationRunner,
       testInstrumentationRunnerArguments = androidTestAndroidCompilation?.instrumentedTestInfo?.testInstrumentationRunnerArgumentsMap?.toMap() ?: emptyMap(),
       testedTargetVariants = emptyList(),
+      runTestInSeparateProcess = false,
       deprecatedPreMergedApplicationId = null,
       deprecatedPreMergedTestApplicationId = null,
       desugaredMethodsFiles = targetInfo.desugaredMethodsFilesList.convertAndDeduplicate()

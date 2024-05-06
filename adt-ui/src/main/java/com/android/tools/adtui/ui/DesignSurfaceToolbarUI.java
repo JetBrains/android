@@ -17,7 +17,6 @@ package com.android.tools.adtui.ui;
 
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -50,12 +49,12 @@ public class DesignSurfaceToolbarUI extends BasicPanelUI {
       g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       // TODO: Do shadows instead.
-      int borderArcLength = JBUIScale.scale(BORDER_ARC_LENGTH);
+      int borderArcLength = JBUI.scale(BORDER_ARC_LENGTH);
       g2D.setColor(DEFAULT_BORDER);
       g2D.fillRoundRect(0, 0, width, height, borderArcLength, borderArcLength);
 
-      int borderSize = JBUIScale.scale(BORDER_SIZE);
-      int backgroundArcLength = JBUIScale.scale(ARC_LENGTH);
+      int borderSize = JBUI.scale(BORDER_SIZE);
+      int backgroundArcLength = JBUI.scale(ARC_LENGTH);
       g2D.setColor(StudioColorsKt.getPrimaryContentBackground());
       g2D.fillRoundRect(borderSize, borderSize, width - borderSize - borderSize, height - borderSize - borderSize, backgroundArcLength,
                         backgroundArcLength);

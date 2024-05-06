@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
+import com.android.tools.idea.deviceprovisioner.launchCatchingDeviceActionException
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DELETE_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -24,7 +25,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.MessageDialogBuilder
 import icons.StudioIcons
-import kotlinx.coroutines.launch
 
 class DeleteAction : DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -54,9 +54,9 @@ class DeleteAction : DumbAwareAction("Delete", "Delete this device", StudioIcons
         }
       )
 
-      deviceHandle.scope.launch {
+      deviceHandle.launchCatchingDeviceActionException(project = e.project) {
         if (isRunning) {
-          deviceHandle.deactivationAction?.deactivate()
+          deactivationAction?.deactivate()
         }
 
         deleteAction.delete()

@@ -73,13 +73,13 @@ private val LARGE_MAIN_CELL_BORDER get() = BorderFactory.createCompoundBorder(
 private val ROW_CELL_BORDER get() = JBUI.Borders.empty(4)
 
 private val ROW_CELL_BORDER_SELECTED get() = BorderFactory.createCompoundBorder(
-  JBUI.Borders.empty(2),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), JBUI.scale(4), JBUI.scale(2))
+JBUI.Borders.empty(2),
+RoundedLineBorder(UIUtil.getTreeSelectionBackground(true), JBUI.scale(4), JBUI.scale(2))
 )
 
 private val ROW_CELL_BORDER_UNFOCUSED get() = BorderFactory.createCompoundBorder(
-  JBUI.Borders.empty(2),
-  RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), JBUI.scale(4), JBUI.scale(2))
+JBUI.Borders.empty(2),
+RoundedLineBorder(UIUtil.getTreeSelectionBackground(false), JBUI.scale(4), JBUI.scale(2))
 )
 
 private val BOTTOM_PANEL_BORDER get()  = JBUI.Borders.empty(5, 8, 10, 10)
@@ -268,10 +268,11 @@ class SingleAssetCard : AssetView() {
     viewWidth = DEFAULT_WIDTH
   }
 
-  override fun getBorder(selected: Boolean, focused: Boolean): Border = if (selected) {
-    if (focused) LARGE_MAIN_CELL_BORDER_SELECTED else LARGE_MAIN_CELL_BORDER_UNFOCUSED
+  override fun getBorder(selected: Boolean, focused: Boolean): Border = when {
+    selected && focused -> LARGE_MAIN_CELL_BORDER_SELECTED
+    selected && !focused -> LARGE_MAIN_CELL_BORDER_UNFOCUSED
+    else -> LARGE_MAIN_CELL_BORDER
   }
-  else LARGE_MAIN_CELL_BORDER
 
   override fun setIconLayout() {
     // No need to do anything.
@@ -290,6 +291,7 @@ class SingleAssetCard : AssetView() {
 class RowAssetView : AssetView() {
 
   private val CENTER_PANEL_BORDER_SELECTED = JBUI.Borders.empty(0, 10, 1, 1)
+  private val DEFAULT_CUSTOM_LINE = JBUI.Borders.customLine(JBColor.border(), 1)
 
   override var selected by Delegates.observable(false) { _, _, selected ->
     border = getBorder(selected, focused)
@@ -301,11 +303,11 @@ class RowAssetView : AssetView() {
     centerPanel.border = if (selected) CENTER_PANEL_BORDER_SELECTED else CENTER_PANEL_BORDER_UNSELECTED
   }
 
-  override fun getBorder(selected: Boolean, focused: Boolean): Border =
-    if (selected) {
-      if (focused) ROW_CELL_BORDER_SELECTED else ROW_CELL_BORDER_UNFOCUSED
-    }
-    else ROW_CELL_BORDER
+  override fun getBorder(selected: Boolean, focused: Boolean): Border = when {
+    selected && focused -> ROW_CELL_BORDER_SELECTED
+    selected && !focused -> ROW_CELL_BORDER_UNFOCUSED
+    else -> ROW_CELL_BORDER
+  }
 
   private val CENTER_PANEL_BORDER_UNSELECTED = BorderFactory.createCompoundBorder(
     JBUI.Borders.empty(0, 10, 0, 1),
@@ -325,7 +327,7 @@ class RowAssetView : AssetView() {
   }
 
   init {
-    contentWrapper.border = JBUI.Borders.customLine(JBColor.border(), 1)
+    contentWrapper.border = DEFAULT_CUSTOM_LINE
     viewWidth = DEFAULT_WIDTH
     background = UIUtil.getListBackground()
     with(centerPanel) {

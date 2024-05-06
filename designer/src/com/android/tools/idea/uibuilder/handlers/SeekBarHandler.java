@@ -15,25 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX;
-import static com.android.SdkConstants.ANDROID_THEME_PREFIX;
-import static com.android.SdkConstants.ATTR_MAXIMUM;
-import static com.android.SdkConstants.ATTR_PROGRESS;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.ATTR_THUMB;
-import static com.android.SdkConstants.SEEK_BAR;
-import static com.android.SdkConstants.STYLE_RESOURCE_PREFIX;
-import static com.android.SdkConstants.TAG_STYLE;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.StudioIcons;
-import java.util.List;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class SeekBarHandler extends ViewHandler {
   private static final String DOT_SEEK_BAR_DOT = ".SeekBar.";

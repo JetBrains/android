@@ -18,8 +18,9 @@ package com.android.tools.idea.uibuilder.structure;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import java.awt.Component;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
 
 public final class ToggleBoundsVisibility extends AnAction {
   static final String BOUNDS_VISIBLE_PROPERTY = "NlBoundsVisible";

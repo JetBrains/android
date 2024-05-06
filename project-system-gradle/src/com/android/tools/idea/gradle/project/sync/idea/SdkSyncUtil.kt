@@ -23,7 +23,6 @@ import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
@@ -35,7 +34,6 @@ import com.intellij.openapi.roots.OrderRootType.CLASSES
 import com.intellij.openapi.util.io.FileUtil.filesEqual
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import org.jetbrains.annotations.SystemDependent
-import org.jetbrains.kotlin.tools.projectWizard.core.asPath
 import java.io.File
 
 private val LOG = Logger.getInstance(SdkSync::class.java)
@@ -53,7 +51,7 @@ fun SdkSync.syncAndroidSdks(projectPath: @SystemDependent String) {
   }
 
   val localProperties = LocalProperties(projectDir)
-  syncIdeAndProjectAndroidSdks(localProperties, ProjectUtil.findProject(projectPath.asPath()))
+  syncIdeAndProjectAndroidSdks(localProperties)
 }
 
 /**

@@ -2,7 +2,6 @@ package org.jetbrains.android;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -24,6 +23,7 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -122,12 +122,12 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
 
   @Nullable
   @Override
-  public UsageInfo[] preprocessUsages(@NotNull Project project, UsageInfo @NotNull [] usages) {
+  public UsageInfo[] preprocessUsages(Project project, UsageInfo[] usages) {
     return usages;
   }
 
   @Override
-  public void prepareForDeletion(@NotNull PsiElement element) throws IncorrectOperationException {
+  public void prepareForDeletion(PsiElement element) throws IncorrectOperationException {
   }
 
   @Override

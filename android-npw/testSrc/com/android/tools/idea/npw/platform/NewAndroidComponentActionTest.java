@@ -189,7 +189,7 @@ public final class NewAndroidComponentActionTest {
 
     UIUtil.invokeAndWaitIfNeeded((Runnable)() -> {
       modelWizard.getContentPanel().setSize(640, 480);
-      FakeUi fakeUi = new FakeUi(modelWizard.getContentPanel(), 1.0f, true, projectRule.getTestRootDisposable());
+      FakeUi fakeUi = new FakeUi(modelWizard.getContentPanel(), 1.0f, false, projectRule.getTestRootDisposable());
       try {
         fakeUi.layoutAndDispatchEvents();
       }

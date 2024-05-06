@@ -18,6 +18,7 @@ package com.android.tools.profilers.memory.chart
 import com.android.tools.adtui.model.HNode
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet
 import com.android.tools.profilers.memory.chart.MemoryVisualizationModel.XAxisFilter
+import java.util.Comparator
 
 /**
  * This class wraps a [ClassifierSet] exposing attributes needed to render a call chart. The [HNode] is the model for an

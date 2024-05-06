@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_HELPER;
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
 import static com.android.SdkConstants.CONSTRAINT_REFERENCED_IDS;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.SdkConstants.SHERPA_URI;

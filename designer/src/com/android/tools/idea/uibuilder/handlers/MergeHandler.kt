@@ -18,25 +18,12 @@ package com.android.tools.idea.uibuilder.handlers
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.ATTR_SHOW_IN
 import com.android.SdkConstants.TOOLS_NS_NAME_PREFIX
-import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.ViewEditor
-import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
 import com.google.common.collect.ImmutableList
 
 /** Handler for the <merge> tag */
 class MergeHandler : FrameLayoutHandler() {
-  override fun createDragHandler(
-    editor: ViewEditor,
-    layout: SceneComponent,
-    components: List<NlComponent>,
-    type: DragType
-  ): DragHandler {
-    return FrameDragHandler(editor, this, layout, components, type)
-  }
 
   override fun getInspectorProperties(): List<String> {
     return ImmutableList.of(

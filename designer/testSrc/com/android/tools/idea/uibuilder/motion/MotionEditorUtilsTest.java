@@ -20,6 +20,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.In
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.LinearInterpolator;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.MonotoneSpline;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.graph.Oscillator;
+import java.text.DecimalFormat;
 import junit.framework.TestCase;
 
 public class MotionEditorUtilsTest extends TestCase {

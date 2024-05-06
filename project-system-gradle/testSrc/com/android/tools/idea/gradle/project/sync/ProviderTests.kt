@@ -16,8 +16,9 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
@@ -48,7 +49,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
-import org.hamcrest.Matchers
+import org.hamcrest.CoreMatchers
 import org.jetbrains.annotations.Contract
 import org.junit.Assume
 import org.junit.Assume.assumeFalse
@@ -80,7 +81,7 @@ data class TestScenario(
   val executeMakeBeforeRun: Boolean = true,
   val target: Target = Target.AppTargetRunConfiguration,
   val variant: Pair<String, String>? = null,
-  val device: Int = 30
+  val device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R)
 ) {
   val name: String
     get() {
@@ -99,7 +100,7 @@ data class TestScenario(
              viaBundle.prefixed("via-bundle") +
              (!executeMakeBeforeRun).prefixed("before-build") +
              target.prefixed() +
-             device.takeUnless { it == 30 }.prefixed() +
+             device.takeUnless { it.apiLevel == 30 }.prefixed() +
              variant.prefixed()
     }
 }
@@ -133,7 +134,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
 
   with(testDefinition) {
     if (!scenario.testProject.isCompatibleWith(agpVersion)) skipTest("Project ${scenario.testProject.name} is incompatible with $agpVersion")
-    Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
+    Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), CoreMatchers.nullValue())
     outputCurrentlyRunningTest(this)
     val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
     preparedProject.open { project ->

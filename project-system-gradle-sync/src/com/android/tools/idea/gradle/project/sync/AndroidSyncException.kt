@@ -19,44 +19,47 @@ import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_TOO_NEW
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType.AGP_VERSION_TOO_OLD
 import java.util.regex.Pattern
 
 /**
  * Marker interface for all exceptions that are triggered via Android specific errors in project import.
  */
-open class AndroidSyncException : RuntimeException {
+open class AndroidSyncException(
+  val type: AndroidSyncExceptionType,
+  message: String,
   /**
    *  The root directory of the current build where this exception originated.
    *  For included build in a composite build, this points
    *  to the root directory(dir that hold settings.gradle) of the included build.
    *  For root build in a composite build, this points to the root directory of root build.
    */
-  val myBuildPath: String?
+  val buildPath: String? = null,
 
   /**
    * Path of the module that can be used as an identifier for module within a given build.
    */
-  val myModulePath: String?
+  val modulePath: String? = null,
 
   /**
    * Issues encountered during the gradle sync.
    */
-  val mySyncIssues: List<IdeSyncIssue>?
+  val syncIssues: List<IdeSyncIssue>? = null,
+) : RuntimeException(message)
 
-  constructor(message: String, buildPath: String? = null, modulePath: String? = null, syncIssues: List<IdeSyncIssue>? = null) : super(message) {
-    mySyncIssues = syncIssues
-    myModulePath = modulePath
-    myBuildPath = buildPath
-  }
-
-  constructor() : super() {
-    myBuildPath = null
-    myModulePath = null
-    mySyncIssues = null
-  }
+enum class AndroidSyncExceptionType {
+  AGP_VERSION_TOO_OLD,
+  AGP_VERSION_TOO_NEW,
+  AGP_VERSION_INCOMPATIBLE,
+  AGP_VERSIONS_MISMATCH,
+  NO_VALID_NATIVE_ABI_FOUND,
+  NO_VARIANTS_FOUND,
 }
 
-class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_TOO_OLD, generateMessage(agpVersion)) {
   companion object {
     private const val LEFT = "The project is using an incompatible version (AGP "
     private const val RIGHT = ") of the Android Gradle plugin. Minimum supported version is AGP $GRADLE_PLUGIN_MINIMUM_VERSION."
@@ -66,7 +69,7 @@ class AgpVersionTooOld(agpVersion: AgpVersion) : AndroidSyncException(generateMe
   }
 }
 
-class AgpVersionTooNew(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionTooNew(agpVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_TOO_NEW, generateMessage(agpVersion)) {
   companion object {
     private const val LEFT = "The project is using an incompatible version (AGP "
     private const val RIGHT = ") of the Android Gradle plugin. Latest supported version is AGP "
@@ -77,7 +80,7 @@ class AgpVersionTooNew(agpVersion: AgpVersion) : AndroidSyncException(generateMe
   }
 }
 
-class AgpVersionIncompatible(agpVersion: AgpVersion) : AndroidSyncException(generateMessage(agpVersion)) {
+class AgpVersionIncompatible(agpVersion: AgpVersion) : AndroidSyncException(AGP_VERSION_INCOMPATIBLE, generateMessage(agpVersion)) {
   companion object {
     private const val A = "The project is using an incompatible preview version (AGP "
     private const val B = ") of the Android Gradle plugin. Current compatible "
@@ -96,7 +99,7 @@ class AgpVersionIncompatible(agpVersion: AgpVersion) : AndroidSyncException(gene
   }
 }
 
-class AgpVersionsMismatch(agpVersions: List<Pair<AgpVersion, String>>) : AndroidSyncException(generateMessage(agpVersions)) {
+class AgpVersionsMismatch(agpVersions: List<Pair<AgpVersion, String>>) : AndroidSyncException(AGP_VERSIONS_MISMATCH, generateMessage(agpVersions)) {
   companion object {
     private fun generateMessage(agpVersions: List<Pair<AgpVersion, String>>): String {
       return "$MESSAGE_START ${agpVersions.map { it.first }.distinct()}" +

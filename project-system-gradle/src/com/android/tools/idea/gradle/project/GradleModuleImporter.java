@@ -30,8 +30,8 @@ import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProjects;
-import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -40,6 +40,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -53,9 +54,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -151,15 +150,15 @@ public final class GradleModuleImporter extends ModuleImporter {
   private static Set<ModuleToImport> getRequiredProjects(@NotNull VirtualFile sourceProject, @NotNull Project destinationProject) {
     GradleSiblingLookup subProjectLocations = new GradleSiblingLookup(sourceProject, destinationProject);
     Function<VirtualFile, Iterable<String>> parser = GradleProjectDependencyParser.newInstance(destinationProject);
-    Map<String, VirtualFile> modules = new HashMap<>();
-    List<VirtualFile> toAnalyze = new LinkedList<>();
+    Map<String, VirtualFile> modules = Maps.newHashMap();
+    List<VirtualFile> toAnalyze = Lists.newLinkedList();
     toAnalyze.add(sourceProject);
 
     while (!toAnalyze.isEmpty()) {
       Set<String> dependencies = Sets.newHashSet(Iterables.concat(Iterables.transform(toAnalyze, parser)));
       Iterable<String> notAnalyzed = Iterables.filter(dependencies, not(in(modules.keySet())));
       // Turns out, Maps#toMap does not allow null values...
-      Map<String, VirtualFile> dependencyToLocation = new HashMap<>();
+      Map<String, VirtualFile> dependencyToLocation = Maps.newHashMap();
       for (String dependency : notAnalyzed) {
         dependencyToLocation.put(dependency, subProjectLocations.apply(dependency));
       }
@@ -274,7 +273,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     GradleSettingsModel gradleSettingsModel = ProjectBuildModel.get(project).getProjectSettingsModel();
     for (Map.Entry<String, VirtualFile> module : modules.entrySet()) {
       String name = module.getKey();
-      File targetFile = GradleUtil.getModuleDefaultPath(projectRoot, name);
+      File targetFile = GradleProjectSystemUtil.getModuleDefaultPath(projectRoot, name);
       VirtualFile moduleSource = module.getValue();
       if (moduleSource != null) {
         if (!isAncestor(projectRoot, moduleSource, true)) {
@@ -293,7 +292,7 @@ public final class GradleModuleImporter extends ModuleImporter {
       }
       if (gradleSettingsModel != null) {
         gradleSettingsModel.addModulePath(name);
-        if (!FileUtil.filesEqual(GradleUtil.getModuleDefaultPath(projectRoot, name), targetFile)) {
+        if (!FileUtil.filesEqual(GradleProjectSystemUtil.getModuleDefaultPath(projectRoot, name), targetFile)) {
           gradleSettingsModel.setModuleDirectory(name, targetFile);
         }
       }

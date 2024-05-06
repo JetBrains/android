@@ -48,6 +48,8 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -153,6 +155,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
 
         private void performSelectionUpdate(Point p) {
           CaptureNode node = traceEventChart.getNodeAt(p);
+          Map<String, List<CaptureNode>> nameToNodes = trackModel.getDataModel().getNameToNodes();
           // Trace events only support single-selection.
           if (node != null) {
             multiSelectionModel.setSelection(
@@ -162,7 +165,8 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
                                                                    myProfilersView.getStudioProfilers().getIdeServices()
                                                                      .getPoolExecutor().execute(work);
                                                                    return Unit.INSTANCE;
-                                                                 })));
+                                                                 },
+                                                                 nameToNodes)));
           } else {
             multiSelectionModel.deselect();
           }

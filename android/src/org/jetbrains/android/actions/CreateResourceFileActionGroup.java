@@ -19,7 +19,6 @@ package org.jetbrains.android.actions;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import java.util.List;
 import org.jetbrains.android.dom.animation.AndroidAnimationUtils;
 import org.jetbrains.android.dom.animator.AndroidAnimatorUtil;
 import org.jetbrains.android.dom.color.AndroidColorDomUtil;
@@ -29,6 +28,8 @@ import org.jetbrains.android.dom.transition.TransitionDomUtil;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class CreateResourceFileActionGroup extends DefaultActionGroup {
   private final CreateResourceFileAction myMajorAction;

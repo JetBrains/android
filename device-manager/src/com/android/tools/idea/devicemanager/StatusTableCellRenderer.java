@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.table.Tables;
 import com.intellij.ui.components.JBLabel;
 import java.awt.Component;
 import javax.swing.JLabel;

@@ -34,6 +34,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.containers.isEmpty
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.LinkedList
 import java.util.stream.Stream
@@ -204,6 +205,14 @@ fun AndroidFacet.queryApplicationDebuggableFromManifestIndex() = queryManifestIn
 }
 
 /**
+ * Returns if the main manifest index is already part of the index.
+ *
+ * Must be called in a smart read action.
+ */
+fun AndroidFacet.queryIsMainManifestIndexReady(): Boolean =
+  queryMainManifestFromManifestIndex() != null
+
+/**
  * Returns the first non-null application theme value, or null if such attribute is not specified,
  * instead of merged results with merging rules applied.
  *
@@ -217,26 +226,32 @@ fun AndroidFacet.queryApplicationThemeFromManifestIndex() = queryManifestIndex {
 }
 
 /**
- * Returns the package name from primary manifest
- *
- * Must be called in a smart read action.
+ * Returns the main manifest [AndroidManifestRawText] if available or null if it's not
+ * part of the index.
  */
-fun AndroidFacet.queryPackageNameFromManifestIndex(): String? {
+private fun AndroidFacet.queryMainManifestFromManifestIndex(): AndroidManifestRawText? {
   val project = this.module.project
   // TODO(b/147600367): implement a PrimaryManifestModificationTracker which MergedManifestModificationListener
   //  increments just for the primary manifest.
   val modificationTracker = MergedManifestModificationTracker.getInstance(this.module)
 
-  val provider = {
-    val result = this.sourceProviders.mainManifestFile?.let {
-      getDataForManifestFile(project, it)?.packageName
-    }
+  val provider = CachedValueProvider {
+    val mainManifestFile = this.sourceProviders.mainManifestFile ?: return@CachedValueProvider null
+    val result = getDataForManifestFile(project, mainManifestFile)
     CachedValueProvider.Result.create(result, modificationTracker)
   }
 
   val manager = CachedValuesManager.getManager(project)
   return manager.getCachedValue(this, provider)
 }
+
+/**
+ * Returns the package name from primary manifest
+ *
+ * Must be called in a smart read action.
+ */
+fun AndroidFacet.queryPackageNameFromManifestIndex(): String? =
+  queryMainManifestFromManifestIndex()?.packageName
 
 /**
  * Returns the union set of used features, instead of merged results with merging rules applied.

@@ -54,6 +54,7 @@ class Group(name: String, vararg childItems: PTableItem) : Item(name, null), PTa
   private var expandFct: (Boolean) -> Unit = {}
   override val value: String? = null
   override val children = mutableListOf(*childItems)
+
   override fun expandWhenPossible(expandNow: (restructured: Boolean) -> Unit) {
     expandFct = expandNow
     if (!delayedExpansion) {
@@ -61,6 +62,7 @@ class Group(name: String, vararg childItems: PTableItem) : Item(name, null), PTa
       expandNow(false)
     }
   }
+
   fun expandNow(restructured: Boolean) {
     expandFct(restructured)
     expandFct = {}

@@ -28,13 +28,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
 
-
-/**
- * Tests for [PauseLogcatAction]
- */
+/** Tests for [PauseLogcatAction] */
 class PauseLogcatActionTest {
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
   private val device = Device.createPhysical("device", true, "10", 30, "Google", "Pixel")
   private val mockLogcatPresenter = mock<LogcatPresenter>()
@@ -60,7 +56,6 @@ class PauseLogcatActionTest {
 
     assertThat(event.presentation.text).isEqualTo("Resume Logcat")
   }
-
 
   @Test
   fun update_connected_enabled() {
@@ -107,4 +102,5 @@ class PauseLogcatActionTest {
   }
 }
 
-private fun testEvent(logcatPresenter: LogcatPresenter) = TestActionEvent(MapDataContext(mapOf(LOGCAT_PRESENTER_ACTION to logcatPresenter)))
+private fun testEvent(logcatPresenter: LogcatPresenter) =
+  TestActionEvent(MapDataContext(mapOf(LOGCAT_PRESENTER_ACTION to logcatPresenter)))

@@ -22,6 +22,9 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.execution.common.debug.utils.showError
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.Companion.getApplicationProjectContext
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -90,7 +93,7 @@ internal class ReattachingProcessHandler(private val masterProcessHandler: Proce
 internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   private val project: Project,
   private val masterProcessHandler: ProcessHandler,
-  private val applicationId: String,
+  private val applicationContext: ApplicationProjectContext,
   private val androidDebugger: AndroidDebugger<S>,
   val androidDebuggerState: S,
   private val consoleViewToReuse: ConsoleView?,
@@ -120,8 +123,8 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
     if (processedClientPids.contains(client.clientData.pid)) {
       return false
     }
-    val clientDescription = client.clientData.clientDescription
-    if (applicationId == clientDescription) {
+    val foundApplicationId = project.getProjectSystem().getApplicationProjectContext(client)?.applicationId ?: ""
+    if (applicationContext.applicationId == foundApplicationId) {
       if (changeMask and CHANGE_MASK != 0 && client.clientData.debuggerConnectionStatus == ClientData.DebuggerStatus.WAITING) {
         LOG.debug("Client waiting for debugger, PORT: ${client.debuggerListenPort}, PID: ${client.clientData.pid}\n")
         return true
@@ -150,7 +153,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
       addProcessedClientPid(client.clientData.pid)
       AndroidCoroutineScope(project).launch(workerThread) {
         LOG.info("Attaching debugger to a client, PID: ${client.clientData.pid}")
-        val session = DebugSessionStarter.attachDebuggerToStartedProcess(client.device, client.clientData.clientDescription!!,
+        val session = DebugSessionStarter.attachDebuggerToStartedProcess(client.device, applicationContext,
                                                                          environment,
                                                                          androidDebugger, androidDebuggerState,
                                                                          { it.forceStop(client.clientData.clientDescription!!) },

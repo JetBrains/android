@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.fonts;
 
-import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
-import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
-
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
@@ -42,59 +39,33 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.SystemInfo;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.DocumentAdapter;
-import com.intellij.ui.Gray;
-import com.intellij.ui.HyperlinkLabel;
-import com.intellij.ui.JBColor;
-import com.intellij.ui.SearchTextField;
-import com.intellij.ui.SpeedSearchComparator;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.LafIconLookup;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.LayoutManager;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.font.FontRenderContext;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ForkJoinPool;
-import java.util.function.Supplier;
-import javax.swing.Action;
-import javax.swing.DefaultListModel;
-import javax.swing.GroupLayout;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollBar;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.UIManager;
-import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.font.FontRenderContext;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.ForkJoinPool;
+import java.util.function.Supplier;
+
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
 
 /**
  * Font selection dialog, which displays and causes the font cache to be populated.
@@ -105,13 +76,13 @@ public class MoreFontsDialog extends DialogWrapper {
   private static final float FONT_SIZE_IN_LIST = 16f;
   private static final int VERTICAL_SCROLLING_UNIT_INCREMENT = 5;
   private static final int VERTICAL_SCROLLING_BLOCK_INCREMENT = 10;
-  private static final int DEFAULT_HEIGHT = JBUIScale.scale(400);
-  private static final int DEFAULT_WIDTH = JBUIScale.scale(600);
-  private static final int MIN_FONT_LIST_HEIGHT = JBUIScale.scale(200);
-  private static final int MIN_FONT_LIST_WIDTH = JBUIScale.scale(250);
-  private static final int MIN_FONT_PREVIEW_HEIGHT = JBUIScale.scale(200);
-  private static final int MIN_FONT_PREVIEW_WIDTH = JBUIScale.scale(150);
-  private static final int DESCENDER_SPACE = JBUIScale.scale(4);
+  private static final int DEFAULT_HEIGHT = JBUI.scale(400);
+  private static final int DEFAULT_WIDTH = JBUI.scale(600);
+  private static final int MIN_FONT_LIST_HEIGHT = JBUI.scale(200);
+  private static final int MIN_FONT_LIST_WIDTH = JBUI.scale(250);
+  private static final int MIN_FONT_PREVIEW_HEIGHT = JBUI.scale(200);
+  private static final int MIN_FONT_PREVIEW_WIDTH = JBUI.scale(150);
+  private static final int DESCENDER_SPACE = JBUI.scale(4);
 
   private final FontListModel myModel;
   private final DefaultListModel<FontDetail> myDetailModel;
@@ -164,7 +135,7 @@ public class MoreFontsDialog extends DialogWrapper {
     myFontList.setCellRenderer(new FontFamilyRenderer());
     // We want to set fixed cell height and width. This makes the list render much faster.
     myFontList.setFixedCellHeight(computeFontHeightInFontList(myFontList));
-    myFontList.setFixedCellWidth(MIN_FONT_LIST_WIDTH + JBUIScale.scale(DESCENDER_SPACE));
+    myFontList.setFixedCellWidth(MIN_FONT_LIST_WIDTH + JBUI.scale(DESCENDER_SPACE));
     myFontList.setModel(myModel);
     myFontListScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
     JScrollBar scrollBar = myFontListScrollPane.getVerticalScrollBar();
@@ -509,7 +480,7 @@ public class MoreFontsDialog extends DialogWrapper {
         setFont(font);
       }
       append(fontFamily.getMenuName());
-      setIconTextGap(JBUIScale.scale(4));
+      setIconTextGap(JBUI.scale(4));
 
       switch (fontFamily.getFontSource()) {
         case SYSTEM:
@@ -732,8 +703,8 @@ public class MoreFontsDialog extends DialogWrapper {
       int height = getHeight() / 2;
       int textWidth = (int)getFontMetrics(getFont()).getStringBounds(getText(), graphics).getWidth();
       graphics.setColor(CONTRAST_BORDER_COLOR);
-      graphics.drawLine(JBUIScale.scale(5), height, JBUIScale.scale(30), height);
-      graphics.drawLine(textWidth + JBUIScale.scale(40), height, width - JBUIScale.scale(5), height);
+      graphics.drawLine(JBUI.scale(5), height, JBUI.scale(30), height);
+      graphics.drawLine(textWidth + JBUI.scale(40), height, width - JBUI.scale(5), height);
     }
   }
 }

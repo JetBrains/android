@@ -1,0 +1,44 @@
+<HTML>
+<code>
+  public
+  static
+  class
+  ApnSetting.Builder
+</code>
+<br>
+<code class="api-signature" translate="no" dir="ltr">
+    extends <a href="/reference/java/lang/Object">Object</a>
+</code>
+<code class="api-signature" translate="no" dir="ltr">
+</code>
+</code>
+<hr><div>
+  <p>Provides a convenient way to set the fields of a <code translate="no" dir="ltr"><a href="/reference/android/telephony/data/ApnSetting">ApnSetting</a></code> when creating a new
+ instance. The following settings are required to build an <code translate="no" dir="ltr">ApnSetting</code>:
+ <ul><li>apnTypeBitmask</li>
+ <li>apnName</li>
+ <li>entryName</li></ul>
+ <p>The example below shows how you might create a new <code translate="no" dir="ltr">ApnSetting</code>:
+ <pre translate="no" dir="ltr"><code translate="no" dir="ltr">
+ // Create an MMS proxy address with a hostname. A network might not be
+ // available, so supply a placeholder (0.0.0.0) IPv4 address to avoid DNS lookup.
+ String host = "mms.example.com";
+ byte[] ipAddress = new byte[4];
+ InetAddress mmsProxy;
+ try {
+   mmsProxy = InetAddress.getByAddress(host, ipAddress);
+ } catch (UnknownHostException e) {
+   e.printStackTrace();
+   return;
+ }
+ ApnSetting apn = new ApnSetting.Builder()
+     .setApnTypeBitmask(ApnSetting.TYPE_DEFAULT | ApnSetting.TYPE_MMS)
+     .setApnName("apn.example.com")
+     .setEntryName("Example Carrier APN")
+     .setMmsc(Uri.parse("http://mms.example.com:8002"))
+     .setMmsProxyAddress(mmsProxy)
+     .setMmsProxyPort(8799)
+     .build();
+ </code></pre></p>
+</div>
+</HTML>

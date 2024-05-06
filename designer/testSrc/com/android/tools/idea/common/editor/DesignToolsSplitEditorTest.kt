@@ -76,6 +76,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
         // because we test that registerModeNavigationShortcuts does the right thing.
         // TODO(b/146150328)
         private var registeredShortcuts = false
+
         override fun getComponent(): JComponent {
           if (!registeredShortcuts) {
             registeredShortcuts = true

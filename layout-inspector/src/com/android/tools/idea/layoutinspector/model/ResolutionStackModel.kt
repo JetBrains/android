@@ -19,6 +19,8 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesMode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 
 /**
  * Model for keeping track of expanded detail traces in an attribute resolution stack.
@@ -27,7 +29,7 @@ import com.android.tools.property.panel.api.PropertiesModelListener
  * [ResolutionStackModel] is required per table (i.e. 1 for declared attributes and 1 for all
  * attributes).
  */
-class ResolutionStackModel(val propertiesModel: InspectorPropertiesModel) {
+class ResolutionStackModel(val propertiesModel: InspectorPropertiesModel) : Disposable {
   private val expandedItems = mutableSetOf<InspectorPropertyItem>()
   private val listener =
     object : PropertiesModelListener<InspectorPropertyItem> {
@@ -43,7 +45,13 @@ class ResolutionStackModel(val propertiesModel: InspectorPropertiesModel) {
     }
 
   init {
+    Disposer.register(propertiesModel, this)
+
     propertiesModel.addListener(listener)
+  }
+
+  override fun dispose() {
+    propertiesModel.removeListener(listener)
   }
 
   fun isExpanded(property: InspectorPropertyItem): Boolean = expandedItems.contains(property)

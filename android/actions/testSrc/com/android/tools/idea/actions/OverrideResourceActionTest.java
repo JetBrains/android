@@ -22,11 +22,12 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.UIUtil;
-import java.io.IOException;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.intentions.OverrideResourceAction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
 
 public class OverrideResourceActionTest extends AndroidTestCase {
   private static final String BASE_PATH = "forkResource/";

@@ -22,15 +22,16 @@ import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.PopupHandler
 import javax.swing.JComponent
+import javax.swing.JTable
 
 /**
  * Utility class for building and installing a popup menu for a given [JComponent].
  */
-class ComponentPopupMenu(private val myComponent: JComponent) {
+class ComponentPopupMenu(private val table: JTable) {
   private val myGroup = DefaultActionGroup()
 
   fun install() {
-    PopupHandler.installPopupMenu(myComponent, myGroup, "Device Monitor Toolbar")
+    PopupHandler.installRowSelectionTablePopup(table, myGroup, "Device Monitor Toolbar")
   }
 
   fun addSeparator() {
@@ -43,11 +44,11 @@ class ComponentPopupMenu(private val myComponent: JComponent) {
     if (!StringUtil.isEmpty(shortcutId)) {
       val active = KeymapManager.getInstance().activeKeymap
       val shortcuts = active.getShortcuts(shortcutId)
-      action.registerCustomShortcutSet(CustomShortcutSet(*shortcuts), myComponent)
+      action.registerCustomShortcutSet(CustomShortcutSet(*shortcuts), table)
     }
     val shortcuts = popupMenuItem.shortcuts
     if (shortcuts != null && shortcuts.isNotEmpty()) {
-      action.registerCustomShortcutSet(CustomShortcutSet(*shortcuts), myComponent)
+      action.registerCustomShortcutSet(CustomShortcutSet(*shortcuts), table)
     }
     myGroup.add(action)
   }

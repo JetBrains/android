@@ -47,7 +47,9 @@ private const val ROOM_ENTITY_ARCH: String = "android.arch.persistence.room.Enti
  */
 internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
   override fun getId(): String = "RunSqliteStatement"
+
   override fun getName(): String = message("gutter.name.run.sqlite.statement")
+
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 
   override fun collectSlowLineMarkers(
@@ -57,8 +59,10 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     val first = elements.firstOrNull() ?: return
     val module = ModuleUtilCore.findModuleForPsiElement(first) ?: return
 
-    if (!JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ANDROIDX)
-        && !JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ARCH)) {
+    if (
+      !JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ANDROIDX) &&
+        !JavaLibraryUtil.hasLibraryClass(module, ROOM_ENTITY_ARCH)
+    ) {
       return
     }
 
@@ -89,10 +93,12 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
         .firstOrNull { it.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == null }
         ?: return
 
-    val injectionHost = InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
+    val injectionHost =
+      InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
 
     // If the sql statement is defined over multiple strings (eg: "select " + "*" + " from users")
-    // different elements ("select ", "*", " from users") correspond to the same injection host ("select ").
+    // different elements ("select ", "*", " from users") correspond to the same injection host
+    // ("select ").
     // We don't want to add multiple annotations for these sql statements.
     if (targetElement != injectionHost) return
 
@@ -112,11 +118,14 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
     )
   }
 
-  private fun getNavHandler(pointer: SmartPsiElementPointer<PsiLanguageInjectionHost>): GutterIconNavigationHandler<PsiElement> {
+  private fun getNavHandler(
+    pointer: SmartPsiElementPointer<PsiLanguageInjectionHost>
+  ): GutterIconNavigationHandler<PsiElement> {
     return GutterIconNavigationHandler { event, element ->
       val targetElement = pointer.element ?: return@GutterIconNavigationHandler
 
-      val sqliteExplorerProjectService = DatabaseInspectorProjectService.getInstance(element.project)
+      val sqliteExplorerProjectService =
+        DatabaseInspectorProjectService.getInstance(element.project)
       if (!sqliteExplorerProjectService.hasOpenDatabase()) {
         JBPopupFactory.getInstance()
           .createBalloonBuilder(JLabel(message("no.db.in.inspector")))

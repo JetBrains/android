@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.common.util.ControllableTicker
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -255,6 +255,8 @@ class PlaybackControls(
     init {
       enumValues<TimelineSpeed>().forEach { addAction(SpeedAction(it)) }
     }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
       e.presentation.text = clockControl.speed.displayText

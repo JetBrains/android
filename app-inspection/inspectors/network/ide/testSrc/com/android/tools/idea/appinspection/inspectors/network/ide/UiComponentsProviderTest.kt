@@ -23,9 +23,9 @@ import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JLabel
 import kotlin.io.path.readBytes
 
 @RunsInEdt

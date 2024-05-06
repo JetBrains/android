@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.model.formatter;
 
+import com.intellij.util.text.DateFormatUtil;
 import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
@@ -139,5 +140,13 @@ public class TimeFormatter {
       builder.append(" sec");
     }
     return builder.toString().trim();
+  }
+
+  public static String getLocalizedTime(long milli) {
+    return DateFormatUtil.formatTime(milli);
+  }
+
+  public static String getLocalizedDateTime(long milli) {
+    return DateFormatUtil.formatDateTime(milli);
   }
 }

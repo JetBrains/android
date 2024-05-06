@@ -25,13 +25,13 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.testFramework.TestActionEvent
+import java.awt.Dimension
+import java.awt.event.MouseEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Dimension
-import java.awt.event.MouseEvent
 
 class ShowQuickFixesActionTest {
 

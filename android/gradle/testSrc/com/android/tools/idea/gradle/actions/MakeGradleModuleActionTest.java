@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
@@ -44,7 +44,7 @@ import org.mockito.Mock;
  * Tests for {@link MakeGradleModuleAction}.
  */
 public class MakeGradleModuleActionTest extends PlatformTestCase {
-  @Mock private GradleProjectInfo myProjectInfo;
+  @Mock private Info myInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AnActionEvent myActionEvent;
   @Mock private DataContext myDataContext;
@@ -57,7 +57,7 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    new IdeComponents(project).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
+    new IdeComponents(project).replaceProjectService(Info.class, myInfo);
     new IdeComponents(project).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
 
     when(myBuildInvoker.assemble(any(), any()))
@@ -79,7 +79,7 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
   public void testDoPerform() {
     Module module = getModule();
     Module[] selectedModules = {module};
-    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);
+    when(myInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);
 
     // Method to test:
     myAction.doPerform(myActionEvent, getProject());
@@ -89,7 +89,7 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
   }
 
   public void testNoDefaultSelection() {
-    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(new Module[]{});
+    when(myInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(new Module[]{});
     myAction.doPerform(myActionEvent, getProject());
 
     // Verify "assemble" was invoked.
@@ -98,13 +98,13 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
 
   public void testDoRememberPreviousSelection() {
     Module[] selectedModules = new Module[]{getModule()};
-    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);
+    when(myInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);
 
     myAction.doPerform(myActionEvent, getProject());
     verify(myBuildInvoker).assemble(selectedModules, TestCompileType.ALL);
     reset(myBuildInvoker);
 
-    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(new Module[]{});
+    when(myInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(new Module[]{});
     myAction.doPerform(myActionEvent, getProject());
 
     // Verify previous selection is stored
@@ -112,7 +112,7 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
     reset(myBuildInvoker);
 
     Module[] myapplication = new Module[]{createModule("myapplication")};
-    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(myapplication);
+    when(myInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(myapplication);
     myAction.doPerform(myActionEvent, getProject());
 
     // Verify previous selection is updated after new module is selected

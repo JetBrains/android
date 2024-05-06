@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.build.BuildContentManager;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
@@ -40,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class BuildToolWindowFixture extends ToolWindowFixture {
 
   BuildToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
-    super(BuildContentManager.TOOL_WINDOW_ID, project, robot);
+    super("Build", project, robot);
   }
 
   public Content getSyncContent() {

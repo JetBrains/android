@@ -23,11 +23,11 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -42,7 +42,7 @@ import com.android.tools.rendering.RenderTask;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import java.awt.Dimension;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -210,7 +210,7 @@ public abstract class ViewEditor {
                                          @Nullable Predicate<String> filter,
                                          @Nullable String currentValue) {
     Module module = model.getModule();
-    String[] superTypesArray = ArrayUtilRt.toStringArray(superTypes);
+    String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
     Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
     if (filter == null) {

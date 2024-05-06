@@ -37,37 +37,45 @@ import org.junit.Test
 
 private const val CARET = "^"
 
-private val PROJECT_FILES = listOf(
-  "MainActivity.java",
-  "Activity.java",
-)
+private val PROJECT_FILES =
+  listOf(
+    "MainActivity.java",
+    "Activity.java",
+  )
 
-/**
- * Tests for [LogcatOccurrenceNavigator]
- */
+/** Tests for [LogcatOccurrenceNavigator] */
 @RunsInEdt
 class LogcatOccurrenceNavigatorTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
+  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
 
-  private val editor get() = logcatEditorRule.editor
-  private val editorHyperlinkDetector by lazy { EditorHyperlinkDetector(projectRule.project, editor) }
+  private val editor
+    get() = logcatEditorRule.editor
+
+  private val editorHyperlinkDetector by lazy {
+    EditorHyperlinkDetector(projectRule.project, editor)
+  }
   private val editorHyperlinkSupport by lazy { EditorHyperlinkSupport.get(editor) }
 
   @Before
   fun setUp() {
     projectRule.project.replaceService(
-      PsiShortNamesCache::class.java, FakePsiShortNamesCache(projectRule.project, PROJECT_FILES), disposableRule.disposable)
+      PsiShortNamesCache::class.java,
+      FakePsiShortNamesCache(projectRule.project, PROJECT_FILES),
+      disposableRule.disposable
+    )
   }
 
   @Test
   fun hasOccurrence() {
     val navigator = logcatOccurrenceNavigator(editor)
-    setEditorText(editor, " at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)")
+    setEditorText(
+      editor,
+      " at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)"
+    )
 
     // Regardless of the caret, we should have both next & prev occurrences
     for (line in 0 until editor.document.lineCount) {
@@ -95,7 +103,9 @@ class LogcatOccurrenceNavigatorTest {
         $CARET
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)
           at android.app.Activity.performCreate(Activity.java:8000)
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goNextOccurence()
 
@@ -104,10 +114,12 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("MainActivity.java:19")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   @Test
@@ -119,7 +131,9 @@ class LogcatOccurrenceNavigatorTest {
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)
           at android.app.Activity.performCreate(Activity.java:8000)
         $CARET
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goNextOccurence()
 
@@ -128,10 +142,12 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("MainActivity.java:19")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   @Test
@@ -143,7 +159,9 @@ class LogcatOccurrenceNavigatorTest {
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)
         $CARET
           at android.app.Activity.performCreate(Activity.java:8000)
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goNextOccurence()
 
@@ -152,10 +170,12 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   @Test
@@ -166,7 +186,9 @@ class LogcatOccurrenceNavigatorTest {
       """
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java$CARET:19)
           at android.app.Activity.performCreate(Activity.java:8000)
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goNextOccurence()
 
@@ -175,10 +197,12 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   @Test
@@ -190,7 +214,9 @@ class LogcatOccurrenceNavigatorTest {
         $CARET
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)
           at android.app.Activity.performCreate(Activity.java:8000)
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goPreviousOccurence()
 
@@ -199,10 +225,12 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   @Test
@@ -214,7 +242,9 @@ class LogcatOccurrenceNavigatorTest {
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)
           at android.app.Activity.performCreate(Activity.java:8000)
         $CARET
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goPreviousOccurence()
 
@@ -223,10 +253,12 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   @Test
@@ -238,7 +270,9 @@ class LogcatOccurrenceNavigatorTest {
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java:19)
         $CARET
           at android.app.Activity.performCreate(Activity.java:8000)
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goPreviousOccurence()
 
@@ -247,10 +281,12 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("MainActivity.java:19")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   @Test
@@ -261,7 +297,9 @@ class LogcatOccurrenceNavigatorTest {
       """
           at com.example.myapplication.MainActivity.onCreate(MainActivity.java$CARET:19)
           at android.app.Activity.performCreate(Activity.java:8000)
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     val occurrenceInfo = navigator.goPreviousOccurence()
 
@@ -270,19 +308,22 @@ class LogcatOccurrenceNavigatorTest {
     val adapter = occurrenceInfo?.navigateable as LogcatNavigatableAdapter
     assertThat(adapter).isNotNull()
     assertThat(adapter.occurrenceRange.getText()).isEqualTo("Activity.java:8000")
-    assertThat(adapter.allRanges.map(RangeHighlighter::getText)).containsExactly(
-      "MainActivity.java:19",
-      "Activity.java:8000",
-    ).inOrder()
+    assertThat(adapter.allRanges.map(RangeHighlighter::getText))
+      .containsExactly(
+        "MainActivity.java:19",
+        "Activity.java:8000",
+      )
+      .inOrder()
   }
 
   /**
    * This test navigates all the stack frames in order including wrapping around the document.
    *
-   * For each iteration, it verifies that the caret was moved to the proper location and that the current link only is highlighted with
-   * FOLLOWED_HYPERLINK_ATTRIBUTES.
+   * For each iteration, it verifies that the caret was moved to the proper location and that the
+   * current link only is highlighted with FOLLOWED_HYPERLINK_ATTRIBUTES.
    *
-   * It's enough to test goNextOccurence() only because the tested functionality doesn't depend on direction.
+   * It's enough to test goNextOccurence() only because the tested functionality doesn't depend on
+   * direction.
    */
   @Test
   fun goOccurrence_navigate() {
@@ -295,7 +336,9 @@ class LogcatOccurrenceNavigatorTest {
           at android.app.Activity.performCreate(Activity.java:3)
           at android.app.Activity.performCreate(Activity.java:4)
           $CARET
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     for (i in 0 until editor.document.textLength * 2) {
       val occurrenceInfo = navigator.goNextOccurence()
@@ -311,11 +354,12 @@ class LogcatOccurrenceNavigatorTest {
         if (range === adapter.occurrenceRange) {
           // The range we navigate to is highlighted as a followed link
           assertThat(textAttributes).named("i=$i").isEqualTo(FOLLOWED_HYPERLINK_ATTRIBUTES)
-        }
-        else {
+        } else {
           // All other ranges are restored to their original highlight
           assertThat(textAttributes).named("i=$i range=${range.getText()}").isNotNull()
-          assertThat(textAttributes).named("i=$i range=${range.getText()}").isNotEqualTo(FOLLOWED_HYPERLINK_ATTRIBUTES)
+          assertThat(textAttributes)
+            .named("i=$i range=${range.getText()}")
+            .isNotEqualTo(FOLLOWED_HYPERLINK_ATTRIBUTES)
         }
       }
     }
@@ -332,8 +376,9 @@ class LogcatOccurrenceNavigatorTest {
           at android.app.Activity.performCreate(Activity.java:3)
           at android.app.Activity.performCreate(Activity.java:4)
           $CARET
-      """.trimIndent())
-
+      """
+        .trimIndent()
+    )
 
     assertThat(navigator.navigateNext()?.occurenceNumber).isEqualTo(1)
     assertThat(navigator.navigateNext()?.occurenceNumber).isEqualTo(2)
@@ -343,8 +388,8 @@ class LogcatOccurrenceNavigatorTest {
     assertThat(navigator.navigatePrevious()?.occurenceNumber).isEqualTo(4)
   }
 
-
-  private fun logcatOccurrenceNavigator(editor: Editor) = LogcatOccurrenceNavigator(projectRule.project, editor)
+  private fun logcatOccurrenceNavigator(editor: Editor) =
+    LogcatOccurrenceNavigator(projectRule.project, editor)
 
   private fun setEditorText(editor: Editor, text: String) {
     editor.document.setText(text.replace(CARET, ""))
@@ -357,7 +402,8 @@ class LogcatOccurrenceNavigatorTest {
   }
 }
 
-private fun RangeHighlighter.getText(): String = document.immutableCharSequence.subSequence(startOffset, endOffset).toString()
+private fun RangeHighlighter.getText(): String =
+  document.immutableCharSequence.subSequence(startOffset, endOffset).toString()
 
 private fun LogcatOccurrenceNavigator.navigateNext(): OccurenceNavigator.OccurenceInfo? {
   val occurrenceInfo = goNextOccurence()

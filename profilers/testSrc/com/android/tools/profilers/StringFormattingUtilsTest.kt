@@ -16,7 +16,7 @@
 package com.android.tools.profilers
 
 import com.android.tools.profilers.StringFormattingUtils.formatLongValueWithCommas
-import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class StringFormattingUtilsTest {

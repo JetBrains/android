@@ -15,14 +15,33 @@
  */
 package com.android.tools.idea.diagnostics;
 
+import static com.android.tools.idea.diagnostics.heap.ComponentsSet.MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME;
+
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.HistogramUtil;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.diagnostics.crash.ExceptionDataCollection;
 import com.android.tools.idea.diagnostics.crash.ExceptionRateLimiter;
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.crash.UploadFields;
+import com.android.tools.idea.diagnostics.error.AndroidStudioErrorReportSubmitter;
+import com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService;
+import com.android.tools.idea.diagnostics.hprof.action.AnalysisRunnable;
+import com.android.tools.idea.diagnostics.hprof.action.HeapDumpSnapshotRunnable;
+import com.android.tools.idea.diagnostics.jfr.RecordingManager;
+import com.android.tools.idea.diagnostics.jfr.reports.ReportTypesKt;
+import com.android.tools.idea.diagnostics.kotlin.KotlinPerfCounters;
+import com.android.tools.idea.diagnostics.report.DiagnosticReport;
+import com.android.tools.idea.diagnostics.report.FreezeReport;
+import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
+import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.android.tools.idea.diagnostics.report.UnanalyzedHeapReport;
+import com.android.tools.idea.modes.essentials.EssentialsModeToggleAction;
+import com.android.tools.idea.serverflags.ServerFlagService;
+import com.android.tools.idea.serverflags.protos.MemoryUsageReportConfiguration;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
@@ -32,13 +51,24 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.GcPauseInfo;
 import com.google.wireless.android.sdk.stats.HeapReportEvent;
+import com.google.wireless.android.sdk.stats.StudioCrash;
+import com.google.wireless.android.sdk.stats.StudioExceptionDetails;
 import com.google.wireless.android.sdk.stats.StudioPerformanceStats;
 import com.google.wireless.android.sdk.stats.UIActionStats;
 import com.google.wireless.android.sdk.stats.UIActionStats.InvocationKind;
+import com.intellij.ExtensionPoints;
+import com.intellij.concurrency.JobScheduler;
+import com.intellij.diagnostic.IdePerformanceListener;
 import com.intellij.diagnostic.LogMessage;
 import com.intellij.diagnostic.MessagePool;
+import com.intellij.diagnostic.ThreadDump;
+import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.diagnostic.VMOptions;
+//import com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;
+import com.intellij.ide.AppLifecycleListener;
+import com.intellij.ide.EssentialHighlightingMode;
 import com.intellij.ide.IdeBundle;
+import com.intellij.ide.PowerSaveMode;
 import com.intellij.ide.actions.CopyAction;
 import com.intellij.ide.actions.CutAction;
 import com.intellij.ide.actions.DeleteAction;
@@ -51,6 +81,8 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.idea.AppMode;
+import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
 import com.intellij.notification.BrowseNotificationAction;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
@@ -59,31 +91,51 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.notification.impl.NotificationFullContent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.AnActionWrapper;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Attachment;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.actionSystem.EditorAction;
 import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
+import com.intellij.util.messages.MessageBusConnection;
+import com.sun.tools.attach.AttachNotSupportedException;
+import com.sun.tools.attach.VirtualMachine;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,16 +146,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import org.HdrHistogram.SingleWriterRecorder;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.PropertyKey;
+import sun.tools.attach.HotSpotVirtualMachine;
 
 /**
  * Extension to System Health Monitor that includes Android Studio-specific code.
  */
+@Service
 public final class AndroidStudioSystemHealthMonitor {
   private static final Logger LOG = Logger.getInstance(AndroidStudioSystemHealthMonitor.class);
 
@@ -112,15 +169,11 @@ public final class AndroidStudioSystemHealthMonitor {
   // The group should be registered by SystemHealthMonitor
   private final NotificationGroup myGroup = NotificationGroup.findRegisteredGroup("System Health");
 
-  /**
-   * Count of action events fired. This is used as a proxy for user initiated activity in the IDE.
-   */
+  /** Count of action events fired. This is used as a proxy for user initiated activity in the IDE. */
   public static final AtomicLong ourStudioActionCount = new AtomicLong(0);
   private static final String STUDIO_ACTIVITY_COUNT = "studio.activity.count";
 
-  /**
-   * Count of non fatal exceptions in the IDE.
-   */
+  /** Count of non fatal exceptions in the IDE. */
   private static final AtomicLong ourStudioExceptionCount = new AtomicLong(0);
   private static final AtomicLong ourInitialPersistedExceptionCount = new AtomicLong(0);
   private static final AtomicLong ourBundledPluginsExceptionCount = new AtomicLong(0);
@@ -143,9 +196,7 @@ public final class AndroidStudioSystemHealthMonitor {
                        ApplicationManager.getApplication().isEAP() ? 20 : 1);
 
   private static final ConcurrentMap<GcPauseInfo.GcType, SingleWriterRecorder> myGcPauseInfo = new ConcurrentHashMap<>();
-  /**
-   * Maximum GC pause duration to record. Longer pause durations are truncated to keep the size of the histogram bounded.
-   */
+  /** Maximum GC pause duration to record. Longer pause durations are truncated to keep the size of the histogram bounded. */
   private static final long MAX_GC_PAUSE_TIME_MS = 30 * 60 * 1000;
 
   private static final long TOO_MANY_EXCEPTIONS_THRESHOLD = 10000;
@@ -183,11 +234,15 @@ public final class AndroidStudioSystemHealthMonitor {
   }
 
   public void addHeapReportToDatabase(@NotNull UnanalyzedHeapReport report) {
-    // Removed from IntelliJ
+    try {
+      myReportsDatabase.appendReport(report);
+    } catch (IOException e) {
+      LOG.warn("Exception when adding heap report to database", e);
+    }
   }
 
   public boolean hasPendingHeapReport() throws IOException {
-    return false;
+    return myReportsDatabase.getReports().stream().anyMatch(r -> r instanceof UnanalyzedHeapReport);
   }
 
   private final List<Runnable> myOomListeners = new LinkedList<>();
@@ -200,7 +255,11 @@ public final class AndroidStudioSystemHealthMonitor {
   }
 
   public static @Nullable AndroidStudioSystemHealthMonitor getInstance() {
-    return null;
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      return ApplicationManager.getApplication().getService(AndroidStudioSystemHealthMonitor.class);
+    } else  {
+      return null;
+    }
   }
 
   public static Integer getMaxHistogramReportsCount() {
@@ -219,11 +278,9 @@ public final class AndroidStudioSystemHealthMonitor {
         // Maximum size of the array that can be allocated is Int.MAX_VALUE - 2.
         list.add(new byte[Integer.MAX_VALUE - 2]);
       }
-    }
-    catch (OutOfMemoryError ignored) {
+    } catch (OutOfMemoryError ignored) {
       // ignore
-    }
-    finally {
+    } finally {
       list.clear();
       // Help GC collect the list object earlier
       list = null;
@@ -242,8 +299,90 @@ public final class AndroidStudioSystemHealthMonitor {
     return Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
   }
 
+  private static long getFreeMemory() {
+    return Runtime.getRuntime().maxMemory() - getUsedMemory();
+  }
+
+  private final Lock lowMemoryDetectedLock = new ReentrantLock();
+  private boolean memoryReportCreated = false;
+
   public boolean lowMemoryDetected(MemoryReportReason reason) {
-    return false;
+    // Ignore concurrent calls to the method.
+    if (!lowMemoryDetectedLock.tryLock()) {
+      return false;
+    }
+    try {
+      if (reason != MemoryReportReason.OutOfMemory) {
+        long freeMemory = getFreeMemory();
+        if (freeMemory >= FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT) {
+          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.EXCESS_FREE_MEMORY).build()));
+          return false;
+        }
+      }
+
+      if (ServerFlagService.Companion.getInstance().getBoolean("diagnostics/forced_gc", false)) {
+        // Free up some memory by clearing weak/soft references
+        long memoryFreed = freeUpMemory();
+        LOG.warn("Forced clear of soft/weak references. Reason: " + reason + ", freed memory: " + (memoryFreed / 1_000_000) + "MB");
+        if (memoryFreed >= MEMORY_FREED_THRESHOLD_FOR_HEAP_REPORT) {
+          // Enough memory was freed, so there is no reason to send the report.
+          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.EXCESS_FREE_MEMORY_AFTER_GC).build()));
+          return false;
+        }
+      }
+
+      if (reason == MemoryReportReason.FrequentLowMemoryNotification) {
+        return false;
+      }
+
+      // Create only one report per session
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+        HeapReportEvent.newBuilder()
+          .setStatus(HeapReportEvent.Status.LOW_MEMORY_EVENT)
+          .setReason(reason.asHeapReportEventReason())
+          .build()));
+      if (!memoryReportCreated) {
+        memoryReportCreated = true;
+        addHistogramToDatabase(reason, "LowMemoryWatcher");
+        ApplicationManager.getApplication()
+          .invokeLater(new HeapDumpSnapshotRunnable(reason, HeapDumpSnapshotRunnable.AnalysisOption.SCHEDULE_ON_NEXT_START));
+      } else {
+        UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
+          HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.REPORT_ALREADY_PENDING).build()));
+      }
+
+      return true;
+    } finally {
+      lowMemoryDetectedLock.unlock();
+    }
+  }
+
+  public void addHistogramToDatabase(MemoryReportReason reason, @Nullable String description) {
+    try {
+      Path histogramDirPath = createHistogramPath();
+      if (java.nio.file.Files.exists(histogramDirPath)) {
+        LOG.info("Histogram path already exists: " + histogramDirPath);
+        return;
+      }
+      java.nio.file.Files.createDirectories(histogramDirPath);
+      Path histogramFilePath = histogramDirPath.resolve("histogram.txt");
+      java.nio.file.Files.writeString(histogramFilePath, getHistogram(), StandardOpenOption.CREATE);
+
+      Path threadDumpFilePath = histogramDirPath.resolve("threadDump.txt");
+      FileUtil.writeToFile(threadDumpFilePath.toFile(), ThreadDumper.dumpThreadsToString());
+
+      myReportsDatabase.appendReport(new HistogramReport(threadDumpFilePath, histogramFilePath, reason, description));
+    } catch (IOException e) {
+      LOG.info("Exception while creating histogram", e);
+    }
+  }
+
+  private static Path createHistogramPath() {
+    String datePart = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(System.currentTimeMillis());
+    String dirName = "threadDumps-histogram-" + datePart;
+    return Paths.get(PathManager.getLogPath(), dirName);
   }
 
   private static long getMyPID() {
@@ -253,11 +392,47 @@ public final class AndroidStudioSystemHealthMonitor {
     if (split.length == 2) {
       try {
         pid = Long.parseLong(split[0]);
-      }
-      catch (NumberFormatException ignore) {
+      } catch (NumberFormatException ignore) {
       }
     }
     return pid;
+  }
+
+  private static String getHistogram() throws UnsupportedOperationException {
+    StringBuilder sb = new StringBuilder();
+    VirtualMachine vm;
+    try {
+      vm = VirtualMachine.attach(Long.toString(getMyPID()));
+      if (!(vm instanceof HotSpotVirtualMachine)) {
+        throw new UnsupportedOperationException();
+      }
+      HotSpotVirtualMachine hotSpotVM = (HotSpotVirtualMachine) vm;
+      char[] chars = new char[1024];
+      try (BufferedReader reader = new BufferedReader(new InputStreamReader(hotSpotVM.heapHisto("-live"), Charsets.UTF_8))) {
+        int read;
+        while ((read = reader.read(chars)) != -1) {
+          sb.append(chars, 0, read);
+        }
+      }
+    } catch (AttachNotSupportedException | IOException e) {
+      throw new UnsupportedOperationException(e);
+    }
+    String fullHistogram = sb.toString();
+    String[] lines = fullHistogram.split("\r?\n");
+    final int TOP_LINES = 103;
+    final int BOTTOM_LINES = 1;
+    if (lines.length <= TOP_LINES + BOTTOM_LINES) {
+      return sb.toString();
+    }
+    sb.setLength(0);
+    for (int i = 0; i < TOP_LINES; i++) {
+      sb.append(lines[i]).append("\n");
+    }
+    sb.append("[...]\n");
+    for (int i = lines.length - BOTTOM_LINES; i < lines.length; i++) {
+      sb.append(lines[i]).append("\n");
+    }
+    return sb.toString();
   }
 
   public static void recordGcPauseTime(String gcName, long durationMs) {
@@ -266,39 +441,219 @@ public final class AndroidStudioSystemHealthMonitor {
       .recordValue(Math.min(durationMs, MAX_GC_PAUSE_TIME_MS));
   }
 
-  private static GcPauseInfo.GcType getGcType(String name) {
+  private static GcPauseInfo.GcType getGcType (String name) {
     switch (name) {
-      case "Copy":
-        return GcPauseInfo.GcType.SERIAL_YOUNG;
-      case "MarkSweepCompact":
-        return GcPauseInfo.GcType.SERIAL_OLD;
-      case "PS Scavenge":
-        return GcPauseInfo.GcType.PARALLEL_YOUNG;
-      case "PS MarkSweep":
-        return GcPauseInfo.GcType.PARALLEL_OLD;
-      case "ParNew":
-        return GcPauseInfo.GcType.CMS_YOUNG;
-      case "ConcurrentMarkSweep":
-        return GcPauseInfo.GcType.CMS_OLD;
-      case "G1 Young Generation":
-        return GcPauseInfo.GcType.G1_YOUNG;
-      case "G1 Old Generation":
-        return GcPauseInfo.GcType.G1_OLD;
-      default:
-        return GcPauseInfo.GcType.UNKNOWN;
+      case "Copy": return GcPauseInfo.GcType.SERIAL_YOUNG;
+      case "MarkSweepCompact": return GcPauseInfo.GcType.SERIAL_OLD;
+      case "PS Scavenge": return GcPauseInfo.GcType.PARALLEL_YOUNG;
+      case "PS MarkSweep": return GcPauseInfo.GcType.PARALLEL_OLD;
+      case "ParNew": return GcPauseInfo.GcType.CMS_YOUNG;
+      case "ConcurrentMarkSweep": return GcPauseInfo.GcType.CMS_OLD;
+      case "G1 Young Generation": return GcPauseInfo.GcType.G1_YOUNG;
+      case "G1 Old Generation": return GcPauseInfo.GcType.G1_OLD;
+      default: return GcPauseInfo.GcType.UNKNOWN;
     }
   }
 
   public void start() {
-    // Removed from IntelliJ
+    // No monitoring in headless mode
+    if (AppMode.isHeadless())
+      return;
+    startInternal();
   }
 
   public void startInternal() {
+    assert myGroup != null;
+    Application application = ApplicationManager.getApplication();
+    registerPlatformEventsListener();
 
+    application.executeOnPooledThread(this::checkRuntime);
+
+    if (Boolean.getBoolean(STUDIO_RUN_UNDER_INTEGRATION_TEST_KEY)) {
+      HeapSnapshotTraverseService.getInstance().registerIntegrationTestCollectMemoryUsageStatisticsAction();
+    }
+    if (ServerFlagService.Companion.getInstance()
+          .getProtoOrNull(MEMORY_USAGE_REPORTING_SERVER_FLAG_NAME, MemoryUsageReportConfiguration.getDefaultInstance()) != null &&
+        !ApplicationManager.getApplication().isHeadlessEnvironment() &&
+        !ApplicationManager.getApplication().isUnitTestMode()) {
+      HeapSnapshotTraverseService.getInstance().addMemoryReportCollectionRequest();
+    }
+
+    List<DiagnosticReport> reports = myReportsDatabase.reapReports();
+    processDiagnosticReports(reports);
+
+    if (application.isInternal() || StatisticsUploadAssistant.isSendAllowed()) {
+      initDataCollection();
+    }
+
+    if (application.isInternal()) {
+      try {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        ObjectName beanName = new ObjectName("com.android.tools.idea.diagnostics.kotlin:type=KotlinPerfCounters");
+        mBeanServer.registerMBean(new KotlinPerfCounters(), beanName);
+      } catch (Exception ex) {
+        LOG.debug(ex);
+      }
+    }
+  }
+
+  private void initDataCollection() {
+    Application application = ApplicationManager.getApplication();
+
+    ourStudioActionCount.set(myProperties.getLong(STUDIO_ACTIVITY_COUNT, 0L) + 1);
+    ourStudioExceptionCount.set(getPersistedExceptionCount(STUDIO_EXCEPTION_COUNT_FILE));
+    ourInitialPersistedExceptionCount.set(ourStudioExceptionCount.get());
+    ourBundledPluginsExceptionCount.set(getPersistedExceptionCount(BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
+    ourNonBundledPluginsExceptionCount.set(getPersistedExceptionCount(NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
+    sendInitialIDEModes();
+
+    StudioCrashDetection.start();
+    startActivityMonitoring();
+    startSystemHealthDataCollection();
+    trackCrashes(StudioCrashDetection.reapCrashDescriptions());
+    RecordingManager.getInstance().init(this::tryAppendReportToDatabase);
+
+    application.getMessageBus().connect(application).subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+      @Override
+      public void appClosing() {
+        myProperties.setValue(STUDIO_ACTIVITY_COUNT, Long.toString(ourStudioActionCount.get()));
+        StudioCrashDetection.stop();
+        reportExceptionsAndActionInvocations();
+      }
+    });
+
+    application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener() {
+      @Override
+      public void uiFreezeFinished(long durationMs, @Nullable Path reportDir) {
+        // track how long the IDE was frozen
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+            .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
+            .setStudioPerformanceStats(StudioPerformanceStats.newBuilder()
+                .setUiFreezeTimeMs((int)durationMs)));
+      }
+
+      @Override
+      public void dumpedThreads(@NotNull Path toFile, @NotNull ThreadDump dump) {
+        // We don't want to add additional overhead when the IDE is already slow, so we just note down the file to which the threads
+        // were dumped.
+        try {
+          myReportsDatabase.appendReport(new PerformanceThreadDumpReport(toFile, "UIFreeze"));
+        }
+        catch (IOException ignored) { // don't worry about errors during analytics events
+        }
+      }
+    });
+    ThreadSamplingReport.startCollectingThreadSamplingReports(this::tryAppendReportToDatabase);
+  }
+
+  private void startSystemHealthDataCollection() {
+    SystemHealthDataCollection.getInstance().start();
+  }
+
+  /**
+   * Send the initial mode of Studio including whether it is in Power Save Mode
+   * or Essential Highlighting Mode.
+   *
+   */
+  private void sendInitialIDEModes() {
+    // Essential Highlighting
+    String essentialAction = metricsNameForClass(EssentialsModeToggleAction.class);
+    UIActionStats.Builder essentialMode = getInitialUIStateAction();
+    essentialMode.setActionClassName(essentialAction);
+    essentialMode.setTogglingOn(EssentialHighlightingMode.INSTANCE.isEnabled());
+    AndroidStudioEvent.Builder essentialModeBuilder = buildStudioUiEvent(essentialMode);
+
+    // Power save mode
+    String powerSaveAction = metricsNameForClass(ActionManager.getInstance().getAction("TogglePowerSave").getClass());
+    UIActionStats.Builder powerSaveMode = getInitialUIStateAction();
+    powerSaveMode.setActionClassName(powerSaveAction);
+    powerSaveMode.setTogglingOn(PowerSaveMode.isEnabled());
+    AndroidStudioEvent.Builder powerSaveModeBuilder = buildStudioUiEvent(powerSaveMode);
+
+    UsageTracker.log(essentialModeBuilder);
+    UsageTracker.log(powerSaveModeBuilder);
+  }
+
+  @NotNull
+  private static UIActionStats.Builder getInitialUIStateAction() {
+    return UIActionStats.newBuilder()
+      .setInvocationKind(InvocationKind.UNKNOWN_INVOCATION_KIND)
+      .setInvocations(0)
+      .setDirect(true)
+      .setUiPlace("INITIAL_STARTUP");
+  }
+
+  /**
+   * @return List of paths to hprof files to be analyzed
+   */
+  private static List<Path> startHeapReportsAnalysis(List<UnanalyzedHeapReport> reports) {
+    if (reports.isEmpty()) return Collections.emptyList();
+
+    // Start only one analysis, even if there are more hprof files captured.
+    final UnanalyzedHeapReport report = reports.get(0);
+    final Path path = report.getHprofPath();
+
+    ProjectManager projectManager = ProjectManager.getInstanceIfCreated();
+    Project[] openedProjects = projectManager != null ? projectManager.getOpenProjects() : null;
+
+    if (openedProjects != null && openedProjects.length > 0) {
+      Project project = openedProjects[0];
+      StartupManager.getInstance(project).runWhenProjectIsInitialized(
+        () -> new AnalysisRunnable(report, true).run()
+      );
+    } else {
+      MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+      AtomicBoolean eventHandled = new AtomicBoolean(false);
+
+      connection.subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+        @Override
+        public void projectOpened(@NotNull Project project) {
+          if (eventHandled.getAndSet(true)) {
+            return;
+          }
+          connection.disconnect();
+          StartupManager.getInstance(project).runWhenProjectIsInitialized(
+            () -> new AnalysisRunnable(report, true).run());
+        }
+      });
+      connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+        @Override
+        public void welcomeScreenDisplayed() {
+          if (eventHandled.getAndSet(true)) {
+            return;
+          }
+          connection.disconnect();
+          new AnalysisRunnable(report, true).run();
+        }
+      });
+    }
+    return Collections.singletonList(path);
+  }
+
+  private boolean tryAppendReportToDatabase(DiagnosticReport report) {
+    try {
+      myReportsDatabase.appendReport(report);
+      return true;
+    }
+    catch (IOException ignored) {
+      return false;
+    }
   }
 
   protected void registerPlatformEventsListener() {
-    // Removed - no-op
+    //AndroidStudioSystemHealthMonitorAdapter.EventsListener listener = new AndroidStudioSystemHealthMonitorAdapter.EventsListener() {
+    //
+    //  @Override
+    //  public void countActionInvocation(AnAction anAction, Presentation presentation, AnActionEvent event) {
+    //    AndroidStudioSystemHealthMonitor.countActionInvocation(anAction, presentation, event);
+    //  }
+    //
+    //  @Override
+    //  public boolean handleExceptionEvent(IdeaLoggingEvent event, VMOptions.MemoryKind memoryKind) {
+    //    return AndroidStudioSystemHealthMonitor.this.handleExceptionEvent(event, memoryKind);
+    //  }
+    //};
+    //AndroidStudioSystemHealthMonitorAdapter.registerEventsListener(listener);
   }
 
   private AtomicBoolean ourOomOccurred = new AtomicBoolean(false);
@@ -341,8 +696,7 @@ public final class AndroidStudioSystemHealthMonitor {
       // if exception should not be shown in the errors UI then report it as handled.
       boolean showUI = isIdeErrorsDialogReportableCrash(t) || ApplicationManager.getApplication().isInternal();
       return !showUI;
-    }
-    catch (Throwable throwable) {
+    } catch (Throwable throwable) {
       LOG.warn("Exception while handling exception event", throwable);
       return false;
     }
@@ -350,7 +704,7 @@ public final class AndroidStudioSystemHealthMonitor {
 
   private void reportThrowableToCrash(Throwable t) {
     incrementAndSaveExceptionCount(t);
-    ErrorReportSubmitter reporter = null;
+    ErrorReportSubmitter reporter = ExtensionPoints.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class);
     if (reporter != null) {
       StackTrace stackTrace = ExceptionRegistry.INSTANCE.register(t);
       String signature = ExceptionDataCollection.Companion.calculateSignature(t);
@@ -399,9 +753,8 @@ public final class AndroidStudioSystemHealthMonitor {
     }
 
     // Don't show Logger.error in errors dialog.
-    if (firstFrame.equals("com.intellij.openapi.diagnostic.Logger#error") && Objects.equals(t.getClass(), Throwable.class)) {
+    if (firstFrame.equals("com.intellij.openapi.diagnostic.Logger#error") && Objects.equals(t.getClass(), Throwable.class))
       return false;
-    }
 
     // Report only exceptions on EDT
     if (!lastFrame.equals("java.awt.EventDispatchThread#run")) {
@@ -437,12 +790,159 @@ public final class AndroidStudioSystemHealthMonitor {
     }
   }
 
+  /**
+   * Android Studio-specific checks of Java runtime.
+   */
+  private void checkRuntime() {
+    warnIfOpenJDK();
+  }
+
+  private void warnIfOpenJDK() {
+    if (StringUtil.containsIgnoreCase(System.getProperty("java.vm.name", ""), "OpenJDK") &&
+        !SystemInfo.isJetBrainsJvm) {
+      showNotification("unsupported.jvm.openjdk.message", null);
+    }
+  }
+
+  private void reportExceptionsAndActionInvocations() {
+    if (!REPORT_EXCEPTIONS_LOCK.tryLock()) {
+      return;
+    }
+    try {
+      long activityCount = ourStudioActionCount.getAndSet(0);
+      long exceptionCount = ourStudioExceptionCount.getAndSet(0);
+      long bundledPluginExceptionCount = ourBundledPluginsExceptionCount.getAndSet(0);
+      long nonBundledPluginExceptionCount = ourNonBundledPluginsExceptionCount.getAndSet(0);
+      persistExceptionCount(0, STUDIO_EXCEPTION_COUNT_FILE);
+      persistExceptionCount(0, BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE);
+      persistExceptionCount(0, NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE);
+      ourCurrentSessionStudioExceptionCount += exceptionCount;
+
+      if (ApplicationManager.getApplication().isInternal()) {
+        // should be 0, but accounting for possible crashes in other threads..
+        assert getPersistedExceptionCount(STUDIO_EXCEPTION_COUNT_FILE) < 5;
+      }
+
+      if (activityCount > 0 || exceptionCount > 0) {
+        List<StackTrace> traces = ExceptionRegistry.INSTANCE.getStackTraces(0);
+        ExceptionRegistry.INSTANCE.clear();
+        trackExceptionsAndActivity(activityCount, exceptionCount, bundledPluginExceptionCount, nonBundledPluginExceptionCount, 0, traces);
+      }
+      if (!myTooManyExceptionsPromptShown &&
+          ourCurrentSessionStudioExceptionCount >= TOO_MANY_EXCEPTIONS_THRESHOLD) {
+        promptUnusuallyHighExceptionCount();
+      }
+      reportActionInvocations();
+    } finally {
+      REPORT_EXCEPTIONS_LOCK.unlock();
+    }
+  }
+
+  private void promptUnusuallyHighExceptionCount() {
+    // Show the prompt only once per session
+    myTooManyExceptionsPromptShown = true;
+
+    AnAction sendFeedback = ActionManager.getInstance().getAction("SendFeedback");
+    NotificationAction notificationAction = NotificationAction.create(
+      AndroidBundle.message("sys.health.send.feedback"),
+      (event, notification) -> sendFeedback.actionPerformed(event)
+    );
+    showNotification("sys.health.too.many.exceptions", notificationAction);
+  }
+
+  private static void processDiagnosticReports(@NotNull List<DiagnosticReport> reports) {
+    if (AnalyticsSettings.getOptedIn()) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> {
+        sendDiagnosticReportsOfTypeWithLimit(PerformanceThreadDumpReport.REPORT_TYPE, reports, MAX_PERFORMANCE_REPORTS_COUNT);
+        sendDiagnosticReportsOfTypeWithLimit(HistogramReport.REPORT_TYPE, reports, MAX_HISTOGRAM_REPORTS_COUNT);
+        sendDiagnosticReportsOfTypeWithLimit(FreezeReport.REPORT_TYPE, reports, MAX_FREEZE_REPORTS_COUNT);
+        for (String type : ReportTypesKt.getTypesToFields().keySet()) {
+          sendDiagnosticReportsOfTypeWithLimit(type, reports, MAX_JFR_REPORTS_COUNT);
+        }
+      });
+    }
+
+    processHeapReports(reports);
+  }
+
+  private static void processHeapReports(@NotNull List<DiagnosticReport> reports) {
+    List<Path> hprofsToBeAnalyzed = startHeapReportsAnalysis(reports
+                         .stream()
+                         .filter(r -> r.getType().equals("UnanalyzedHeap"))
+                         .filter(r -> r instanceof UnanalyzedHeapReport)
+                         .map(r -> (UnanalyzedHeapReport) r)
+                         .collect(Collectors.toList()));
+    ourHProfDatabase.cleanupHProfFiles(hprofsToBeAnalyzed);
+  }
+
+  private static void sendDiagnosticReportsOfTypeWithLimit(String type,
+                                                           @NotNull List<DiagnosticReport> reports,
+                                                           int maxCount) {
+    List<DiagnosticReport> reportsOfType = reports.stream().filter(r -> r.getType().equals(type)).collect(
+      Collectors.toList());
+
+    if (!type.equals(FreezeReport.REPORT_TYPE)) {
+      Collections.shuffle(reportsOfType);
+    }
+
+    int numReportsToSkip = reportsOfType.size() > maxCount ? reportsOfType.size() - maxCount : 0;
+
+    reportsOfType.stream().skip(numReportsToSkip).forEach(AndroidStudioSystemHealthMonitor::sendDiagnosticReport);
+  }
+
+  public static void trackCrashes(@NotNull List<StudioCrashDetails> descriptions) {
+    if (descriptions.isEmpty()) {
+      return;
+    }
+
+    reportCrashes(descriptions);
+    trackExceptionsAndActivity(0, 0, 0, 0, descriptions.size(), Collections.emptyList());
+  }
+
+  public static void trackExceptionsAndActivity(final long activityCount,
+                                                final long exceptionCount,
+                                                final long bundledPluginExceptionCount,
+                                                final long nonBundledPluginExceptionCount,
+                                                final long fatalExceptionCount,
+                                                @NotNull List<StackTrace> stackTraces) {
+    if (!StatisticsUploadAssistant.isSendAllowed()) {
+      return;
+    }
+
+    // Log statistics (action/exception counts)
+    final AndroidStudioEvent.Builder eventBuilder =
+      AndroidStudioEvent.newBuilder()
+        .setCategory(EventCategory.PING)
+        .setKind(EventKind.STUDIO_CRASH)
+        .setStudioCrash(StudioCrash.newBuilder()
+          .setActions(activityCount)
+          .setExceptions(exceptionCount)
+          .setBundledPluginExceptions(bundledPluginExceptionCount)
+          .setNonBundledPluginExceptions(nonBundledPluginExceptionCount)
+          .setCrashes(fatalExceptionCount));
+    logUsageOnlyIfNotInternalApplication(eventBuilder);
+
+    // Log each stacktrace as a separate log event with the timestamp of when it was first hit
+    for (StackTrace stackTrace : stackTraces) {
+      final AndroidStudioEvent.Builder crashEventBuilder =
+        AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.PING)
+          .setKind(EventKind.STUDIO_CRASH)
+          .setStudioCrash(StudioCrash.newBuilder()
+            .addDetails(StudioExceptionDetails.newBuilder()
+              .setHash(stackTrace.md5string())
+              .setCount(stackTrace.getCount())
+              .setSummary(stackTrace.summarize(20))
+              .build()));
+      logUsageOnlyIfNotInternalApplication(stackTrace.timeOfFirstHitMs(), crashEventBuilder);
+    }
+  }
+
   // Use this method to log crash events, so crashes on internal builds don't get logged.
   private static void logUsageOnlyIfNotInternalApplication(AndroidStudioEvent.Builder eventBuilder) {
     if (!ApplicationManager.getApplication().isInternal()) {
       UsageTracker.log(eventBuilder);
-    }
-    else {
+    } else {
       LOG.debug("SystemHealthMonitor would send following analytics event in the release build: " + eventBuilder.build());
     }
   }
@@ -451,12 +951,10 @@ public final class AndroidStudioSystemHealthMonitor {
   private static void logUsageOnlyIfNotInternalApplication(long eventTimeMs, AndroidStudioEvent.Builder eventBuilder) {
     if (!ApplicationManager.getApplication().isInternal()) {
       UsageTracker.log(eventTimeMs, eventBuilder);
-    }
-    else {
+    } else {
       logUsageOnlyIfNotInternalApplication(eventBuilder);
     }
   }
-
   void showNotification(@PropertyKey(resourceBundle = "messages.AndroidBundle") String key,
                         @Nullable NotificationAction action,
                         Object... params) {
@@ -481,7 +979,7 @@ public final class AndroidStudioSystemHealthMonitor {
   }
 
   private final class MyFullContentNotification extends MyNotification implements NotificationFullContent {
-    public MyFullContentNotification(@NotNull String content) {
+    public MyFullContentNotification (@NotNull String content) {
       super(content);
     }
   }
@@ -494,6 +992,13 @@ public final class AndroidStudioSystemHealthMonitor {
 
   static NotificationAction detailsAction(String url) {
     return new BrowseNotificationAction(IdeBundle.message("sys.health.details"), url);
+  }
+
+  private static final int INITIAL_DELAY_MINUTES = 1; // send out pending activity soon after startup
+  private static final int INTERVAL_IN_MINUTES = 30;
+
+  private void startActivityMonitoring() {
+    JobScheduler.getScheduler().scheduleWithFixedDelay(this::reportExceptionsAndActionInvocations, INITIAL_DELAY_MINUTES, INTERVAL_IN_MINUTES, TimeUnit.MINUTES);
   }
 
   private static void incrementAndSaveExceptionCount() {
@@ -516,7 +1021,7 @@ public final class AndroidStudioSystemHealthMonitor {
     synchronized (EXCEPTION_COUNT_LOCK) {
       try {
         File f = new File(PathManager.getTempPath(), countFileName);
-        Files.write(Long.toString(count), f, StandardCharsets.UTF_8);
+        Files.write(Long.toString(count), f, Charsets.UTF_8);
       }
       catch (Throwable ignored) {
       }
@@ -527,7 +1032,7 @@ public final class AndroidStudioSystemHealthMonitor {
     synchronized (EXCEPTION_COUNT_LOCK) {
       try {
         File f = new File(PathManager.getTempPath(), countFileName);
-        String contents = Files.toString(f, StandardCharsets.UTF_8);
+        String contents = Files.toString(f, Charsets.UTF_8);
         return Long.parseLong(contents);
       }
       catch (Throwable t) {
@@ -539,11 +1044,13 @@ public final class AndroidStudioSystemHealthMonitor {
   /**
    * Collect usage stats for action invocations.
    */
-  public static void countActionInvocation(@NotNull AnAction anAction,
-                                           @NotNull Presentation templatePresentation,
-                                           @NotNull AnActionEvent event) {
+  public static void countActionInvocation(@NotNull AnAction anAction, @NotNull Presentation templatePresentation, @NotNull AnActionEvent event) {
     ourStudioActionCount.incrementAndGet();
-    Class actionClass = anAction.getClass();
+    AnAction action = anAction;
+    if (action instanceof AnActionWrapper) {
+      action = ((AnActionWrapper)action).getDelegate();
+    }
+    Class actionClass = action.getClass();
     synchronized (ACTION_INVOCATIONS_LOCK) {
       String actionName = getActionName(actionClass, templatePresentation);
       InvocationKind invocationKind = getInvocationKindFromEvent(event);
@@ -557,16 +1064,15 @@ public final class AndroidStudioSystemHealthMonitor {
           ourActionInvocations.put(actionName, invocations);
         }
         invocations.add(invocationKind);
-      }
-      else {
+      } else {
         UIActionStats.Builder uiActionStatbuilder = UIActionStats.newBuilder()
           .setActionClassName(actionName)
           .setInvocationKind(invocationKind)
           .setInvocations(1)
           .setDirect(true)
           .setUiPlace(event.getPlace());
-        if (anAction instanceof ToggleAction) {
-          ToggleAction toggleAction = (ToggleAction)anAction;
+        if (action instanceof ToggleAction) {
+          ToggleAction toggleAction = (ToggleAction)action;
           // events are tracked right before they occur, therefore take the negation of the current state
           uiActionStatbuilder.setTogglingOn(!toggleAction.isSelected(event));
         }
@@ -614,12 +1120,12 @@ public final class AndroidStudioSystemHealthMonitor {
     for (Map.Entry<String, Multiset<InvocationKind>> actionEntry : currentInvocations.entrySet()) {
       for (Multiset.Entry<InvocationKind> invocationEntry : actionEntry.getValue().entrySet()) {
         UsageTracker.log(AndroidStudioEvent.newBuilder()
-                           .setCategory(EventCategory.STUDIO_UI)
-                           .setKind(EventKind.STUDIO_UI_ACTION_STATS)
-                           .setUiActionStats(UIActionStats.newBuilder()
-                                               .setActionClassName(actionEntry.getKey())
-                                               .setInvocationKind(invocationEntry.getElement())
-                                               .setInvocations(invocationEntry.getCount())));
+            .setCategory(EventCategory.STUDIO_UI)
+            .setKind(EventKind.STUDIO_UI_ACTION_STATS)
+            .setUiActionStats(UIActionStats.newBuilder()
+                .setActionClassName(actionEntry.getKey())
+                .setInvocationKind(invocationEntry.getElement())
+                .setInvocations(invocationEntry.getCount())));
       }
     }
 
@@ -630,9 +1136,9 @@ public final class AndroidStudioSystemHealthMonitor {
                                   .setPauseTimesMs(HistogramUtil.toProto(gcEntry.getValue().getIntervalHistogram())));
     }
     UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setCategory(EventCategory.STUDIO_UI)
-                       .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
-                       .setStudioPerformanceStats(statsProto));
+                         .setCategory(EventCategory.STUDIO_UI)
+                         .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
+                         .setStudioPerformanceStats(statsProto));
   }
 
   /**
@@ -659,7 +1165,61 @@ public final class AndroidStudioSystemHealthMonitor {
    * Gets an action name based on its class. For Android Studio code, we use simple names for plugins we use canonical names.
    */
   static String getActionName(@NotNull Class actionClass, @NotNull Presentation templatePresentation) {
-    return null;
+    if (actionClass.isAnonymousClass()) {
+      Class enclosingClass = actionClass.getEnclosingClass();
+      Class superClass = actionClass.getSuperclass();
+      return String.format("%s@%s", metricsNameForClass(superClass), metricsNameForClass(enclosingClass));
+    }
+
+    String actionName = metricsNameForClass(actionClass);
+    if (actionName.equals("ExecutorAction")) {
+      actionName += "#" + templatePresentation.getText();
+    }
+    return actionName;
+  }
+
+  private static String metricsNameForClass(Class cls) {
+    Package classPackage = cls.getPackage();
+    String packageName = classPackage != null ? classPackage.getName() : "";
+    if (packageName.startsWith("com.android.") || packageName.startsWith("com.intellij.") || packageName.startsWith("org.jetbrains.") ||
+        packageName.startsWith("org.intellij.") || packageName.startsWith("com.jetbrains.") || packageName.startsWith("git4idea.")) {
+
+      String actionName = cls.getSimpleName();
+      Class parentClass = cls.getEnclosingClass();
+      while (parentClass != null) {
+        actionName = String.format("%s.%s", parentClass.getSimpleName(), actionName);
+        parentClass = parentClass.getEnclosingClass();
+      }
+      return actionName;
+    }
+    return cls.getCanonicalName();
+  }
+
+  private static void reportCrashes(@NotNull List<StudioCrashDetails> descriptions) {
+    if (!AnalyticsSettings.getOptedIn()) {
+      return;
+    }
+
+    ErrorReportSubmitter reporter = ExtensionPoints.ERROR_HANDLER_EP.findExtension(AndroidStudioErrorReportSubmitter.class);
+    if (reporter != null) {
+      IdeaLoggingEvent e = new AndroidStudioCrashEvents(descriptions);
+      reporter.submit(new IdeaLoggingEvent[]{e}, null, null, info -> {
+      });
+    }
+  }
+
+  private static void sendDiagnosticReport(@NotNull DiagnosticReport report) {
+    if (!AnalyticsSettings.getOptedIn()) {
+      return;
+    }
+
+    try {
+      // Performance reports are not limited by a rate limiter.
+      StudioCrashReporter.getInstance().submit(report.asCrashReport(), true);
+    }
+    catch (IOException e) {
+      // Ignore
+    }
   }
 
   public static class AndroidStudioExceptionEvent extends IdeaLoggingEvent {
@@ -711,4 +1271,21 @@ public final class AndroidStudioSystemHealthMonitor {
                              "deniedSinceLastAllow", deniedSinceLastAllow);
     }
   }
+
+  private static class AndroidStudioCrashEvents extends IdeaLoggingEvent {
+    private List<StudioCrashDetails> myCrashDetails;
+
+    public AndroidStudioCrashEvents(@NotNull List<StudioCrashDetails> crashDetails) {
+      super("", null);
+      myCrashDetails = crashDetails;
+    }
+
+    @Nullable
+    @Override
+    public Object getData() {
+      return ImmutableMap.of("Type", "Crashes", // keep consistent with the error reporter in android plugin
+                             "crashDetails", myCrashDetails);
+    }
+  }
+
 }

@@ -22,12 +22,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.gradle.project.build.quickFixes.OpenJavaLanguageSpecQuickFix;
+import com.android.tools.idea.gradle.project.build.quickFixes.OpenSourceCompatibilityLinkQuickFix;
+import com.android.tools.idea.gradle.project.build.quickFixes.OpenTargetCompatibilityLinkQuickFix;
+import com.android.tools.idea.gradle.project.build.quickFixes.PickLanguageLevelInPSDQuickFix;
+import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix;
+import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8AllQuickFix;
 import com.intellij.build.events.BuildEvent;
+import com.intellij.build.events.BuildIssueEvent;
 import com.intellij.build.events.MessageEvent;
 import com.intellij.build.events.impl.MessageEventImpl;
+import com.intellij.build.issue.BuildIssue;
+import com.intellij.build.issue.BuildIssueQuickFix;
 import com.intellij.build.output.BuildOutputInstantReader;
 import java.util.List;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,5 +108,139 @@ public class AndroidGradlePluginOutputParserTest {
     String line = "MyClass.java:23 error: Something went REALLY wrong!\n";
     when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
     assertFalse(myParser.parse(line, myReader, myConsumer));
+  }
+
+  @Test
+  public void testParseJavaSourceLevel7Obsolete() {
+    String line = "warning: [options] source value 7 is obsolete and will be removed in a future release";
+    String expectedMessage = "[options] source value 7 is obsolete and will be removed in a future release";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+  }
+
+  @Test
+  public void testParseJavaSourceLevel8Obsolete() {
+    String line = "warning: [options] source value 8 is obsolete and will be removed in a future release";
+    String expectedMessage = "[options] source value 8 is obsolete and will be removed in a future release";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+  }
+
+  @Test
+  public void testParseJavaSourceLevel6NotSupported() {
+    String line = "error: Source option 6 is no longer supported. Use 7 or later.";
+    String expectedMessage = "Source option 6 is no longer supported. Use 7 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  @Test
+  public void testParseJavaSourceLevel7NotSupported8Minimum() {
+    String line = "error: Source option 7 is no longer supported. Use 8 or later.";
+    String expectedMessage = "Source option 7 is no longer supported. Use 8 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  @Test
+  public void testParseJavaSourceLevel7NotSupported9Minimum() {
+    String line = "error: Source option 7 is no longer supported. Use 9 or later.";
+    String expectedMessage = "Source option 7 is no longer supported. Use 9 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  @Test
+  public void testParseJavaSource8LevelNotSupported() {
+    String line = "error: Source option 8 is no longer supported. Use 9 or later.";
+    String expectedMessage = "Source option 8 is no longer supported. Use 9 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(PickLanguageLevelInPSDQuickFix.class, OpenSourceCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  @Test
+  public void testParseJavaTargetLevel7Obsolete() {
+    String line = "warning: [options] target value 7 is obsolete and will be removed in a future release";
+    String expectedMessage = "[options] target value 7 is obsolete and will be removed in a future release";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+  }
+
+  @Test
+  public void testParseJavaTargetLevel8Obsolete() {
+    String line = "warning: [options] target value 8 is obsolete and will be removed in a future release";
+    String expectedMessage = "[options] target value 8 is obsolete and will be removed in a future release";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.WARNING);
+  }
+
+  @Test
+  public void testParseJavaTargetLevel6NotSupported() {
+    String line = "error: Target option 6 is no longer supported. Use 7 or later.";
+    String expectedMessage = "Target option 6 is no longer supported. Use 7 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  @Test
+  public void testParseJavaTargetLevel7NotSupported8Minimum() {
+    String line = "error: Target option 7 is no longer supported. Use 8 or later.";
+    String expectedMessage = "Target option 7 is no longer supported. Use 8 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(SetLanguageLevel8AllQuickFix.class, PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class,
+              OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  @Test
+  public void testParseJavaTargetLevel7NotSupported9Minimum() {
+    String line = "error: Target option 7 is no longer supported. Use 9 or later.";
+    String expectedMessage = "Target option 7 is no longer supported. Use 9 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  @Test
+  public void testParseJavaTarget8LevelNotSupported() {
+    String line = "error: Target option 8 is no longer supported. Use 9 or later.";
+    String expectedMessage = "Target option 8 is no longer supported. Use 9 or later.";
+    List<Class<? extends DescribedBuildIssueQuickFix>> expectedFixes =
+      List.of(PickLanguageLevelInPSDQuickFix.class, OpenTargetCompatibilityLinkQuickFix.class, OpenJavaLanguageSpecQuickFix.class);
+    verifyJavaLanguageLevel(line, expectedMessage, expectedFixes, MessageEvent.Kind.ERROR);
+  }
+
+  private void verifyJavaLanguageLevel(@NotNull String line,
+                                       @NotNull String expectedMessage,
+                                       @NotNull List<Class<? extends DescribedBuildIssueQuickFix>> expectedQuickFixes,
+                                       MessageEvent.Kind kind) {
+    ArgumentCaptor<BuildEvent> messageCaptor = ArgumentCaptor.forClass(BuildEvent.class);
+    when(myReader.getParentEventId()).thenReturn("BUILD_ID_MOCK");
+    assertTrue(myParser.parse(line, myReader, myConsumer));
+    verify(myConsumer).accept(messageCaptor.capture());
+    List<BuildEvent> generatedEvents = messageCaptor.getAllValues();
+    assertThat(generatedEvents).hasSize(1);
+    assertThat(generatedEvents.get(0)).isInstanceOf(BuildIssueEvent.class);
+    BuildIssueEvent event = (BuildIssueEvent)generatedEvents.get(0);
+    assertThat(event.getKind()).isEqualTo(kind);
+    @NotNull BuildIssue issue = event.getIssue();
+    assertThat(issue.getTitle()).isEqualTo(expectedMessage);
+    assertThat(issue.getDescription()).startsWith(expectedMessage);
+    List<BuildIssueQuickFix> fixes = issue.getQuickFixes();
+    assertThat(fixes.stream().map(BuildIssueQuickFix::getClass).toList()).isEqualTo(expectedQuickFixes);
   }
 }

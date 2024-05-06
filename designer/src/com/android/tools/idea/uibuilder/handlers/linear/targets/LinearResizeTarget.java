@@ -15,19 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers.linear.targets;
 
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.BOTTOM;
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT;
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT_BOTTOM;
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.LEFT_TOP;
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT;
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT_BOTTOM;
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.RIGHT_TOP;
-import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.TOP;
-
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteResizeTarget;
+import com.android.sdklib.AndroidDpCoordinate;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*;
 
 /**
  * Target to handle the resizing of LinearLayout's children

@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.repository.Revision
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.sdklib.repository.targets.SystemImage
@@ -96,7 +97,7 @@ class AppInspectionInspectorClient(
   private val metrics: LayoutInspectorSessionMetrics,
   private val treeSettings: TreeSettings,
   private val inspectorClientSettings: InspectorClientSettings,
-  private val coroutineScope: CoroutineScope,
+  coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   @TestOnly
   private val apiServices: AppInspectionApiServices =
@@ -147,6 +148,7 @@ class AppInspectionInspectorClient(
     AppInspectionTreeLoader(notificationModel, logEvent = ::logEvent, skiaParser)
   override val provider: PropertiesProvider
     get() = propertiesProvider
+
   override val isCapturing: Boolean
     get() = inspectorClientSettings.isCapturingModeOn
 
@@ -208,7 +210,7 @@ class AppInspectionInspectorClient(
           completableDeferred.complete(Unit)
         }
 
-        model.modificationListeners.add(updateListener)
+        model.addModificationListener(updateListener)
 
         if (inspectorClientSettings.disableBitmapScreenshot) {
           disableBitmapScreenshots(true)
@@ -222,7 +224,7 @@ class AppInspectionInspectorClient(
 
         // wait until we start receiving updates
         completableDeferred.await()
-        model.modificationListeners.remove(updateListener)
+        model.removeModificationListener(updateListener)
       }
       .recover { t ->
         val error = getOriginalError(t)
@@ -266,7 +268,7 @@ class AppInspectionInspectorClient(
     launchMonitor.logAttachErrorToMetrics(errorCode)
 
     return errorCode != AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR &&
-      errorCode != AttachErrorCode.UNKNOWN_ERROR_CODE
+      errorCode != AttachErrorCode.UNEXPECTED_ERROR
   }
 
   private fun logError(throwable: Throwable) {
@@ -408,7 +410,9 @@ class AppInspectionInspectorClient(
     }
 
     val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
-    if (tags.contains(SystemImage.GOOGLE_APIS_TAG) || tags.contains(SystemImage.DEFAULT_TAG)) {
+    if (
+      tags.contains(SystemImageTags.GOOGLE_APIS_TAG) || tags.contains(SystemImageTags.DEFAULT_TAG)
+    ) {
       val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
       val showBanner =
         RepoManager.RepoLoadedListener { packages ->
@@ -417,9 +421,9 @@ class AppInspectionInspectorClient(
           val remote = packages.consolidatedPkgs[image.path]?.remote
           if (
             remote != null &&
-              ((tags.contains(SystemImage.GOOGLE_APIS_TAG) &&
+              ((tags.contains(SystemImageTags.GOOGLE_APIS_TAG) &&
                 remote.version >= Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-                (tags.contains(SystemImage.DEFAULT_TAG) &&
+                (tags.contains(SystemImageTags.DEFAULT_TAG) &&
                   remote.version >= Revision(MIN_API_29_AOSP_SYSIMG_REV)))
           ) {
             message =
@@ -497,12 +501,12 @@ fun checkSystemImageForAppInspectionCompatibility(
     val imagePackage = (avd?.systemImage as? SystemImage)?.`package`
     if (imagePackage != null) {
       if (
-        (SystemImage.GOOGLE_APIS_TAG == avd.tag &&
+        (SystemImageTags.GOOGLE_APIS_TAG == avd.tag &&
           imagePackage.version < Revision(MIN_API_29_GOOGLE_APIS_SYSIMG_REV)) ||
-          (SystemImage.DEFAULT_TAG == avd.tag &&
+          (SystemImageTags.DEFAULT_TAG == avd.tag &&
             imagePackage.version < Revision(MIN_API_29_AOSP_SYSIMG_REV) ||
             // We don't know when the play store images will be updated yet
-            SystemImage.PLAY_STORE_TAG == avd.tag)
+            SystemImageTags.PLAY_STORE_TAG == avd.tag)
       ) {
         return Pair(false, imagePackage)
       }

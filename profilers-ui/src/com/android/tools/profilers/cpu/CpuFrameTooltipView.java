@@ -20,7 +20,7 @@ import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceFrame;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -45,7 +45,7 @@ public class CpuFrameTooltipView extends TooltipView {
     myTooltip = tooltip;
     myContent = new JPanel(new TabularLayout("*").setVGap(12));
 
-    myMainFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(4)));
+    myMainFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(4)));
 
     JLabel mainThreadLabel = createTooltipLabel();
     mainThreadLabel.setText("Main Thread");
@@ -57,7 +57,7 @@ public class CpuFrameTooltipView extends TooltipView {
     myMainFramePanel.add(myMainFrameCpuText, new TabularLayout.Constraint(2, 0));
     myMainFramePanel.add(myMainFrameTotalTimeText, new TabularLayout.Constraint(4, 0));
 
-    myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(4)));
+    myRenderFramePanel = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(4)));
 
     JLabel renderThreadLabel = createTooltipLabel();
     renderThreadLabel.setText("RenderThread");

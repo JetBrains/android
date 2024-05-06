@@ -24,13 +24,14 @@ import static com.intellij.openapi.fileChooser.impl.FileChooserUtil.setLastOpene
 import static com.intellij.openapi.fileTypes.ex.FileTypeChooser.getKnownFileTypeOrAssociate;
 import static com.intellij.openapi.vfs.VfsUtil.getUserHomeDir;
 
-import com.android.tools.adtui.validation.Validator;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.adtui.validation.Validator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.PathChooserDialog;
@@ -64,6 +65,12 @@ public class AndroidOpenFileAction extends DumbAwareAction {
 
   public AndroidOpenFileAction(@NotNull String text) {
     super(text);
+  }
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

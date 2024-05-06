@@ -33,10 +33,15 @@ import com.android.tools.idea.layoutinspector.pipeline.TransportErrorListener
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionInitializer
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.TransportFlagController
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
+import com.android.tools.idea.transport.TransportDeviceManager
+import com.android.tools.idea.transport.manager.TransportStreamManagerService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
@@ -147,11 +152,14 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
 
     val foregroundProcessDetection =
       createForegroundProcessDetection(
+        disposable,
         project,
         processesModel,
         deviceModel,
         layoutInspectorCoroutineScope
       )
+
+    registerTransportFlagController(disposable)
 
     return LayoutInspector(
       coroutineScope = layoutInspectorCoroutineScope,
@@ -166,6 +174,11 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
     )
   }
 
+  private fun registerTransportFlagController(parentDisposable: Disposable) {
+    val connection = ApplicationManager.getApplication().messageBus.connect(parentDisposable)
+    connection.subscribe(TransportDeviceManager.TOPIC, TransportFlagController())
+  }
+
   private fun createScheduledExecutor(disposable: Disposable): ScheduledExecutorService {
     return Executors.newScheduledThreadPool(1).apply {
       Disposer.register(disposable) {
@@ -176,6 +189,7 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
   }
 
   private fun createForegroundProcessDetection(
+    parentDisposable: Disposable,
     project: Project,
     processesModel: ProcessesModel,
     deviceModel: DeviceModel,
@@ -183,12 +197,15 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
   ): ForegroundProcessDetection? {
     return if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
       ForegroundProcessDetectionInitializer.initialize(
-        project = project,
-        processModel = processesModel,
-        deviceModel = deviceModel,
-        coroutineScope = coroutineScope,
-        metrics = ForegroundProcessDetectionMetrics
-      )
+          parentDisposable = parentDisposable,
+          project = project,
+          processModel = processesModel,
+          deviceModel = deviceModel,
+          coroutineScope = coroutineScope,
+          streamManager = service<TransportStreamManagerService>().streamManager,
+          metrics = ForegroundProcessDetectionMetrics
+        )
+        .also { it.start() }
     } else {
       null
     }

@@ -17,17 +17,18 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.selectionOf
-import com.android.tools.idea.insights.ui.ActionToolbarListenerForOfflineBalloon
+import com.android.tools.idea.insights.ui.OfflineBalloonMaker
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
-import com.android.tools.idea.insights.ui.actions.OfflineStatusLabelAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.toTimestamp
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
@@ -38,6 +39,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
@@ -53,6 +55,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class VitalsTab(
   private val projectController: AppInsightsProjectLevelController,
@@ -89,7 +92,7 @@ class VitalsTab(
       .map { it.mode }
       .stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
 
-  private val offlineAction = OfflineStatusLabelAction("Android Vitals is offline")
+  private val timestampAction = AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope)
 
   init {
     add(createToolbar().component, BorderLayout.NORTH)
@@ -172,21 +175,23 @@ class VitalsTab(
         )
       )
       addSeparator()
-      add(offlineAction)
       add(
         object : AnAction("Refresh", null, StudioIcons.LayoutEditor.Toolbar.REFRESH) {
           override fun actionPerformed(e: AnActionEvent) {
             projectController.refresh()
           }
+
           override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
           override fun displayTextInToolbar() = true
+
           override fun update(e: AnActionEvent) {
             e.presentation.text =
               if (offlineStateFlow.value == ConnectionMode.OFFLINE) "Reconnect" else null
           }
         }
       )
-      add(AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope))
+      add(timestampAction)
     }
   }
 
@@ -198,15 +203,18 @@ class VitalsTab(
       }
     actionToolbar.component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
-    actionToolbar.component.addContainerListener(
-      ActionToolbarListenerForOfflineBalloon(
-        "Android Vitals",
-        project,
-        offlineAction,
-        scope,
-        offlineStateFlow
-      )
-    )
+    scope.launch(AndroidDispatchers.uiThread) {
+      offlineStateFlow.collect { mode ->
+        ActionToolbarUtil.findActionButton(actionToolbar, timestampAction)?.let { button ->
+          if (
+            mode == ConnectionMode.OFFLINE &&
+              !project.service<AppInsightsSettings>().isOfflineNotificationDismissed
+          ) {
+            OfflineBalloonMaker("Android Vitals", project).showOfflineNotificationBalloon(button)
+          }
+        }
+      }
+    }
     addActionsToGroup(group)
     return actionToolbar
   }

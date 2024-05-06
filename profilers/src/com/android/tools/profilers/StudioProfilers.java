@@ -52,10 +52,16 @@ import com.android.tools.profilers.event.EventProfiler;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.sessions.SessionAspect;
+import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.tasks.ProfilerTaskLauncher;
+import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.args.TaskArgs;
+import com.android.tools.profilers.tasks.taskhandlers.ProfilerTaskHandler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
@@ -74,6 +80,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -133,6 +140,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private final IdeProfilerServices myIdeServices;
 
   /**
+   * Callback to create and open the profiler's task tab for a specified task type, making the task tab creation functionality of the tool
+   * window accessible.
+   */
+  @NotNull
+  private final BiConsumer<ProfilerTaskType, TaskArgs> myCreateTaskTab;
+
+  /**
+   * Callback to open the profiler's task tab, making the task tab opening functionality of the tool window accessible.
+   */
+  @NotNull
+  private final Runnable myOpenTaskTab;
+
+  /**
    * Processes from devices come from the latest update, and are filtered to include only ALIVE ones and {@code myProcess}.
    */
   private Map<Common.Device, List<Common.Process>> myProcesses;
@@ -143,6 +163,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private Map<Common.Device, Long> myDeviceToStreamIds;
 
   private Map<Long, Common.Stream> myStreamIdToStreams;
+
+  private final Map<ProfilerTaskType, ProfilerTaskHandler> myTaskHandlers;
 
   @NotNull private final SessionsManager mySessionsManager;
 
@@ -194,12 +216,37 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private TransportEventPoller myTransportPoller;
 
+  @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
   }
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {});
+  }
+
+  /**
+   * Under the Task-Based UX, this constructor serves as the primary constructor to create the StudioProfilers instance for the Profiler
+   * tool window. What differentiates it from other StudioProfilers constructors is the addition of the project and taskHandlers parameters.
+   * The project is utilized to interface to the tool window code, allowing us to create and open tabs from StudioProfilers. The
+   * taskHandlers is just a map of task types to their respective handlers. These task handlers and their functionality can now be utilized
+   * in profiler-level code, not just toolwindow code where they are created.
+   */
+  public StudioProfilers(@NotNull ProfilerClient client,
+                         @NotNull IdeProfilerServices ideServices,
+                         @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
+                         @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
+                         @NotNull Runnable openTaskTab) {
+    this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab);
+  }
+
+  private StudioProfilers(@NotNull ProfilerClient client,
+                          @NotNull IdeProfilerServices ideServices,
+                          @NotNull StopwatchTimer timer,
+                          @NotNull HashMap<ProfilerTaskType, ProfilerTaskHandler> taskHandlers,
+                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
+                          @NotNull Runnable openTaskTab) {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -207,6 +254,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     mySessionChangeListener = new HashMap<>();
     myDeviceToStreamIds = new HashMap<>();
     myStreamIdToStreams = new HashMap<>();
+    myTaskHandlers = taskHandlers;
+    myCreateTaskTab = createTaskTab;
+    myOpenTaskTab = openTaskTab;
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -228,7 +278,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
     myTimeline = new StreamingTimeline(myUpdater);
 
-    myProcesses = new HashMap<>();
+    myProcesses = Maps.newHashMap();
     myDevice = null;
     myProcess = null;
 
@@ -465,7 +515,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       if (!newProcesses.equals(myProcesses)) {
         myProcesses = newProcesses;
-        setProcess(findPreferredDevice(), null);
+        // The following call to setProcess will start a session on profiler start and on process selection change, but Task-Based UX does
+        // not auto start a session on profiler start or on process change. Thus, we disable the call to setProcess if the Task-Based UX
+        // is enabled.
+        if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+          setProcess(findPreferredDevice(), null);
+        }
 
         // These need to be fired every time the process list changes so that the device/process dropdown always reflects the latest.
         changed(ProfilerAspect.PROCESSES);
@@ -546,14 +601,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     setStage(new StudioMonitorStage(this));
   }
 
+  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process) {
+    setProcess(device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK);
+  }
+
   /**
    * Chooses a device+process combination, and starts profiling it if not already (and stops profiling the previous one).
    *
-   * @param device  the device that will be selected. If it is null, no device and process will be selected for profiling.
-   * @param process the process that will be selected. Note that the process is expected to be spawned from the specified device.
-   *                If it is null, a process will be determined automatically by heuristics.
+   * @param device    the device that will be selected. If it is null, no device and process will be selected for profiling.
+   * @param process   the process that will be selected. Note that the process is expected to be spawned from the specified device.
+   *                  If it is null, a process will be determined automatically by heuristics.
+   * @param taskType  the type of task to pass into beginSession so that the created session has a respective task type.
    */
-  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process) {
+  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process, @NotNull Common.ProfilerTaskType taskType) {
     if (device != null) {
       // Device can be not null in the following scenarios:
       // 1. User explicitly sets a device from the dropdown.
@@ -590,7 +650,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setAutoProfilingEnabled(false);
     }
 
-    if (!Objects.equals(process, myProcess)) {
+    // If the process changes OR the process was set in via Task initiation in the Task-Based UX, we end the current session and begin
+    // a new one.
+    if (!Objects.equals(process, myProcess) || getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       // First make sure to end the previous session.
       mySessionsManager.endCurrentSession();
 
@@ -600,7 +662,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
-        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
+        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType);
       }
     }
   }
@@ -638,11 +700,32 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Set the stage base on session type
     Common.SessionMetaData.SessionType sessionType = mySessionsManager.getSelectedSessionMetaData().getType();
     assert mySessionChangeListener.containsKey(sessionType);
-    mySessionChangeListener.get(sessionType).run();
+
+    // Disable the CPU_CAPTURE and MEMORY_CAPTURE session type change listener if the Task-Based UX is enabled. This prevents the automatic
+    // entering of the CpuCaptureStage or MainMemoryProfilerStage respectively. Prevention of entering these stages also prevents the
+    // parsing + insertion of a fake CPU_TRACE or MEMORY_TRACE event. This is done as, with the Task-Based UX enabled, the insertion of the
+    // CPU_TRACE or MEMORY_TRACE event will be done at import-time rather than when their respective stage is set.
+    if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled() ||
+        !sessionType.equals(Common.SessionMetaData.SessionType.CPU_CAPTURE) &&
+        !sessionType.equals(Common.SessionMetaData.SessionType.MEMORY_CAPTURE)) {
+      mySessionChangeListener.get(sessionType).run();
+    }
 
     // Profilers can query data depending on whether the agent is set. Even though we set the status above, delay until after the
     // session is properly assigned before firing this aspect change.
     changed(ProfilerAspect.AGENT);
+
+    // At the top of this function there is an early return for a session that is ending. So, if the session made it to this point, it a
+    // new/alive session or a terminated session that has selected before. These two cases correspond respectively to the two major cases
+    // in which a task should be launched: launching a task to collect new data and launching a task using data collected prior.
+    // Additionally, it is worth noting that the placement of launching the task after running the session change listener and firing the
+    // ProfilerAspect.AGENT aspect is done purposefully; these two synchronous operations serve as setup for the tasks to record new data
+    // or load past recording (non-imported) data successfully.
+    if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+      ProfilerTaskType selectedTaskType = mySessionsManager.getSelectedSessionProfilerTaskType();
+      Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
+      ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, getTaskHandlers(), getSession(), sessionIdToSessionItems, myCreateTaskTab);
+    }
   }
 
   private void profilingSessionChanged() {
@@ -799,6 +882,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   /**
+   * @return map of task types to their respective task handlers.
+   */
+  public Map<ProfilerTaskType, ProfilerTaskHandler> getTaskHandlers() {
+    return myTaskHandlers;
+  }
+
+  /**
    * Return the selected app's package name if present, otherwise returns empty string.
    * <p>
    * <p>TODO (78597376): Clean up the method to make it reusable.</p>
@@ -946,6 +1036,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myStage.getClass();
   }
 
+  @VisibleForTesting
+  public void addTaskHandler(ProfilerTaskType taskType, ProfilerTaskHandler taskHandler) {
+    myTaskHandlers.putIfAbsent(taskType, taskHandler);
+  }
+
   // TODO: Unify with how monitors expand.
   public void setNewStage(Class<? extends Stage> clazz) {
     try {
@@ -965,6 +1060,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @NotNull
   public static String buildSessionName(@NotNull Common.Device device, @NotNull Common.Process process) {
     return String.format("%s (%s)", process.getName(), buildDeviceName(device));
+  }
+
+  /**
+   * Opens the Profiler task tab (if it already has been created).
+   */
+  public void openTaskTab() {
+    myOpenTaskTab.run();
   }
 
   /**

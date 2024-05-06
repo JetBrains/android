@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.execution.common.applychanges;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.execution.common.AppRunConfiguration;
 import com.android.tools.idea.execution.common.UtilsKt;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
@@ -44,10 +46,15 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
@@ -69,16 +76,40 @@ public abstract class BaseAction extends AnAction {
   @NotNull
   private final String myDescription;
 
-  public BaseAction(@NotNull String name,
+  public BaseAction(@NotNull String id,
+                    @NotNull String name,
                     @NotNull String acceleratorName,
                     @NotNull SwapType swapType,
                     @NotNull Icon icon,
+                    @NotNull Shortcut shortcut,
                     @NotNull String description) {
     super(acceleratorName, description, icon);
     myName = name;
     mySwapType = swapType;
     myIcon = icon;
     myDescription = description;
+
+    KeymapManager manager = KeymapManager.getInstance();
+    if (manager != null) {
+      final Keymap keymap = manager.getActiveKeymap();
+      List<Shortcut> shortcuts = Arrays.asList(keymap.getShortcuts(id));
+      if (shortcuts.isEmpty()) {
+        // Add the shortcut for the first time.
+        // TODO: figure out how to not add it back if the user deliberately removes the action hotkey.
+        keymap.addShortcut(id, shortcut);
+        shortcuts = Collections.singletonList(shortcut);
+      }
+
+      // Remove conflicting shortcuts stemming from UpdateRunningApplication only,
+      // and leave the remaining conflicts intact, since that's what the user intends.
+      final String updateRunningApplicationId = "UpdateRunningApplication";
+      Shortcut[] uraShortcuts = keymap.getShortcuts(updateRunningApplicationId);
+      for (Shortcut uraShortcut : uraShortcuts) {
+        if (shortcuts.contains(uraShortcut)) {
+          keymap.removeShortcut(updateRunningApplicationId, uraShortcut);
+        }
+      }
+    }
   }
 
   /**
@@ -170,11 +201,17 @@ public abstract class BaseAction extends AnAction {
                                 "the selected configuration is not supported");
     }
 
-    if (!(selectedRunConfig instanceof AppRunConfiguration) || ((AppRunConfiguration)selectedRunConfig).getAppId() == null) {
-      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "can't detect package name", "can't detect package name");
+    String applicationId;
+    final ApplicationIdProvider applicationIdProvider = getProjectSystem(project).getApplicationIdProvider(selectedRunConfig);
+    if (applicationIdProvider == null) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "can't detect applicationId", "can't detect applicationId");
     }
-
-    String packageName = ((AppRunConfiguration)selectedRunConfig).getAppId();
+    try {
+      applicationId = applicationIdProvider.getPackageName();
+    }
+    catch (ApkProvisionException e) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "can't detect applicationId", "can't detect applicationId");
+    }
 
     ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
     if (!(selectedExecutionTarget instanceof AndroidExecutionTarget)) {
@@ -198,7 +235,7 @@ public abstract class BaseAction extends AnAction {
                                 "its API level is lower than 26");
     }
 
-    if (devices.stream().allMatch(d -> DeploymentApplicationService.getInstance().findClient(d, packageName).isEmpty())) {
+    if (devices.stream().allMatch(d -> DeploymentApplicationService.getInstance().findClient(d, applicationId).isEmpty())) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
                                 "the app is not yet running or not debuggable");
     }

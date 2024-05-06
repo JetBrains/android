@@ -51,6 +51,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import com.intellij.openapi.util.Disposer;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -235,6 +236,7 @@ public class LayoutTestUtilities {
                                         @SwingCoordinate int x, @SwingCoordinate int y) {
     DesignSurface<LayoutlibSceneManager> surface = (DesignSurface<LayoutlibSceneManager>)model.getSurface();
     LayoutlibSceneManager spy = spy(surface.getSceneManager());
+    Disposer.register(model, spy);
     when(surface.getSceneManager()).thenReturn(spy);
     ScreenView screenView = new ScreenView((NlDesignSurface)surface, spy, DEVICE_CONTENT_SIZE_POLICY) {
       @Override

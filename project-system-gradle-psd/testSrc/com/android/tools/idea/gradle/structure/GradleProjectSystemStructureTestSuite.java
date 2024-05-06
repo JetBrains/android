@@ -25,7 +25,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static final GradleDaemonsRule gradle = new GradleDaemonsRule();
+  @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
     unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip");

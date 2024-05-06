@@ -129,7 +129,8 @@ class PsAndroidModuleAnalyzer(
       }
       .filter { it.path != null && it.spec.group != null }
       .distinct()
-      .mapNotNull { getSdkIndexIssueFor(it.spec, it.path!!, it.rootDir) }
+      .map { getSdkIndexIssueFor(it.spec, it.path!!, it.rootDir) }
+      .flatten()
   }
 
   private data class PathSpecAndRoot(val path: PsPath?, val spec: PsArtifactDependencySpec, val rootDir: File?) {

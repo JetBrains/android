@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
+import com.android.tools.idea.flags.ExperimentalSettingsConfigurable
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.facet.ProjectFacetManager
@@ -31,14 +31,16 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import org.jetbrains.android.facet.AndroidFacet
 
-class ShowLayoutInspectorAction :
-  DumbAwareAction() {
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+class ShowLayoutInspectorAction : DumbAwareAction() {
 
   override fun update(e: AnActionEvent) {
     val project = e.project
     e.presentation.isEnabled =
       project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -65,7 +67,7 @@ class ShowLayoutInspectorAction :
         override fun actionPerformed(e: AnActionEvent, notification: Notification) {
           notification.expire()
           ShowSettingsUtil.getInstance()
-            .showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+            .showSettingsDialog(project, ExperimentalSettingsConfigurable::class.java)
         }
       }
     )

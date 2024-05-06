@@ -39,7 +39,7 @@ interface AndroidSqlContext {
 
     companion object {
       val EP_NAME: ExtensionPointName<AndroidSqlContext.Provider> = ExtensionPointName.create(
-        "com.android.tools.idea.lang.androidSql.contextProvider")
+        "com.android.tools.idea.lang.androidSql.contextProvider");
     }
   }
 }
@@ -47,7 +47,6 @@ interface AndroidSqlContext {
 /**
  * Finds the [AndroidSqlContext] applicable to this [AndroidSqlFile], if known.
  */
-val AndroidSqlFile.sqlContext: AndroidSqlContext?
-  get() {
-    return AndroidSqlContext.Provider.EP_NAME.extensionList.asSequence().mapNotNull { it.getContext(this) }.firstOrNull()
-  }
+val AndroidSqlFile.sqlContext: AndroidSqlContext? get() {
+  return AndroidSqlContext.Provider.EP_NAME.extensionList.asSequence().mapNotNull { it.getContext(this) }.firstOrNull()
+}

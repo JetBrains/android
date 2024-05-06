@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.ide.ui
 import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.adtui.stdui.CommonTabbedPaneUI
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -199,7 +200,7 @@ constructor(
     ) {
       AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
       if (currentProcess == process) {
-        tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, false) }
+        tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
       }
     }
   }
@@ -289,10 +290,9 @@ constructor(
   private fun hyperlinkClicked(
     process: ProcessDescriptor,
     tabShell: AppInspectorTabShell,
-    force: Boolean
   ): () -> Unit = {
     AppInspectionAnalyticsTrackerService.getInstance(project).trackInspectionRestarted()
-    tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, force) }
+    tabsLaunchScope.launch { launchInspectorForTab(process, tabShell, true) }
   }
 
   private fun CoroutineScope.launchInspectorForTab(
@@ -376,13 +376,17 @@ constructor(
         tabShell.setComponent(
           EmptyStatePanel(
             AppInspectionBundle.message("inspector.launch.error", provider.displayName),
-            provider.learnMoreUrl
+            null,
+            ActionData(
+              AppInspectionBundle.message("inspector.launch.restart"),
+              hyperlinkClicked(process, tabShell)
+            )
           )
         )
         ideServices.showNotification(
           AppInspectionBundle.message("notification.failed.launch", e.message!!),
           severity = AppInspectionIdeServices.Severity.ERROR,
-          hyperlinkClicked = hyperlinkClicked(process, tabShell, force)
+          hyperlinkClicked = hyperlinkClicked(process, tabShell)
         )
       }
     } catch (e: AppInspectionAppProguardedException) {
@@ -549,8 +553,7 @@ constructor(
     val inspectorTabIndex =
       inspectorTabs
         .indexOfFirst { tab -> tab.provider.launchConfigs.find { it.id == inspectorId } != null }
-        .takeUnless { it == -1 }
-        ?: return false
+        .takeUnless { it == -1 } ?: return false
     val pane = inspectorPanel.getComponent(0) as? CommonTabbedPane ?: return false
     return pane.selectedIndex == inspectorTabIndex
   }

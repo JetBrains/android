@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.lint",
     srcs = ["src"],
     iml_files = ["intellij.android.lint.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -33,6 +34,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/analytics[module]",
+        "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
     ],
 )
 
@@ -128,12 +130,15 @@ maven_repository(
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.1",
+        "@maven//:com.google.guava.guava_23.0",
         "@maven//:com.google.guava.guava_27.0.1-android",
         "@maven//:com.google.guava.guava_28.2-jre",
         "@maven//:com.google.truth.truth_0.44",
         "@maven//:com.googlecode.java-diff-utils.diffutils_1.3.0",
+        "@maven//:commons-io.commons-io_2.4",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.checkerframework.checker-compat-qual_2.5.5",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven//:org.junit.junit-bom_5.9.3",
     ],
 )

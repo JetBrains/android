@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder.Companion.rootModul
 import com.android.tools.idea.testing.onEdt
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -58,6 +59,17 @@ class AndroidBuildScriptsGroupNodeTest {
     assertFalse(node.contains(libs_versions_toml.virtualFile))
     assertFalse(node.contains(app_build_gradle.virtualFile))  // We do not show build files from modules not recognised by sync.
     assertFalse(node.contains(unrelated_txt.virtualFile))
+
+    val expectedChildren = """
+      build.gradle (Project: AndroidBuildScriptsGroupNodeTest_rootProjectOnly)
+      settings.gradle (Project Settings)
+      gradle.properties (Project Properties)
+      gradle-wrapper.properties (Gradle Version)
+      libs.versions.toml (Version Catalog)
+      other.versions.toml (Version Catalog)
+      local.properties (SDK Location)
+    """.trimIndent()
+    assertEquals(expectedChildren, node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
   }
 
   @Test
@@ -90,5 +102,57 @@ class AndroidBuildScriptsGroupNodeTest {
     assertFalse(node.contains(app_gradle_libs_versions_toml.virtualFile)) // only include .versions.toml files from the root project
     assertFalse(node.contains(unrelated_txt.virtualFile))
     assertFalse(node.contains(app_unrelated_txt.virtualFile))
+
+    val expectedChildren = """
+      build.gradle (Project: AndroidBuildScriptsGroupNodeTest_appProject)
+      settings.gradle (Project Settings)
+      build.gradle (Module :app)
+      proguard-rules.pro (ProGuard Rules for ":app")
+      consumer-proguard-rules.pro (ProGuard Rules for ":app")
+      libs.versions.toml (Version Catalog)
+      other.versions.toml (Version Catalog)
+    """.trimIndent()
+    assertEquals(expectedChildren, node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" })
   }
+
+  @Test
+  fun addingFile() {
+    val setting_gradle = projectRule.fixture.addFileToProject("settings.gradle", "")
+    val build_gradle = projectRule.fixture.addFileToProject("build.gradle", "")
+    projectRule.setupProjectFrom(rootModuleBuilder)
+
+    val node = AndroidBuildScriptsGroupNode(projectRule.project, ViewSettings.DEFAULT)
+
+    assertTrue(node.contains(setting_gradle.virtualFile))
+    assertTrue(node.contains(build_gradle.virtualFile))
+
+    """
+      build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
+      settings.gradle (Project Settings)
+    """.trimIndent().let { expectedChildren -> assertEquals(expectedChildren, printChildren(node)) }
+
+    val app_build_gradle = projectRule.fixture.addFileToProject("app/build.gradle", "")
+    val scripts_build_gradle = projectRule.fixture.addFileToProject("scripts_build.gradle", "")
+
+
+    assertTrue(node.contains(setting_gradle.virtualFile))
+    assertTrue(node.contains(build_gradle.virtualFile))
+    assertFalse(node.contains(app_build_gradle.virtualFile))  // We do not show build files from modules not recognised by sync.
+    assertFalse(node.contains(scripts_build_gradle.virtualFile))  // Before new getChildren call this should not appear in the tree and contains should return false.
+
+    """
+      build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
+      settings.gradle (Project Settings)
+      scripts_build.gradle (Project: AndroidBuildScriptsGroupNodeTest_addingFile)
+    """.trimIndent().let { expectedChildren -> assertEquals(expectedChildren, printChildren(node)) }
+
+
+    assertTrue(node.contains(setting_gradle.virtualFile))
+    assertTrue(node.contains(build_gradle.virtualFile))
+    assertFalse(node.contains(app_build_gradle.virtualFile))  // We do not show build files from modules not recognised by sync.
+    assertTrue(node.contains(scripts_build_gradle.virtualFile))  // After getChildren call tree is updated and this should be true .
+  }
+
+  private fun printChildren(node: AndroidBuildScriptsGroupNode) =
+    node.children.joinToString(separator = "\n") { it?.toTestString(null) ?: "<null>" }
 }

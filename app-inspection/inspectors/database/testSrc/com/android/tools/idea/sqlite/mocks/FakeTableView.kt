@@ -19,8 +19,8 @@ import com.android.tools.idea.sqlite.ui.tableView.OrderBy
 import com.android.tools.idea.sqlite.ui.tableView.RowDiffOperation
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.android.tools.idea.sqlite.ui.tableView.ViewColumn
-import org.mockito.Mockito.mock
 import javax.swing.JComponent
+import org.mockito.Mockito.mock
 
 open class FakeTableView : TableView {
 

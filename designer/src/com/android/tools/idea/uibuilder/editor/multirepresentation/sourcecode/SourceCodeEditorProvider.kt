@@ -16,12 +16,11 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewFileEditorState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.intellij.configurationStore.serialize
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.ide.lightEdit.LightEdit
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -42,7 +41,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.Attribute
 import org.jdom.Element
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 private const val EP_NAME =
@@ -80,11 +78,7 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
   private val log = Logger.getInstance(SourceCodeEditorProvider::class.java)
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
-    val projectFacetManager = ProjectFacetManager.getInstance(project)
-    return !LightEdit.owns(project) &&
-      file.isSourceFileType() &&
-      (projectFacetManager.hasFacets(AndroidFacet.ID) ||
-        projectFacetManager.hasFacets(GradleFacet.getFacetTypeId()))
+    return !LightEdit.owns(project) && file.isSourceFileType() && isAndroidEnvironment(project)
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {

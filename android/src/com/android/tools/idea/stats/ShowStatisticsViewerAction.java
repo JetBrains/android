@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.stats;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +25,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ShowStatisticsViewerAction extends AnAction {
   private StatisticsViewer myStatisticsViewer;
+
+  @Override
+  @NotNull
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
 
   @Override
   public void update(@NotNull AnActionEvent e) {

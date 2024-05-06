@@ -19,9 +19,10 @@ import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.perflib.vmtrace.TraceAction;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link CaptureNodeConstructor} helps in constructing per thread call stacks from a sequence of

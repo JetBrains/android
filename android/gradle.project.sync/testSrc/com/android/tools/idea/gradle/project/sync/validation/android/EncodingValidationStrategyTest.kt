@@ -25,8 +25,8 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager
-import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
@@ -96,6 +96,6 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
     myStrategy!!.fixAndReportFoundIssues()
     val message = syncMessages.reportedMessages.firstOrNull()
     assertNull(message)
-    verify(myEncodings, never())?.let { it.defaultCharsetName = ArgumentMatchers.anyString() }
+    verify(myEncodings, never())?.let { it.defaultCharsetName = Mockito.anyString() }
   }
 }

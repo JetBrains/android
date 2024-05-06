@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiElement;
 import java.io.File;
 import java.io.IOException;
@@ -39,12 +40,26 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.kotlin.psi.KtFile;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for {@link DependenciesModelImpl} and {@link ModuleDependencyModelImpl}.
+ * Tests for subclasses of {@link AbstractDependenciesModel} and {@link ModuleDependencyModel}.
  */
 public class ModuleDependencyTest extends GradleFileModelTestCase {
+
+  @Before
+  public void before() throws Exception {
+    Registry.is("android.gradle.declarative.plugin.studio.support", true);
+    super.before();
+  }
+
+  @After
+  public void onAfter() {
+    Registry.is("android.gradle.declarative.plugin.studio.support", false);
+  }
+
   @Test
   public void testParsingWithCompactNotation() throws IOException {
     writeToBuildFile(TestFile.PARSING_WITH_COMPACT_NOTATION);
@@ -522,7 +537,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     modules = buildModel.dependencies().modules();
     assertEquals(modules.size(), 1);
     assertThat(modules.get(0).configurationName()).isEqualTo("testImplementation");
-    assertNotNull(((ModuleDependencyModelImpl)modules.get(0)).getDslElement().getClosureElement());
+    assertNotNull(((DependencyModelImpl)modules.get(0)).getDslElement().getClosureElement());
   }
 
   @Test

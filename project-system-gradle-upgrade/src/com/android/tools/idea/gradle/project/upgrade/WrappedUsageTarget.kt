@@ -54,13 +54,13 @@ internal class WrappedUsageTarget(
   override fun getName() = usageTarget.getName()
   override fun findUsages() = usageTarget.findUsages()
   override fun canNavigateToSource() = usageTarget.canNavigateToSource()
-  override fun isValid() = usageTarget.isValid
-  override fun getPresentation() = usageTarget.presentation
+  override fun isValid() = usageTarget.isValid()
+  override fun getPresentation() = usageTarget.getPresentation()
   // We need these because otherwise the default methods get called
   override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
   override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
     usageTarget.highlightUsages(file, editor, clearHighlights)
-  override fun isReadOnly() = usageTarget.isReadOnly
+  override fun isReadOnly() = usageTarget.isReadOnly()
   override fun getFiles() = usageTarget.getFiles()
   override fun update() = usageTarget.update()
 }
@@ -78,13 +78,13 @@ internal class WrappedConfigurableUsageTarget(
   override fun getName() = usageTarget.getName()
   override fun findUsages() = usageTarget.findUsages()
   override fun canNavigateToSource() = usageTarget.canNavigateToSource()
-  override fun isValid() = usageTarget.isValid
-  override fun getPresentation() = usageTarget.presentation
+  override fun isValid() = usageTarget.isValid()
+  override fun getPresentation() = usageTarget.getPresentation()
 
   override fun findUsagesInEditor(editor: FileEditor) = usageTarget.findUsagesInEditor(editor)
   override fun highlightUsages(file: PsiFile, editor: Editor, clearHighlights: Boolean) =
     usageTarget.highlightUsages(file, editor, clearHighlights)
-  override fun isReadOnly() = usageTarget.isReadOnly
+  override fun isReadOnly() = usageTarget.isReadOnly()
   override fun getFiles() = usageTarget.getFiles()
   override fun update() = usageTarget.update()
 

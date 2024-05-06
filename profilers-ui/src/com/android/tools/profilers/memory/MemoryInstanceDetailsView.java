@@ -625,7 +625,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
         return null;
       }
 
-      MemoryObject memoryObject = ((MemoryObjectTreeNode<?>)selection.getLastPathComponent()).getAdapter();
+      MemoryObject memoryObject = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
       if (memoryObject instanceof InstanceObject) {
         return new CodeLocation.Builder(((InstanceObject)memoryObject).getClassEntry().getClassName()).build();
       }
@@ -658,7 +658,7 @@ public final class MemoryInstanceDetailsView extends AspectObserver {
         CaptureObject captureObject = mySelection.getSelectedCapture();
         TreePath selection = tree.getSelectionPath();
         assert captureObject != null && selection != null;
-        MemoryObject memoryObject = ((MemoryObjectTreeNode<?>)selection.getLastPathComponent()).getAdapter();
+        MemoryObject memoryObject = ((MemoryObjectTreeNode)selection.getLastPathComponent()).getAdapter();
         if (memoryObject instanceof InstanceObject) {
           assert memoryObject == mySelection.getSelectedInstanceObject();
           // don't do anything because the only instance object in the tree is the one already selected

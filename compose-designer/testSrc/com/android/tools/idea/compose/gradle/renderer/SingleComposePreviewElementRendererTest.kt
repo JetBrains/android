@@ -18,13 +18,12 @@ package com.android.tools.idea.compose.gradle.renderer
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.PreviewConfiguration
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
+import com.android.tools.preview.PreviewConfiguration
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.classloading.ModuleClassLoader
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -33,6 +32,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_LOCATION_STANDARD
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import javax.swing.JPanel
 
 class SingleComposePreviewElementRendererTest {
@@ -154,6 +154,12 @@ class SingleComposePreviewElementRendererTest {
 
     assertTrue(applyObservers.isNotEmpty())
 
+    val globalWriteObserversField =
+      snapshotKt.getDeclaredField("globalWriteObservers").apply { isAccessible = true }
+    val globalWriteObservers = globalWriteObserversField.get(null) as List<*>
+
+    assertTrue(globalWriteObservers.isNotEmpty())
+
     val uiDispatcher = classLoader.loadClass("androidx.compose.ui.platform.AndroidUiDispatcher")
     val uiDispatcherCompanion =
       classLoader.loadClass("androidx.compose.ui.platform.AndroidUiDispatcher\$Companion")
@@ -177,9 +183,8 @@ class SingleComposePreviewElementRendererTest {
       "animationScale should have been cleared",
       (animationScaleField.get(windowRecomposer) as Map<*, *>).isEmpty()
     )
-
     assertTrue("applyObservers should have been cleared", applyObservers.isEmpty())
-
+    assertTrue("globalWriteObservers should have been cleared", globalWriteObservers.isEmpty())
     assertTrue("toRunTrampolined should have been cleared", toRunTrampolined.isEmpty())
   }
 
@@ -238,7 +243,7 @@ class SingleComposePreviewElementRendererTest {
   @Test
   fun testEmptyRender() {
     val defaultRender =
-      renderPreviewElement(
+      renderPreviewElementForResult(
           projectRule.androidFacet(":app"),
           SingleComposePreviewElementInstance.forTesting(
             "google.simpleapplication.OtherPreviewsKt.EmptyPreview"
@@ -246,7 +251,8 @@ class SingleComposePreviewElementRendererTest {
         )
         .get()!!
 
-    assertTrue(defaultRender.width > 0 && defaultRender.height > 0)
+    assertEquals(0, defaultRender.renderedImage.width)
+    assertEquals(0, defaultRender.renderedImage.height)
   }
 
   /** Checks that key events are correctly dispatched to Compose Preview. */
@@ -315,5 +321,68 @@ class SingleComposePreviewElementRendererTest {
     } finally {
       renderTask.dispose().get(5, TimeUnit.SECONDS)
     }
+  }
+
+  /** Check that interrupting the recomposition does not leak. */
+  @Test
+  fun testRecomposeLeakCheck() {
+    var classLoader: ModuleClassLoader? = null
+    repeat(5) {
+      val renderTaskFuture =
+        createRenderTaskFuture(
+          projectRule.androidFacet(":app"),
+          SingleComposePreviewElementInstance.forTesting(
+            "google.simpleapplication.LeakCheckKt.WithException"
+          ),
+          false
+        )
+      val renderTask = renderTaskFuture.get()!!
+      val result = renderTask.render().get()
+      assertFalse("The render should have failed", result.renderResult.isSuccess)
+      classLoader = renderTask.classLoader as ModuleClassLoader
+      renderTaskFuture.get().dispose().get()
+    }
+
+    // Ensure that the classes we will check were loaded by the test first. If not, it could be the
+    // class has been renamed
+    // or the test is not triggering the leak again.
+    val leakCheckClasses =
+      listOf(
+        "androidx.compose.runtime.Recomposer",
+        "androidx.compose.runtime.Recomposer\$Companion",
+      )
+    leakCheckClasses.forEach {
+      assertTrue("Test did not load $it", classLoader!!.hasLoadedClass(it))
+    }
+
+    val recomposerClass = classLoader!!.loadClass("androidx.compose.runtime.Recomposer")
+    val recomposerCompanion = recomposerClass.getField("Companion").get(null)
+    val recomposerCompanionClass =
+      classLoader!!.loadClass("androidx.compose.runtime.Recomposer\$Companion")
+
+    // This relies on the internals of the Compose runtime. If the field is moved or renamed, this
+    // will fail. This check is not critical for the test, but it is useful to verify that
+    // the setHotReloadEnabled is invoked.
+    @Suppress("UNCHECKED_CAST")
+    val hotReloadEnabled =
+      recomposerClass
+        .getDeclaredField("_hotReloadEnabled")
+        .also { it.isAccessible = true }
+        .get(null) as AtomicReference<Boolean>
+    assertTrue(hotReloadEnabled.get())
+
+    val runningRecomposers =
+      recomposerClass
+        .getDeclaredField("_runningRecomposers")
+        .apply { isAccessible = true }
+        .get(null)
+    val currentRunningSet =
+      runningRecomposers::class
+        .java
+        .getMethod("getValue")
+        .apply { isAccessible = true }
+        .invoke(runningRecomposers) as Set<*>
+
+    assertTrue(currentRunningSet.isEmpty())
   }
 }

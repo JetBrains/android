@@ -59,15 +59,6 @@ sealed class EmulatorRotateAction(
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
-  override fun update(event: AnActionEvent) {
-    super.update(event)
-    // Rotation is disabled if the device has more than one display.
-    val presentation = event.presentation
-    if (presentation.isVisible && getNumberOfDisplays(event) > 1) {
-      presentation.isVisible = false
-    }
-  }
-
   class Left : EmulatorRotateAction(1)
   class Right : EmulatorRotateAction(3)
 }

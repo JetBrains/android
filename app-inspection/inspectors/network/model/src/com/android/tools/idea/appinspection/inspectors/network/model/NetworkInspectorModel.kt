@@ -16,31 +16,39 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.AspectModel
-import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.RangeSelectionModel
 import com.android.tools.adtui.model.StreamingTimeline
+import com.android.tools.adtui.model.Timeline
 import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.NetworkTrafficFormatter
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModelImpl
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.SelectionRangeDataFetcher
+import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel.DetailContent.CONNECTION
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionData
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModelImpl
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.SelectionRangeDataFetcher
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
+import java.util.concurrent.TimeUnit
+import kotlin.math.max
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asExecutor
+import kotlinx.coroutines.launch
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
 
-/** The model class for [NetworkInspectorView]. */
+private val TIMELINE_PADDING_MS = TimeUnit.SECONDS.toMicros(3)
+private val VIEW_LENGTH_US = TimeUnit.SECONDS.toMicros(30)
+
+/** The model class for `NetworkInspectorView`. */
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
   scope: CoroutineScope,
-  connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource, services.usageTracker, scope),
-  startTimeStampNs: Long = 0
+  connectionsModel: ConnectionDataModel = ConnectionDataModelImpl(dataSource),
 ) : AspectModel<NetworkInspectorAspect>() {
 
   enum class DetailContent {
@@ -59,16 +67,20 @@ class NetworkInspectorModel(
 
   val name = "NETWORK"
 
-  // If null, means no connection to show in the details pane.
-  var selectedConnection: HttpData? = null
+  // If null, means no connection to show in the `details` pane.
+  var selectedConnection: ConnectionData? = null
     private set
 
-  // If null, means no rule to show in the details pane.
+  // If null, means no rule to show in the `details` pane.
   var selectedRule: RuleData? = null
     private set
 
   val aspect = AspectModel<NetworkInspectorAspect>()
-  val timeline = StreamingTimeline(services.updater)
+  val timeline: Timeline =
+    when (StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
+      true -> NetworkTimeline()
+      else -> StreamingTimeline(services.updater)
+    }
   val networkUsage =
     NetworkSpeedLineChartModel(timeline, dataSource, services.workerDispatcher.asExecutor())
   val legends = LegendsModel(networkUsage, timeline.dataRange, false)
@@ -91,27 +103,37 @@ class NetworkInspectorModel(
     }
 
   init {
-    timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
-      if (!timeline.selectionRange.isEmpty) {
-        timeline.isStreaming = false
-      }
-    }
-    timeline.reset(startTimeStampNs, startTimeStampNs)
-
     services.updater.register(networkUsage)
     services.updater.register(trafficAxis)
+
+    if (StudioFlags.NETWORK_INSPECTOR_STATIC_TIMELINE.get()) {
+      dataSource.addOnExtendTimelineListener {
+        scope.launch(services.uiDispatcher) {
+          val isLive = isLive()
+          val timestampUs = TimeUnit.NANOSECONDS.toMicros(it).toDouble()
+          if (timeline.dataRange.isPoint) {
+            timeline.dataRange.min = timestampUs - TIMELINE_PADDING_MS
+          }
+          timeline.dataRange.max = timestampUs + TIMELINE_PADDING_MS
+          if (isLive) {
+            timeline.resetZoom()
+          }
+        }
+      }
+    }
+    dataSource.start()
   }
 
   /**
    * Sets the active connection, or clears the previously selected active connection if given data
    * is null. Setting a non-null connection will deselect [selectedRule].
    */
-  fun setSelectedConnection(data: HttpData?): Boolean {
+  fun setSelectedConnection(data: ConnectionData?): Boolean {
     if (selectedConnection == data) {
       return false
     }
     selectedConnection = data
-    if (data == null && detailContent == DetailContent.CONNECTION) {
+    if (data == null && detailContent == CONNECTION) {
       detailContent = DetailContent.EMPTY
     }
     aspect.changed(NetworkInspectorAspect.SELECTED_CONNECTION)
@@ -132,5 +154,15 @@ class NetworkInspectorModel(
     }
     aspect.changed(NetworkInspectorAspect.SELECTED_RULE)
     return true
+  }
+
+  /** Returns true if the timeline in live mode. */
+  private fun isLive() =
+    timeline.viewRange.max < 0 || (timeline.viewRange.max == timeline.dataRange.max)
+
+  private class NetworkTimeline : DefaultTimeline() {
+    override fun resetZoom() {
+      viewRange.set(max(0.0, dataRange.max - VIEW_LENGTH_US), dataRange.max)
+    }
   }
 }

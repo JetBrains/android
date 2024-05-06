@@ -201,7 +201,8 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
           when (syntax) {
             ASSIGNMENT -> statementText += " = \"abc\""
             AUGMENTED_ASSIGNMENT -> statementText += " += \"abc\""
-            else -> { }
+            METHOD -> {}
+            UNKNOWN -> {}
           }
         }
       }
@@ -414,8 +415,9 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
     }
 
     if (psiExpression != null) {
+      val replace = psiExpression.replace(newLiteral)
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
-      when (val replace = psiExpression.replace(newLiteral)) {
+      when (replace) {
         is KtStringTemplateExpression, is KtConstantExpression, is KtNameReferenceExpression, is KtDotQualifiedExpression,
         is KtArrayAccessExpression, is KtBinaryExpressionWithTypeRHS -> literal.setExpression(replace)
         else -> Unit

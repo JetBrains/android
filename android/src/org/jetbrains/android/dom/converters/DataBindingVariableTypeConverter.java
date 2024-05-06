@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.databinding.util.DataBindingUtil.ClassReferenceVisitor;
+import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.utils.OffsetTrackingDecodedXmlValue;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;

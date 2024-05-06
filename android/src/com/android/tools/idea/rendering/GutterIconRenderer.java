@@ -79,7 +79,7 @@ public class GutterIconRenderer extends com.intellij.openapi.editor.markup.Gutte
   @NotNull
   public Icon getIcon() {
     Icon icon = myFile != null
-                ? GutterIconCache.getInstance().getIcon(myFile, myResourceResolver, myFacet)
+                ? GutterIconCache.getInstance(myFacet.getModule().getProject()).getIcon(myFile, myResourceResolver, myFacet)
                 : StudioIcons.LayoutEditor.Properties.IMAGE_PICKER;
     return icon == null ? StudioIcons.LayoutEditor.Properties.IMAGE_PICKER : icon;
   }

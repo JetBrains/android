@@ -54,11 +54,11 @@ import com.intellij.util.indexing.UnindexedFilesScanner
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.doCallRealMethod
-import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -102,7 +102,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
   }
 
-  private fun <T> any(): T = ArgumentMatchers.any() as T
+  private fun <T> any(): T = Mockito.any() as T
 
   fun testComponentActivated() {
     val surface = NavDesignSurface(project, myRootDisposable)

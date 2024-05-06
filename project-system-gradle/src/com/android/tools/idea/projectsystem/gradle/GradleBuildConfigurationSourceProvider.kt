@@ -16,7 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileTypes.FileType
@@ -60,8 +60,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
     companion object {
       val CONFIG_FILE_GROUP_COMPARATOR: Comparator<ModuleDesc> =
-        compareBy<ModuleDesc> { it.projectPath.buildRootDir }
-          .thenBy { it.projectPath.path }
+        compareBy<ModuleDesc> { it.projectPath.buildRootDir }.thenBy { it.projectPath.path }
     }
   }
 
@@ -86,7 +85,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     override val groupOrder: Int
   ) : BuildConfigurationSourceProvider.ConfigurationFile
 
-  private fun VirtualFile.describe(displayName: String, legacyOrder: Int): ConfigurationFileImpl {
+  private fun VirtualFile.describe(displayName: String, legacyOrder: Int):ConfigurationFileImpl {
     return ConfigurationFileImpl(this, displayName, legacyOrder)
   }
 
@@ -103,7 +102,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   private fun findConfigurationFiles() = sequence {
     holderModules.forEachIndexed { index, module ->
       yieldIfNotNull(
-        GradleUtil.getGradleModuleModel(module.module)
+        GradleProjectSystemUtil.getGradleModuleModel(module.module)
           ?.buildFilePath
           ?.let { VfsUtil.findFileByIoFile(it, false) }
           ?.describe(module.projectDisplayName, module.orderBase + index)
@@ -115,8 +114,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
           file.describe(
             if (file.fileType === proguardFileType) {
               "ProGuard Rules for \"${module.displayPath}\""
-            }
-            else {
+            } else {
               module.projectDisplayName
             },
             (module.orderBase + index) + if (file.fileType === proguardFileType) MODULE_SECONDARY_OFFSET else 0
@@ -135,7 +133,8 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
 
       yieldIfNotNull(
-        projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(GradleUtil.GRADLEW_PROPERTIES_PATH))
+        projectRootFolder.findFileByRelativePath(FileUtilRt.toSystemIndependentName(
+          GradleProjectSystemUtil.GRADLEW_PROPERTIES_PATH))
           ?.describe("Gradle Version", BUILD_WIDE_ORDER_BASE)
       )
 
@@ -168,7 +167,8 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     }
 
     if (!ApplicationManager.getApplication().isUnitTestMode) {
-      val userSettingsFile = GradleUtil.getUserGradlePropertiesFile(project)
+      val userSettingsFile =
+        GradleProjectSystemUtil.getUserGradlePropertiesFile(project)
       val file = VfsUtil.findFileByIoFile(userSettingsFile, false)
       if (file != null) {
         yield(file.describe("Global Properties", BUILD_WIDE_ORDER_BASE))
@@ -183,9 +183,9 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     val files = mutableListOf<VirtualFile>()
     for (child in moduleRootFolder.children) {
       if (!child.isValid ||
-          child.isDirectory ||
-          (
-            !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
+        child.isDirectory ||
+        (
+          !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
             !child.name.endsWith(SdkConstants.EXT_GRADLE_KTS) &&
             !child.isDeclarativeBuildFile() &&
             child.fileType !== proguardFileType
@@ -196,7 +196,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
 
       // When a project is imported via unit tests, there is a ijinitXXXX.gradle file created somehow, exclude that.
       if (ApplicationManager.getApplication().isUnitTestMode &&
-          (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))
+        (child.name.startsWith("ijinit") || child.name.startsWith("asLocalRepo"))
       ) {
         continue
       }

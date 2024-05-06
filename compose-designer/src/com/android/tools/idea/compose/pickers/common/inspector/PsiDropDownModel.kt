@@ -63,6 +63,7 @@ constructor(
       field = value
       setSelectedValueCallback()
     }
+
   private val listListeners = mutableListOf<ListDataListener>()
 
   override val editable: Boolean = false

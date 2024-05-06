@@ -15,11 +15,12 @@
  */
 package org.jetbrains.android.dom;
 
+import org.jetbrains.android.facet.AndroidFacet;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Used to annotate XML model interfaces with styleable name which should be used to

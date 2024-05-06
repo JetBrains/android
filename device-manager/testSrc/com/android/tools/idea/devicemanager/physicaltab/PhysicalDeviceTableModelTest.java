@@ -30,7 +30,6 @@ import javax.swing.table.TableModel;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
@@ -73,7 +72,7 @@ public final class PhysicalDeviceTableModelTest {
     assertEquals(devices, model.getDevices());
     assertEquals(devices, model.getCombinedDevices());
 
-    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+    Mockito.verify(listener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test
@@ -89,7 +88,7 @@ public final class PhysicalDeviceTableModelTest {
 
     // Assert
     assertEquals(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5), model.getCombinedDevices());
-    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+    Mockito.verify(listener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test
@@ -106,7 +105,7 @@ public final class PhysicalDeviceTableModelTest {
 
     // Assert
     assertEquals(List.of(TestPhysicalDevices.GOOGLE_PIXEL_3, TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_5), model.getCombinedDevices());
-    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+    Mockito.verify(listener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test
@@ -126,7 +125,7 @@ public final class PhysicalDeviceTableModelTest {
     assertEquals(devices, model.getDevices());
     assertEquals(devices, model.getCombinedDevices());
 
-    Mockito.verify(listener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
+    Mockito.verify(listener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model))));
   }
 
   @Test

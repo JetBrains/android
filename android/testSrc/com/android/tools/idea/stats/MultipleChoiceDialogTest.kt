@@ -86,6 +86,7 @@ class MultipleChoiceDialogTest {
     SwingUtilities.invokeAndWait { Disposer.dispose(disposable) }
   }
 
+  @Suppress("UnstableApiUsage")
   @Test
   fun testOK() {
     val result = Ref.create<MultipleChoiceDialog>()

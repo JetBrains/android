@@ -32,7 +32,9 @@ class RulesTableModel(items: MutableList<RuleData>) :
         }
 
         override fun getWidth(table: JTable) = 60
+
         override fun isCellEditable(item: RuleData) = true
+
         override fun getColumnClass() = Boolean::class.java
       },
       object : ColumnInfo<RuleData, String>("Name") {

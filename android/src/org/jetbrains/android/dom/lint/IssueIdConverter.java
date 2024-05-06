@@ -22,10 +22,11 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
-import java.util.Collection;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 public class IssueIdConverter extends ResolvingConverter<Issue> {
   private static ImmutableMap<String, Issue> ourIssues = null;
@@ -46,19 +47,19 @@ public class IssueIdConverter extends ResolvingConverter<Issue> {
 
   @NotNull
   @Override
-  public Collection<Issue> getVariants(@NotNull ConvertContext context) {
+  public Collection<Issue> getVariants(ConvertContext context) {
     return getIdSet().values();
   }
 
   @Nullable
   @Override
-  public Issue fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public Issue fromString(@Nullable @NonNls String s, ConvertContext context) {
     return getIdSet().get(s);
   }
 
   @Nullable
   @Override
-  public String toString(@Nullable Issue issue, @NotNull ConvertContext context) {
+  public String toString(@Nullable Issue issue, ConvertContext context) {
     return issue == null ? null : issue.getId();
   }
 

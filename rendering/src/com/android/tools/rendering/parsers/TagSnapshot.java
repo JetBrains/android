@@ -22,12 +22,12 @@ import static com.android.SdkConstants.ATTR_USE_TAG;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.google.common.base.Charsets.UTF_8;
 
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -251,14 +251,14 @@ public class TagSnapshot {
   public long getSignature() {
     HashFunction hashFunction = Hashing.goodFastHash(64);
     Hasher hasher = hashFunction.newHasher();
-    hasher.putString(tagName, StandardCharsets.UTF_8);
+    hasher.putString(tagName, UTF_8);
     for (AttributeSnapshot attribute : attributes) {
       if (attribute.prefix != null) {
-        hasher.putString(attribute.prefix, StandardCharsets.UTF_8);
+        hasher.putString(attribute.prefix, UTF_8);
       }
-      hasher.putString(attribute.name, StandardCharsets.UTF_8);
+      hasher.putString(attribute.name, UTF_8);
       if (attribute.value != null) {
-        hasher.putString(attribute.value, StandardCharsets.UTF_8);
+        hasher.putString(attribute.value, UTF_8);
       }
       // Note that we're not bothering with namespaces here; the prefix will identify it uniquely
     }

@@ -18,9 +18,7 @@ package org.jetbrains.android.dom.converters
 import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.ResolvingConverter
 
-/**
- * Converter that provides code completion for <uses-feature> 'android:name' attribute.
- */
+/** Converter that provides code completion for <uses-feature> 'android:name' attribute. */
 class AndroidUsesFeatureNameConverter : ResolvingConverter<String>() {
 
   // Note: From https://developer.android.com/reference/android/content/pm/PackageManager
@@ -132,6 +130,8 @@ class AndroidUsesFeatureNameConverter : ResolvingConverter<String>() {
   }
 
   override fun fromString(s: String?, context: ConvertContext) = s
+
   override fun toString(t: String?, context: ConvertContext) = t
+
   override fun getVariants(context: ConvertContext) = usesFeature
 }

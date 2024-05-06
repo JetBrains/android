@@ -17,9 +17,13 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
+import com.android.tools.idea.deviceprovisioner.deviceHandle
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import org.jetbrains.android.refactoring.project
+import java.awt.Component
 
+/** Updates the AnActionEvent's presentation from the given DeviceAction's presentation. */
 fun AnActionEvent.updateFromDeviceAction(deviceActionProperty: DeviceHandle.() -> DeviceAction?) {
   val handle = deviceHandle()
   when (val deviceAction = handle?.deviceActionProperty()) {
@@ -52,10 +56,11 @@ fun AnActionEvent.updateFromDeviceActionOrDeactivateAction(
   }
 }
 
-fun AnActionEvent.deviceHandle() = DEVICE_HANDLE_KEY.getData(dataContext)
-
 internal fun AnActionEvent.deviceRowData() = DEVICE_ROW_DATA_KEY.getData(dataContext)
 
 internal fun AnActionEvent.deviceManagerPanel() = DEVICE_MANAGER_PANEL_KEY.getData(dataContext)
 
 internal fun DeviceAction?.isEnabled() = this?.presentation?.value?.enabled == true
+
+internal fun projectFromComponentContext(component: Component) =
+  DataManager.getInstance().getDataContext(component).project

@@ -19,11 +19,11 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class CaptureNodeAnalysisSummaryTabModelTest {
   @Test

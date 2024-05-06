@@ -15,14 +15,20 @@
  */
 package com.android.tools.idea.lang.typedef
 
+import com.intellij.codeInsight.completion.InsertHandler
+import com.intellij.codeInsight.completion.InsertionContext
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference.ShorteningMode
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtConstructorCalleeExpression
 import org.jetbrains.kotlin.psi.KtLambdaArgument
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 
@@ -38,6 +44,13 @@ class KotlinTypeDefCompletionContributor : TypeDefCompletionContributor() {
   /** This looks for a place where we're completing an argument to a method or constructor call. */
   override val elementPattern: ElementPattern<PsiElement> =
     PlatformPatterns.psiElement().inside(PlatformPatterns.psiElement(KtValueArgument::class.java))
+
+  override val insertHandler = object : TypeDefInsertHandler() {
+    override fun bindToTarget(context: InsertionContext, target: PsiElement) {
+      val expr = context.getParent() as? KtReferenceExpression ?: return
+      (expr.mainReference as? KtSimpleNameReference)?.bindToElement(target, ShorteningMode.FORCED_SHORTENING)
+    }
+  }
 
   override fun computeConstrainingTypeDef(position: PsiElement) = position.parentOfType<KtValueArgument>()?.getTypeDef()
 

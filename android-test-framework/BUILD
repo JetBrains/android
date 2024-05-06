@@ -5,6 +5,10 @@ iml_module(
     name = "intellij.android.testFramework",
     data = ["//prebuilts/studio/jdk:mock-jdk17"],
     iml_files = ["intellij.android.testFramework.iml"],
+    javacopts_from_jps = [
+        "--add-exports",
+        "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+    ],
     test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

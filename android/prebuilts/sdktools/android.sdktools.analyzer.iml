@@ -4,19 +4,17 @@
     <exclude-output />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
-    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module-library">
       <library name="explainer" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:explainer:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:explainer:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/explainer/231.0.26.0/explainer-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/explainer/232.1.23.0/explainer-232.1.23.0.jar">
               <sha256sum>297bc50d4f61f8bc09caa91f8ee143cfdf18aa3f4208d716f5a53afd79a0f9bd</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/explainer/231.0.26.0/explainer-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/explainer/232.1.23.0/explainer-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -24,15 +22,15 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="generator" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:generator:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:generator:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/generator/231.0.26.0/generator-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/generator/232.1.23.0/generator-232.1.23.0.jar">
               <sha256sum>e6e14814df390b4d714db66bf84dafbaa1951d643e0ae91aa8c6ab368c3967c5</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/generator/231.0.26.0/generator-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/generator/232.1.23.0/generator-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -40,62 +38,61 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="shared" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:shared:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:shared:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/shared/231.0.26.0/shared-231.0.26.0.jar">
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/shared/232.1.23.0/shared-232.1.23.0.jar">
               <sha256sum>391caef69ac366ddc46c1c77ec7f41fcfda8ba27cdb0678ed17ca34abe949665</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/shared/231.0.26.0/shared-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/shared/232.1.23.0/shared-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="google-dexlib2" level="project" />
-    <orderEntry type="library" name="google-baksmali" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-analyzer" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.analyzer:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.analyzer:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer/231.0.26.0/studio.android.sdktools.analyzer-231.0.26.0.jar">
-              <sha256sum>f090b98a2765da7e4e2009536844461590e176ea0d6261c8de20a6f58e029274</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer/232.1.23.0/studio.android.sdktools.analyzer-232.1.23.0.jar">
+              <sha256sum>b6aa30156ededc3b01c63823754d2b7bd8151416e78abf9e7e1f4e9b6362b592</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer/231.0.26.0/studio.android.sdktools.analyzer-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer/232.1.23.0/studio.android.sdktools.analyzer-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer/231.0.26.0/studio.android.sdktools.analyzer-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-analyzer-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.analyzer_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.analyzer_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer_test/231.0.26.0/studio.android.sdktools.analyzer_test-231.0.26.0.jar">
-              <sha256sum>b6fab2d5efe7ff37c776d692644f32c7ad13630c117aa885c077d2f6fd7ced9d</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer_test/232.1.23.0/studio.android.sdktools.analyzer_test-232.1.23.0.jar">
+              <sha256sum>0c8a6e329a978172c1cef1144e805906502860ac309538bded1dc520b50fd704</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer_test/231.0.26.0/studio.android.sdktools.analyzer_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer_test/232.1.23.0/studio.android.sdktools.analyzer_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.analyzer_test/231.0.26.0/studio.android.sdktools.analyzer_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="google-baksmali" level="project" />
+    <orderEntry type="library" name="google-dexlib2" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.binary-resources" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>

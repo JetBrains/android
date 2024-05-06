@@ -51,7 +51,7 @@ import java.lang.ref.WeakReference
  */
 class ScopedStateStore(
   private val scope: Scope, private val parent: ScopedStateStore?, listener: ScopedStoreListener?
-) : Function<ScopedStateStore.Key<*>?, Any?> { // Map of the current state
+) : Function<ScopedStateStore.Key<*>, Any?> { // Map of the current state
   private val state = Maps.newHashMap<Key<*>, Any>()
   // Set of changed key/scope pairs which have been modified since the last call to clearRecentUpdates()
   private val recentlyUpdated = Sets.newHashSet<Key<*>>()
@@ -321,7 +321,7 @@ class ScopedStateStore(
    * E.g. this allows to use [Maps.asMap]
    * to create a views on this context that implement [Map] interface.
    */
-  override fun apply(input: Key<*>?): Any? = get(input!!)
+  override fun apply(input: Key<*>): Any? = get(input)
 
   data class Key<T>(
     @JvmField

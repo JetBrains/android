@@ -22,6 +22,5 @@ import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter
 
 interface Profileable : GenericDomValue<String?>, AndroidDomElement {
-  @Convert(AndroidBooleanValueConverter::class)
-  fun getShell(): AndroidAttributeValue<String>
+  @Convert(AndroidBooleanValueConverter::class) fun getShell(): AndroidAttributeValue<String>
 }

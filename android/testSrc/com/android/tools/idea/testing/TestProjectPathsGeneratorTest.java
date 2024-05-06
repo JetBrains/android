@@ -17,10 +17,11 @@ package com.android.tools.idea.testing;
 
 import com.android.tools.idea.testing.TestProjectPathsGenerator.TestProjectPathsInfo;
 import com.intellij.openapi.util.SystemInfo;
+import junit.framework.TestCase;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import junit.framework.TestCase;
 import org.junit.Ignore;
 
 /**

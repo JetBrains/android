@@ -17,7 +17,6 @@ package com.android.tools.idea.execution.common
 
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler
 import com.intellij.execution.ExecutionManager
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
@@ -31,10 +30,7 @@ fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project
   return ExecutionManager.getInstance(project)
     .getRunningDescriptors { it.isOfSameType(this) }
     .mapNotNull { it.processHandler }
-    .filter {
-      val deviceAwareProcessHandler = it.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY) ?: return@filter false
-      devices.any { d -> deviceAwareProcessHandler.isAssociated(d) }
-    }
+    .filter { AndroidSessionInfo.from(it)?.devices?.intersect(devices.toSet())?.isNotEmpty() == true }
 }
 
 

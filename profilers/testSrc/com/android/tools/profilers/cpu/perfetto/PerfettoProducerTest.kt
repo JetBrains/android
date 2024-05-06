@@ -85,9 +85,9 @@ class PerfettoProducerTest {
     val parser = PerfettoProducer()
     assertThat(parser.parseFile(CpuProfilerTestUtils.getTraceFile("perfetto.trace"))).isTrue()
     // Find first non comment line.
-    var slice = parser.next()
+    var slice = parser.next();
     while (slice.toString().startsWith('#')) {
-      slice = parser.next()
+      slice = parser.next();
     }
 
     // First line should be our parent timestamp.

@@ -19,9 +19,11 @@ import com.android.adblib.AdbSession
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.LocalEmulatorSnapshot
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.DIRECT_DEVICE_MANAGER
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType.INDIRECT
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -54,13 +56,15 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
       coroutineScope,
       adbSession,
       avdManager,
-      deviceIcons = DeviceIcons(
-        handheld = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
-        wear = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
-        tv = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
-        automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
-      ),
+      deviceIcons =
+        DeviceIcons(
+          handheld = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
+          wear = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR,
+          tv = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV,
+          automotive = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
+        ),
       defaultPresentation = StudioDefaultDeviceActionPresentation,
+      diskIoThread,
     )
   }
 }
@@ -87,22 +91,26 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
     return avdOptionsModel.createdAvd.orElse(null)
   }
 
-  override suspend fun startAvd(avdInfo: AvdInfo, coldBoot: Boolean) {
+  override suspend fun startAvd(avdInfo: AvdInfo): Unit =
     // Note: the original DeviceManager does this in UI thread, but this may call
     // @Slow methods so switch
     withContext(workerThread) {
-      when {
-        coldBoot ->
-          avdManagerConnection.startAvdWithColdBoot(
-            project,
-            avdInfo,
-            RequestType.DIRECT_DEVICE_MANAGER
-          )
-        else ->
-          avdManagerConnection.startAvd(project, avdInfo, RequestType.DIRECT_DEVICE_MANAGER)
-      }
+      avdManagerConnection.quickBoot(project, avdInfo, DIRECT_DEVICE_MANAGER)
     }
-  }
+
+  override suspend fun coldBootAvd(avdInfo: AvdInfo): Unit =
+    withContext(workerThread) {
+      avdManagerConnection.coldBoot(project, avdInfo, DIRECT_DEVICE_MANAGER)
+    }
+
+  override suspend fun bootAvdFromSnapshot(
+    avdInfo: AvdInfo,
+    snapshot: LocalEmulatorSnapshot
+  ): Unit =
+    withContext(workerThread) {
+      val snapshotPath = snapshot.path.fileName.toString()
+      avdManagerConnection.bootWithSnapshot(project, avdInfo, snapshotPath, INDIRECT)
+    }
 
   override suspend fun stopAvd(avdInfo: AvdInfo) {
     withContext(workerThread) { avdManagerConnection.stopAvd(avdInfo) }
@@ -139,10 +147,10 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
         withContext(uiThread) {
           if (
             MessageDialogBuilder.okCancel(
-              "Could Not Delete All AVD Files",
-              "There may be additional files remaining in the AVD directory. Open the directory, " +
-              "manually delete the files, and refresh AVD list."
-            )
+                "Could Not Delete All AVD Files",
+                "There may be additional files remaining in the AVD directory. To fully delete " +
+                  "the AVD, open the directory and manually delete the files."
+              )
               .yesText("Open Directory")
               .noText("OK")
               .icon(Messages.getInformationIcon())

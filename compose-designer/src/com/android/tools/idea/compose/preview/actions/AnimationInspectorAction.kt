@@ -15,32 +15,27 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.previewElement
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.DumbAwareAction
 import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
 
 /**
  * Action to open the Compose Animation Preview to analyze animations of a Compose Preview in
  * details.
- *
- * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
- *   information.
  */
-class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
+class AnimationInspectorAction :
   DumbAwareAction(
     message("action.animation.inspector.title"),
     message("action.animation.inspector.description"),
     ANIMATION_INSPECTOR
   ) {
-
-  private fun getPreviewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
@@ -49,7 +44,7 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
       val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
       isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
-      isVisible = getPreviewElement()?.hasAnimations == true
+      isVisible = e.dataContext.previewElement()?.hasAnimations == true
       text = if (isEssentialsModeEnabled) null else message("action.animation.inspector.title")
       description =
         if (isEssentialsModeEnabled)
@@ -59,8 +54,8 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val manager = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER) ?: return
-    val previewElement = getPreviewElement() ?: return
+    val manager = e.dataContext.getData(PreviewModeManager.KEY) ?: return
+    val previewElement = e.dataContext.getData(PREVIEW_ELEMENT_INSTANCE) ?: return
     manager.setMode(PreviewMode.AnimationInspection(previewElement))
   }
 }

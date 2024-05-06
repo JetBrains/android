@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.common.ColorPaletteManager
 import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors

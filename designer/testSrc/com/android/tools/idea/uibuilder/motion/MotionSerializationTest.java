@@ -18,7 +18,10 @@ package com.android.tools.idea.uibuilder.motion;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class MotionSerializationTest extends BaseMotionEditorTest {
   public void testViewClientData() {

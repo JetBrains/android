@@ -78,8 +78,8 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
 
   private fun updateComplicationModel(chosenSlots: MutableList<AndroidComplicationConfiguration.ChosenSlot>, componentName: String?) {
     // The following backgroundable task can be run before the configuration editor dialog is shown, for example when run from
-    // the gutter. When this happens, the ModalityState used by the backgroundable task will be registered with ModalityState.nonModal().
-    // Once a dialog is showing, any EDT events run with ModalityState.nonModal() will be enqueued and only executed once the dialog is
+    // the gutter. When this happens, the ModalityState used by the backgroundable task will be registered with ModalityState.NON_MODAL.
+    // Once a dialog is showing, any EDT events run with ModalityState.NON_MODAL will be enqueued and only executed once the dialog is
     // closed. This is because we enter a secondary loop (cf https://docs.oracle.com/javase/7/docs/api/java/awt/SecondaryLoop.html) when
     // showing a dialog. In our case, we want to update the UI on the EDT thread when the dialog is open.
     // When using ModalityState.any(), we ensure the event is pushed to the secondary queue and executed while the dialog is open.

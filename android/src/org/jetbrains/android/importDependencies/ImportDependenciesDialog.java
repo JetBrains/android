@@ -6,13 +6,14 @@ import com.intellij.ui.CheckBoxList;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.android.util.AndroidBundle;
+
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import org.jetbrains.android.util.AndroidBundle;
 
 class ImportDependenciesDialog extends DialogWrapper {
   private final CheckBoxList<?> myCheckBoxList = new CheckBoxList<>();

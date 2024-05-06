@@ -40,5 +40,5 @@ interface AndroidDeviceSpec {
    *
    * When there are multiple devices, only true if all devices support it.
    */
-  val supportsPrivacySandbox: Boolean
+  val supportsSdkRuntime: Boolean
 }

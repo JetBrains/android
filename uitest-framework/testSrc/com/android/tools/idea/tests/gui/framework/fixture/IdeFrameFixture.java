@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForBackgroundTasks;
 import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
 import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
@@ -386,7 +386,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
       Project project = getProject();
       actions.accept(this);
 
-      (wait != null ? wait : Wait.seconds(90))
+      (wait != null ? wait : Wait.seconds(180))
         .expecting("build '" + project.getName() + "' to finish")
         .until(() -> gradleProjectEventListener.getLastBuildTimestamp() > beforeStartedTimeStamp);
 

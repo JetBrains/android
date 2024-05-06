@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -284,6 +285,19 @@ public class GradleSyncTest {
     // @formatter:on
   }
 
+  // Verifies that after making a change in a .grade/config.properties file, the editor notification saying that gradle files have changes
+  @Test
+  public void editorNotificationWhenModifyGradleConfigPropertiesFile() throws IOException {
+    IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
+    // @formatter:off
+    ideFrame.getEditor()
+      .open(".gradle/config.properties")
+      .waitUntilErrorAnalysisFinishes()
+      .enterText("Hello World")
+      .awaitNotification("Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.");
+    // @formatter:on
+  }
+
   @Test
   public void withModuleLanguageLevelEqualTo8() throws IOException {
     Sdk jdk = IdeSdks.getInstance().getJdk();
@@ -357,7 +371,7 @@ public class GradleSyncTest {
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
 
-    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdks.getSdkData(sdk);
 
     SdkAdditionalData data = sdk.getSdkAdditionalData();
     assertThat(data).isInstanceOf(AndroidSdkAdditionalData.class);

@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -45,15 +46,13 @@ public class LibraryFilePaths {
 
   public static class ArtifactPaths {
     @Nullable public final File javaDoc;
-    @Nullable public final File sources;
+    @NotNull public final List<File> sources;
     @Nullable public final File pom;
-    @Nullable public final File sampleSource;
 
     private ArtifactPaths(AdditionalClassifierArtifacts artifact) {
       javaDoc = artifact.getJavadoc();
       sources = artifact.getSources();
       pom = artifact.getMavenPom();
-      sampleSource = artifact.getSampleSources();
     }
   }
 

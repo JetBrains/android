@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
+import static com.intellij.util.ui.JBUI.scale;
+
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
@@ -24,7 +26,6 @@ import com.android.tools.idea.common.scene.draw.DrawCommand;
 import com.android.tools.idea.common.scene.draw.FancyStroke;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
-import com.intellij.ui.scale.JBUIScale;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -73,7 +74,7 @@ public class DrawConnection implements DrawCommand {
   final static int[] dirDeltaX = {-1, +1, 0, 0};
   final static int[] dirDeltaY = {0, 0, -1, 1};
   final static int[] ourOppositeDirection = {1, 0, 3, 2};
-  public static final int GAP = JBUIScale.scale(10);
+  public static final int GAP = scale(10);
   int myConnectionType;
   SecondarySelector mySecondarySelector;
   @SwingCoordinate Rectangle mySource = new Rectangle();
@@ -92,21 +93,21 @@ public class DrawConnection implements DrawCommand {
   int myModeFrom; // use to describe various display modes 0=default 1 = Source selected
   int myModeTo;
   long myStateChangeTime;
-  static Stroke myBackgroundStroke = new BasicStroke(JBUIScale.scale(8));
-  static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{JBUIScale.scale(4), JBUIScale.scale(6)}, 0f);
-  static Stroke mySpringStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{JBUIScale.scale(4), JBUIScale.scale(4)}, 0f);
-  static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, JBUIScale.scale(2.5f), JBUIScale.scale(9), 1);
-  static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, JBUIScale.scale(2.5f), JBUIScale.scale(9), 1);
-  static Stroke myNormalStroke = new BasicStroke(JBUIScale.scale(1));
-  static Stroke myHoverStroke = new BasicStroke(JBUIScale.scale(12), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
+  static Stroke myBackgroundStroke = new BasicStroke(scale(8));
+  static Stroke myDashStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(6)}, 0f);
+  static Stroke mySpringStroke = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(4)}, 0f);
+  static Stroke myChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, scale(2.5f), scale(9), 1);
+  static Stroke myChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, scale(2.5f), scale(9), 1);
+  static Stroke myNormalStroke = new BasicStroke(scale(1));
+  static Stroke myHoverStroke = new BasicStroke(scale(12), BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND);
 
   static Stroke myThickDashStroke =
-    new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{JBUIScale.scale(4), JBUIScale.scale(6)}, 0f);
+    new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(6)}, 0f);
   static Stroke myThickSpringStroke =
-    new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{JBUIScale.scale(4), JBUIScale.scale(4)}, 0f);
-  static Stroke myThickChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, JBUIScale.scale(2.5f), JBUIScale.scale(9), 2);
-  static Stroke myThickChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, JBUIScale.scale(2.5f), JBUIScale.scale(9), 2);
-  static Stroke myThickNormalStroke = new BasicStroke(JBUIScale.scale(2));
+    new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 10f, new float[]{scale(4), scale(4)}, 0f);
+  static Stroke myThickChainStroke1 = new FancyStroke(FancyStroke.Type.HALF_CHAIN1, scale(2.5f), scale(9), 2);
+  static Stroke myThickChainStroke2 = new FancyStroke(FancyStroke.Type.HALF_CHAIN2, scale(2.5f), scale(9), 2);
+  static Stroke myThickNormalStroke = new BasicStroke(scale(2));
 
   @Override
   public int getLevel() {
@@ -537,8 +538,8 @@ public class DrawConnection implements DrawCommand {
         int springEndX = endx;
         int springEndY = endy;
         if (myDestType != DEST_NORMAL) {
-          int rectGap = JBUIScale.scale(4);
-          int rectDim = JBUIScale.scale(9);
+          int rectGap = scale(4);
+          int rectDim = scale(9);
           if (margin != 0) {
             String marginString = Integer.toString(margin);
             if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
@@ -627,8 +628,8 @@ public class DrawConnection implements DrawCommand {
         }
         else {
           g.setColor(constraintColor);
-          int rectGap = JBUIScale.scale(2);
-          int rectDim = JBUIScale.scale(5);
+          int rectGap = scale(2);
+          int rectDim = scale(5);
           if (destDirection == DIR_LEFT || destDirection == DIR_RIGHT) {
             if (hover) {
               g.setColor(modeGetConstraintsColor(MODE_WILL_HOVER, color));

@@ -42,19 +42,22 @@ import java.nio.file.Path
 import javax.swing.JLabel
 import kotlin.io.path.writeText
 
-/**
- * Tests for [DeviceComboBox]
- */
+/** Tests for [DeviceComboBox] */
 @Suppress("OPT_IN_USAGE") // runTest is experimental
 class DeviceComboBoxTest {
   private val projectRule = ProjectRule()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
   @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
-  )
+  val rule =
+    RuleChain(
+      projectRule,
+      ProjectServiceRule(
+        projectRule,
+        DeviceComboBoxDeviceTrackerFactory::class.java,
+        DeviceComboBoxDeviceTrackerFactory { deviceTracker }
+      ),
+    )
 
   private val selectionEvents = mutableListOf<Any?>()
 
@@ -63,149 +66,168 @@ class DeviceComboBoxTest {
   private val emulator = Device.createEmulator("emulator-5555", false, "11", 30, "AVD")
 
   @Test
-  fun noDevice_noSelection(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
+  fun noDevice_noSelection(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
 
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
-    deviceTracker.close()
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
+      deviceTracker.close()
 
-    assertThat(selectedItems.await()).isEmpty()
-    assertThat(selectionEvents).isEmpty()
-  }
+      assertThat(selectedItems.await()).isEmpty()
+      assertThat(selectionEvents).isEmpty()
+    }
 
   @Test
-  fun noInitialDevice_selectsFirstDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
+  fun noInitialDevice_selectsFirstDevice(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
-    deviceTracker.use {
-      it.sendEvents(
-        Added(device1),
-        Added(device2),
-      )
-      advanceUntilIdle()
+      deviceTracker.use {
+        it.sendEvents(
+          Added(device1),
+          Added(device2),
+        )
+        advanceUntilIdle()
+      }
+
+      assertThat(selectionEvents).containsExactly(DeviceItem(device1))
+      assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+      assertThat(deviceComboBox.getItems())
+        .containsExactly(
+          DeviceItem(device1),
+          DeviceItem(device2),
+        )
+        .inOrder()
     }
-
-    assertThat(selectionEvents).containsExactly(DeviceItem(device1))
-    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-    assertThat(deviceComboBox.getItems()).containsExactly(
-      DeviceItem(device1),
-      DeviceItem(device2),
-    ).inOrder()
-  }
 
   @Test
-  fun withInitialDevice_selectsInitialDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val deviceComboBox = deviceComboBox(initialItem = DeviceItem(device2), selectionEvents = selectionEvents)
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
+  fun withInitialDevice_selectsInitialDevice(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val deviceComboBox =
+        deviceComboBox(initialItem = DeviceItem(device2), selectionEvents = selectionEvents)
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
-    deviceTracker.use {
-      it.sendEvents(
-        Added(device1),
-        Added(device2),
-      )
-      advanceUntilIdle()
+      deviceTracker.use {
+        it.sendEvents(
+          Added(device1),
+          Added(device2),
+        )
+        advanceUntilIdle()
+      }
+
+      assertThat(selectionEvents).containsExactly(DeviceItem(device2))
+      assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+      assertThat(deviceComboBox.getItems())
+        .containsExactly(
+          DeviceItem(device1),
+          DeviceItem(device2),
+        )
+        .inOrder()
     }
-
-    assertThat(selectionEvents).containsExactly(DeviceItem(device2))
-    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-    assertThat(deviceComboBox.getItems()).containsExactly(
-      DeviceItem(device1),
-      DeviceItem(device2),
-    ).inOrder()
-  }
 
   @Test
-  fun withInitialDevice_selectsInitialFile(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val fileSystem = createInMemoryFileSystem()
-    val path = fileSystem.getPath("file.logcat").apply {
-      writeText("")
+  fun withInitialDevice_selectsInitialFile(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val fileSystem = createInMemoryFileSystem()
+      val path = fileSystem.getPath("file.logcat").apply { writeText("") }
+
+      val deviceComboBox =
+        deviceComboBox(initialItem = FileItem(path), selectionEvents = selectionEvents)
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
+
+      deviceTracker.use {
+        it.sendEvents(
+          Added(device1),
+          Added(device2),
+        )
+        advanceUntilIdle()
+      }
+
+      assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+      assertThat(deviceComboBox.getItems())
+        .containsExactly(
+          FileItem(path),
+          DeviceItem(device1),
+          DeviceItem(device2),
+        )
+        .inOrder()
     }
-
-    val deviceComboBox = deviceComboBox(initialItem = FileItem(path), selectionEvents = selectionEvents)
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
-
-    deviceTracker.use {
-      it.sendEvents(
-        Added(device1),
-        Added(device2),
-      )
-      advanceUntilIdle()
-    }
-
-    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-    assertThat(deviceComboBox.getItems()).containsExactly(
-      FileItem(path),
-      DeviceItem(device1),
-      DeviceItem(device2),
-    ).inOrder()
-  }
 
   @Test
-  fun selectedDeviceStateChanges_selectsDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
+  fun selectedDeviceStateChanges_selectsDevice(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
-    deviceTracker.use {
-      it.sendEvents(
-        Added(device2.online()),
-        StateChanged(device2.offline()),
-      )
-      advanceUntilIdle()
+      deviceTracker.use {
+        it.sendEvents(
+          Added(device2.online()),
+          StateChanged(device2.offline()),
+        )
+        advanceUntilIdle()
+      }
+
+      assertThat(selectionEvents)
+        .containsExactly(
+          DeviceItem(device2.online()),
+          DeviceItem(device2.offline()),
+        )
+      assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+      assertThat(deviceComboBox.getItems())
+        .containsExactly(
+          DeviceItem(device2.offline()),
+        )
+        .inOrder()
     }
-
-    assertThat(selectionEvents).containsExactly(
-      DeviceItem(device2.online()),
-      DeviceItem(device2.offline()),
-    )
-    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-    assertThat(deviceComboBox.getItems()).containsExactly(
-      DeviceItem(device2.offline()),
-    ).inOrder()
-  }
 
   @Test
-  fun unselectedDeviceStateChanges_doesNotSelect(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
+  fun unselectedDeviceStateChanges_doesNotSelect(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
-    deviceTracker.use {
-      it.sendEvents(
-        Added(device1),
-        Added(device2.online()),
-        StateChanged(device2.offline()),
-      )
-      advanceUntilIdle()
+      deviceTracker.use {
+        it.sendEvents(
+          Added(device1),
+          Added(device2.online()),
+          StateChanged(device2.offline()),
+        )
+        advanceUntilIdle()
+      }
+
+      assertThat(selectionEvents).containsExactly(DeviceItem(device1))
+      assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+      assertThat(deviceComboBox.getItems())
+        .containsExactly(
+          DeviceItem(device1),
+          DeviceItem(device2.offline()),
+        )
+        .inOrder()
     }
-
-    assertThat(selectionEvents).containsExactly(DeviceItem(device1))
-    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-    assertThat(deviceComboBox.getItems()).containsExactly(
-      DeviceItem(device1),
-      DeviceItem(device2.offline()),
-    ).inOrder()
-  }
 
   @Test
-  fun userSelection_sendsToFlow(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
+  fun userSelection_sendsToFlow(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
-    deviceTracker.use {
-      it.sendEvents(
-        Added(device1),
-        Added(device2),
-      )
-      advanceUntilIdle()
-      deviceComboBox.selectedItem = DeviceItem(device2)
-      advanceUntilIdle()
+      deviceTracker.use {
+        it.sendEvents(
+          Added(device1),
+          Added(device2),
+        )
+        advanceUntilIdle()
+        deviceComboBox.selectedItem = DeviceItem(device2)
+        advanceUntilIdle()
+      }
+
+      assertThat(selectedItems.await())
+        .containsExactly(
+          DeviceItem(device1),
+          DeviceItem(device2),
+        )
     }
-
-    assertThat(selectedItems.await()).containsExactly(
-      DeviceItem(device1),
-      DeviceItem(device2),
-    )
-  }
 
   @Test
   fun renderer_physicalDevice_offline() {
@@ -251,33 +273,31 @@ class DeviceComboBoxTest {
   fun renderer_file() {
     val deviceComboBox = deviceComboBox()
 
-    assertThat(deviceComboBox.getRenderedText(FileItem(Path.of("foo")), false))
-      .isEqualTo("foo [ ]")
-    assertThat(deviceComboBox.getRenderedText(FileItem(Path.of("foo")), true))
-      .isEqualTo("foo [x]")
+    assertThat(deviceComboBox.getRenderedText(FileItem(Path.of("foo")), false)).isEqualTo("foo [ ]")
+    assertThat(deviceComboBox.getRenderedText(FileItem(Path.of("foo")), true)).isEqualTo("foo [x]")
   }
 
   @Test
-  fun addOrSelectFile(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val fileSystem = createInMemoryFileSystem()
-    val path = fileSystem.getPath("file.logcat").apply {
-      writeText("")
+  fun addOrSelectFile(): Unit =
+    runTest(dispatchTimeoutMs = 5_000) {
+      val fileSystem = createInMemoryFileSystem()
+      val path = fileSystem.getPath("file.logcat").apply { writeText("") }
+      val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
+      val selectedItems = async { deviceComboBox.trackSelected().toList() }
+      advanceUntilIdle()
+
+      deviceComboBox.addOrSelectFile(path)
+      advanceUntilIdle()
+      deviceTracker.close()
+
+      assertThat(selectionEvents).containsExactly(FileItem(path))
+      assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+      assertThat(deviceComboBox.getItems())
+        .containsExactly(
+          FileItem(path),
+        )
+        .inOrder()
     }
-    val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
-    val selectedItems = async { deviceComboBox.trackSelected().toList() }
-    advanceUntilIdle()
-
-    deviceComboBox.addOrSelectFile(path)
-    advanceUntilIdle()
-    deviceTracker.close()
-
-    assertThat(selectionEvents).containsExactly(FileItem(path))
-    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
-    assertThat(deviceComboBox.getItems()).containsExactly(
-      FileItem(path),
-    ).inOrder()
-  }
-
 
   private fun deviceComboBox(
     initialItem: DeviceComboItem? = null,
@@ -299,9 +319,11 @@ private fun Device.offline() = copy(isOnline = false)
 private fun Device.online() = copy(isOnline = true)
 
 private fun DeviceComboBox.getRenderedText(item: DeviceComboItem, isSelected: Boolean): String {
-  val walker = TreeWalker(renderer.getListCellRendererComponent(JBList(model), item, 0, isSelected, false))
+  val walker =
+    TreeWalker(renderer.getListCellRendererComponent(JBList(model), item, 0, isSelected, false))
   val deleteLabel = walker.descendants().first { it is JLabel } as JLabel
-  val deviceComponent = walker.descendants().first { it is SimpleColoredComponent } as SimpleColoredComponent
+  val deviceComponent =
+    walker.descendants().first { it is SimpleColoredComponent } as SimpleColoredComponent
   val deletable = if (deleteLabel.icon == null) " " else "x"
   return "$deviceComponent [$deletable]"
 }

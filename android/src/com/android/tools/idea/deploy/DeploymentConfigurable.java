@@ -24,7 +24,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
-public class DeploymentConfigurable implements Configurable {
+public class DeploymentConfigurable implements Configurable, Configurable.NoScroll {
   private final DeploymentConfiguration myConfiguration;
   private JPanel myContentPanel;
   private JBCheckBox myRunAfterApplyChanges;
@@ -37,7 +37,7 @@ public class DeploymentConfigurable implements Configurable {
   @Nls(capitalization = Nls.Capitalization.Title)
   @Override
   public String getDisplayName() {
-    return AndroidBundle.message("configurable.DeploymentConfigurable.display.name");
+    return AndroidBundle.message("configurable.DeploymentConfigurable.displayName");
   }
 
   @Nullable

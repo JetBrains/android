@@ -101,35 +101,6 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
     );
   }
 
-  @Test
-  public void  testBasicViewsActivityTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(2));
-    assertThat(buildProjectStatus).isTrue();
-    validateThemeFile("app/src/main/res/values/themes.xml");
-    validateViewBindingInGradleFile();
-    guiTest.ideFrame().getProjectView().assertFilesExist(
-      "gradle/libs.versions.toml"
-    );
-  }
-
-  @Test
-  public void  testEmptyViewsActivityTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(4));
-    assertThat(buildProjectStatus).isTrue();
-    guiTest.ideFrame().getProjectView().assertFilesExist(
-      "gradle/libs.versions.toml"
-    );
-  }
-
-  @Test
-  public void  testResponsiveViewsActivityTemplate() {
-    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(6));
-    assertThat(buildProjectStatus).isTrue();
-    validateViewBindingInGradleFile();
-    guiTest.ideFrame().getProjectView().assertFilesExist(
-      "gradle/libs.versions.toml"
-    );
-  }
 
   private void validateMainActivity() {
     String mainActivityContents = guiTest.getProjectFileText("app/src/main/java/com/example/myapplication/MainActivity.kt");

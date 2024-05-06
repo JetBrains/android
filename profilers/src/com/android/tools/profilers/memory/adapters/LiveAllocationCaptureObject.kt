@@ -335,8 +335,8 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
           instanceMap.remove(deallocation.tag)
         }
         // ignore CLASS_DATA as they are handled via context updates.
-        AllocationEvent.EventCase.CLASS_DATA -> { }
-        else -> { }
+        AllocationEvent.EventCase.CLASS_DATA,
+        AllocationEvent.EventCase.EVENT_NOT_SET -> {}
       }
     }
 
@@ -358,7 +358,11 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
             this.instanceMap[event.objectTag].removeJniRef(refObject as JniReferenceInstanceObject)
           }
         }
-        else -> { }
+
+        JNIGlobalReferenceEvent.Type.UNSPECIFIED,
+        JNIGlobalReferenceEvent.Type.CREATE_WEAK_REF,
+        JNIGlobalReferenceEvent.Type.DELETE_WEAK_REF,
+        JNIGlobalReferenceEvent.Type.UNRECOGNIZED -> {}
       }
     }
   }
@@ -409,8 +413,8 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
           }
         }
         // ignore CLASS_DATA as they are handled via context updates.
-        AllocationEvent.EventCase.CLASS_DATA -> { }
-        else -> { }
+        AllocationEvent.EventCase.CLASS_DATA,
+        AllocationEvent.EventCase.EVENT_NOT_SET -> {}
       }
     }
 

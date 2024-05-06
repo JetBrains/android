@@ -148,6 +148,7 @@ class InspectorClientLauncher(
       executor
         ?: object : Executor {
           private val singleThreadExecutor = Executors.newSingleThreadExecutor()
+
           override fun execute(command: Runnable) {
             // If we're already in a worker thread as part of a recursive call (e.g. when setting
             // the selected process to

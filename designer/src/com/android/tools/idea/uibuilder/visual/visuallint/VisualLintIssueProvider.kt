@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.SdkConstants
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.IssueSource
@@ -25,6 +24,7 @@ import com.android.tools.idea.uibuilder.lint.getTextRange
 import com.android.utils.HtmlBuilder
 import com.google.common.collect.ImmutableCollection
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
@@ -35,7 +35,7 @@ import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.event.HyperlinkListener
 
-class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), Disposable {
+abstract class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), Disposable {
   private val issues = VisualLintIssues()
 
   /** If using in UI Check mode, represents the Compose Preview instance being checked. */
@@ -53,34 +53,44 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
     clear()
   }
 
-  private fun addIssue(errorType: VisualLintErrorType, issue: Issue) =
-    this.issues.add(errorType, issue)
+  private fun addIssue(issue: VisualLintRenderIssue) {
+    customizeIssue(issue)
+    this.issues.add(issue)
+  }
 
-  fun addAllIssues(errorType: VisualLintErrorType, issues: List<Issue>) =
-    issues.forEach { addIssue(errorType, it) }
+  fun addAllIssues(issues: List<VisualLintRenderIssue>) = issues.forEach { addIssue(it) }
 
   fun getIssues() = issues.list
 
   fun clear() = issues.clear()
 
+  fun getUnsuppressedIssues() = issues.list.filterNot { it.isSuppressed() }
+
+  /** This is applied to all issues added to this [IssueProvider] */
+  abstract fun customizeIssue(issue: VisualLintRenderIssue)
+
+  @Suppress("UnstableApiUsage")
   class VisualLintIssueSource(models: Set<NlModel>, components: List<NlComponent>) : IssueSource {
     private val modelRefs = models.map { WeakReference(it) }.toMutableList()
     private val componentRefs = components.map { WeakReference(it) }.toMutableList()
 
     val models: Set<NlModel>
-      get() = modelRefs.mapNotNull { it.get() }.toSet()
-    val components: List<NlComponent>
-      get() = componentRefs.mapNotNull { it.get() }.toList()
+      get() = synchronized(modelRefs) { modelRefs.mapNotNull { it.get() }.toSet() }
 
-    override val file: VirtualFile? = null
+    val components: List<NlComponent>
+      get() = synchronized(componentRefs) { componentRefs.mapNotNull { it.get() }.toList() }
+
+    override val files: Set<VirtualFile>
+      get() = models.map { BackedVirtualFile.getOriginFileIfBacked(it.virtualFile) }.toSet()
+
     override val displayText = ""
 
     fun addComponent(component: NlComponent) {
-      componentRefs.add(WeakReference(component))
+      synchronized(componentRefs) { componentRefs.add(WeakReference(component)) }
     }
 
     fun addModel(model: NlModel) {
-      modelRefs.add(WeakReference(model))
+      synchronized(modelRefs) { modelRefs.add(WeakReference(model)) }
     }
   }
 }
@@ -89,20 +99,26 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
 class VisualLintRenderIssue private constructor(private val builder: Builder) :
   Issue(), VisualLintHighlightingIssue {
   val models = builder.model?.let { mutableSetOf(it) } ?: mutableSetOf()
-  val components = builder.components!!
+  private var isComponentSuppressed: (NlComponent) -> Boolean = { false }
+  private val _components = builder.components!!
+  private val allComponents
+    get() = synchronized(_components) { _components.toList() }
+
+  /** List of [NlComponent]s that have not been suppressed */
+  val components
+    get() = synchronized(_components) { _components.filterNot(isComponentSuppressed).toList() }
+
   val type: VisualLintErrorType = builder.type!!
   override val source = VisualLintIssueProvider.VisualLintIssueSource(models, components)
   override val summary = builder.summary!!
   override val severity = builder.severity!!
   override val category = "Visual Lint Issue"
   override val hyperlinkListener = builder.hyperlinkListener
+
   override fun shouldHighlight(model: NlModel): Boolean {
-    return components
-      .filterNot { it.isVisualLintErrorSuppressed(type) }
-      .map { it.model }
-      .distinct()
-      .contains(model)
+    return components.map { it.model }.contains(model)
   }
+
   override val description: String
     get() =
       builder.contentDescriptionProvider!!.invoke(unsuppressedModelCount).stringBuilder.toString()
@@ -110,30 +126,22 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   /** Returns the text range of the issue. */
   private var range: TextRange? = null
 
+  private val suppressList: MutableList<Suppress> = mutableListOf()
+
   override val suppresses: Stream<Suppress>
-    get() {
-      if (type == VisualLintErrorType.ATF || components.isEmpty()) {
-        // We haven't defined the suppression for ATF yet.
-        return Stream.empty()
-      }
-      return Stream.of(
-        Suppress(
-          "Suppress",
-          "Suppress: ${type.toSuppressActionDescription()}",
-          VisualLintSuppressTask(type, components)
-        )
-      )
-    }
+    get() = suppressList.stream()
 
   init {
     runReadAction { updateRange() }
   }
 
   private fun updateRange() {
-    source.components.forEach { component ->
-      component.let {
-        range = it.getTextRange()
-        return@forEach
+    synchronized(_components) {
+      source.components.forEach { component ->
+        component.let {
+          range = it.getTextRange()
+          return@forEach
+        }
       }
     }
   }
@@ -147,15 +155,25 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
 
   /** Get the number of [NlModel] which is not suppressed. */
   private val unsuppressedModelCount: Int
-    get() =
-      components
-        .filterNot { it.isVisualLintErrorSuppressed(type) }
-        .map { it.model }
-        .distinct()
-        .count()
+    get() = components.map { it.model }.distinct().count()
 
   fun isSuppressed(): Boolean {
-    return components.all { component -> component.isVisualLintErrorSuppressed(type) }
+    return components.isEmpty()
+  }
+
+  fun addSuppress(suppress: Suppress) {
+    suppressList.add(suppress)
+  }
+
+  fun customizeIsSuppressed(isComponentSuppressedMethod: (NlComponent) -> Boolean) {
+    isComponentSuppressed = isComponentSuppressedMethod
+  }
+
+  fun combineWithIssue(issue: VisualLintRenderIssue) {
+    synchronized(_components) { _components.addAll(issue.allComponents) }
+    models.addAll(issue.models)
+    issue.allComponents.forEach { source.addComponent(it) }
+    issue.models.forEach { source.addModel(it) }
   }
 
   /** Builder for [VisualLintRenderIssue] */
@@ -170,15 +188,21 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   ) {
 
     fun summary(summary: String) = apply { this.summary = summary }
+
     fun severity(severity: HighlightSeverity) = apply { this.severity = severity }
+
     fun contentDescriptionProvider(provider: (Int) -> HtmlBuilder) = apply {
       this.contentDescriptionProvider = provider
     }
+
     fun model(model: NlModel) = apply { this.model = model }
+
     fun components(components: MutableList<NlComponent>) = apply { this.components = components }
+
     fun hyperlinkListener(hyperlinkListener: HyperlinkListener?) = apply {
       this.hyperlinkListener = hyperlinkListener
     }
+
     fun type(type: VisualLintErrorType) = apply { this.type = type }
 
     fun build(): VisualLintRenderIssue {
@@ -209,13 +233,4 @@ interface VisualLintHighlightingIssue {
    * @param model Currently displaying model.
    */
   fun shouldHighlight(model: NlModel): Boolean
-}
-
-/** Helper function to check if a [NlComponent] suppresses the given [VisualLintErrorType]. */
-fun NlComponent.isVisualLintErrorSuppressed(errorType: VisualLintErrorType): Boolean {
-  return getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
-    ?.split(",")
-    ?.mapNotNull { VisualLintErrorType.getTypeByIgnoredAttribute(it) }
-    ?.contains(errorType)
-    ?: false
 }

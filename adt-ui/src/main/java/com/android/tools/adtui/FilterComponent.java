@@ -61,6 +61,7 @@ import org.jetbrains.annotations.TestOnly;
 public final class FilterComponent extends JPanel {
   static final String OPEN_AND_FOCUS_ACTION = "OpenAndFocusSearchAction";
   static final String CLOSE_ACTION = "CloseSearchAction";
+  static final KeyStroke FILTER_KEY_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
   static final JBColor NO_MATCHES_COLOR = new JBColor(new Color(0xffffcccc), new Color(0xff743a3a));
 
   private static final String REGEX = "Regex";
@@ -289,7 +290,7 @@ public final class FilterComponent extends JPanel {
     InputMap inputMap = containerComponent.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     ActionMap actionMap = containerComponent.getActionMap();
 
-    inputMap.put(getFilterKeyStroke(), OPEN_AND_FOCUS_ACTION);
+    inputMap.put(FILTER_KEY_STROKE, OPEN_AND_FOCUS_ACTION);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CLOSE_ACTION);
     actionMap.put(OPEN_AND_FOCUS_ACTION, new AbstractAction() {
       @Override
@@ -324,12 +325,8 @@ public final class FilterComponent extends JPanel {
   @NotNull
   static public CommonToggleButton createFilterToggleButton() {
     CommonToggleButton filterButton = new CommonToggleButton("", AllIcons.General.Filter);
-    filterButton.setToolTipText(String.format("Filter (%s)", KeymapUtil.getKeystrokeText(getFilterKeyStroke())));
+    filterButton.setToolTipText(String.format("Filter (%s)", KeymapUtil.getKeystrokeText(FILTER_KEY_STROKE)));
     return filterButton;
-  }
-
-  private static KeyStroke getFilterKeyStroke() {
-    return KeyStroke.getKeyStroke(KeyEvent.VK_F, AdtUiUtils.getActionMask());
   }
 }
 

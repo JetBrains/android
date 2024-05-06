@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
-/**
- * Provides a list of package names.
- */
+/** Provides a list of package names. */
 internal interface PackageNamesProvider {
   fun getPackageNames(): Set<String>
 }

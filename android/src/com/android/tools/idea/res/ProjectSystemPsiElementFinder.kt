@@ -27,7 +27,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Base class for [PsiElementFinder]s that aggregate results from finders chosen by the project system.
+ * Base class for [PsiElementFinder]s that aggregate results from finders chosen by the project
+ * system.
  */
 abstract class ProjectSystemPsiElementFinder(private val project: Project) : PsiElementFinder() {
   companion object {
@@ -39,11 +40,9 @@ abstract class ProjectSystemPsiElementFinder(private val project: Project) : Psi
       val projectSystem = project.getProjectSystem()
       return try {
         projectSystem.getPsiElementFinders()
-      }
-      catch (e: ProcessCanceledException) {
+      } catch (e: ProcessCanceledException) {
         throw e
-      }
-      catch (e: Throwable) {
+      } catch (e: Throwable) {
         // Sometimes we get AbstractMethodError here, see b/109945376.
         LOG.error("Failed to get providers from ${projectSystem::class.qualifiedName}.", e)
         emptyList()
@@ -52,7 +51,8 @@ abstract class ProjectSystemPsiElementFinder(private val project: Project) : Psi
 }
 
 /**
- * [ProjectSystemPsiElementFinder] that handles classes, with a higher priority than the default finder.
+ * [ProjectSystemPsiElementFinder] that handles classes, with a higher priority than the default
+ * finder.
  */
 class ProjectSystemPsiClassFinder(project: Project) : ProjectSystemPsiElementFinder(project) {
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
@@ -73,12 +73,16 @@ class ProjectSystemPsiClassFinder(project: Project) : ProjectSystemPsiElementFin
 }
 
 /**
- * [ProjectSystemPsiElementFinder] that handles packages, with a lower priority than the default finder, meaning custom light packages are
- * only used if there are no corresponding directories in the project.
+ * [ProjectSystemPsiElementFinder] that handles packages, with a lower priority than the default
+ * finder, meaning custom light packages are only used if there are no corresponding directories in
+ * the project.
  */
-class ProjectSystemPsiPackageFinder(private val project: Project) : ProjectSystemPsiElementFinder(project) {
+class ProjectSystemPsiPackageFinder(private val project: Project) :
+  ProjectSystemPsiElementFinder(project) {
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? = null
-  override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> = PsiClass.EMPTY_ARRAY
+
+  override fun findClasses(qualifiedName: String, scope: GlobalSearchScope): Array<PsiClass> =
+    PsiClass.EMPTY_ARRAY
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
     if (!ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)) return null

@@ -16,8 +16,8 @@
 
 package org.jetbrains.android.dom.wrappers;
 
-import com.intellij.navigation.NavigationItem;
 import com.intellij.psi.PsiElement;
+import com.intellij.navigation.NavigationItem;
 import org.jetbrains.annotations.NotNull;
 
 public interface ResourceElementWrapper extends PsiElement, NavigationItem {

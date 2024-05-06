@@ -22,10 +22,15 @@ import com.android.tools.idea.imports.MavenClassRegistry
 import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiReference
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.kotlin.psi.KotlinReferenceProvidersService
 import org.junit.Before
 import org.junit.Test
 import java.nio.charset.StandardCharsets
@@ -41,6 +46,26 @@ class GradleDependencyCompletionContributorTest : AndroidTestCase() {
       createFakeMavenClassRegistryManager(),
       myFixture.testRootDisposable
     )
+
+    // The KotlinReferenceProviderService implementation in the Kotlin 1.9 compiler constructs a MockProject with an unrooted parent
+    // Disposable, causing our test leak checker to complain.  Replace that service with an empty reference provider.
+    // TODO(b/299068973): remove this replacement (and the extension mask below).
+    myFixture.project.replaceService(
+      KotlinReferenceProvidersService::class.java,
+      object : KotlinReferenceProvidersService() {
+        override fun getReferences(psiElement: PsiElement) = PsiReference.EMPTY_ARRAY
+      },
+      myFixture.testRootDisposable
+    )
+
+    // Although a reference provider returning an empty array of references is ostensibly legal (the service itself provides a default
+    // implementation of that form), there is code out there that assumes that various Kotlin Psi elements (e.g. KtSimpleNameExpression)
+    // have non-empty references through the use of `mainReference`.  For now the only piece of code which intersects this test is the
+    // KotlinTypeDefCompletionContributor, which we don't need: so mask it out.
+    val completionContributorEPs = CompletionContributor.EP.extensions
+    val clazz = com.android.tools.idea.lang.typedef.KotlinTypeDefCompletionContributor::class.java
+    ExtensionTestUtil.maskExtensions(CompletionContributor.EP, completionContributorEPs.filter { it.implementationClass != clazz.name },
+                                     myFixture.testRootDisposable)
   }
 
   @Test

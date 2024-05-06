@@ -28,7 +28,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
-import com.intellij.ui.NewUiValue;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
@@ -195,6 +195,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   @Override
   public void selectDefaultDevice() {
     setSelectedDevice(myDefaultDevice);
+  }
+
+  @VisibleForTesting
+  @NotNull Multimap<Category, Device> getCategoryToDefinitionMultimap() {
+    return myCategoryToDefinitionMultimap;
   }
 
   @Nullable
@@ -596,7 +601,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       var name = icon.equals(EmptyIcon.ICON_16) ? "Doesn't support Google Play system images" : "Supports Google Play system images";
       component.getAccessibleContext().setAccessibleName(name);
 
-      if (selected && !NewUiValue.isEnabled()) {
+      if (selected && !ExperimentalUI.isNewUI()) {
         setIcon(ColoredIconGenerator.generateWhiteIcon((Icon)icon));
       }
 

@@ -237,6 +237,7 @@ class ToggleLayoutInspectorActionTest {
     }
 
     override fun isEnabled(tabId: DeviceId) = isEnabled
+
     override fun dispose() {}
   }
 }

@@ -16,13 +16,18 @@
 package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.AndroidPsiUtils.getPsiParentsOfType
-import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.containsFile
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.android.tools.idea.projectsystem.isContainedBy
 import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
+import com.android.tools.idea.run.editor.merge
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.JavaExecutionUtil
 import com.intellij.execution.Location
@@ -34,7 +39,9 @@ import com.intellij.execution.junit.JUnitUtil
 import com.intellij.execution.junit.JavaRunConfigurationProducerBase
 import com.intellij.execution.junit.JavaRuntimeConfigurationProducerBase
 import com.intellij.execution.junit2.PsiMemberParameterizedLocation
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
@@ -51,6 +58,10 @@ import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigur
  * A [com.intellij.execution.actions.RunConfigurationProducer] implementation for [AndroidTestRunConfiguration].
  */
 class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<AndroidTestRunConfiguration>() {
+  companion object {
+    val OPTIONS_EP: ExtensionPointName<TestRunConfigurationOptions> =
+      ExtensionPointName.create("com.android.tools.idea.testartifacts.instrumented.testRunConfigurationOptions")
+  }
 
   override fun setupConfigurationFromContext(configuration: AndroidTestRunConfiguration,
                                              context: ConfigurationContext,
@@ -66,6 +77,8 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
       return false
     }
 
+    configuration.EXTRA_OPTIONS = getOptions(configuration.EXTRA_OPTIONS, context)
+
     return true
   }
 
@@ -77,8 +90,8 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     return if (contextModule != null) {
       contextModule
     }
-    else if (configuration.configurationModule.module != null) {
-      configuration.configurationModule.module
+    else if (configuration.getConfigurationModule().getModule() != null) {
+      configuration.getConfigurationModule().getModule()
     }
     else null
   }
@@ -92,6 +105,9 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     if (configuration.TESTING_TYPE != expectedConfig.TESTING_TYPE) {
       return false
     }
+    if (!configuration.EXTRA_OPTIONS.contains(getOptions("", context))) {
+      return false
+    }
 
     return when (configuration.TESTING_TYPE) {
       AndroidTestRunConfiguration.TEST_ALL_IN_MODULE -> configuration.TEST_NAME_REGEX == expectedConfig.TEST_NAME_REGEX
@@ -103,22 +119,45 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     }
   }
 
-  override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean = when {
-    // This configuration producer works best for Gradle based project. If the configuration is generated
-    // for non-Gradle project and other configuration is available, prefer the other one.
-    !GradleProjectInfo.getInstance(self.configuration.project).isBuildWithGradle -> false
+  override fun shouldReplace(self: ConfigurationFromContext, other: ConfigurationFromContext): Boolean =
+    self.configuration.project.getProjectSystem().getTokenOrNull(AndroidTestConfigurationProducerToken.EP_NAME).let { token ->
+      when {
+        // This configuration producer works best for Gradle based project. If the configuration is generated
+        // for non-Gradle project and other configuration is available, prefer the other one.
+        //
+        // (Above comment left in place though the implementation is more generic than that, because that is the only clue
+        // to the logic behind this.)
+        token?.isProjectIdealForProducer(self.configuration.project) != true -> false
 
-    // If the other configuration type is JUnitConfigurationType or GradleExternalTaskConfigurationType, prefer our configuration.
-    // Although those tests may be able to run on both environment if they are written with the unified-api (androidx.test, Espresso),
-    // here we prioritize instrumentation.
-    other.configurationType is JUnitConfigurationType -> true
-    other.configurationType is GradleExternalTaskConfigurationType -> true
+        // If the other configuration type is JUnitConfigurationType or GradleExternalTaskConfigurationType, prefer our configuration.
+        // Although those tests may be able to run on both environment if they are written with the unified-api (androidx.test, Espresso),
+        // here we prioritize instrumentation.
+        other.configurationType is JUnitConfigurationType -> true
+        other.configurationType is GradleExternalTaskConfigurationType -> true
 
-    // Otherwise, we don't have preference. Let the IDE to decide which one to use.
-    else -> false
-  }
+        // Otherwise, we don't have preference. Let the IDE to decide which one to use.
+        else -> false
+      }
+    }
 
   override fun getConfigurationFactory(): ConfigurationFactory = AndroidTestRunConfigurationType.getInstance().factory
+
+  private fun getOptions(existingOptions: String, context: ConfigurationContext): String {
+    val extraOptions = OPTIONS_EP.extensionList
+      .asSequence()
+      .flatMap { it.getExtraOptions(context).asSequence() }
+      .map { parseFromString(it) }
+      .flatten()
+    return parseFromString(existingOptions)
+      .merge(extraOptions)
+      .asSequence()
+      .map { "-e " + it.NAME + " " + it.VALUE }
+      .joinToString(" ")
+  }
+}
+
+abstract class TestRunConfigurationOptions {
+  abstract fun getExtraOptions(context: ConfigurationContext): List<String>
 }
 
 /**
@@ -287,4 +326,14 @@ private class AndroidTestConfigurator(private val facet: AndroidFacet,
 
     return true
   }
+}
+
+interface AndroidTestConfigurationProducerToken<P : AndroidProjectSystem> : Token {
+  companion object {
+    val EP_NAME = ExtensionPointName<AndroidTestConfigurationProducerToken<AndroidProjectSystem>>(
+      "com.android.tools.idea.testartifacts.instrumented.androidTestConfigurationProducerToken"
+    )
+  }
+
+  fun isProjectIdealForProducer(project: Project): Boolean
 }

@@ -26,9 +26,9 @@ import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.getLayoutHandler
 import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction
 import com.android.tools.idea.uibuilder.surface.interaction.MarqueeInteraction
-import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Rectangle
+import org.intellij.lang.annotations.JdkConstants
 
 open class NlInteractionHandler(private val surface: DesignSurface<*>) :
   InteractionHandlerBase(surface) {

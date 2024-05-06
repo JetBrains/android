@@ -54,8 +54,6 @@ public final class TestProjectPaths {
   public static final String MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_IN_XML = "projects/manifestConflict/dynamicFeatureAttributeConflictInPrimaryXml";
   public static final String MIGRATE_BUILD_CONFIG = "projects/migrateBuildConfig";
   public static final String MIGRATE_BUILD_CONFIG_WITH_GENERATED_SOURCES = "projects/migrateBuildConfigWithGeneratedSources";
-  public static final String MIGRATE_TO_ANDROID_X = "projects/migrateToAndroidX";
-  public static final String MIGRATE_TO_ANDROID_X_KTS = "projects/migrateToAndroidXKTS";
   public static final String MIGRATE_TO_APP_COMPAT = "projects/migrateToAppCompat";
   public static final String MODULE_INFO_BOTH = "projects/moduleInfo/both";
   public static final String MODULE_INFO_FLAVORS = "projects/moduleInfo/flavors";
@@ -101,6 +99,7 @@ public final class TestProjectPaths {
   public static final String SCRIPTED_DIMENSIONS = "projects/scriptedDimensions";
   public static final String SIGNAPK_MULTIFLAVOR = "projects/signapk/multiflavor";
   public static final String SIGNAPK_NO_FLAVORS = "projects/signapk/no_flavors";
+  public static final String SIMPLE_AIDL = "projects/simpleAidl";
   public static final String SIMPLE_APPLICATION = "projects/simpleApplication";
   public static final String SIMPLE_APPLICATION_PLUGINS_DSL = "projects/simpleApplicationPluginsDsl";
   public static final String SIMPLE_APPLICATION_PLUGIN_MANAGEMENT_DSL = "projects/simpleApplicationPluginManagementDsl";
@@ -130,4 +129,5 @@ public final class TestProjectPaths {
   public static final String WEAR_WATCHFACE = "projects/wearWatchFace";
   public static final String WITH_ERRORS_SIMPLE_APPLICATION_MISSING_EXPORT = "projects/withErrors/simpleApplicationMissingExport";
   public static final String WITH_ERRORS_SIMPLE_APPLICATION_MULTIPLE_ERRORS = "projects/withErrors/simpleApplicationMultipleErrors";
+  public static final String WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE = "projects/wearWithTileComplicationAndWatchFace";
 }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.ui.LiveEditConfigurable

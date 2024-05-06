@@ -1,172 +1,235 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.1.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="    myCpu.setText(String.format(&quot;CPU: %d&quot;, myTooltip.getCpuId()));"
+        errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/CpuKernelTooltipView.java"
-            line="85"/>
+            line="85"
+            column="19"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        threadsPanel.setTitle(String.format(&quot;THREADS (%d)&quot;, myThreads.getModel().getSize()));"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/CpuThreadsView.java"
-            line="138"/>
+            line="170"
+            column="31"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      String value = String.format(&quot;%s&amp;nbsp;(UID:&amp;nbsp;%d)&quot;, operation.getCreatorPackage(), operation.getCreatorUid());"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/UiHtmlText.java"
-            line="98"/>
+            line="98"
+            column="22"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int VERTICAL_MARGIN_PX = JBUI.scale(8);"
+        errorLine2="                                              ~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="44"/>
+            line="44"
+            column="47"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int BOTTOM_RIGHT_EXTRA_MARGIN_PX = JBUI.scale(4);"
+        errorLine2="                                                        ~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="46"/>
+            line="46"
+            column="57"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int HORIZONTAL_PADDING_PX = JBUI.scale(10);"
+        errorLine2="                                                 ~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="47"/>
+            line="47"
+            column="50"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final int MIN_TOOLTIP_WIDTH = JBUI.scale(112);"
+        errorLine2="                                             ~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoComponent.java"
-            line="48"/>
+            line="48"
+            column="46"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int MARKER_LENGTH = JBUI.scale(5);"
+        errorLine2="                                               ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="35"/>
+            line="35"
+            column="48"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int TIME_AXIS_HEIGHT = JBUI.scale(15);"
+        errorLine2="                                                  ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="37"/>
+            line="37"
+            column="51"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int Y_AXIS_TOP_MARGIN = JBUI.scale(30);"
+        errorLine2="                                                   ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="42"/>
+            line="42"
+            column="52"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int MONITOR_LEGEND_RIGHT_PADDING = JBUI.scale(12);"
+        errorLine2="                                                              ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="48"/>
+            line="48"
+            column="63"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int PROFILER_LEGEND_RIGHT_PADDING = JBUI.scale(9);"
+        errorLine2="                                                               ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="53"/>
+            line="53"
+            column="64"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int ROW_HEIGHT_PADDING = JBUI.scale(4);"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="55"/>
+            line="55"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int TABLE_COLUMN_CELL_SPARKLINE_RIGHT_PADDING = JBUI.scale(2);"
+        errorLine2="                                                                           ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="64"/>
+            line="64"
+            column="76"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int TABLE_COLUMN_CELL_SPARKLINE_TOP_BOTTOM_PADDING = JBUI.scale(1);"
+        errorLine2="                                                                                ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="65"/>
+            line="65"
+            column="81"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER = JBUI.scale(16);"
+        errorLine2="                                                                                ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="69"/>
+            line="69"
+            column="81"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int PROFILING_INSTRUCTIONS_ICON_PADDING = JBUI.scale(1);"
+        errorLine2="                                                                     ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="70"/>
+            line="70"
+            column="70"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int FILTER_TEXT_FIELD_WIDTH = JBUI.scale(245);"
+        errorLine2="                                                         ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="72"/>
+            line="72"
+            column="58"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int TOOLBAR_HEIGHT = JBUI.scale(31);"
+        errorLine2="                                                ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerLayout.java"
-            line="77"/>
+            line="77"
+            column="49"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int MINIMUM_MONITOR_HEIGHT = JBUI.scale(50);"
+        errorLine2="                                                         ~~~~~">
         <location
             file="src/com/android/tools/profilers/ProfilerMonitorView.java"
-            line="43"/>
+            line="43"
+            column="58"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private static final int SIZE = JBUI.scale(10);"
+        errorLine2="                                         ~~~~~">
         <location
             file="src/com/android/tools/profilers/sessions/SessionItemView.java"
-            line="192"/>
+            line="221"
+            column="42"/>
     </issue>
 
 </issues>

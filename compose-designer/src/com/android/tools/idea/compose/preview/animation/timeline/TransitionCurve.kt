@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.animation.timeline
 
+import com.android.tools.idea.compose.preview.animation.AnimatedProperty
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.Transition
@@ -35,8 +36,18 @@ private constructor(
       positionProxy: PositionProxy
     ): TransitionCurve {
       var currentMinY = rowMinY
+      val properties =
+        transition.properties.values.ifEmpty {
+          // In case there are no properties in the transition - add one "empty" property instead.
+          listOf(
+            AnimatedProperty.Builder()
+              .add(positionProxy.minimumValue(), ComposeUnit.IntUnit(0))
+              .add(positionProxy.minimumValue(), ComposeUnit.IntUnit(0))
+              .build()
+          )
+        }
       val curves =
-        transition.properties.values.filterNotNull().mapIndexed { index, it ->
+        properties.filterNotNull().mapIndexed { index, it ->
           val curve = PropertyCurve.create(state, it, currentMinY, index, positionProxy)
           currentMinY += curve.heightScaled()
           curve

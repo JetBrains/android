@@ -23,6 +23,7 @@ import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import org.junit.Test
 import org.mockito.Mockito
 
@@ -45,5 +46,21 @@ class CpuThreadTrackModelTest {
                                                Utils::runOnUi)
     val analysisTabModels = threadTrackModel.analysisModel.tabModels.map(CpuAnalysisTabModel<*>::getTabType).toSet()
     assertThat(analysisTabModels).containsExactly(Type.SUMMARY, Type.FLAME_CHART, Type.TOP_DOWN, Type.BOTTOM_UP, Type.EVENTS)
+  }
+
+  @Test
+  fun testNameToNodes() {
+    val capture = CpuProfilerTestUtils.getValidCapture()
+    val threadTrackModel = CpuThreadTrackModel(capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel(),
+                                               Utils::runOnUi)
+    val node = threadTrackModel.callChartModel.node
+
+    val nameToNodes = CpuThreadTrackModel.getNameToNodesMapping(node)
+    // Make sure the size of the constructed map is correct.
+    assertThat(nameToNodes.size).isEqualTo(30)
+    assertThat(nameToNodes.containsKey("main"))
+    // Check one element to make sure it has the right data.
+    assertThat(nameToNodes["main"]!!.size).isEqualTo(1)
+    assertThat(nameToNodes["main"]!!.get(0).data.fullName).isEqualTo("main")
   }
 }

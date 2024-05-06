@@ -26,8 +26,10 @@ import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.PackageFilterMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RefreshMenuItem
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.execution.RunManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.Project
 import com.intellij.ui.table.JBTable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -36,6 +38,7 @@ import java.util.function.Consumer
 import javax.swing.JComponent
 
 class DeviceMonitorViewImpl(
+  private val project: Project,
   private val model: DeviceMonitorModel,
   private val table: JBTable = ProcessListTableBuilder().build(model.tableModel)
 ): DeviceMonitorView, DeviceMonitorActionsListener {
@@ -97,18 +100,21 @@ class DeviceMonitorViewImpl(
 
   override fun killNodes() {
     listeners.forEach(Consumer { it.killNodesInvoked(getModelRows(table.selectedRows)) })
+    table.clearSelection()
   }
 
   override fun forceStopNodes() {
     listeners.forEach(Consumer { it.forceStopNodesInvoked(getModelRows(table.selectedRows)) })
+    table.clearSelection()
   }
 
   override fun debugNodes() {
     listeners.forEach(Consumer { it.debugNodes(getModelRows(table.selectedRows)) })
+    table.clearSelection()
   }
 
-  override fun setPackageFilter(isActive: Boolean) {
-    listeners.forEach(Consumer { it.setPackageFilter(isActive) })
+  override fun packageFilterToggled(isActive: Boolean) {
+    listeners.forEach(Consumer { it.packageFilterToggled(isActive) })
   }
 
   private fun setUpTable() {
@@ -119,7 +125,7 @@ class DeviceMonitorViewImpl(
     ComponentPopupMenu(table).apply {
       addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
-      addItem(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+      addItem(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup, RunManager.getInstance(project)))
       install()
     }
   }
@@ -128,7 +134,7 @@ class DeviceMonitorViewImpl(
     createToolbarSubSection(DefaultActionGroup().apply {
       add(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
       add(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
-      add(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar).action)
+      add(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Toolbar, RunManager.getInstance(project)).action)
       add(RefreshMenuItem(this@DeviceMonitorViewImpl).action)
       if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
     })

@@ -1,9 +1,22 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.dom.converters;
 
 import static com.android.tools.idea.projectsystem.SourceProvidersKt.isTestFile;
 
-import com.android.tools.idea.AndroidTextUtils;
 import com.android.tools.idea.imports.MavenClassRegistryManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
@@ -291,12 +304,18 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
     final CustomConsumer consumer = new CustomConsumer();
 
-    AndroidTextUtils.forEachOccurrence(strValue, '.', consumer);
+    forEachCharIndex(strValue, '.', 0, consumer);
     consumer.myIsPackage = false;
-    AndroidTextUtils.forEachOccurrence(strValue, '$', consumer.myPartStart, consumer);
+    forEachCharIndex(strValue, '$', consumer.myPartStart, consumer);
     consumer.consume(strValue.length());
 
     return result.toArray(PsiReference.EMPTY_ARRAY);
+  }
+
+  private static void forEachCharIndex(String haystack, char needle, int startIndex, Consumer<Integer> consumer) {
+    for(int i = haystack.indexOf(needle, startIndex); i >= 0; i = haystack.indexOf(needle, i + 1)) {
+      consumer.consume(i);
+    }
   }
 
   private boolean getIncludeDynamicFeatures(DomElement domElement) {
@@ -348,7 +367,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
   @Override
   @Nullable
-  public String toString(@Nullable PsiClass psiClass, @NotNull ConvertContext context) {
+  public String toString(@Nullable PsiClass psiClass, ConvertContext context) {
     DomElement domElement = context.getInvocationElement();
     Manifest manifest = domElement.getParentOfType(Manifest.class, false);
     final String packageName = manifest == null ? null : manifest.getPackage().getValue();
@@ -572,8 +591,9 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
       return myIsPackage ? "Unresolved package ''{0}''" : "Unresolved class ''{0}''";
     }
 
+    @NotNull
     @Override
-    public @NotNull LocalQuickFix @Nullable [] getQuickFixes() {
+    public LocalQuickFix[] getQuickFixes() {
       if (myModule == null) {
         return LocalQuickFix.EMPTY_ARRAY;
       }

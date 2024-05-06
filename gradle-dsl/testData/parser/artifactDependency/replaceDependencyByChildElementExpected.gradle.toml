@@ -1,0 +1,4 @@
+[dependencies]
+test = [{ notation = "org.gradle.test.classifiers:service:1.0:jdk15@jar" }]
+compile = [{ notation = "com.google.guava:guava:18.0" }]
+testCompile = [{ notation = "org.hibernate:hibernate:3.1" }]

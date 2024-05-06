@@ -4,13 +4,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
-import com.android.tools.res.LocalResourceRepository;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.LocalQuickFixProvider;
 import com.intellij.openapi.module.Module;
@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ResourceNameConverter extends ResolvingConverter<String> implements CustomReferenceConverter<String> {
   @Override
-  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (getErrorMessage(s, context) != null) {
       return null;
     }
@@ -50,12 +50,12 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   }
 
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, ConvertContext context) {
     ResourceType type = null;
     XmlTag tag = context.getTag();
     if (tag != null) {
@@ -68,7 +68,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
 
   @Nullable
   @Override
-  public PsiElement resolve(String s, @NotNull ConvertContext context) {
+  public PsiElement resolve(String s, ConvertContext context) {
     XmlElement element = context.getXmlElement();
     XmlTag tag = element instanceof XmlTag ? (XmlTag)element : PsiTreeUtil.getParentOfType(element, XmlTag.class);
     if (tag == null || s == null) {
@@ -101,7 +101,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   public boolean isReferenceTo(@NotNull PsiElement element,
                                String stringValue,
                                @Nullable String resolveResult,
-                               @NotNull ConvertContext context) {
+                               ConvertContext context) {
     if (element instanceof ResourceReferencePsiElement) {
       return ((ResourceReferencePsiElement)element).getManager().areElementsEquivalent(element, resolve(stringValue, context));
     }
@@ -110,7 +110,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
 
   @NotNull
   @Override
-  public Collection<String> getVariants(@NotNull ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     final DomElement element = context.getInvocationElement();
 
     if (!(element instanceof GenericAttributeValue)) {
@@ -138,7 +138,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     if (manager == null) {
       return Collections.emptyList();
     }
-    LocalResourceRepository appResources = StudioResourceRepositoryManager.getAppResources(facet);
+    ResourceRepository appResources = StudioResourceRepositoryManager.getAppResources(facet);
     final Collection<String> styleNames = appResources.getResources(ResourceNamespace.TODO(), ResourceType.STYLE).keySet();
     final List<String> result = new ArrayList<>();
 
@@ -204,7 +204,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
   }
 
   public static boolean hasExplicitParent(@NotNull AndroidFacet facet, @NotNull String localStyleName) {
-    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(facet);
+    ResourceRepository repository = StudioResourceRepositoryManager.getAppResources(facet);
     List<ResourceItem> styles = repository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, localStyleName);
     if (styles.isEmpty()) {
       return false;
@@ -228,7 +228,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
     }
 
     @Override
-    public @NotNull LocalQuickFix @Nullable [] getQuickFixes() {
+    public LocalQuickFix[] getQuickFixes() {
       final String resourceName = getValue();
 
       if (resourceName.isEmpty()) {

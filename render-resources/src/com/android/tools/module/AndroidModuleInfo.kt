@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.ListenableFuture
 interface AndroidModuleInfo {
   /** The minimum SDK version for current Android module. */
   val moduleMinApi: Int
+    get() = minSdkVersion.apiLevel
 
   /** Obtains the applicationId name for the current variant, or if not initialized, from the primary manifest. */
   val packageName: String?

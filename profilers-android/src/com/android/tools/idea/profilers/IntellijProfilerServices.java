@@ -76,7 +76,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -295,6 +294,12 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
+  public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
+    CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
+    return CpuProfilerConfigConverter.toProfilingConfiguration(configsState.getSavedTaskConfigsIfPresentOrDefault(), apiLevel);
+  }
+
+  @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
     return CpuProfilerConfigConverter.toProfilingConfiguration(CpuProfilerConfigsState.getDefaultConfigs(), apiLevel);
   }
@@ -313,7 +318,14 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public int getNativeMemorySamplingRateForCurrentConfig() {
+  public int getNativeAllocationsMemorySamplingRate() {
+
+    if (getFeatureConfig().isTaskBasedUxEnabled()) {
+      // For task based UX, get native memory sampling rate from task configurations.
+      CpuProfilerConfigsState configsState = CpuProfilerConfigsState.getInstance(myProject);
+      return configsState.getNativeAllocationsConfigForTaskConfig().getSamplingRateBytes();
+    }
+
     RunnerAndConfigurationSettings settings = RunManager.getInstance(myProject).getSelectedConfiguration();
     if (settings != null && settings.getConfiguration() instanceof AndroidRunConfigurationBase) {
       AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)settings.getConfiguration();
@@ -362,8 +374,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode, @NotNull JComponent component) {
-    ProfilerBuildAndLaunch.buildAndLaunchAction(profileableMode, component);
+  public void buildAndLaunchAction(boolean profileableMode) {
+    ProfilerBuildAndLaunch.buildAndLaunchAction(profileableMode);
   }
 
   /**

@@ -23,7 +23,9 @@ import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.android.buildanalyzer.common.CheckJetifierResult
 import com.android.buildanalyzer.common.DependencyPath
 import com.android.buildanalyzer.common.FullDependencyPath
-import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth
@@ -56,7 +58,9 @@ class JetifierWarningDetailsViewTest {
   @get:Rule
   val edtRule = EdtRule()
 
-  private val mockHandlers = Mockito.mock(ViewActionHandlers::class.java)
+  private val mockHandlers = mock<ViewActionHandlers>().apply {
+    whenever(createFindSelectedLibVersionDeclarationAction(any())).thenReturn(mock())
+  }
 
   @Test
   fun testCheckRequiredPageCreation() {
@@ -129,7 +133,7 @@ class JetifierWarningDetailsViewTest {
       Truth.assertThat(it.text).isEqualTo("Disable Jetifier")
       Truth.assertThat(it.isVisible).isTrue()
       it.doClick()
-      Mockito.verify(mockHandlers).turnJetifierOffInProperties(MockitoKt.any())
+      Mockito.verify(mockHandlers).turnJetifierOffInProperties(any())
     }
   }
 

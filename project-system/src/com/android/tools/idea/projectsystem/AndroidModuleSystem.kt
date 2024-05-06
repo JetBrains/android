@@ -26,6 +26,7 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
@@ -151,14 +152,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
 
   @Throws(DependencyManagementException::class)
   fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate?
-
-  /**
-   * Returns the absolute path of the provided coordinate, if it is resolvable within the module.
-   * <p>
-   * Note the resulting path doesn't necessarily point to an archive file (ex: jar). It is determined
-   * by the build system this method is implemented for.
-   */
-  fun getDependencyPath(coordinate: GradleCoordinate): Path?
 
   /** Whether this module system supports adding dependencies of the given type via [registerDependency] */
   fun canRegisterDependency(type: DependencyType = DependencyType.IMPLEMENTATION): CapabilityStatus
@@ -361,11 +354,10 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val testRClassConstantIds: Boolean get() = true
 
   fun getTestLibrariesInUse(): TestLibraries? = null
+  fun getModuleNameForCompilation(virtualFile: VirtualFile): String = module.name
 
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = false // TODO(270044829): fix tests to make this true by default
-
-  val enableVcsInfo: Boolean get() = false
 
   /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
   val desugarLibraryConfigFilesKnown: Boolean get() = false
@@ -374,6 +366,11 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val desugarLibraryConfigFilesNotKnownUserMessage: String? get() = "Only supported for Gradle projects"
 
   val desugarLibraryConfigFiles: List<Path> get() = listOf()
+
+  val moduleDependencies: ModuleDependencies get() = error("Not implemented")
+
+  /** Return a string suitable for presenting to the user to identify this Module System's module. */
+  fun getDisplayNameForModule(): String = module.name
 }
 
 /**
@@ -418,7 +415,6 @@ enum class ScopeType {
   MAIN,
   ANDROID_TEST,
   UNIT_TEST,
-  SHARED_TEST,
   TEST_FIXTURES,
   ;
 
@@ -426,13 +422,13 @@ enum class ScopeType {
   val isForTest
     get() = when (this) {
       MAIN, TEST_FIXTURES -> false
-      ANDROID_TEST, UNIT_TEST, SHARED_TEST -> true
+      ANDROID_TEST, UNIT_TEST -> true
     }
 
   /** Returns true if this [ScopeType] can contain Android resources. */
   val canHaveAndroidResources
     get() = when (this) {
-      TEST_FIXTURES, UNIT_TEST, SHARED_TEST -> false
+      TEST_FIXTURES, UNIT_TEST -> false
       MAIN, ANDROID_TEST -> true
     }
 }
@@ -445,9 +441,10 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
   val inUnitTest = testScopes.isUnitTestSource(file)
 
   return when {
-    inUnitTest && inAndroidTest -> ScopeType.SHARED_TEST
+    !inUnitTest && inAndroidTest -> ScopeType.ANDROID_TEST
     inUnitTest && !inAndroidTest -> ScopeType.UNIT_TEST
-    else -> ScopeType.ANDROID_TEST
+    else -> throw IllegalStateException(
+      "Unexpected Test Scope: $file in $project appears to be both in Unit Tests and Android Tests, but should only be part of one.")
   }
 }
 

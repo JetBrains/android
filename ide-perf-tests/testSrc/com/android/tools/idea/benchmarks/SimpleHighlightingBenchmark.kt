@@ -36,46 +36,62 @@ class SimpleHighlightingBenchmark {
       .setDescription("Syntax highlighting benchmark for a simple application.")
       .setProject(EDITOR_PERFGATE_PROJECT_NAME)
       .build()
+
+    fun doBenchmark(rule: AndroidGradleProjectRule,
+                    measure: () -> List<Metric.MetricSample>,
+                    processSamples: (List<Metric.MetricSample>) -> Unit = { }) {
+      // Load project.
+      rule.load(TestProjectPaths.SIMPLE_APPLICATION)
+      rule.generateSources() // Gets us closer to a production setup.
+      waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
+
+      disableExpensivePlatformAssertions(rule.fixture)
+      enableAllDefaultInspections(rule.fixture)
+
+      runInEdtAndWait {
+        // Open editor.
+        val fixture = rule.fixture
+        val project = rule.project
+        val projectDir = project.guessProjectDir()!!
+        val javaFile = projectDir.findFileByRelativePath("app/src/main/java/google/simpleapplication/MyActivity.java")!!
+        fixture.openFileInEditor(javaFile)
+
+        // Measure.
+        val samplesMs = measure()
+
+        // Process and emit metrics
+        processSamples(samplesMs)
+      }
+    }
   }
 
   @Test
   fun simpleProjectHighlighting() {
-    disableExpensivePlatformAssertions(gradleRule.fixture)
-    enableAllDefaultInspections(gradleRule.fixture)
+    doBenchmark(
+      gradleRule,
+      measure = {
+        measureTimeMs(
+          warmupIterations = 10,
+          mainIterations = 10,
+          setUp = {
+            PsiManager.getInstance(gradleRule.project).dropPsiCaches()
+            System.gc()
+          },
+          action = {
+            val info = gradleRule.fixture.doHighlighting(HighlightSeverity.ERROR)
+            assert(info.isEmpty())
+          }
+        )
+      },
+      processSamples = { samplesMs ->
+        val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
+        println("Recorded samples: $samplesStr")
 
-    // Load project.
-    gradleRule.load(TestProjectPaths.SIMPLE_APPLICATION)
-    gradleRule.generateSources() // Gets us closer to a production setup.
-    waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
-
-    runInEdtAndWait {
-      // Open editor.
-      val fixture = gradleRule.fixture
-      val project = gradleRule.project
-      val projectDir = project.guessProjectDir()!!
-      val javaFile = projectDir.findFileByRelativePath("app/src/main/java/google/simpleapplication/MyActivity.java")!!
-      fixture.openFileInEditor(javaFile)
-
-      // Measure.
-      val samplesMs = measureTimeMs(
-        warmupIterations = 10,
-        mainIterations = 10,
-        setUp = {
-          PsiManager.getInstance(project).dropPsiCaches()
-          System.gc()
-        },
-        action = {
-          val info = fixture.doHighlighting(HighlightSeverity.ERROR)
-          assert(info.isEmpty())
-        }
-      )
-      val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
-      println("Recorded samples: $samplesStr")
-
-      // Save Perfgate data.
-      val metric = Metric("highlighting_latency")
-      metric.addSamples(benchmark, *samplesMs.toTypedArray())
-      metric.commit()
-    }
+        // Save Perfgate data.
+        val metric = Metric("highlighting_latency")
+        metric.addSamples(benchmark, *samplesMs.toTypedArray())
+        metric.commit()
+      }
+    )
   }
 }

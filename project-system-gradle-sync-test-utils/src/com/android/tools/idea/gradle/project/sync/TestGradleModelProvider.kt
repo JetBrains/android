@@ -19,7 +19,6 @@ import org.gradle.api.Project
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
-import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider.GradleModelConsumer
 import org.jetbrains.plugins.gradle.tooling.Message
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderContext
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
@@ -36,15 +35,13 @@ class TestGradleModelProvider(private val paramValue: String, val mode: TestGrad
   override fun populateProjectModels(
     controller: BuildController,
     projectModel: BasicGradleProject,
-    modelConsumer: GradleModelConsumer
+    modelConsumer: ProjectImportModelProvider.GradleModelConsumer
   ) {
     when (mode) {
       TestGradleModelProviderMode.IDE_MODELS -> Unit
       TestGradleModelProviderMode.TEST_GRADLE_MODELS -> {
         val testGradleModel = controller.findModel(projectModel, TestGradleModel::class.java)
-        if (testGradleModel != null) {
-          modelConsumer.consumeProjectModel(projectModel, testGradleModel, TestGradleModel::class.java)
-        }
+        testGradleModel?.also { pluginModel -> modelConsumer.consumeProjectModel(projectModel, pluginModel, TestGradleModel::class.java) }
 
         val testParameterizedGradleModel =
           controller.findModel(
@@ -54,15 +51,15 @@ class TestGradleModelProvider(private val paramValue: String, val mode: TestGrad
           ) { parameter ->
             parameter.value = paramValue
           }
-        if (testParameterizedGradleModel != null) {
-          modelConsumer.consumeProjectModel(projectModel, testParameterizedGradleModel, TestParameterizedGradleModel::class.java)
+        testParameterizedGradleModel?.also { pluginModel ->
+          modelConsumer.consumeProjectModel(projectModel, pluginModel, TestParameterizedGradleModel::class.java)
         }
       }
 
       TestGradleModelProviderMode.TEST_EXCEPTION_MODELS -> {
         val testExceptionModel = controller.findModel(projectModel, TestExceptionModel::class.java)
-        if (testExceptionModel != null) {
-          modelConsumer.consumeProjectModel(projectModel, testExceptionModel, TestExceptionModel::class.java)
+        testExceptionModel?.also { pluginModel ->
+          modelConsumer.consumeProjectModel(projectModel, pluginModel, TestExceptionModel::class.java)
         }
       }
     }

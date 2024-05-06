@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.structure.configurables.ui
 
 import com.android.tools.idea.concurrency.addCallback
-import com.google.common.base.Function
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -56,11 +55,11 @@ internal fun <I> ListenableFuture<I>.whenCompletedInvokeOnEdt(callback: (Listena
     })
   }
 
-internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T> =
+internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T?> =
   Futures.catching(
     this,
     Throwable::class.java,
-    Function<Throwable?, T?> { ex ->
+    { ex ->
       val application = ApplicationManager.getApplication()
       if (application.isDispatchThread) function(ex)
       else application.invokeLater({ function(ex) }, ModalityState.any())

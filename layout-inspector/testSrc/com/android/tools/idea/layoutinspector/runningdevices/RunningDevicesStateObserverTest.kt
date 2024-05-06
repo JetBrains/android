@@ -79,7 +79,8 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.addContent(tab1)
     fakeToolWindowManager.addContent(tab2)
 
-    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project, testScope)
+    val runningDevicesStateObserver =
+      RunningDevicesStateObserver.getInstance(displayViewRule.project)
     runningDevicesStateObserver.update(true)
 
     val observedSelectedTabs = mutableListOf<DeviceId?>()
@@ -94,6 +95,10 @@ class RunningDevicesStateObserverTest {
         override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
+
+        override fun onToolWindowHidden() {}
+
+        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {}
       }
 
     runningDevicesStateObserver.addListener(listener)
@@ -106,7 +111,8 @@ class RunningDevicesStateObserverTest {
 
   @Test
   fun testListenerIsCalledWhenAddingAndRemovingContent() {
-    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project, testScope)
+    val runningDevicesStateObserver =
+      RunningDevicesStateObserver.getInstance(displayViewRule.project)
     runningDevicesStateObserver.update(true)
 
     val observedSelectedTabs = mutableListOf<DeviceId?>()
@@ -121,6 +127,10 @@ class RunningDevicesStateObserverTest {
         override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
+
+        override fun onToolWindowHidden() {}
+
+        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {}
       }
 
     runningDevicesStateObserver.addListener(listener)
@@ -146,7 +156,8 @@ class RunningDevicesStateObserverTest {
 
   @Test
   fun testListenerIsCalledWhenSelectedTabChanges() {
-    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project, testScope)
+    val runningDevicesStateObserver =
+      RunningDevicesStateObserver.getInstance(displayViewRule.project)
     runningDevicesStateObserver.update(true)
 
     val observedSelectedTabs = mutableListOf<DeviceId?>()
@@ -161,6 +172,10 @@ class RunningDevicesStateObserverTest {
         override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
+
+        override fun onToolWindowHidden() {}
+
+        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {}
       }
 
     runningDevicesStateObserver.addListener(listener)
@@ -188,5 +203,48 @@ class RunningDevicesStateObserverTest {
         listOf(tab1.deviceId),
         listOf(tab1.deviceId, tab2.deviceId),
       )
+  }
+
+  @Test
+  fun testToolWindowStateChange() {
+    val runningDevicesStateObserver =
+      RunningDevicesStateObserver.getInstance(displayViewRule.project)
+    runningDevicesStateObserver.update(true)
+
+    val toolWindowOpenDeviceIds = mutableListOf<DeviceId?>()
+    var toolWindowClosedCount = 0
+
+    val listener =
+      object : RunningDevicesStateObserver.Listener {
+        override fun onSelectedTabChanged(deviceId: DeviceId?) {}
+
+        override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {}
+
+        override fun onToolWindowHidden() {
+          toolWindowClosedCount += 1
+        }
+
+        override fun onToolWindowShown(selectedDeviceId: DeviceId?) {
+          toolWindowOpenDeviceIds.add(selectedDeviceId)
+        }
+      }
+
+    runningDevicesStateObserver.addListener(listener)
+
+    fakeToolWindowManager.toolWindow.show()
+    fakeToolWindowManager.toolWindow.hide()
+
+    assertThat(toolWindowOpenDeviceIds).containsExactly(null)
+    assertThat(toolWindowClosedCount).isEqualTo(1)
+
+    fakeToolWindowManager.addContent(tab1)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    fakeToolWindowManager.setSelectedContent(tab1)
+
+    fakeToolWindowManager.toolWindow.show()
+    fakeToolWindowManager.toolWindow.hide()
+
+    assertThat(toolWindowOpenDeviceIds).containsExactly(null, tab1.deviceId)
+    assertThat(toolWindowClosedCount).isEqualTo(2)
   }
 }

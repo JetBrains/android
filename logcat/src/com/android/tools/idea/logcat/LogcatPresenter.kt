@@ -27,50 +27,32 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.editor.ex.EditorEx
 import java.nio.file.Path
 
-/**
- * Encapsulates the presentation of Logcat messages.
- */
-internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, ProcessNamesProvider, Disposable {
+/** Encapsulates the presentation of Logcat messages. */
+internal interface LogcatPresenter :
+  TagsProvider, PackageNamesProvider, ProcessNamesProvider, Disposable {
   var formattingOptions: FormattingOptions
 
-  /**
-   * Reloads messages from the backlog into the view
-   */
-  @UiThread
-  fun reloadMessages()
+  /** Reloads messages from the backlog into the view */
+  @UiThread fun reloadMessages()
 
-  /**
-   * Applies a filter and reloads
-   */
-  @UiThread
-  fun applyFilter(logcatFilter: LogcatFilter?)
+  /** Applies a filter and reloads */
+  @UiThread fun applyFilter(logcatFilter: LogcatFilter?)
 
-  /**
-   * Clears the message view
-   */
+  /** Clears the message view */
   fun clearMessageView()
 
-  @UiThread
-  fun restartLogcat()
+  @UiThread fun restartLogcat()
 
-  /**
-   * Returns true if the attached logcat is empty
-   */
+  /** Returns true if the attached logcat is empty */
   fun isLogcatEmpty(): Boolean
 
-  /**
-   * Processes incoming messages from logcat
-   */
+  /** Processes incoming messages from logcat */
   suspend fun processMessages(messages: List<LogcatMessage>)
 
-  /**
-   * Emits formatted text to the message view
-   */
+  /** Emits formatted text to the message view */
   suspend fun appendMessages(textAccumulator: TextAccumulator)
 
-  /**
-   * Returns the connected device or null if not connected
-   */
+  /** Returns the connected device or null if not connected */
   fun getConnectedDevice(): Device?
 
   fun getSelectedDevice(): Device?
@@ -95,11 +77,11 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
 
   fun setSoftWrapEnabled(state: Boolean)
 
-  fun getBacklogMessages() : List<LogcatMessage>
+  fun getBacklogMessages(): List<LogcatMessage>
 
   suspend fun enterInvisibleMode()
 
-  fun isShowing() : Boolean
+  fun isShowing(): Boolean
 
   fun openLogcatFile(path: Path)
 

@@ -110,12 +110,29 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     {"zipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
   }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
 
+  private static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"crunchPngs", property, CRUNCH_PNGS, VAR},
+    {"debuggable", property, DEBUGGABLE, VAR},
+    {"isDefault", property, DEFAULT, VAR},
+    {"embedMicroApp", property, EMBED_MICRO_APP, VAR},
+    {"initWith", property, INIT_WITH, VAR},
+    {"jniDebuggable", property, JNI_DEBUGGABLE, VAR},
+    {"minifyEnabled", property, MINIFY_ENABLED, VAR},
+    {"pseudoLocalesEnabled", property, PSEUDO_LOCALES_ENABLED, VAR},
+    {"renderscriptDebuggable", property, RENDERSCRIPT_DEBUGGABLE, VAR},
+    {"renderscriptOptimLevel", property, RENDERSCRIPT_OPTIM_LEVEL, VAR},
+    {"shrinkResources", property, SHRINK_RESOURCES, VAR},
+    {"testCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
+    {"useProguard", property, USE_PROGUARD, VAR},
+    {"zipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
+  }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
+
   @Nullable
   private String methodName;
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   @Override
@@ -169,7 +186,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   public static final class BuildTypeDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
     }
 
@@ -177,6 +194,12 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     @Override
     public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.ApplicationDefaultConfig";
     }
   }
 }

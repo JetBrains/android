@@ -1,4 +1,18 @@
-// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.android.tools.sdk;
 
@@ -13,16 +27,15 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.google.common.collect.Maps;
-import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.concurrent.ConcurrentMap;
 
 public class AndroidSdkData {
   private final DeviceManager myDeviceManager;
@@ -36,6 +49,16 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse) {
+    return getSdkData(sdkLocation, forceReparse, true);
+  }
+
+  @NotNull
+  public static AndroidSdkData getSdkDataWithoutValidityCheck(@NotNull File sdkLocation, boolean forceReparse) {
+    return Objects.requireNonNull(getSdkData(sdkLocation, forceReparse, false));
+  }
+
+  @Nullable
+  private static AndroidSdkData getSdkData(@NotNull File sdkLocation, boolean forceReparse, boolean checkValidity) {
     String canonicalPath = toCanonicalPath(sdkLocation.getPath());
 
     // Try to use cached data.
@@ -53,7 +76,7 @@ public class AndroidSdkData {
     }
 
     File canonicalLocation = new File(canonicalPath);
-    if (!AndroidSdkPath.isValid(canonicalLocation)) {
+    if (checkValidity && !AndroidSdkPath.isValid(canonicalLocation)) {
       return null;
     }
 
@@ -65,15 +88,6 @@ public class AndroidSdkData {
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
     return getSdkData(new File(sdkPath));
-  }
-
-  @Nullable
-  public static AndroidSdkData getSdkData(@NotNull Sdk sdk) {
-    String sdkHomePath = sdk.getHomePath();
-    if (sdkHomePath != null) {
-      return getSdkData(sdk.getHomePath());
-    }
-    return null;
   }
 
   private AndroidSdkData(@NotNull File localSdk) {

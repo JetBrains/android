@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.1.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="AdbDeviceServicesCommand"
-        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead">
+        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead"
+        errorLine1="          deviceServices"
+        errorLine2="          ^">
         <location
             file="src/com/android/tools/idea/logcat/service/LogcatServiceImpl.kt"
-            line="70"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/idea/logcat/filters/LogcatMessageWrapper.kt"
-            line="43"/>
+            line="102"
+            column="11"/>
     </issue>
 
 </issues>

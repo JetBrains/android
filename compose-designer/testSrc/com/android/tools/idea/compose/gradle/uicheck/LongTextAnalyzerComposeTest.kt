@@ -17,13 +17,13 @@ package com.android.tools.idea.compose.gradle.uicheck
 
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
-import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzer
+import com.android.tools.preview.PreviewConfiguration
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -58,10 +58,7 @@ class LongTextAnalyzerComposeTest {
       )
     val issues = LongTextAnalyzer.findIssues(renderResult, nlModel)
     Assert.assertEquals(1, issues.size)
-    Assert.assertEquals(
-      "<android.widget.TextView> has lines containing more than 120 characters",
-      issues[0].message
-    )
+    Assert.assertEquals("TextView has lines containing more than 120 characters", issues[0].message)
   }
 
   @Test

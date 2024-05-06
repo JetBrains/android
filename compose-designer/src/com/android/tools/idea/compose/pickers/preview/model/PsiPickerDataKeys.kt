@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.DataKey
  * If the value corresponds to device specs ("spec:...") it will return a custom Device instance
  * with those parameters, otherwise, it will be a Device that matches the display name or id.
  *
- * @see com.android.tools.idea.compose.preview.pickers.properties.utils.findOrParseFromDefinition
+ * @see com.android.tools.preview.config.findOrParseFromDefinition
  */
 internal val CurrentDeviceKey = DataKey.create<Device?>("preview.picker.current.device")
 

@@ -18,9 +18,10 @@ package org.jetbrains.android.dom.structure.manifest;
 import com.intellij.ide.presentation.PresentationProvider;
 import com.intellij.psi.PsiClass;
 import icons.StudioIcons;
-import javax.swing.Icon;
 import org.jetbrains.android.dom.manifest.Activity;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 public class ActivityPresentationProvider extends PresentationProvider<Activity> {
   @Nullable

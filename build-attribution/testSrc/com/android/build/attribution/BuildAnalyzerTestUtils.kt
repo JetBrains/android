@@ -79,7 +79,7 @@ internal fun constructBuildAnalyzerResultData(project: Project,
                                              buildID: String = UUID.randomUUID().toString()): BuildAnalyzerStorageManagerTest.BuildAnalyzerResultData {
   val taskContainer = TaskContainer()
   val pluginContainer = PluginContainer()
-  val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
+  val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer, BuildAnalyzerStorageManager.getInstance(project))
   val setPrivateField: (Any, String, Any) -> Unit = { classInstance: Any, fieldName: String, newValue: Any ->
     val field = classInstance.javaClass.getDeclaredField(fieldName)
     field.isAccessible = true

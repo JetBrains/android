@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework
 
 import com.android.SdkConstants
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.model.MultiTemplateRenderer.TemplateRendererListener
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.updatePluginsResolutionManagement
@@ -35,7 +35,8 @@ import java.io.File
 class NpwControl(private val project: Project) : TemplateRendererListener {
 
   override fun multiRenderingFinished() {
-    val ktsUsage = GradleUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS)
+    val ktsUsage = GradleProjectSystemUtil.projectBuildFilesTypes(project)
+      .contains(SdkConstants.DOT_KTS)
     val buildGradleFile = if (ktsUsage) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
     val settingsGradleFile = if (ktsUsage) SdkConstants.FN_SETTINGS_GRADLE_KTS else SdkConstants.FN_SETTINGS_GRADLE
     // Plugin definitions are in the root project build.gradle file

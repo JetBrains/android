@@ -149,7 +149,7 @@ class TreeTableImpl(
       val dataWidth =
         columnInfo.width.takeIf { it > 0 }
           ?: columnInfo.computeWidth(this, tableModel.allNodes).takeIf { it > 0 }
-            ?: JBUIScale.scale(10)
+          ?: JBUIScale.scale(10)
       val component =
         columnInfo.headerRenderer?.getTableCellRendererComponent(
           this,

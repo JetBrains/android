@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 
@@ -29,5 +30,5 @@ class GlancePreviewElement(
   override val displaySettings: PreviewDisplaySettings,
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-  override val methodFqcn: String
+  override val methodFqn: String
 ) : MethodPreviewElement

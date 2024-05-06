@@ -58,8 +58,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     for (mode in ColorBlindMode.values()) {
       val config = defaultConfig.clone()
       val model =
-        NlModel.builder(facet, virtualFile, config)
-          .withParentDisposable(parent)
+        NlModel.builder(parent, facet, virtualFile, config)
           .withModelTooltip(defaultConfig.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

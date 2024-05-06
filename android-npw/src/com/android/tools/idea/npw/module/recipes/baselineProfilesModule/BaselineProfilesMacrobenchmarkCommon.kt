@@ -16,13 +16,11 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import org.jetbrains.kotlin.idea.gradleTooling.capitalize
 import java.util.Locale
 
 /**
@@ -32,16 +30,6 @@ object BaselineProfilesMacrobenchmarkCommon {
   const val FILTER_INSTR_ARG = "android.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules"
   const val FILTER_ARG_BASELINE_PROFILE = "baselineprofile"
   const val FILTER_ARG_MACROBENCHMARK = "macrobenchmark"
-
-  /**
-   * Baseline profiles Gradle plugin is only available from this version of AGP.
-   */
-  val BP_PLUGIN_MIN_SUPPORTED = AgpVersion(8, 0, 0)
-
-  /**
-   * Baseline profiles Gradle plugin automatically adds filtering instrumentation argument from this version of AGP.
-   */
-  val BP_PLUGIN_FILTERING_SUPPORTED = AgpVersion.parse("8.2.0-alpha03")
 
   /**
    * Creates a new Gradle module for Macrobenchmark / Baseline Profiles module.
@@ -78,37 +66,6 @@ object BaselineProfilesMacrobenchmarkCommon {
 
     // Create (and open) the content test classes (benchmarks / baseline profile generator)
     customizeModule()
-  }
-
-  /**
-   * Generates variants from product flavors.
-   * @return If no product flavors, returns empty list
-   */
-  fun generateBuildVariants(
-    flavors: ProductFlavorsWithDimensions,
-    buildType: String? = null,
-  ): List<String> {
-    val dimensionsWithFlavors = flavors.flavorNamesGroupedByDimension.toMutableList()
-
-    // Add buildType (if defined) as the last one
-    buildType?.let { dimensionsWithFlavors.add(listOf(it)) }
-
-    // Check if at least one item exists
-    if (dimensionsWithFlavors.isEmpty()) {
-      return emptyList()
-    }
-
-    // We know that we have at least one flavor, so we use it as acc and combine with the rest of the list
-    return dimensionsWithFlavors
-      .subList(1, dimensionsWithFlavors.size)
-      .fold(dimensionsWithFlavors[0]) { acc, flavorsByDimensions ->
-        val newAcc = acc.flatMap { prefix ->
-          flavorsByDimensions.map { flavorName -> prefix + flavorName.capitalize() }
-        }
-
-        newAcc
-      }
-      .toList()
   }
 
   fun flavorsConfigurationsBuildGradle(

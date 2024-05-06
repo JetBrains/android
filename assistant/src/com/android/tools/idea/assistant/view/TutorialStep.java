@@ -68,7 +68,6 @@ import java.awt.event.MouseWheelListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -404,7 +403,7 @@ public class TutorialStep extends JPanel {
 
     private void selectNothing() {
       LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
-      myEditor.getCaretModel().setCaretsAndSelections(Collections.singletonList(new CaretState(docStart, docStart, docStart)));
+      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docStart)));
     }
 
     private void selectAllText() {
@@ -416,7 +415,7 @@ public class TutorialStep extends JPanel {
       int lastLineEndOffset = myEditor.getDocument().getLineEndOffset(lineCount);
       LogicalPosition docStart = myEditor.visualToLogicalPosition(new VisualPosition(0, 0));
       LogicalPosition docEnd = myEditor.visualToLogicalPosition(new VisualPosition(lineCount, lastLineEndOffset));
-      myEditor.getCaretModel().setCaretsAndSelections(Collections.singletonList(new CaretState(docStart, docStart, docEnd)));
+      myEditor.getCaretModel().setCaretsAndSelections(Lists.newArrayList(new CaretState(docStart, docStart, docEnd)));
     }
   }
 

@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.SdkConstants.BUTTON;
-import static com.android.SdkConstants.PROGRESS_BAR;
-
 import com.android.AndroidXConstants;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 public class TooltipTest extends SceneTest {
   @Override

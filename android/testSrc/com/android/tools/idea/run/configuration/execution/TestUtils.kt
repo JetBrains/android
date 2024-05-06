@@ -39,7 +39,7 @@ fun createApp(
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
   val apk = Apk.Builder().setServices(services).setActivities(activities).build()
-  return App(appId, listOf(apk), device, NullLogger())
+  return App.fromApk(appId, apk)
 }
 
 private fun createManifestServiceInfo(

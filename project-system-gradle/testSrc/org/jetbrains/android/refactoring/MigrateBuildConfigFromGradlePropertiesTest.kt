@@ -20,9 +20,12 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Co
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth
+import com.intellij.ide.DataManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent.createTestEvent
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -92,6 +95,42 @@ abstract class MigrateBuildConfigFromGradlePropertiesTest(
     Truth.assertThat(libBuildGradleContent).doesNotContain("buildFeatures")
     Truth.assertThat(libBuildGradleContent).doesNotContain("buildConfig true")
     Truth.assertThat(libBuildGradleContent).doesNotContain("buildConfigField")
+  }
+
+  @Test
+  fun testActionIsEnabled() {
+    projectRule.loadProject(TestProjectPaths.MIGRATE_BUILD_CONFIG, agpVersion = agpVersion)
+    val project = projectRule.project
+    ApplicationManager.getApplication().invokeAndWait {
+      projectRule.fixture.openFileInEditor(project.baseDir.findChild("gradle.properties")!!)
+    }
+    val action = MigrateBuildConfigFromGradlePropertiesAction()
+    val event = createTestEvent(action, DataManager.getInstance().getDataContext(projectRule.fixture.editor.component))
+
+    ApplicationManager.getApplication().runReadAction {
+      action.update(event)
+    }
+
+    Truth.assertThat(event.presentation.isEnabled).isTrue()
+    Truth.assertThat(event.presentation.isVisible).isTrue()
+  }
+
+  @Test
+  fun testActionIsEnabledWithGeneratedSources() {
+    projectRule.loadProject(TestProjectPaths.MIGRATE_BUILD_CONFIG_WITH_GENERATED_SOURCES, agpVersion = agpVersion)
+    val project = projectRule.project
+    ApplicationManager.getApplication().invokeAndWait {
+      projectRule.fixture.openFileInEditor(project.baseDir.findChild("gradle.properties")!!)
+    }
+    val action = MigrateBuildConfigFromGradlePropertiesAction()
+    val event = createTestEvent(action, DataManager.getInstance().getDataContext(projectRule.fixture.editor.component))
+
+    ApplicationManager.getApplication().runReadAction {
+      action.update(event)
+    }
+
+    Truth.assertThat(event.presentation.isEnabled).isTrue()
+    Truth.assertThat(event.presentation.isVisible).isTrue()
   }
 }
 

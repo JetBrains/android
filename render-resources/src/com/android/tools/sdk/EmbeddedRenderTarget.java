@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * {@link IAndroidTarget} to render using the layoutlib version and resources shipped with Android Studio.
@@ -64,7 +65,8 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
     return ourStudioEmbeddedTarget;
   }
 
-  public static void resetInstance() {
+  @TestOnly
+  public static void resetRenderTarget() {
     ourStudioEmbeddedTarget = null;
   }
 
@@ -119,11 +121,11 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
     // The prebuilt version of layoutlib only includes the layoutlib.jar and the resources.
     switch (pathId) {
       case DATA:
-        return Paths.get(getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER);
+        return Paths.get(getLocation(), SdkConstants.FD_DATA);
       case RESOURCES:
-        return Paths.get(getLocation() + SdkConstants.OS_PLATFORM_DATA_FOLDER + FRAMEWORK_RES_JAR);
+        return Paths.get(getLocation(), SdkConstants.FD_DATA, FRAMEWORK_RES_JAR);
       case FONTS:
-        return Paths.get(getLocation() + SdkConstants.OS_PLATFORM_FONTS_FOLDER);
+        return Paths.get(getLocation(), SdkConstants.FD_DATA, SdkConstants.FD_FONTS);
       default:
         assert false : getClass().getSimpleName() + " does not support path of type " + pathId;
         return Paths.get(getLocation());

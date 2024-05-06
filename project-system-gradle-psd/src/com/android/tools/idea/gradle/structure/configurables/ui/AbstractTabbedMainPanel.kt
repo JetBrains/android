@@ -85,7 +85,7 @@ abstract class AbstractTabbedMainPanel(
       tabPanels.forEach { it.setHistory(history) }
       tabbedPane.addChangeListener {
         if (!inQuietSelection) {
-          context.uiSettings.setLastSelectedTab(tabbedPane.selectedTitle)
+          context.uiSettings.setLastSelectedTab(tabbedPane.selectedTitle.orEmpty())
           history.pushQueryPlace()
         }
       }

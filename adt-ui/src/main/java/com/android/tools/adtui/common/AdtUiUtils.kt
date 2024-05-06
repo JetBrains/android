@@ -19,11 +19,11 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.TRUNCATE_END
 import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.keymap.MacKeymapUtil
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBScrollPane
@@ -172,7 +172,7 @@ object AdtUiUtils {
     }
     var smallestLength = 0
     var largestLength = text.length
-    var bestLength = 0
+    var bestLength = smallestLength
     do {
       val midLength = smallestLength + (largestLength - smallestLength) / 2
       val substring =
@@ -228,7 +228,7 @@ object AdtUiUtils {
    */
   @JvmStatic
   fun isActionKeyDown(event: InputEvent): Boolean {
-    return if (ClientSystemInfo.isMac()) event.isMetaDown else event.isControlDown
+    return if (SystemInfo.isMac) event.isMetaDown else event.isControlDown
   }
 
   /**
@@ -239,7 +239,7 @@ object AdtUiUtils {
   @JdkConstants.InputEventMask
   @MagicConstant(valuesFromClass = InputEvent::class)
   fun getActionMask(): Int {
-    return if (ClientSystemInfo.isMac()) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
+    return if (SystemInfo.isMac) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
   }
 
   /**
@@ -247,7 +247,7 @@ object AdtUiUtils {
    */
   @JvmStatic
   fun getActionKeyText(): String {
-    if (ClientSystemInfo.isMac()) {
+    if (SystemInfo.isMac) {
       val labelFont = StartupUiUtil.labelFont
       return if (labelFont != null && labelFont.canDisplayUpTo(MacKeymapUtil.COMMAND) == -1) MacKeymapUtil.COMMAND else "Cmd"
     }

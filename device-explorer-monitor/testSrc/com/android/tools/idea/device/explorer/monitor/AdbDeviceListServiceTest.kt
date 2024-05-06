@@ -134,14 +134,14 @@ class AdbDeviceListServiceTest {
     val service = AdbDeviceService(project)
     service.start()
     assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(2)
-    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(1)
+    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(2)
 
     // Act
     Disposer.dispose(service)
 
     // Assert
     assertThat(AndroidDebugBridge.getDebugBridgeChangeListenerCount()).isEqualTo(1)
-    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(0)
+    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount()).isEqualTo(1)
     Disposer.dispose(service)
   }
 

@@ -19,8 +19,11 @@
     <inspector.ide.appInspectorTabProvider implementation="com.android.tools.idea.appinspection.inspectors.network.ide.NetworkInspectorTabProvider" />
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
+    <!--suppress PluginXmlValidity -->
     <project.converterProvider
         id="rules-persistent-state-converter"
         implementation="com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateConverterProvider" />
+    <!--suppress PluginXmlValidity -->
+    <applicationService serviceImplementation="com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorViewState"/>
   </extensions>
 </idea-plugin>

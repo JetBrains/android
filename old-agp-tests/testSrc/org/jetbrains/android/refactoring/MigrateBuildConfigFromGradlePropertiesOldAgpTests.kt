@@ -22,5 +22,5 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
 class MigrateBuildConfigFromGradlePropertiesTest74 : MigrateBuildConfigFromGradlePropertiesTest(AGP_74, false)
 
-@OldAgpTest(agpVersions = ["8.0.0-beta04"], gradleVersions = ["8.0"])
+@OldAgpTest(agpVersions = ["8.0.2"], gradleVersions = ["8.0"])
 class MigrateBuildConfigFromGradlePropertiesTest80 : MigrateBuildConfigFromGradlePropertiesTest(AGP_80, null)

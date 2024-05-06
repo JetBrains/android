@@ -19,16 +19,15 @@ import com.android.tools.configurations.ConfigurationFileState;
 import com.android.tools.configurations.ConfigurationProjectState;
 import com.android.tools.configurations.ConfigurationStateManager;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.State;
-import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.components.StoragePathMacros;
+import com.intellij.openapi.components.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import java.util.HashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /** Studio-specific implementation of {@link ConfigurationStateManager}. */
 @State(name = "AndroidLayouts", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))

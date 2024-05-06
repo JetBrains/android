@@ -54,8 +54,6 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
     myProject = project;
     myClient = client;
     myDetachIsDefault = detachIsDefault;
-
-    putCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY, this);
   }
 
 

@@ -19,6 +19,9 @@ import com.android.tools.idea.actions.DesignerActions;
 import com.android.tools.idea.actions.DesignerDataKeys;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.RenderUtils;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActions;
+import com.android.tools.idea.uibuilder.surface.NlSupportedActionsKt;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -41,7 +44,18 @@ public class RefreshRenderAction extends AnAction {
       e.getPresentation().setEnabled(false);
       return;
     }
-    e.getPresentation().setEnabled(e.getData(DesignerDataKeys.DESIGN_SURFACE) != null);
+    DesignSurface<?> designSurface = e.getData(DesignerDataKeys.DESIGN_SURFACE);
+    boolean enabled;
+    if (designSurface != null) {
+      enabled = !(designSurface instanceof NlDesignSurface)
+                // If the surface is an NlDesignSurface we need to make sure the action is supported
+                // since it can decide to disable it.
+                || NlSupportedActionsKt.isActionSupported(designSurface, NlSupportedActions.REFRESH);
+    } else {
+      enabled = false;
+    }
+
+    e.getPresentation().setEnabled(enabled);
   }
 
   @Override

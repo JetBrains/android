@@ -42,5 +42,6 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
     ],
 )

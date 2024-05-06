@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import ai.grazie.utils.mpp.runBlocking
 import com.android.testutils.time.FakeClock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
@@ -26,7 +25,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
 import com.android.tools.idea.insights.DetailedIssueStats
-import com.android.tools.idea.insights.FAKE_6_DAYS_AGO
+import com.android.tools.idea.insights.EventPage
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE1_DETAILS
 import com.android.tools.idea.insights.IssueStats
@@ -34,12 +33,14 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView
+import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.DistributionPanel
 import com.android.tools.idea.insights.ui.DistributionsContainerPanel
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.dateFormatter
+import com.android.tools.idea.insights.ui.shortenEventId
 import com.android.tools.idea.insights.waitForCondition
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_CONNECTION_2
@@ -51,10 +52,11 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.components.JBTabbedPane
 import icons.StudioIcons
-import javax.swing.Box
+import java.awt.Dimension
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JProgressBar
 import kotlin.math.roundToInt
 import kotlinx.coroutines.runBlocking
@@ -116,6 +118,7 @@ class VitalsTabTest {
           )
         ),
         detailsState = LoadingState.Ready(ISSUE1_DETAILS),
+        eventsState = LoadingState.Ready(EventPage(listOf(ISSUE1.sampleEvent), "")),
         connectionsState = listOf(TEST_CONNECTION_1, TEST_CONNECTION_2, TEST_CONNECTION_3)
       )
 
@@ -172,47 +175,55 @@ class VitalsTabTest {
       assertThat(table.rowCount).isEqualTo(1)
       assertThat(table.getRow(0)).isEqualTo(ISSUE1)
 
-      // Stack trace view
-      // Header row
-      assertThat(fakeUi.findComponent<SimpleColoredComponent> { it.toString() == "crash.Crash" })
-        .isNotNull()
+      // Details Panel content
+      // Header
+      val detailsPanelHeader = fakeUi.findComponent<DetailsPanelHeader>()!!
+      // Set header to a large size so the title label don't get truncated.
+      detailsPanelHeader.size = Dimension(500, 500)
+      waitForCondition { detailsPanelHeader.titleLabel.text == "<html>crash.<B>Crash</B></html>" }
+      assertThat(detailsPanelHeader.eventsCountLabel.text).isEqualTo("50,000,000")
+      assertThat(detailsPanelHeader.usersCountLabel.text).isEqualTo("3,000")
 
-      // events count, user count, api range, device model
-      val firstRow =
+      // Details body
+      val rows =
         fakeUi
-          .findComponent<JLabel> {
-            it.icon == StudioIcons.AppQualityInsights.ISSUE && it.text == "50"
-          }!!
-          .parent
-      val firstRowComponents = firstRow.components.filter { it !is Box.Filler }
-      with(firstRowComponents[0] as JLabel) {
-        assertThat(text).isEqualTo("50")
-        assertThat(icon).isEqualTo(StudioIcons.AppQualityInsights.ISSUE)
-      }
-      with(firstRowComponents[1] as JLabel) {
-        assertThat(text).isEqualTo("5")
-        assertThat(icon).isEqualTo(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
-      }
-      with(firstRowComponents[2] as JLabel) {
-        assertThat(text).isEqualTo("8 → 13")
-        assertThat(icon).isEqualTo(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
+          .findComponent<JPanel> { it.name == "detail_rows" }!!
+          .components
+          .filterIsInstance<JPanel>()
+      assertThat(rows.size).isEqualTo(4)
+
+      // Versions affected, signals, open/close button
+      with(FakeUi(rows[0])) {
+        assertThat(findComponent<JLabel>()!!.text).isEqualTo("Versions affected: 1.2.3 → 2.0.0")
       }
 
-      // Device, OS Version, affected versions
-      fakeUi.findComponent<JLabel> { it.text == "Versions affected: 1.2.3 → 2.0.0" }
+      // Event id, Link to vitals console
+      with(FakeUi(rows[1])) {
+        assertThat(findComponent<JLabel>()!!.text)
+          .isEqualTo("Event ${ISSUE1.issueDetails.sampleEvent.shortenEventId()}")
+        assertThat(findComponent<HyperlinkLabel>()!!.text).isEqualTo("View on Android Vitals")
+      }
 
-      // Time, link to Vitals
-      assertThat(
-          fakeUi
-            .findComponent<JLabel> { it.icon == StudioIcons.LayoutEditor.Palette.ANALOG_CLOCK }!!
-            .text
-        )
-        .isEqualTo(dateFormatter.format(FAKE_6_DAYS_AGO))
+      // Device, OS Version, Timestamp, VCS Commit
+      with(FakeUi(rows[2])) {
+        assertThat(findAllComponents<JLabel>().filter { isShowing(it) }.map { it.text })
+          .containsExactly(
+            "Google Pixel 4a",
+            "Android 3.1 (API 12)",
+            dateFormatter.format(ISSUE1.sampleEvent.eventData.eventTime)
+          )
+        assertThat(findAllComponents<HyperlinkLabel>().filter { it.isVisible }.map { it.text })
+          .containsExactly("74081e5f")
+      }
 
-      assertThat(fakeUi.findComponent<HyperlinkLabel>()!!.text).isEqualTo("View on Android Vitals")
+      // Tabbed pane
+      val tabbedPane = fakeUi.findComponent<JBTabbedPane>()!!
+      assertThat(tabbedPane.tabCount).isEqualTo(1)
+      assertThat(tabbedPane.getTitleAt(0)).isEqualTo("Stack trace")
+      assertThat(tabbedPane.getComponentAt(0)).isInstanceOf(ConsoleViewImpl::class.java)
 
       // Stack trace
-      val consoleView = fakeUi.findComponent<ConsoleViewImpl>()!!
+      val consoleView = tabbedPane.getComponentAt(0) as ConsoleViewImpl
       assertThat(consoleView.text.trim())
         .isEqualTo(
           """

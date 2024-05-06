@@ -16,7 +16,7 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.common.AdtUiCursorType
@@ -158,7 +158,8 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.component.getComponent(0)).isNotInstanceOf(JBSplitter::class.java)
     val treeWalker = TreeWalker(stageView.component)
     val warningLabel = treeWalker.descendants().filterIsInstance<JLabel>().first()
-    assertThat(warningLabel.text).contains("This trace doesn't contain any data.")
+    assertThat(warningLabel.text).contains("This trace was recorded successfully but it doesn't contain any CPU usage data.")
+    assertThat(warningLabel.text).contains("Please interact with the app to generate data while recording a trace.")
   }
 
   @Test

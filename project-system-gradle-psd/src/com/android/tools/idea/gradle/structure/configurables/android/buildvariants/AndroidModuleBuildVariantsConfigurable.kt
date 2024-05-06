@@ -35,7 +35,7 @@ class AndroidModuleBuildVariantsConfigurable(
   private val buildTypesModel = createTreeModel(BuildTypesConfigurable(module, context).also { Disposer.register(this, it) })
   private val productFlavorsModel = createTreeModel(ProductFlavorsConfigurable(module, context).also { Disposer.register(this, it) })
 
-  override fun getId() = "android.psd.build_variants.$displayName"
+  override fun getId() = "android.psd.build_variants." + displayName
   override fun createPanel() =
       BuildVariantsPanel(context, module, buildTypesModel, productFlavorsModel)
 

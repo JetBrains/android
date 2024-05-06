@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelper;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutFileType;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -58,7 +59,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -233,7 +233,7 @@ public class NlPaletteModel implements Disposable {
       URL url = NlPaletteModel.class.getResource(getPaletteFileNameFromId(id));
       URLConnection connection = url.openConnection();
 
-      try (Reader reader = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
+      try (Reader reader = new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)) {
         return Palette.parse(reader, ViewHandlerManager.get(myModule.getProject()));
       }
     }
@@ -270,7 +270,7 @@ public class NlPaletteModel implements Disposable {
 
     viewInfos.forEach(viewInfo ->
       addAdditionalComponent(type, PROJECT_GROUP, palette, StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW,
-                             viewInfo.tagName, viewInfo.className, null, null, "",
+                             viewInfo.tagName, viewInfo.className, null, null,
                              null, Collections.emptyList(), Collections.emptyList())
     );
 
@@ -290,7 +290,6 @@ public class NlPaletteModel implements Disposable {
                                  @NotNull String className,
                                  @Nullable @Language("XML") String xml,
                                  @Nullable @Language("XML") String previewXml,
-                                 @NotNull String libraryCoordinate,
                                  @Nullable String preferredProperty,
                                  @NotNull List<String> properties,
                                  @NotNull List<String> layoutProperties) {
@@ -301,7 +300,7 @@ public class NlPaletteModel implements Disposable {
       return false;
     }
 
-    ViewHandler handler = findOrCreateCustomHandler(tagName, icon16, className, xml, previewXml, libraryCoordinate,
+    ViewHandler handler = findOrCreateCustomHandler(tagName, icon16, className, xml, previewXml,
                                                     preferredProperty, properties, layoutProperties);
     // For now only support layouts
     if (type != LayoutFileType.INSTANCE ||
@@ -338,7 +337,6 @@ public class NlPaletteModel implements Disposable {
                                                 @NotNull String className,
                                                 @Nullable @Language("XML") String xml,
                                                 @Nullable @Language("XML") String previewXml,
-                                                @NotNull String libraryCoordinate,
                                                 @Nullable String preferredProperty,
                                                 @NotNull List<String> properties,
                                                 @NotNull List<String> layoutProperties) {
@@ -364,11 +362,11 @@ public class NlPaletteModel implements Disposable {
 
     if (handler instanceof ViewGroupHandler) {
       handler = new CustomViewGroupHandler((ViewGroupHandler)handler, icon16, tagName, className, xml, previewXml,
-                                           libraryCoordinate, preferredProperty, properties, layoutProperties);
+                                           preferredProperty, properties, layoutProperties);
     }
     else {
       handler = new CustomViewHandler(handler, icon16, tagName, className, xml, previewXml,
-                                      libraryCoordinate, preferredProperty, properties);
+                                      preferredProperty, properties);
     }
     manager.registerHandler(tagName, handler);
     return handler;

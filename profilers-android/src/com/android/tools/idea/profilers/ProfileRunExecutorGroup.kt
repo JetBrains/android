@@ -54,8 +54,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
         else -> StudioIcons.Shell.Toolbar.PROFILER
       }
 
-    override val startActionText = message("android.profiler.action.profile")
-
+    override val startActionText = "Profile"
     override fun canRun(profile: RunProfile) = true
 
     override fun isApplicable(project: Project): Boolean {
@@ -97,9 +96,9 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
 
-  override fun getRunToolbarActionText(param: String): String = message("android.profiler.action.profile")
+  override fun getRunToolbarActionText(param: String): String = "Profile"
 
-  override fun getRunToolbarChooserText(): String = message("android.profiler.action.profile")
+  override fun getRunToolbarChooserText(): String = "Profile"
 
   override fun getToolWindowIcon(): Icon = AllIcons.Toolwindows.ToolWindowRun
 

@@ -20,9 +20,7 @@ import com.intellij.psi.tree.IElementType
 
 private val lexer = LogcatFilterLexer(null)
 
-/**
- * A simple engine that pumps string through the Lexer, so we can debug issues.
- */
+/** A simple engine that pumps string through the Lexer, so we can debug issues. */
 fun main(args: Array<String>) {
 
   for (text in args) {

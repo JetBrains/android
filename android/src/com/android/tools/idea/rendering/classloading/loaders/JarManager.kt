@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
-import com.android.ide.common.util.PathString
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.cache.AbstractCache
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.io.ByteStreams
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
 import com.intellij.util.io.URLUtil
-import org.jetbrains.annotations.TestOnly
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.URI
@@ -35,6 +35,8 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import kotlin.streams.asSequence
+import org.jetbrains.annotations.TestOnly
+import kotlin.io.path.invariantSeparatorsPathString
 
 private fun defaultCache(maxWeight: Long) =
   CacheBuilder.newBuilder()
@@ -43,7 +45,7 @@ private fun defaultCache(maxWeight: Long) =
     .maximumWeight(maxWeight)
     .build<String, EntryCache>()
 
-typealias EntryCache = Map<String, ByteArray?>
+typealias EntryCache = MutableMap<String, ByteArray?>
 
 private fun EntryCache.weight() = values.sumOf { it?.size ?: 0 }
 
@@ -68,14 +70,14 @@ private fun loadBytes(file: ZipFile, entry: ZipEntry): ByteArray =
  * file after the "!/" separator, it will be ignored. This method will throw an exception if the
  * files can not be loaded.
  */
-private fun loadAllFilesFromJarOnDisk(jarFilePath: Path): Map<String, ByteArray> =
+private fun loadAllFilesFromJarOnDisk(jarFilePath: Path): EntryCache =
   ZipFile(jarFilePath.toFile()).use {
     return it
       .stream()
       .asSequence()
       .filter { !it.isDirectory }
       .map { zipEntry -> zipEntry.name to loadBytes(it, zipEntry) }
-      .toMap()
+      .toMap(mutableMapOf())
   }
 
 /**
@@ -99,24 +101,37 @@ private fun loadFileFromJarOnDiskOrNull(jarFilePath: Path, filePath: String): By
     null
   }
 
-/**
- * A class to assist with the loading of files from JAR files. If [maxPrefetchFileSizeBytes] is not 0,
- * this method will try to pre-fetch all the files in the same jar the first time the jar is accessed
- * file and add them to the given [jarFileCache] if any as long as the JAR size is smaller than maxPrefetchFileSizeBytes.
- *
- * The optional [cacheMissCallback] is used in tests when the [jarFileCache] can't find a value
- * corresponding to the given key in the cache.
- */
-class JarManager
-private constructor(
-  private val maxPrefetchFileSizeBytes: Long,
-  private val jarFileCache: Cache<String, EntryCache>,
+/** A class to assist with the loading of files from JAR files. */
+@Service(Service.Level.PROJECT)
+class JarManager {
+  private val maxPrefetchFileSizeBytes: Long
+  private val jarFileCache: Cache<String, EntryCache>
   /**
    * Callback to be used in tests when the [jarFileCache] can't find a value corresponding to the
    * given key in the cache.
    */
   private val cacheMissCallback: () -> Unit
-) {
+
+  /** Creates a new [JarManager] with the default cache. */
+  constructor(): this(
+    StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.get(),
+    defaultCache(StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.get()),
+    {}
+  )
+
+  /**
+   * If [maxPrefetchFileSizeBytes] is not 0, this cache will try to pre-fetch all the files in the same jar the
+   * first time the jar is accessed file and add them to the given [jarFileCache] if any as long as the JAR size
+   * is smaller than [maxPrefetchFileSizeBytes].
+   *
+   * The optional [cacheMissCallback] is used in tests when the [jarFileCache] can't find a value corresponding
+   * to the given key in the cache.
+   */
+  private constructor(maxPrefetchFileSizeBytes: Long, jarFileCache: Cache<String, EntryCache>, cacheMissCallback: () -> Unit) {
+    this.maxPrefetchFileSizeBytes = maxPrefetchFileSizeBytes
+    this.jarFileCache = jarFileCache
+    this.cacheMissCallback = cacheMissCallback
+  }
 
   /**
    * [Cache] of files that are likely too large to be automatically pre-fetched. This will avoid
@@ -155,11 +170,18 @@ private constructor(
   fun loadFileFromJar(uri: URI): ByteArray? {
     val splitJarPaths =
       URLUtil.splitJarUrl(URLDecoder.decode(uri.toString(), Charsets.UTF_8)) ?: return null
-    val filePath = splitJarPaths.second
 
     // On Windows, the url will start with //C:/.... we remove the prefix if it's there since it's not needed
     val jarFilePath = Paths.get(splitJarPaths.first.removePrefix("//"))
-    val jarPathString = PathString(jarFilePath).portablePath
+    return loadFileFromJar(jarFilePath, splitJarPaths.second)
+  }
+
+  /**
+   * Loads a file from the given [jarFilePath] and [filePath] and returns its contents or null if the file does not exist.
+   */
+  fun loadFileFromJar(jarFilePath: Path, filePath: String): ByteArray? {
+
+    val jarPathString = jarFilePath.invariantSeparatorsPathString
     val entryCache =
       jarFileCache.get(jarPathString) {
         cacheMissCallback()
@@ -177,7 +199,7 @@ private constructor(
     if (cachedEntry == null) {
       // The entry was not in the EntryCache, add it
       cachedEntry = loadFileFromJarOnDiskOrNull(jarFilePath, filePath)
-      (entryCache as MutableMap)[filePath] = cachedEntry
+      entryCache[filePath] = cachedEntry
 
       // Ensure that the weights are re-calculated by updating the jarFileCache entry. If the
       // cachedEntry is null, then, do not update as
@@ -189,8 +211,12 @@ private constructor(
   }
 
   companion object {
+    @JvmStatic
+    fun getInstance(project: Project): JarManager = project.getService(JarManager::class.java)
+
     /** Creates a new [JarManager] only for testing that allows a custom cache to be used. */
     @TestOnly
+    @JvmOverloads
     fun forTesting(
       maxPrefetchFileSizeBytes: Long = StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.get(),
       jarFileCache: Cache<String, EntryCache> =
@@ -198,15 +224,8 @@ private constructor(
       cacheMissCallback: () -> Unit = {}
     ) = JarManager(maxPrefetchFileSizeBytes, jarFileCache, cacheMissCallback)
 
-    /** Creates a new [JarManager] with the default cache. */
-    fun withCache(maxPrefetchFileSizeBytes: Long = StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.get()) =
-      JarManager(
-        maxPrefetchFileSizeBytes,
-        defaultCache(maxPrefetchFileSizeBytes),
-        {}
-      )
-
     /** Creates a new [JarManager] with no cache. */
-    fun withNoCache(): JarManager = JarManager(0L, noCache, {})
+    @TestOnly
+    fun withNoCache(): JarManager = JarManager(0L, noCache) {}
   }
 }

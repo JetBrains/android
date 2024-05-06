@@ -21,18 +21,26 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent.BackgroundTaskIn
 /** Tracks interesting user interaction points with BTI. */
 interface BackgroundTaskInspectorTracker {
   fun trackTableModeSelected()
+
   fun trackGraphModeSelected(
     context: BackgroundTaskInspectorEvent.Context,
     chainInfo: BackgroundTaskInspectorEvent.ChainInfo
   )
+
   fun trackJumpedToSource()
+
   fun trackWorkCancelled()
 
   fun trackWorkSelected(context: BackgroundTaskInspectorEvent.Context)
+
   fun trackJobSelected()
+
   fun trackJobUnderWorkSelected()
+
   fun trackAlarmSelected()
+
   fun trackWakeLockSelected()
+
   fun trackWakeLockUnderJobSelected()
 }
 

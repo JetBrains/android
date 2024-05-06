@@ -40,14 +40,14 @@ class AppInspectionTargetManagerTest {
 
   @Test
   fun launchTarget() =
-    runBlocking {
+    runBlocking<Unit> {
       appInspectionRule.launchTarget(AppInspectionTestUtils.createFakeProcessDescriptor())
       assertThat(appInspectionRule.targetManager.targets).hasSize(1)
     }
 
   @Test
   fun disposesClientsForProject() =
-    runBlocking {
+    runBlocking<Unit> {
       val terminatedProcess =
         FakeTransportService.FAKE_PROCESS.toBuilder().setName("dispose").setPid(1).build()
       val terminateProcessDescriptor =
@@ -86,7 +86,7 @@ class AppInspectionTargetManagerTest {
 
   @Test
   fun processTerminationCleansUpTarget() =
-    runBlocking {
+    runBlocking<Unit> {
       val process = AppInspectionTestUtils.createFakeProcessDescriptor()
       appInspectionRule.launchTarget(process)
 

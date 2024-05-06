@@ -1,4 +1,4 @@
-// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.android;
 
@@ -7,7 +7,8 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 import static com.intellij.workspaceModel.ide.legacyBridge.impl.java.JavaModuleTypeUtils.JAVA_MODULE_ENTITY_TYPE_ID_NAME;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
@@ -18,6 +19,8 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.idea.testing.ThreadingCheckerHookTestImpl;
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline;
+import com.android.tools.tests.AdtTestProjectDescriptor;
+import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.application.options.CodeStyle;
@@ -46,7 +49,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.common.ThreadLeakTracker;
@@ -57,7 +59,7 @@ import com.intellij.testFramework.fixtures.ModuleFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +95,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected AndroidFacet myFacet;
   protected CodeStyleSettings mySettings;
 
+  protected AdtTestProjectDescriptor myProjectDescriptor;
+
   private List<String> myAllowedRoots = new ArrayList<>();
   private boolean myUseCustomSettings;
   private ComponentStack myApplicationComponentStack;
@@ -115,6 +119,25 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
     setUpThreadingChecks();
 
+    AdtTestProjectDescriptor descriptor;
+    if (myProjectDescriptor == null) {
+      LanguageLevel languageLevel = getLanguageLevel();
+      if (languageLevel == null) languageLevel = LanguageLevel.JDK_1_8;
+
+      descriptor = AdtTestProjectDescriptors.defaultDescriptor()
+        .withJavaVersion(languageLevel)
+        .withJdkPath(TestUtils.getEmbeddedJdk17Path());
+    } else {
+      descriptor = myProjectDescriptor;
+    }
+
+    Path jdkPath = TestUtils.getEmbeddedJdk17Path();
+    WriteAction.runAndWait(() -> {
+      cleanJdkTable();
+      setupJdk(jdkPath);
+    });
+    moduleFixtureBuilder.setProjectDescriptor(descriptor);
+
     ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
     configureAdditionalModules(projectBuilder, modules);
 
@@ -126,19 +149,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    Path jdkPath = TestUtils.getEmbeddedJdk17Path();
-    WriteAction.runAndWait(() -> {
-      cleanJdkTable();
-      setupJdk(jdkPath);
-    });
     myFacet = addAndroidFacetAndSdk(myModule);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
-
-    LanguageLevel languageLevel = getLanguageLevel();
-    if (languageLevel != null) {
-      IdeaTestUtil.setProjectLanguageLevel(myModule.getProject(), languageLevel);
-    }
 
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
@@ -198,6 +211,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
   }
 
+  private void cleanJdkTable() {
+    for (Sdk jdk : ProjectJdkTable.getInstance().getAllJdks()) {
+      ProjectJdkTable.getInstance().removeJdk(jdk);
+    }
+  }
+
+
   private void setupJdk(Path path) {
     assert path.isAbsolute() : "JDK path should be an absolute path: " + path;
 
@@ -210,12 +230,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     }
   }
 
-  private void cleanJdkTable() {
-    for (Sdk jdk : ProjectJdkTable.getInstance().getAllJdks()) {
-      ProjectJdkTable.getInstance().removeJdk(jdk);
-    }
-  }
-
   @Override
   protected void tearDown() throws Exception {
     try {
@@ -223,14 +237,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       UIUtil.dispatchAllInvocationEvents();
       tearDownThreadingChecks();
 
-      if (myApplicationComponentStack != null) {
-        myApplicationComponentStack.restore();
-        myApplicationComponentStack = null;
-      }
-      if (myProjectComponentStack != null) {
-        myProjectComponentStack.restore();
-        myProjectComponentStack = null;
-      }
+      myApplicationComponentStack.restore();
+      myApplicationComponentStack = null;
+      myProjectComponentStack.restore();
+      myProjectComponentStack = null;
       CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
       myModule = null;
       myAdditionalModules = null;
@@ -373,7 +383,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     List<String> newRoots = new ArrayList<>(roots);
     newRoots.removeAll(myAllowedRoots);
 
-    String[] newRootsArray = ArrayUtilRt.toStringArray(newRoots);
+    String[] newRootsArray = ArrayUtil.toStringArray(newRoots);
     VfsRootAccess.allowRootAccess(disposable, newRootsArray);
     myAllowedRoots.addAll(newRoots);
 
@@ -516,13 +526,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   }
 
   protected final static class MyAdditionalModuleData {
-    final AndroidModuleFixtureBuilder<?> myModuleFixtureBuilder;
+    final AndroidModuleFixtureBuilder myModuleFixtureBuilder;
     final String myDirName;
     final int myProjectType;
     final boolean myIsMainModuleDependency;
 
     private MyAdditionalModuleData(
-      @NotNull AndroidModuleFixtureBuilder<?> moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
+      @NotNull AndroidModuleFixtureBuilder moduleFixtureBuilder, @NotNull String dirName, int projectType, boolean isMainModuleDependency) {
       myModuleFixtureBuilder = moduleFixtureBuilder;
       myDirName = dirName;
       myProjectType = projectType;
@@ -534,6 +544,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     void setModuleRoot(@NotNull String moduleRoot);
 
     void setModuleName(@NotNull String moduleName);
+
+    void setProjectDescriptor(@NotNull AdtTestProjectDescriptor projectDescriptor);
   }
 
   public static class AndroidModuleFixtureBuilderImpl extends JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>
@@ -541,10 +553,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     private File myModuleRoot;
     private String myModuleName;
+    private AdtTestProjectDescriptor myProjectDescriptor = AdtTestProjectDescriptors.defaultDescriptor();
 
     public AndroidModuleFixtureBuilderImpl(TestFixtureBuilder<? extends IdeaProjectTestFixture> fixtureBuilder) {
       super(fixtureBuilder);
-      JavaCodeInsightFixtureAdtTestCase.addJdk(this);
     }
 
     @Override
@@ -559,6 +571,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     public void setModuleName(@NotNull String moduleName) {
       Preconditions.checkArgument(!"app".equals(moduleName), "'app' is reserved for main module");
       myModuleName = moduleName;
+    }
+
+    @Override
+    public void setProjectDescriptor(@NotNull AdtTestProjectDescriptor projectDescriptor) {
+      myProjectDescriptor = projectDescriptor;
     }
 
     @NotNull
@@ -577,11 +594,12 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     @NotNull
     @Override
     protected ModuleFixtureImpl instantiateFixture() {
+      myProjectDescriptor.configureFixture(this);
       return new ModuleFixtureImpl(this);
     }
   }
 
-  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet<?> facet) {
+  public static void removeFacetOn(@NotNull Disposable disposable, @NotNull Facet facet) {
     Disposer.register(disposable, () -> WriteAction.run(() -> {
       Module module = facet.getModule();
       if (!module.isDisposed()) {

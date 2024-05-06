@@ -32,7 +32,7 @@
             </properties>
             <border type="none"/>
             <children>
-              <grid id="e6aaf" binding="myAvdNamePanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="e6aaf" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
@@ -87,7 +87,7 @@
                   </grid>
                 </children>
               </grid>
-              <grid id="4a0c0" binding="myDevicePanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="4a0c0" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
@@ -179,7 +179,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="7939e" class="com.intellij.ui.components.JBLabel" binding="myCameraLabel">
+                  <component id="7939e" class="com.intellij.ui.components.JBLabel">
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
@@ -197,7 +197,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="f9f26" class="com.intellij.ui.components.JBLabel" binding="myFrontCameraLabel">
+                      <component id="f9f26" class="com.intellij.ui.components.JBLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -206,7 +206,7 @@
                           <text value="Front:"/>
                         </properties>
                       </component>
-                      <component id="d0158" class="com.intellij.ui.components.JBLabel" binding="myBackCameraLabel">
+                      <component id="d0158" class="com.intellij.ui.components.JBLabel">
                         <constraints>
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -253,7 +253,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="4ca3e" class="com.intellij.ui.components.JBLabel" binding="myNetworkLabel">
+                  <component id="4ca3e" class="com.intellij.ui.components.JBLabel">
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
@@ -271,7 +271,7 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <component id="2d493" class="com.intellij.ui.components.JBLabel" binding="mySpeedLabel">
+                      <component id="2d493" class="com.intellij.ui.components.JBLabel">
                         <constraints>
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -280,7 +280,7 @@
                           <text value="Speed:"/>
                         </properties>
                       </component>
-                      <component id="eee9b" class="com.intellij.ui.components.JBLabel" binding="myLatencyLabel">
+                      <component id="eee9b" class="com.intellij.ui.components.JBLabel">
                         <constraints>
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -321,7 +321,7 @@
                   </component>
                 </children>
               </grid>
-              <grid id="b7f00" binding="myPerformancePanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="b7f00" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="6" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
@@ -492,7 +492,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="827b0" class="com.intellij.ui.components.JBLabel" binding="myMemoryAndStorageLabel">
+                  <component id="827b0" class="com.intellij.ui.components.JBLabel">
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
@@ -518,7 +518,7 @@
                           <text value="RAM:"/>
                         </properties>
                       </component>
-                      <component id="6b1e9" class="com.intellij.ui.components.JBLabel" binding="myVmHeapLabel">
+                      <component id="6b1e9" class="com.intellij.ui.components.JBLabel">
                         <constraints>
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -526,7 +526,7 @@
                           <text value="VM heap:"/>
                         </properties>
                       </component>
-                      <component id="89fc4" class="com.intellij.ui.components.JBLabel" binding="myInternalStorageLabel">
+                      <component id="89fc4" class="com.intellij.ui.components.JBLabel">
                         <constraints>
                           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -534,7 +534,7 @@
                           <text value="Internal Storage:"/>
                         </properties>
                       </component>
-                      <component id="95158" class="com.intellij.ui.components.JBLabel" binding="mySdCardLabel">
+                      <component id="95158" class="com.intellij.ui.components.JBLabel">
                         <constraints>
                           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
@@ -631,7 +631,7 @@
                   </component>
                 </children>
               </grid>
-              <grid id="ad9b7" binding="myFramePanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="ad9b7" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="8" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
@@ -698,7 +698,7 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="3bf7b" class="com.intellij.ui.components.JBLabel" binding="myKeyboardLabel">
+                  <component id="3bf7b" class="com.intellij.ui.components.JBLabel">
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
@@ -723,7 +723,7 @@
                   </component>
                 </children>
               </grid>
-              <grid id="1113e" binding="myImagePanel" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="1113e" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="0" left="0" bottom="0" right="0"/>
                 <constraints>
                   <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>

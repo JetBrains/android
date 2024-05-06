@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.base.Splitter
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.CANNOT_BE_CAST_TO
@@ -157,7 +157,7 @@ class StopGradleDaemonQuickFix : BuildIssueQuickFix {
       if (answer == Messages.YES) {
         // Run the action asynchronously from the pooled thread to avoid causing unnecessary UI freezes while waiting for Gradle to close.
         executeOnPooledThread {
-          GradleUtil.stopAllGradleDaemonsAndRestart()
+          GradleProjectSystemUtil.stopAllGradleDaemonsAndRestart()
         }
         future.complete(null)
       }

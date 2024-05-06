@@ -1,80 +1,218 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="kotlin-language" name="Kotlin">
+      <configuration version="5" platform="JVM 17" allPlatforms="JVM [17]" useProjectSettings="false">
+        <compilerSettings>
+          <option name="additionalArguments" value="-Xjvm-default=all -Xsam-conversions=class -Xcontext-receivers" />
+        </compilerSettings>
+        <compilerArguments>
+          <stringArguments>
+            <stringArg name="jvmTarget" arg="17" />
+            <stringArg name="apiVersion" arg="1.9" />
+            <stringArg name="languageVersion" arg="1.9" />
+          </stringArguments>
+          <arrayArguments>
+            <arrayArg name="pluginClasspaths">
+              <args>$MODULE_DIR$/../compose-ide-plugin/lib/compiler-hosted-1.5.8.jar</args>
+            </arrayArg>
+            <arrayArg name="pluginOptions">
+              <args>plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24</args>
+            </arrayArg>
+          </arrayArguments>
+        </compilerArguments>
+      </configuration>
+    </facet>
+  </component>
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="studio-sdk" level="project" />
-    <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
+    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module-library" exported="">
-      <library name="compose-desktop-animation" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.animation:animation-core-desktop:1.3.1" />
+      <library name="jetbrains-jewel-int-ui-standalone" type="repository">
+        <properties maven-id="org.jetbrains.jewel:jewel-int-ui-standalone:0.11.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone/0.11.0/jewel-int-ui-standalone-0.11.0.jar">
+              <sha256sum>891669764c5234d4424991f9d81e2238559fc531ae3b6438aadbd098fd7c62d0</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui/0.11.0/jewel-ui-0.11.0.jar">
+              <sha256sum>01318e0723ceb7bea0f0e99c949c67cc5da64e89e88ad0e28fd0c4e05f67ec71</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation/0.11.0/jewel-foundation-0.11.0.jar">
+              <sha256sum>8760448d6bd6f1396b6d505bf066c5d52a12673e5d0ceab89390069db68aea07</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.5.11/foundation-desktop-1.5.11.jar">
+              <sha256sum>a1784c41038820547b2b3cf9215edfdf6b5e43e5e47d82a7898b5207ea5f21f4</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.5.11/animation-desktop-1.5.11.jar">
+              <sha256sum>5584bcda67d586271a8282d30e2d373f90b9018b611b23f29fa594bb5ff79da1</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.5.11/animation-core-desktop-1.5.11.jar">
+              <sha256sum>09a20f782d7688fcae76b0c41e6c7f97ab256490eeb9ad8143111cebd6d77fbd</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.5.11/ui-geometry-desktop-1.5.11.jar">
+              <sha256sum>6a1fa6e5b0e79bd0c89de1c821fefa33932329a57f24f85caf02b2e536c8fb1f</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.5.11/foundation-layout-desktop-1.5.11.jar">
+              <sha256sum>358c1998a16eb47b5f02409a8ea42f294de64abff91b41e86b16937778ed52db</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.5.11/runtime-desktop-1.5.11.jar">
+              <sha256sum>6e67a4ed8e1aaa9ec5d275b24c5456e82d492ad5710aa28f425da09678016033</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.5.11/ui-desktop-1.5.11.jar">
+              <sha256sum>9f2eaa8a39eda52723b490f8ba1635f5641d1c89524128ae0d87cb3627cf8b25</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.5.11/runtime-saveable-desktop-1.5.11.jar">
+              <sha256sum>57fdcc6e187885701ca6cda7d52cb7fb616dbe8f37e2946e7b723a58ee6a1715</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.5.11/ui-graphics-desktop-1.5.11.jar">
+              <sha256sum>94cb91181e016926ffcd519ec7ac9f3d5f9378f94111f176f4034ae8d12cdcdf</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.5.11/ui-unit-desktop-1.5.11.jar">
+              <sha256sum>7a30c4a3baf9ead2cb3b4b8629604fa1a273450fe5d08f78bff26d77fd56c54a</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.5.11/ui-text-desktop-1.5.11.jar">
+              <sha256sum>a0a620fccee62caafa53f9ce33054001de8df6be0146466892e862b0c0d6c9c1</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.5.11/ui-util-desktop-1.5.11.jar">
+              <sha256sum>d8dff32de582ed38a161453f9ae69eb07f0712ce093c478b209aef06023f4009</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.7.85.4/skiko-awt-0.7.85.4.jar">
+              <sha256sum>7efd80868bca4ff2bcf8def7340e78e91751059b0de68f2820ca3473815c59ca</sha256sum>
+            </artifact>
+          </verification>
+          <exclude>
+            <dependency maven-id="org.jetbrains:annotations" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-common" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk7" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk8" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib" />
+            <dependency maven-id="org.jetbrains.kotlinx:atomicfu-jvm" />
+            <dependency maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm" />
+            <dependency maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-core" />
+          </exclude>
+        </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.3.1/animation-core-desktop-1.3.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-int-ui-standalone/0.11.0/jewel-int-ui-standalone-0.11.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ui/0.11.0/jewel-ui-0.11.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-foundation/0.11.0/jewel-foundation-0.11.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-desktop/1.5.11/foundation-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-desktop/1.5.11/animation-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.5.11/animation-core-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-geometry-desktop/1.5.11/ui-geometry-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.5.11/foundation-layout-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.5.11/runtime-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.5.11/ui-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-saveable-desktop/1.5.11/runtime-saveable-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-graphics-desktop/1.5.11/ui-graphics-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-unit-desktop/1.5.11/ui-unit-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-text-desktop/1.5.11/ui-text-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-util-desktop/1.5.11/ui-util-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.7.85.4/skiko-awt-0.7.85.4.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/animation/animation-core-desktop/1.3.1/animation-core-desktop-1.3.1-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="">
-      <library name="compose-desktop-material" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.material:material-desktop:1.3.1" />
+      <library name="jetbrains-jewel-ide-laf-bridge" type="repository">
+        <properties maven-id="org.jetbrains.jewel:jewel-ide-laf-bridge-241:0.14.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.14.0/jewel-ide-laf-bridge-241-0.14.0.jar">
+              <sha256sum>6f80d4ffcd9d10b615ae30cd8151b6e022bdbe4222d414cc3ecbfc6f3ccaa356</sha256sum>
+            </artifact>
+          </verification>
+          <exclude>
+            <dependency maven-id="org.jetbrains:annotations" />
+            <dependency maven-id="org.jetbrains.compose.animation:animation-core-desktop" />
+            <dependency maven-id="org.jetbrains.compose.animation:animation-desktop" />
+            <dependency maven-id="org.jetbrains.compose.annotation-internal:annotation-desktop" />
+            <dependency maven-id="org.jetbrains.compose.collection-internal:collection-desktop" />
+            <dependency maven-id="org.jetbrains.compose.foundation:foundation-desktop" />
+            <dependency maven-id="org.jetbrains.compose.foundation:foundation-layout-desktop" />
+            <dependency maven-id="org.jetbrains.compose.runtime:runtime-desktop" />
+            <dependency maven-id="org.jetbrains.compose.runtime:runtime-saveable-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-geometry-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-graphics-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-text-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-unit-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-util-desktop" />
+            <dependency maven-id="org.jetbrains.jewel:jewel-foundation" />
+            <dependency maven-id="org.jetbrains.jewel:jewel-ui" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-common" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk7" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk8" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib" />
+            <dependency maven-id="org.jetbrains.skiko:skiko-awt" />
+          </exclude>
+        </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/material/material-desktop/1.3.1/material-desktop-1.3.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.14.0/jewel-ide-laf-bridge-241-0.14.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/material/material-desktop/1.3.1/material-desktop-1.3.1-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="compose-desktop-runtime" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.runtime:runtime-desktop:1.3.1" />
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="jetbrains-compose-ui-test-junit4-desktop" type="repository">
+        <properties maven-id="org.jetbrains.compose.ui:ui-test-junit4-desktop:1.5.11">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.5.11/ui-test-junit4-desktop-1.5.11.jar">
+              <sha256sum>cad11ebec85c9c6a16aa4bd1ad8c793c1f1300d01e7a2f419cd19d4e4c8031e9</sha256sum>
+            </artifact>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-desktop/1.5.11/ui-test-desktop-1.5.11.jar">
+              <sha256sum>9628a6bcca901f90e775329194747485ad8a40df2958132fb6e98307b64204bc</sha256sum>
+            </artifact>
+          </verification>
+          <exclude>
+            <dependency maven-id="com.google.auto.value:auto-value-annotations" />
+            <dependency maven-id="com.google.code.findbugs:jsr305" />
+            <dependency maven-id="com.google.errorprone:error_prone_annotations" />
+            <dependency maven-id="com.google.guava:failureaccess" />
+            <dependency maven-id="com.google.guava:guava" />
+            <dependency maven-id="com.google.guava:listenablefuture" />
+            <dependency maven-id="com.google.j2objc:j2objc-annotations" />
+            <dependency maven-id="com.google.truth:truth" />
+            <dependency maven-id="com.googlecode.java-diff-utils:diffutils" />
+            <dependency maven-id="junit:junit" />
+            <dependency maven-id="org.checkerframework:checker-compat-qual" />
+            <dependency maven-id="org.codehaus.mojo:animal-sniffer-annotations" />
+            <dependency maven-id="org.hamcrest:hamcrest-core" />
+            <dependency maven-id="org.jetbrains:annotations" />
+            <dependency maven-id="org.jetbrains.compose.runtime:runtime-desktop" />
+            <dependency maven-id="org.jetbrains.compose.runtime:runtime-saveable-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-geometry-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-graphics-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-text-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-unit-desktop" />
+            <dependency maven-id="org.jetbrains.compose.ui:ui-util-desktop" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-common" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk7" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib-jdk8" />
+            <dependency maven-id="org.jetbrains.kotlin:kotlin-stdlib" />
+            <dependency maven-id="org.jetbrains.kotlinx:atomicfu-jvm" />
+            <dependency maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm" />
+            <dependency maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-core" />
+            <dependency maven-id="org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm" />
+            <dependency maven-id="org.jetbrains.skiko:skiko-awt" />
+          </exclude>
+        </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.3.1/runtime-desktop-1.3.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/runtime/runtime-desktop/1.3.1/runtime-desktop-1.3.1-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="compose-desktop-foundation" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.foundation:foundation-layout-desktop:1.3.1" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.3.1/foundation-layout-desktop-1.3.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/foundation/foundation-layout-desktop/1.3.1/foundation-layout-desktop-1.3.1-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="compose-desktop-ui" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.compose.ui:ui-desktop:1.3.1" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.3.1/ui-desktop-1.3.1.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-desktop/1.3.1/ui-desktop-1.3.1-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library name="skiko" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.skiko:skiko-awt:0.7.54" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/skiko/skiko-awt/0.7.54/skiko-awt-0.7.54.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-junit4-desktop/1.5.11/ui-test-junit4-desktop-1.5.11.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/compose/ui/ui-test-desktop/1.5.11/ui-test-desktop-1.5.11.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

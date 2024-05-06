@@ -23,6 +23,7 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.codeInspection.ex.GlobalInspectionContextBase
 import com.intellij.lang.Language
 import com.intellij.lang.annotation.HighlightSeverity
@@ -30,6 +31,7 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager
@@ -46,7 +48,7 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -150,7 +152,7 @@ abstract class FullProjectBenchmark {
     )
   }
 
-  private fun performLocalCompletionForFile(file: VirtualFile, maxNumberOfFunctions: Int): List<CompletionSample> {
+  fun performLocalCompletionForFile(file: VirtualFile, maxNumberOfFunctions: Int): List<CompletionSample> {
     val fixture = gradleRule.fixture
     fixture.openFileInEditor(file)
     val psiFile = PsiManager.getInstance(gradleRule.project).findFile(file) as? PsiElement ?: return emptyList()
@@ -174,7 +176,7 @@ abstract class FullProjectBenchmark {
     return samples
   }
 
-  private fun performTopLevelCompletionForFile(file: VirtualFile): List<CompletionSample> {
+  fun performTopLevelCompletionForFile(file: VirtualFile): List<CompletionSample> {
     val fixture = gradleRule.fixture
     fixture.openFileInEditor(file)
     val psiFile = PsiManager.getInstance(gradleRule.project).findFile(file) as? KtFile ?: return emptyList()
@@ -237,7 +239,7 @@ abstract class FullProjectBenchmark {
     )
   }
 
-  private fun runLayoutEditingCuj(layoutCompletionInput: LayoutCompletionInput): LayoutCompletionSample {
+  fun runLayoutEditingCuj(layoutCompletionInput: LayoutCompletionInput): LayoutCompletionSample {
     val project = gradleRule.project
     val activityFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.activityPath)!!
     val layoutFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.layoutPath)!!
@@ -318,7 +320,7 @@ abstract class FullProjectBenchmark {
     }
   }
 
-  private fun commitLayoutCompletionSamplesToBenchmark(
+  fun commitLayoutCompletionSamplesToBenchmark(
     samples: List<LayoutCompletionSample>,
     projectName: String,
     completionType: String
@@ -363,15 +365,16 @@ abstract class FullProjectBenchmark {
     fun loadProject(gradleRule: AndroidGradleProjectRule, projectName: String) {
       val modulePath = AndroidTestBase.getModulePath("ide-perf-tests")
       gradleRule.fixture.testDataPath = modulePath + File.separator + "testData"
-      disableExpensivePlatformAssertions(gradleRule.fixture)
-      enableAllDefaultInspections(gradleRule.fixture)
 
       gradleRule.load(projectName)
       // TODO(b/149240940): gradleRule.generateSources() // Gets us closer to a production setup.
       waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
+
+      disableExpensivePlatformAssertions(gradleRule.fixture)
+      enableAllDefaultInspections(gradleRule.fixture)
     }
 
-    private fun collectSuitableFiles(fileType: FileType, scope: GlobalSearchScope, limit: Int = 100): List<VirtualFile> {
+    fun collectSuitableFiles(fileType: FileType, scope: GlobalSearchScope, limit: Int = 100): List<VirtualFile> {
       val files = FileTypeIndex.getFiles(fileType, scope)
       assert(files.isNotEmpty())
       return files.sortedBy { it.name }.take(limit)
@@ -437,18 +440,22 @@ abstract class FullProjectBenchmark {
       .build()
   }
 
-  private fun clearCaches() {
+  fun clearCaches() {
     PsiManager.getInstance(gradleRule.project).dropPsiCaches()
     System.gc() // May help reduce noise, but it's just a hope. Investigate as needed.
     // Reset TagToClassMap cache
-    gradleRule.project.allModules().forEach { TagToClassMapper.getInstance(it).resetAllClassMaps() }
+    gradleRule.project.modules.asList().forEach { TagToClassMapper.getInstance(it).resetAllClassMaps() }
   }
 
-  private fun measureLintInspections(fileType: FileType, projectName: String) {
+  fun measureLintInspections(fileType: FileType,
+                             projectName: String,
+                             maxFiles: Int = Int.MAX_VALUE,
+                             doWarmup: Boolean = true,
+                             doLogging: Boolean = true) {
     // Setup
     val project = gradleRule.project
     val context = createGlobalContextForTool(AnalysisScope(project), project)
-    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project))
+    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).take(maxFiles)
     assert(files.isNotEmpty())
 
     // Configure inspection for Android Lint
@@ -467,14 +474,16 @@ abstract class FullProjectBenchmark {
     }
 
     // Warmup
-    for (file in files) {
-      val psiFile = gradleRule.fixture.psiManager.findFile(file)!!
-      (context as GlobalInspectionContextBase).doInspections(AnalysisScope(psiFile))
+    if (doWarmup) {
+      for (file in files) {
+        val psiFile = gradleRule.fixture.psiManager.findFile(file)!!
+        (context as GlobalInspectionContextBase).doInspections(AnalysisScope(psiFile))
 
-      do {
-        UIUtil.dispatchAllInvocationEvents()
+        do {
+          UIUtil.dispatchAllInvocationEvents()
+        }
+        while (!context.isFinished)
       }
-      while (!context.isFinished)
     }
 
     // Reset
@@ -504,6 +513,8 @@ abstract class FullProjectBenchmark {
     for (name in disabledTools) {
       profile.setToolEnabled(name, true, project)
     }
+
+    if (!doLogging) return
 
     // Diagnostic logging
     println("""
@@ -537,25 +548,37 @@ abstract class FullProjectBenchmark {
   }
 
   /** Measures highlighting performance for all project source files of the given type. */
-  private fun measureHighlighting(fileType: FileType, projectName: String) {
+  fun measureHighlighting(
+    fileType: FileType,
+    projectName: String,
+    maxFiles: Int = Int.MAX_VALUE,
+    doWarmup: Boolean = true,
+    doLogging: Boolean = true,
+  ) {
     // Collect files.
     val project = gradleRule.project
-    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project))
+    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).filter {
+      it.toPsiFile(gradleRule.project)?.let(ProblemHighlightFilter::shouldHighlightFile) == true
+    }
+      .take(maxFiles)
     assert(files.isNotEmpty())
 
-    // Warmup.
     val fixture = gradleRule.fixture
     var errorCount = 0
-    for (file in files) {
-      fixture.openFileInEditor(file)
-      val errors = fixture.doHighlighting(HighlightSeverity.ERROR)
-      errorCount += errors.size
 
-      // If the test happens to be broken, then the highlighting errors might hint at why.
-      if (errors.isNotEmpty()) {
-        println("There are ${errors.size} errors in ${file.name}")
-        val errorList = errors.joinToString("\n") { it.description }
-        println(errorList.prependIndent("    "))
+    // Warmup.
+    if (doWarmup) {
+      for (file in files) {
+        fixture.openFileInEditor(file)
+        val errors = fixture.doHighlighting(HighlightSeverity.ERROR)
+        errorCount += errors.size
+
+        // If the test happens to be broken, then the highlighting errors might hint at why.
+        if (errors.isNotEmpty()) {
+          println("There are ${errors.size} errors in ${file.name}")
+          val errorList = errors.joinToString("\n") { it.description }
+          println(errorList.prependIndent("    "))
+        }
       }
     }
 
@@ -575,6 +598,9 @@ abstract class FullProjectBenchmark {
       timePerFile.add(Pair(file.name, timeMs))
       totalTimeMs += timeMs
     }
+
+    // If called from a unit test, no need to log anything
+    if (!doLogging) return
 
     // Diagnostic logging.
     println("""

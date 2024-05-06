@@ -16,10 +16,11 @@
 package com.android.tools.idea.logcat.util
 
 /**
- * A [LinkedHashSet] that orders elements by the time they were added and evicts elements if it exceeds a maximum size.
+ * A [LinkedHashSet] that orders elements by the time they were added and evicts elements if it
+ * exceeds a maximum size.
  *
- * This class is intended to hold a set of Logcat tags & package names. While we do not expect these to exceed a safe size, this class
- * ensures that they don't.
+ * This class is intended to hold a set of Logcat tags & package names. While we do not expect these
+ * to exceed a safe size, this class ensures that they don't.
  *
  * In practice, the actual size should not exceed several hundred elements.
  */
@@ -31,8 +32,8 @@ internal class MostRecentlyAddedSet<T>(private var maxSize: Int) : LinkedHashSet
   /**
    * Add an element.
    *
-   * If the element already exists, put it at the end of the list. If the addition results in exceeding [maxSize], remove the first (oldest)
-   * element.
+   * If the element already exists, put it at the end of the list. If the addition results in
+   * exceeding [maxSize], remove the first (oldest) element.
    */
   override fun add(element: T): Boolean {
     val exists = remove(element)

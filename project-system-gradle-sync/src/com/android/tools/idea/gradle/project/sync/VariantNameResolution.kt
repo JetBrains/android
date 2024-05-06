@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeVariantCore
 
-internal const val FAKE_DIMENSION = "agp-missing-dimension-for-sync-only"
+const val FAKE_DIMENSION = "agp-missing-dimension-for-sync-only"
 
 fun buildVariantNameResolver(androidProject: IdeAndroidProject, v2Variants: Collection<IdeVariantCore>): AndroidVariantResolver {
   val availableDimensions = androidProject.multiVariantData?.productFlavors.orEmpty().mapNotNull { it.productFlavor.dimension }.toSet()

@@ -44,12 +44,12 @@ final class Utils {
       .map(path -> system.findFileByIoFile(path.toFile()))
       .collect(Collectors.toList());
 
-    LocalResourceRepository repository = ResourcesTestsUtil.createTestModuleRepository(facet, resVirtualFiles);
+    LocalResourceRepository<VirtualFile> repository = ResourcesTestsUtil.createTestModuleRepository(facet, resVirtualFiles);
     StringResourceRepository stringRepository = createStringRepository(repository);
     panel.getTable().setModel(new StringResourceTableModel(stringRepository, facet.getModule().getProject()));
   }
 
-  static @NotNull StringResourceRepository createStringRepository(@NotNull LocalResourceRepository repository) {
+  static @NotNull StringResourceRepository createStringRepository(@NotNull LocalResourceRepository<VirtualFile> repository) {
     StringResourceRepository stringResourceRepository = StringResourceRepository.create(repository);
     try {
       AtomicBoolean updatesFinished = new AtomicBoolean();

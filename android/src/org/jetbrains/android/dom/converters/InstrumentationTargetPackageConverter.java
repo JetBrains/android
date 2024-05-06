@@ -8,31 +8,28 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.xml.XmlAttributeValue;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.xml.ConvertContext;
-import com.intellij.util.xml.Converter;
-import com.intellij.util.xml.CustomReferenceConverter;
-import com.intellij.util.xml.GenericAttributeValue;
-import com.intellij.util.xml.GenericDomValue;
-import java.util.HashSet;
-import java.util.Set;
+import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class InstrumentationTargetPackageConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Nullable
   @Override
-  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
     return s;
   }
 
   @Nullable
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 
@@ -107,7 +104,7 @@ public class InstrumentationTargetPackageConverter extends Converter<String> imp
           return true;
         }
       });
-      return ArrayUtilRt.toStringArray(result);
+      return ArrayUtil.toStringArray(result);
     }
 
     private void processApkPackageAttrs(@NotNull Processor<GenericAttributeValue<String>> processor) {

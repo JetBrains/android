@@ -29,6 +29,7 @@ import com.android.tools.idea.io.TestFileUtils;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.ui.JBUI;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -44,7 +45,11 @@ public class GutterIconFactoryTest extends AndroidTestCase {
 
   private Path mySampleXmlPath;
 
-  private static final int XML_MAX_WIDTH = 50, XML_MAX_HEIGHT = 60;
+  private static final int XML_MAX_WIDTH = 50;
+  private static final int XML_MAX_HEIGHT = 60;
+  private static final int MAX_WIDTH = JBUI.scale(16);
+  private static final int MAX_HEIGHT = JBUI.scale(16);
+
   private static final String XML_CONTENTS_FORMAT = "<vector android:height=\"%2$ddp\""
                                                     + " android:width=\"%1$ddp\""
                                                     + " xmlns:android=\"http://schemas.android.com/apk/res/android\"> "
@@ -67,7 +72,7 @@ public class GutterIconFactoryTest extends AndroidTestCase {
         VirtualFile file =
           TestFileUtils.writeFileAndRefreshVfs(mySampleXmlPath, String.format(XML_CONTENTS_FORMAT, width, height));
 
-        Icon icon = GutterIconFactory.createIcon(file, null, XML_MAX_WIDTH, XML_MAX_HEIGHT, myFacet);
+        Icon icon = GutterIconFactory.createIcon(file, null, myFacet, XML_MAX_WIDTH, XML_MAX_HEIGHT);
 
         assertThat(icon).isNotNull();
         assertThat(icon.getIconWidth()).isAtMost(XML_MAX_WIDTH);
@@ -80,25 +85,25 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     String path = Paths.get(getTestDataPath(), "render/imageutils/actual.png").toString();
     BufferedImage input = ImageIO.read(new File(path));
     // Sanity check.
-    assertThat(input.getHeight()).isGreaterThan(GutterIconCache.MAX_HEIGHT);
-    assertThat(input.getWidth()).isGreaterThan(GutterIconCache.MAX_WIDTH);
+    assertThat(input.getHeight()).isGreaterThan(MAX_HEIGHT);
+    assertThat(input.getWidth()).isGreaterThan(MAX_WIDTH);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    Icon icon = GutterIconFactory.createIcon(file, null, GutterIconCache.MAX_WIDTH, GutterIconCache.MAX_HEIGHT, myFacet);
+    Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
-    assertThat(icon.getIconWidth()).isAtMost(GutterIconCache.MAX_WIDTH);
-    assertThat(icon.getIconHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
+    assertThat(icon.getIconWidth()).isAtMost(MAX_WIDTH);
+    assertThat(icon.getIconHeight()).isAtMost(MAX_HEIGHT);
   }
 
   public void testCreateIcon_BitmapSmallAlready() throws Exception {
     String path = Paths.get(getTestDataPath(), "annotator/ic_tick_thumbnail.png").toString();
     BufferedImage input = ImageIO.read(new File(path));
     // Sanity check.
-    assertThat(input.getHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
-    assertThat(input.getWidth()).isAtMost(GutterIconCache.MAX_WIDTH);
+    assertThat(input.getHeight()).isAtMost(MAX_HEIGHT);
+    assertThat(input.getWidth()).isAtMost(MAX_WIDTH);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    Icon icon = GutterIconFactory.createIcon(file, null, GutterIconCache.MAX_WIDTH, GutterIconCache.MAX_HEIGHT, myFacet);
+    Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
     BufferedImage output = TestRenderingUtils.getImageFromIcon(icon);
 
@@ -110,14 +115,14 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     String path = Paths.get(getTestDataPath(), "render/imageutils/long_hirozontal_red_line.png").toString();
     BufferedImage input = ImageIO.read(new File(path));
     // Sanity check.
-    assertThat(input.getHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
-    assertThat(input.getWidth()).isGreaterThan(GutterIconCache.MAX_WIDTH);
+    assertThat(input.getHeight()).isAtMost(MAX_HEIGHT);
+    assertThat(input.getWidth()).isGreaterThan(MAX_WIDTH);
 
     VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
-    Icon icon = GutterIconFactory.createIcon(file, null, GutterIconCache.MAX_WIDTH, GutterIconCache.MAX_HEIGHT, myFacet);
+    Icon icon = GutterIconFactory.createIcon(file, null, myFacet, MAX_WIDTH, MAX_HEIGHT);
     assertThat(icon).isNotNull();
-    assertThat(icon.getIconWidth()).isAtMost(GutterIconCache.MAX_WIDTH);
-    assertThat(icon.getIconHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
+    assertThat(icon.getIconWidth()).isAtMost(MAX_WIDTH);
+    assertThat(icon.getIconHeight()).isAtMost(MAX_HEIGHT);
   }
 
   public void testIsReference() {

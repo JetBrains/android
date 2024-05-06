@@ -26,9 +26,11 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
-import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.literals.LiveEditServiceImpl
+import com.android.tools.idea.editors.liveedit.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditServiceImpl
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
@@ -38,6 +40,8 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.applicationProjectContextForTests
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
@@ -67,7 +71,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
-import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -75,7 +79,6 @@ import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
-
 
 /**
  * Unit test for [AndroidRunConfigurationExecutor].
@@ -128,6 +131,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -150,6 +154,7 @@ class AndroidRunConfigurationExecutorTest {
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
+    assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
 
     if (!latch.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not started")
@@ -187,6 +192,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -236,6 +242,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -246,7 +253,7 @@ class AndroidRunConfigurationExecutorTest {
     val runContentDescriptor = ProgressManager.getInstance()
       .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
-    assertThat(liveEditServiceNotified).isEqualTo(true)
+    assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
 
     val processHandler = runContentDescriptor.processHandler
 
@@ -286,6 +293,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -297,7 +305,7 @@ class AndroidRunConfigurationExecutorTest {
       ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
-    assertThat(liveEditServiceNotified).isEqualTo(true)
+    assertThat(liveEditServiceNotified).isEqualTo(false) // Live Edit doesn't need to know if AC was performed.
 
     val processHandler = runContentDescriptor.processHandler
 
@@ -322,16 +330,49 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") })
 
-    assertThatThrownBy {
+    val thrown = assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
-      .isInstanceOf(ExecutionException::class.java)
-      .withFailMessage("ApkProvisionException")
+    assertThat(thrown).hasMessageThat().contains("ApkProvisionException")
+  }
+
+  @Test
+  fun runGetApplicationIdException() {
+    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val env = getExecutionEnvironment(listOf(device))
+    val configuration = env.runProfile as AndroidRunConfiguration
+    configuration.executeMakeBeforeRunStepInTest(device)
+
+    val runner = AndroidRunConfigurationExecutor(
+      applicationIdProvider = object : ApplicationIdProvider{
+        override fun getPackageName(): String {
+          throw ApkProvisionException("AndroidExecutionException packageName")
+        }
+
+        override fun getTestPackageName(): String? {
+          throw ApkProvisionException("AndroidExecutionException testPackageName")
+        }
+      },
+      applicationContext = object: ApplicationProjectContext {
+        override val applicationId: String
+          get() = error("Not supposed to be invoked")
+      },
+      env,
+      deviceFutures,
+      apkProvider = { throw ApkProvisionException("ApkProvisionException") })
+
+    val thrown = assertThrows(AndroidExecutionException::class.java) {
+      ProgressManager.getInstance()
+        .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+    }
+    assertThat(thrown).hasMessageThat().contains("AndroidExecutionException packageName")
   }
 
   @Test
@@ -344,6 +385,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -376,13 +418,11 @@ class AndroidRunConfigurationExecutorTest {
         }
       }
     )
-
-    assertThatThrownBy {
+    val thrown = assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
-      .isInstanceOf(ExecutionException::class.java)
-      .hasMessage(DeployerException.pmFlagsNotSupported().message)
+    assertThat(thrown).hasMessageThat().contains(DeployerException.pmFlagsNotSupported().message)
   }
 
   @Test
@@ -395,13 +435,15 @@ class AndroidRunConfigurationExecutorTest {
     val runningDescriptor = setSwapInfo(env, device)
     val runningProcessHandler = runningDescriptor.processHandler as AndroidProcessHandler
     runningProcessHandler.addTargetDevice(device)
-    val runner = AndroidRunConfigurationExecutor(configuration.applicationIdProvider!!, env, deviceFutures, { throw ApkProvisionException("Exception") })
+    val runner = AndroidRunConfigurationExecutor(
+      configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
+      env, deviceFutures, { throw ApkProvisionException("Exception") })
 
-    assertThatThrownBy {
+    assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
-      .isInstanceOf(ExecutionException::class.java)
 
     assertThat(runningProcessHandler.isAssociated(device)).isEqualTo(true)
     assertThat(runningProcessHandler.isProcessTerminated).isEqualTo(false)
@@ -436,6 +478,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -486,6 +529,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val runner = AndroidRunConfigurationExecutor(
       configuration.applicationIdProvider!!,
+      configuration.applicationProjectContextForTests,
       env,
       deviceFutures,
       configuration.apkProvider!!,
@@ -502,8 +546,7 @@ class AndroidRunConfigurationExecutorTest {
 
     // New process handler should be created if we restarted Activity
     assertThat(newProcessHandler).isNotEqualTo(runningProcessHandler)
-    assertThat(newProcessHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
-    assertThat((newProcessHandler as AndroidRemoteDebugProcessHandler).isAssociated(device)).isEqualTo(true)
+    assertThat(newProcessHandler!!).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
 
     deviceState.stopClient(1234)
     if (!newProcessHandler.waitFor(5000)) {
@@ -596,7 +639,7 @@ class AndroidRunConfigurationExecutorTest {
       whenever(mockExecutionManager.getRunningDescriptors(any())).thenReturn(listOf(runContentDescriptor!!))
       projectRule.project.replaceService(ExecutionManager::class.java, mockExecutionManager, projectRule.testRootDisposable)
     }
+    AndroidSessionInfo.create(processHandlerForSwap, listOf(device), APPLICATION_ID)
     return runContentDescriptor!!
   }
 }
-

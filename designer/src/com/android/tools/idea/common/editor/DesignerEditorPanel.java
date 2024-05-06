@@ -25,7 +25,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.actions.DesignerDataKeys;
-import com.android.tools.idea.common.error.IssuePanelSplitter;
+import com.android.tools.idea.common.error.IssuePanelService;
 import com.android.tools.idea.common.lint.ModelLintIssueAnnotator;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -35,7 +35,6 @@ import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.downloads.AndroidLayoutlibDownloader;
 import com.android.tools.idea.editors.notifications.NotificationPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -61,7 +60,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
@@ -82,7 +80,6 @@ import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * Assembles a designer editor from various components.
@@ -113,7 +110,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
   @NotNull private final ModelProvider myModelProvider;
   @NotNull private final MyContentPanel myContentPanel;
   @NotNull private final WorkBench<DesignSurface<?>> myWorkBench;
-  private final JBSplitter mySplitter;
   @Nullable private final JPanel myAccessoryPanel;
   @Nullable private JComponent myBottomComponent;
   /**
@@ -195,14 +191,13 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     mySurface.getAnalyticsManager().setEditorModeWithoutTracking(myState);
     onStateChange();
 
-    // The rest of the initialization is done once the state of the surface is set to a visible state. This allows to defer the heavy
-    // initialization of the model to when the user actually needs it.
-
-    mySplitter = new IssuePanelSplitter(file, mySurface, myWorkBench);
-    add(mySplitter);
+    IssuePanelService.getInstance(project).registerFileToSurface(file, mySurface);
+    add(myWorkBench);
 
     myToolWindowDefinitions = toolWindowDefinitions;
 
+    // The rest of the initialization is done once the state of the surface is set to a visible state. This allows to defer the heavy
+    // initialization of the model to when the user actually needs it.
     if (bottomModelComponent != null) {
       mySurface.addListener(new DesignSurfaceListener() {
         @Override
@@ -414,9 +409,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     });
 
     if (myAccessoryPanel != null) {
-      boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
       float initialProportion = PropertiesComponent.getInstance().getFloat(ACCESSORY_PROPORTION, 0.5f);
-      OnePixelSplitter splitter = new OnePixelSplitter(verticalSplitter, initialProportion, 0.05f, 0.95f);
+      OnePixelSplitter splitter = new OnePixelSplitter(false, initialProportion, 0.05f, 0.95f);
       splitter.setHonorComponentsMinimumSize(false);
       splitter.setFirstComponent(mySurface);
       splitter.setSecondComponent(myAccessoryPanel);
@@ -476,11 +470,6 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     return file;
   }
 
-  @TestOnly
-  public void setIssuePanelProportion(float proportion) {
-    mySplitter.setProportion(proportion);
-  }
-
   @Override
   public void dispose() {
     Set<LayoutlibSceneManager> keys = mySceneManagerToRenderListeners.keySet();
@@ -517,8 +506,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
     ModelProvider defaultModelProvider = (disposable, project, facet, componentRegistrar, file) -> {
       Configuration configuration = FileTypeUtilsKt.getConfiguration(file, ConfigurationManager.getOrCreateInstance(facet.getModule()));
-      NlModel model = NlModel.builder(facet, file, configuration)
-        .withParentDisposable(disposable)
+      NlModel model = NlModel.builder(disposable, facet, file, configuration)
         .withComponentRegistrar(componentRegistrar)
         .build();
       model.setModelDisplayName(""); // For the Layout Editor, set an empty name to enable SceneView toolbars.

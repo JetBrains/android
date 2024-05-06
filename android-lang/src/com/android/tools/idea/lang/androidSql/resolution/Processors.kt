@@ -60,7 +60,7 @@ class AllColumnsProcessor(
   override fun process(t: AndroidSqlTable): Boolean {
     if (sqlTablesInProcess.contains(t.definingElement)) {
       // We don't want to continue process if we found recursion.
-      return false
+      return false;
     }
     sqlTablesInProcess.add(t.definingElement)
     t.processColumns(delegate, sqlTablesInProcess)

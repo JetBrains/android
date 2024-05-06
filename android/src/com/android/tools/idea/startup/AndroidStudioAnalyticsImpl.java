@@ -16,5 +16,4 @@
 package com.android.tools.idea.startup;
 
 public class AndroidStudioAnalyticsImpl {
-  // content was removed because it depends on classes from modified platform (which do not exist in IntelliJ)
 }

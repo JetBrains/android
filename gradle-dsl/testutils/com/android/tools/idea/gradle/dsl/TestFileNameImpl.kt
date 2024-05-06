@@ -22,8 +22,7 @@ import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
 interface TestFileName {
-  fun toFile(basePath: @SystemIndependent String, extension: String): File = File(
-    FileUtilRt.toSystemDependentName(basePath) + extension)
+  fun toFile(basePath: @SystemIndependent String, extension: String): File = File(FileUtilRt.toSystemDependentName(basePath) + extension)
 }
 @TestDataPath("\$CONTENT_ROOT/../testData/parser")
 enum class TestFileNameImpl(@TestDataFile val path: String): TestFileName {

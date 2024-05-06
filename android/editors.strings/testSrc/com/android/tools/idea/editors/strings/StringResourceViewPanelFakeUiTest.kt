@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -67,7 +67,7 @@ class StringResourceViewPanelFakeUiTest {
   private lateinit var stringResourceViewPanel: StringResourceViewPanel
   private lateinit var fakeUi: FakeUi
   private lateinit var resourceDirectory: VirtualFile
-  private lateinit var localResourceRepository: LocalResourceRepository
+  private lateinit var localResourceRepository: LocalResourceRepository<*>
   private lateinit var facet: AndroidFacet
 
   @Before
@@ -89,10 +89,8 @@ class StringResourceViewPanelFakeUiTest {
   }
 
   @Test
-  @RunsInEdt
   fun toolbarConstructedProperly() {
     val toolbar: ActionToolbar = stringResourceViewPanel.loadingPanel.getDescendant { it.component.name == "toolbar" }
-    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
     assertThat(toolbar.actions).hasSize(8)
     assertThat(toolbar.actions[0]).isInstanceOf(AddKeyAction::class.java)
     assertThat(toolbar.actions[1]).isInstanceOf(RemoveKeysAction::class.java)
@@ -207,7 +205,7 @@ class StringResourceViewPanelFakeUiTest {
     assertThat(getResourceItem(DEFAULT_KEYS[row], locale)?.resourceValue?.value).isEqualTo("new_value")
   }
 
-  private fun LocalResourceRepository.waitForPendingUpdates() {
+  private fun <T> LocalResourceRepository<T>.waitForPendingUpdates() {
     val latch = CountDownLatch(1)
     invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
       latch.countDown()

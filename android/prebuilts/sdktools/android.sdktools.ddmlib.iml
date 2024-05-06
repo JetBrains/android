@@ -4,49 +4,45 @@
     <exclude-output />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="module" module-name="android.sdktools.common" exported="" />
-    <orderEntry type="library" exported="" name="kxml2" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
-    <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
-    <orderEntry type="library" name="libam-instrumentation-data-proto" level="project" />
-    <orderEntry type="library" name="libapp-processes-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-ddmlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/231.0.26.0/studio.android.sdktools.ddmlib-231.0.26.0.jar">
-              <sha256sum>234b036d5fb929a2379c52cfab69739fc0cfe6686efd0fae4536d37e43ea447a</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/232.1.23.0/studio.android.sdktools.ddmlib-232.1.23.0.jar">
+              <sha256sum>aa16c736e9832159e15783fba3d57abab0ebc8feeb546ae64336fd2857fda73f</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/231.0.26.0/studio.android.sdktools.ddmlib-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/232.1.23.0/studio.android.sdktools.ddmlib-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/231.0.26.0/studio.android.sdktools.ddmlib-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-ddmlib-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib_test:231.0.26.0">
+        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib_test:232.1.23.0">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/231.0.26.0/studio.android.sdktools.ddmlib_test-231.0.26.0.jar">
-              <sha256sum>3f996f80cb636a2f4be6cf3b01030686992b3e126ae3421cdd25f04c9cb49e7e</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/232.1.23.0/studio.android.sdktools.ddmlib_test-232.1.23.0.jar">
+              <sha256sum>245550355996aaeec372b07a655109ae99565eb08d8e300d3099a3b259122639</sha256sum>
             </artifact>
           </verification>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/231.0.26.0/studio.android.sdktools.ddmlib_test-231.0.26.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/232.1.23.0/studio.android.sdktools.ddmlib_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/231.0.26.0/studio.android.sdktools.ddmlib_test-231.0.26.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="kxml2" level="project" />
+    <orderEntry type="library" name="libam-instrumentation-data-proto" level="project" />
+    <orderEntry type="library" name="libapp-processes-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.common" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
   </component>
 </module>

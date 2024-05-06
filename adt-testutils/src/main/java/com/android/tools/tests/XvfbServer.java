@@ -16,7 +16,7 @@
 package com.android.tools.tests;
 
 import com.android.testutils.OsType;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.sun.jna.platform.linux.LibC;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -77,7 +77,7 @@ class XvfbServer {
       return new ProcessBuilder(
         launcher.toString(),
         display,
-        TestUtils.getWorkspaceRoot().toString(),
+        com.android.test.testutils.TestUtils.getWorkspaceRoot().toString(),
         DEFAULT_RESOLUTION
       ).start();
     }

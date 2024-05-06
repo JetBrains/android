@@ -4,10 +4,10 @@ package org.jetbrains.android.actions;
 
 import com.android.AndroidXConstants;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectView;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.util.DependencyManagementUtil;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
 import com.intellij.ide.projectView.ProjectView;
@@ -26,17 +26,16 @@ import com.intellij.psi.PsiElement;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
-import java.awt.BorderLayout;
-import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.dom.layout.AndroidLayoutUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import java.awt.*;
+import java.util.List;
 
 /**
  * Like CreateTypedResourceFileAction but prompts for a root tag
@@ -81,22 +80,6 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
     Module module = ModuleUtilCore.findModuleForPsiElement(directory);
     final String rootTag = myLastRootComponentName != null ? myLastRootComponentName : getDefaultRootTag(module);
     return doCreateAndNavigate(newName, directory, rootTag, false, true);
-  }
-
-  @Override
-  public String getDefaultRootTag(@Nullable Module module) {
-
-    if (module != null &&
-        myResourceFolderType == ResourceFolderType.LAYOUT) {
-
-      if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-        return AndroidXConstants.CONSTRAINT_LAYOUT.oldName();
-      } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
-        return AndroidXConstants.CONSTRAINT_LAYOUT.newName();
-      }
-    }
-
-    return super.getDefaultRootTag(module);
   }
 
   @NotNull

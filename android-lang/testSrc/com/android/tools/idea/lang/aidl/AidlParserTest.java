@@ -18,10 +18,10 @@ package com.android.tools.idea.lang.aidl;
 import static com.android.SdkConstants.DOT_TXT;
 
 import com.android.tools.idea.lang.LangTestDataKt;
-import com.intellij.rt.execution.junit.FileComparisonData;
+import com.google.common.base.Charsets;
+import com.intellij.rt.execution.junit.FileComparisonFailure;
 import com.intellij.testFramework.ParsingTestCase;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import kotlin.io.FilesKt;
 
 /**
@@ -42,12 +42,12 @@ public class AidlParserTest extends ParsingTestCase {
   protected void doTest(boolean checkResult, boolean ensureNoErrorElements) {
     try {
       super.doTest(checkResult, ensureNoErrorElements);
-    } catch (AssertionError e) {
-      if (e instanceof FileComparisonData && UPDATE_EXPECTED_FILES_IN_PLACE) {
+    } catch (FileComparisonFailure e) {
+      if (UPDATE_EXPECTED_FILES_IN_PLACE) {
         File file = new File(myFullDataPath, getTestName() + DOT_TXT);
         assertTrue(file.getPath(), file.isFile());
         String expected = toParseTreeText(myFile, skipSpaces(), includeRanges()).trim();
-        FilesKt.writeText(file, expected, StandardCharsets.UTF_8);
+        FilesKt.writeText(file, expected, Charsets.UTF_8);
       }
       throw e;
     }

@@ -35,10 +35,12 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DexOptionsDslElement extends GradleDslBlockElement {
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
@@ -78,15 +80,43 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
     {"threadCount", property, THREAD_COUNT, VAR},
     {"threadCount", exactly(1), THREAD_COUNT, SET}
   }).collect(toModelMap());
+
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
+    {"javaMaxHeapSize", property, JAVA_MAX_HEAP_SIZE, VAR},
+    {"jumboMode", property, JUMBO_MODE, VAR},
+    {"keepRuntimeAnnotatedClasses", property, KEEP_RUNTIME_ANNOTATED_CLASSES, VAR},
+    {"maxProcessCount", property, MAX_PROCESS_COUNT, VAR},
+    {"optimize", property, OPTIMIZE, VAR},
+    {"preDexLibraries", property, PRE_DEX_LIBRARIES, VAR},
+    {"threadCount", property, THREAD_COUNT, VAR},
+  }).collect(toModelMap());
   public static final PropertiesElementDescription<DexOptionsDslElement> DEX_OPTIONS =
-    new PropertiesElementDescription<>("dexOptions", DexOptionsDslElement.class, DexOptionsDslElement::new);
+    new PropertiesElementDescription<>("dexOptions",
+                                       DexOptionsDslElement.class,
+                                       DexOptionsDslElement::new,
+                                       DexOptionsDslElementSchema::new);
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public DexOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class DexOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.DexOptions";
+    }
   }
 }

@@ -21,16 +21,17 @@ import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_ICON_BORDER;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.StandardColors;
+import com.android.tools.profilers.ExportArtifactUtils;
+import com.android.tools.profilers.ExportableArtifact;
 import com.android.tools.profilers.SupportLevel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.text.DateFormatUtil;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
@@ -76,7 +77,7 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     JPanel panel = new JPanel(new TabularLayout("Fit,Fit,*", "Fit,Fit,Fit"));
 
     boolean isSessionAlive = SessionsManager.isSessionAlive(getArtifact().getSession());
-    JLabel startTime = new JLabel(DateFormatUtil.formatTime(getArtifact().getSessionMetaData().getStartTimestampEpochMs()));
+    JLabel startTime = new JLabel(TimeFormatter.getLocalizedTime(getArtifact().getSessionMetaData().getStartTimestampEpochMs()));
     startTime.setBorder(LABEL_PADDING);
     startTime.setFont(SESSION_TIME_FONT);
     startTime.setForeground(StandardColors.TEXT_COLOR);
@@ -185,12 +186,39 @@ public final class SessionItemView extends SessionArtifactView<SessionItem> {
     return ImmutableList.of(endAction, ContextMenuItem.SEPARATOR, deleteAction);
   }
 
+  @Override
+  protected void exportArtifact() {
+    assert getArtifact().getCanExport();
+
+    List<SessionArtifact<?>> childArtifacts = getArtifact().getChildArtifacts();
+    assert childArtifacts.size() == 1;
+    SessionArtifact<?> artifact = childArtifacts.get(0);
+
+    assert !artifact.isOngoing();
+
+    assert artifact instanceof ExportableArtifact;
+    ExportableArtifact exportableArtifact = (ExportableArtifact) artifact;
+
+    String exportableName = exportableArtifact.getExportableName();
+    String exportExtension = exportableArtifact.getExportExtension();
+    // The name of the backing file/capture of this SessionItem (with the file extension) is used as the session name. If the capture name
+    // has a file extension, then we can break the name and extension and reuse them as the exportable file name and extension respectively.
+    String fullCaptureName = artifact.getSessionMetaData().getSessionName();
+    int indexOfDot = fullCaptureName.lastIndexOf('.');
+    if (indexOfDot != -1) {
+      exportableName = fullCaptureName.substring(0, indexOfDot);
+      exportExtension = fullCaptureName.substring(indexOfDot + 1);
+    }
+    ExportArtifactUtils.exportArtifact(exportableName, exportExtension, artifact::export, getSessionsView().getIdeProfilerComponents(),
+                                       getProfilers().getIdeServices());
+  }
+
   /**
    * A component for rendering a green dot in {@link SessionItemView} to indicate that the session is ongoing.
    */
   private static class LiveSessionDot extends JComponent {
 
-    private static final int SIZE = JBUIScale.scale(10);
+    private static final int SIZE = JBUI.scale(10);
     private static final Dimension DIMENSION = new Dimension(SIZE, SIZE);
 
     @Override

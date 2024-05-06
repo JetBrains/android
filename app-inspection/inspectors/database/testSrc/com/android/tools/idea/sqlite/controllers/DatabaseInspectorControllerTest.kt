@@ -89,6 +89,9 @@ import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
 import icons.StudioIcons
+import java.util.concurrent.Executor
+import javax.swing.Icon
+import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -103,9 +106,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
-import java.util.concurrent.Executor
-import javax.swing.Icon
-import javax.swing.JComponent
 
 class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var databaseInspectorView: FakeDatabaseInspectorView
@@ -1476,8 +1476,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       object : DatabaseInspectorClientCommandsChannel {
         override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> =
           Futures.immediateFuture(true)
+
         override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> =
           Futures.immediateFuture(null)
+
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
           Futures.immediateFuture(null)
       }
@@ -1505,8 +1507,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       object : DatabaseInspectorClientCommandsChannel {
         override fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?> =
           Futures.immediateFuture(null)
+
         override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> =
           Futures.immediateFuture(null)
+
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
           Futures.immediateFuture(null)
       }
@@ -1543,8 +1547,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
           invocations.add(keepOpen)
           return Futures.immediateFuture(keepOpen)
         }
+
         override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> =
           Futures.immediateFuture(null)
+
         override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> =
           Futures.immediateFuture(null)
       }

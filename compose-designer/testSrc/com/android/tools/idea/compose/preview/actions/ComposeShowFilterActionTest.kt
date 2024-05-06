@@ -21,8 +21,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.TestActionEvent.createTestEvent
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -38,8 +37,8 @@ class ComposeShowFilterActionTest {
     whenever(surface.getData(COMPOSE_PREVIEW_MANAGER.name)).thenReturn(manager)
     manager.isFilterEnabled = false
 
-    val action = ComposeShowFilterAction(surface)
-    action.actionPerformed(TestActionEvent(DataContext.EMPTY_CONTEXT))
+    val action = ComposeShowFilterAction()
+    action.actionPerformed(createTestEvent { surface.getData(it) })
 
     assertTrue(manager.isFilterEnabled)
   }

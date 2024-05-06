@@ -85,7 +85,7 @@ public class AnalysisResult {
     if (this == o) return true;
     if (!(o instanceof AnalysisResult other)) return false;
 
-    return other.severity == severity &&
+    return Objects.equals(other.severity, severity) &&
            Objects.equals(other.text, text) &&
            Objects.equals(other.description, description) &&
            Objects.equals(other.toolId, toolId) &&
@@ -98,14 +98,12 @@ public class AnalysisResult {
   }
 
   public static AnalysisResult fromProto(ASDriver.AnalysisResult protoResult) {
-    // HighlightSeverity determines equality based on just the name and value. Construct a temporary severity based on the proto, and then
-    // use it to find the corresponding value in DEFAULT_SEVERITIES. (This ensures we get other properties like the display name set on the
-    // resulting object.)
     ASDriver.AnalysisResult.HighlightSeverity protoSeverity = protoResult.getSeverity();
     HighlightSeverity desiredSeverity = new HighlightSeverity(protoSeverity.getName(), protoSeverity.getValue());
-    HighlightSeverity
-      severity = Arrays.stream(HighlightSeverity.DEFAULT_SEVERITIES).filter((hs) -> hs.equals(desiredSeverity)).findFirst()
-        .orElseThrow();
+    // Try to reuse standard HighlightSeverity instances so that additional properties are set, e.g. display name.
+    HighlightSeverity severity =
+      Arrays.stream(HighlightSeverity.DEFAULT_SEVERITIES).filter((hs) -> hs.equals(desiredSeverity)).findFirst()
+        .orElse(desiredSeverity);
     String description = protoResult.hasDescription() ? protoResult.getDescription() : null;
     String toolId = protoResult.hasToolId() ? protoResult.getToolId() : null;
 

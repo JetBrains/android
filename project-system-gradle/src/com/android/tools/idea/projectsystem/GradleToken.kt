@@ -17,6 +17,6 @@ package com.android.tools.idea.projectsystem
 
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 
-interface GradleToken : Token {
+interface GradleToken : ProjectSystemToken {
   override fun isApplicable(projectSystem: AndroidProjectSystem) = projectSystem is GradleProjectSystem
 }

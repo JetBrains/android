@@ -145,8 +145,6 @@ public class TabbedToolbar extends JPanel {
     });
     myTabsPanel.add(tab);
     mySelectionActions.add(selectTabAction);
-    // Cache preferred height of control so we can properly adjust child elements sizes.
-    selectTab(tab, selectedListener);
     myTabScrollView.scrollTo(myTabsPanel.getWidth());
   }
 

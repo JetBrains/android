@@ -41,8 +41,10 @@ class ProguardR8FileType private constructor() : LanguageFileType(ProguardR8Lang
     @JvmField
     val INSTANCE = ProguardR8FileType()
 
-    const val EXT_PRO = "pro"
+    @JvmField
+    val EXT_PRO = "pro"
 
-    const val DOT_PRO = ".pro"
+    @JvmField
+    val DOT_PRO = ".pro"
   }
 }

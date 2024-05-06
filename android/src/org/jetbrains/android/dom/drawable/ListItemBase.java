@@ -1,12 +1,13 @@
 package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.Convert;
-import java.util.List;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
+
+import java.util.List;
 
 public interface ListItemBase extends DrawableDomElement {
   @Convert(ResourceReferenceConverter.class)

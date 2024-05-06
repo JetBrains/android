@@ -102,7 +102,7 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
                          attrs: AttributeSet?) {
       if (text == null) {
         // Deletion case
-        super.replace(fb, offset, length, null, attrs)
+        super.replace(fb, offset, length, text, attrs)
       }
       else {
         // Insert or replace case: Filter out any non digit character
@@ -156,6 +156,6 @@ class JSingleDigitTextField : JBTextField(), KeyboardAwareFocusOwner {
 
   /** Don't let IntelliJ's ActionManager process backspace: we want to use it as a focus traversal key. */
   override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
-    return event.keyChar == '\b'
+    return event.keyChar == '\b';
   }
 }

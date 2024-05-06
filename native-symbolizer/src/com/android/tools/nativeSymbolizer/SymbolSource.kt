@@ -17,12 +17,11 @@ package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.apk.ApkFacet
-import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
-import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.utils.FileUtils
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -48,67 +47,6 @@ class MergeSymbolSource(private val sources:Collection<SymbolSource>): SymbolSou
   }
 }
 
-/** Gets symbol directories from an APK's debug directory. */
-class ApkSymbolSource(module: Module): SymbolSource {
-  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
-  // check if it has been disposed so we stop using it.
-  private val moduleRef = WeakReference(module)
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    val module = moduleRef.get() ?: return emptySet()
-
-    if (module.isDisposed) {
-      return emptySet()
-    }
-
-    val apkFacet = ApkFacet.getInstance(module) ?: return emptySet()
-
-    val folders = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
-    return folders.map { File(FileUtils.toSystemDependentPath(it)) }
-  }
-}
-
-class NdkSymbolSource(module: Module): SymbolSource {
-  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
-  // check if it has been disposed so we stop using it.
-  private val moduleRef = WeakReference(module)
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    val module = moduleRef.get() ?: return emptySet()
-
-    if (module.isDisposed) {
-      return emptySet()
-    }
-
-    val ndkFacet = NdkFacet.getInstance(module) ?: return emptySet()
-    val ndkModuleModel = NdkModuleModel.get(module) ?: return emptySet()
-    val selectedAbi = ndkFacet.selectedVariantAbi ?: return emptySet()
-
-    return ndkModuleModel.symbolFolders
-        .filter { it.key.abi == abi.toString() && it.key.variant == selectedAbi.variant}
-        .flatMapTo(mutableSetOf()) { it.value }
-  }
-}
-
-/** Gets symbol directories from a module's Gradle file. */
-class JniSymbolSource(module: Module) : SymbolSource {
-  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
-  // check if it has been disposed so we stop using it.
-  private val moduleRef = WeakReference(module)
-
-  override fun getDirsFor(abi: Abi): Collection<File> {
-    val module = moduleRef.get() ?: return emptySet()
-
-    if (module.isDisposed) {
-      return emptySet()
-    }
-
-    return module.androidFacet?.let { SourceProviders.getInstance(it) }?.sources?.jniLibsDirectories?.map {
-      it.findChild(abi.toString())?.toIoFile()
-    }.orEmpty().filterNotNull()
-  }
-}
-
 /** Allows us to manually add/remove symbol directories programmatically. */
 class DynamicSymbolSource: SymbolSource {
   private val dirsByAbi = HashMap<String, HashSet<File>>()
@@ -123,13 +61,62 @@ class DynamicSymbolSource: SymbolSource {
   }
 }
 
+abstract class ModuleSymbolSource(module: Module): SymbolSource {
+  // Use a weak reference so that we don't keep holding onto the module after it has been disposed of. If the module has not been freed, we
+  // check if it has been disposed so we stop using it.
+  private val moduleRef = WeakReference(module)
+
+  final override fun getDirsFor(abi: Abi): Collection<File> {
+    val module = moduleRef.get()?.takeIf { !it.isDisposed } ?: return emptySet()
+    return getDirsFor(abi, module)
+  }
+
+  /** Implement [getDirsFor] for a known-live (non-Disposed non-freed) [module] */
+  abstract fun getDirsFor(abi: Abi, module: Module): Collection<File>
+}
+
+interface ModuleSymbolSourceContributor {
+  companion object {
+    val EP_NAME = ExtensionPointName<ModuleSymbolSourceContributor>("com.android.tools.nativeSymbolizer.moduleSymbolSourceContributor")
+  }
+
+  fun create(module: Module): ModuleSymbolSource
+}
+
 /** A SymbolSource to collect native symbols from a project. */
 class ProjectSymbolSource(project: Project): SymbolSource {
-  private val source = MergeSymbolSource(ModuleManager.getInstance(project).modules.flatMap {
-    listOf(ApkSymbolSource(it), NdkSymbolSource(it), JniSymbolSource(it))
+  private val source = MergeSymbolSource(ModuleManager.getInstance(project).modules.flatMap { module ->
+    ModuleSymbolSourceContributor.EP_NAME.extensions.map { contributor -> contributor.create(module) }
   })
 
   override fun getDirsFor(abi: Abi): Collection<File> {
     return source.getDirsFor(abi)
   }
+}
+
+/** Gets symbol directories from an APK's debug directory. */
+class ApkSymbolSource(module: Module): ModuleSymbolSource(module) {
+  override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
+    val apkFacet = ApkFacet.getInstance(module) ?: return emptySet()
+
+    val folders = apkFacet.configuration.getDebugSymbolFolderPaths(listOf(abi))
+    return folders.map { File(FileUtils.toSystemDependentPath(it)) }
+  }
+}
+
+class ApkSymbolSourceContributor : ModuleSymbolSourceContributor {
+  override fun create(module: Module) = ApkSymbolSource(module)
+}
+
+/** Gets symbol directories from a module's Gradle file. */
+class JniSymbolSource(module: Module) : ModuleSymbolSource(module) {
+  override fun getDirsFor(abi: Abi, module: Module): Collection<File> {
+    return module.androidFacet?.let { SourceProviders.getInstance(it) }?.sources?.jniLibsDirectories?.map {
+      it.findChild(abi.toString())?.toIoFile()
+    }.orEmpty().filterNotNull()
+  }
+}
+
+class JniSymbolSourceContributor : ModuleSymbolSourceContributor {
+  override fun create(module: Module) = JniSymbolSource(module)
 }

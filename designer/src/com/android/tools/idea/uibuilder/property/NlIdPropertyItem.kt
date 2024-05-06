@@ -63,6 +63,9 @@ open class NlIdPropertyItem(
   override val rawValue: String?
     get() = readIdFromPsi()
 
+  override val resolvedValue: String?
+    get() = rawValue
+
   override var value: String?
     get() = stripIdPrefix(super.value)
     set(value) {

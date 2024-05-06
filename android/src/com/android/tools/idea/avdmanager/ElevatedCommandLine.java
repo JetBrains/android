@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
+
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -44,7 +46,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
   private static final int INFINITE = -1;
   private String myTempFilePrefix;
 
-  public ElevatedCommandLine(@NotNull String ... command) {
+  public ElevatedCommandLine(@NotNull String... command) {
     super(command);
     myTempFilePrefix = "temp";
   }
@@ -125,7 +127,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
 
     @Override
     public OutputStream getOutputStream() {
-      throw new RuntimeException("Unexpected behaviour");
+      return NULL_OUTPUT_STREAM;
     }
 
     @Override

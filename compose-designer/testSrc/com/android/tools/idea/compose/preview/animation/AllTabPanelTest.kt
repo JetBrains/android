@@ -25,7 +25,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.JBColor
@@ -112,7 +112,7 @@ class AllTabPanelTest {
 
     val panel = AllTabPanel().apply { setSize(1000, 800) }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       assertEquals(0, panel.getNumberOfCards())
       panel.addCard(cardOne)
       assertEquals(1, panel.getNumberOfCards())
@@ -150,7 +150,7 @@ class AllTabPanelTest {
 
     val panel = AllTabPanel().apply { setSize(1000, 800) }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       assertEquals(0, panel.getNumberOfCards())
       panel.addCard(cardOne)
       assertEquals(1, panel.getNumberOfCards())
@@ -217,7 +217,7 @@ class AllTabPanelTest {
         addTimeline(TestUtils.createTimelinePlaceHolder())
       }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(panel)
       panel.addCard(cardOne)
       panel.addCard(cardTwo)
@@ -269,7 +269,7 @@ class AllTabPanelTest {
         addTimeline(TestUtils.createTimelinePlaceHolder())
       }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(panel)
       panel.addCard(cardOne)
       panel.addCard(labelCardOne)
@@ -305,7 +305,7 @@ class AllTabPanelTest {
       )
     }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(panel)
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()
@@ -344,7 +344,7 @@ class AllTabPanelTest {
       )
     }
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(panel)
       ui.updateToolbars()
       ui.layout()

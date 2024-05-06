@@ -28,13 +28,14 @@ abstract class OpenPopUpAction : DumbAwareAction {
   constructor(name: String) : super(name)
 
   abstract val actions: List<PanelAction>
+
   override fun actionPerformed(e: AnActionEvent) {
     // Context should be set to actions in popup as otherwise it will use component which already
     // could be not available.
-    actions.forEach { it.context = e.inputEvent?.component }
+    actions.forEach { it.context = e.inputEvent!!.component }
     val menu =
       JBPopupFactory.getInstance()
         .createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
-    e.inputEvent?.let { menu.showUnderneathOf(it.component) }
+    menu.showUnderneathOf(e.inputEvent!!.component)
   }
 }

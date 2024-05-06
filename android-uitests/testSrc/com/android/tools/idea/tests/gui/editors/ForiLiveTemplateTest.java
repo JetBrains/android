@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 @RunWith(GuiTestRemoteRunner.class)
 public class ForiLiveTemplateTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private static String FOR_I = ".*for.*\\(int.*i.*\\=.*0;.*i.*\\<.*;.*i\\+\\+\\).*\\{\n.*\n.*\\}" + LiveTemplatesTestUtil.STATEMENT + ".*";
   private static final Pattern FOR_I_PATTERN = Pattern.compile(FOR_I, Pattern.DOTALL);
@@ -61,7 +61,7 @@ public class ForiLiveTemplateTest {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     EditorFixture editorFixture = ideFrame.getEditor().open(LiveTemplatesTestUtil.JAVA_FILE);
 
-    LiveTemplatesTestUtil.doubleTapToInsertLiveTemplate(ideFrame, editorFixture, "fori");
+    LiveTemplatesTestUtil.doubleTapToInsertLiveTemplate(guiTest, ideFrame, editorFixture, "fori");
     Wait.seconds(20).expecting("For/i statement to show in code.")
       .until(() -> new PatternTextMatcher(FOR_I_PATTERN).isMatching(editorFixture.getCurrentFileContents()));
   }

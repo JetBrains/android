@@ -17,8 +17,8 @@ package com.android.tools.idea.layoutlib;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
+import com.android.tools.environment.Logger;
 import com.android.utils.ILogger;
-import com.intellij.openapi.diagnostic.Logger;
 
 public class LogWrapper implements ILogger {
   private final Logger myLog;

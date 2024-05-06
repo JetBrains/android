@@ -46,11 +46,11 @@ class BindingXmlIndexEntriesTest {
   private var projectRule = AndroidProjectRule.withSdk().initAndroid(true)
 
   // ProjectRule initialization must not happen on the EDT thread
-  @get:Rule
-  var chainRule: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule var chainRule: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
   private val project
     get() = projectRule.project
+
   private val fixture
     get() = projectRule.fixture
 
@@ -60,8 +60,8 @@ class BindingXmlIndexEntriesTest {
   fun setUp() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
 
-    val file = fixture.copyFileToProject(
-      LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
+    val file =
+      fixture.copyFileToProject(LAYOUT_WITH_DATA_BINDING, "res/layout/layout_with_data_binding.xml")
     psiFile = PsiManager.getInstance(project).findFile(file)!!
   }
 
@@ -69,46 +69,44 @@ class BindingXmlIndexEntriesTest {
   fun testAddVariable() {
     insertXml(
       offset = getVariableTag("variable1").textOffset,
-      xml = """
+      xml =
+        """
         <variable
           name="added"
           type="Integer"
         />
-        """.trimIndent())
-    assertVariables(
-      "variable1" to "String",
-      "added" to "Integer"
+        """
+          .trimIndent()
     )
+    assertVariables("variable1" to "String", "added" to "Integer")
   }
 
   @Test
   fun testRenameVariable() {
     updateXml(
       range = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange,
-      xml = "newName")
-    assertVariables(
-      "newName" to "String"
+      xml = "newName"
     )
+    assertVariables("newName" to "String")
   }
 
   @Test
   fun testRenameVariable_prefix() {
     insertXml(
       offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.textOffset,
-      xml = "prefix_")
-    assertVariables(
-      "prefix_variable1" to "String"
+      xml = "prefix_"
     )
+    assertVariables("prefix_variable1" to "String")
   }
 
   @Test
   fun testRenameVariable_suffix() {
     insertXml(
-      offset = getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
-      xml = "_suffix")
-    assertVariables(
-      "variable1_suffix" to "String"
+      offset =
+        getVariableTag("variable1").getAttribute("name")!!.valueElement!!.valueTextRange.endOffset,
+      xml = "_suffix"
     )
+    assertVariables("variable1_suffix" to "String")
   }
 
   @Test
@@ -123,17 +121,17 @@ class BindingXmlIndexEntriesTest {
     val variableTag = getVariableTag("variable1")
     insertXml(
       offset = variableTag.textRange.endOffset,
-      xml = """
+      xml =
+        """
         <variable
           name="added"
           type="Integer"
         />
-        """.trimIndent()
+        """
+          .trimIndent()
     )
     deleteXml(variableTag.textRange)
-    assertVariables(
-      "added" to "Integer"
-    )
+    assertVariables("added" to "Integer")
   }
 
   @Test
@@ -141,17 +139,17 @@ class BindingXmlIndexEntriesTest {
     val variableTag = getVariableTag("variable1")
     insertXml(
       offset = variableTag.textRange.endOffset,
-      xml = """
+      xml =
+        """
         <variable
           name="added"
           type="Integer"
         />
-        """.trimIndent()
+        """
+          .trimIndent()
     )
     deleteXml(getVariableTag("added").textRange)
-    assertVariables(
-      "variable1" to "String"
-    )
+    assertVariables("variable1" to "String")
   }
 
   @Test
@@ -160,9 +158,7 @@ class BindingXmlIndexEntriesTest {
       range = getVariableTag("variable1").getAttribute("type")!!.valueElement!!.valueTextRange,
       xml = "Float"
     )
-    assertVariables(
-      "variable1" to "Float"
-    )
+    assertVariables("variable1" to "Float")
   }
 
   private fun insertXml(offset: Int, xml: String) {
@@ -197,46 +193,34 @@ class BindingXmlIndexEntriesTest {
 
   @Test
   fun testInitialParsing() {
-    assertVariables(
-      "variable1" to "String"
-    )
-    assertImports(
-      "p1.p2.import1" to null,
-      "p1.p2.import2" to "i2"
-    )
+    assertVariables("variable1" to "String")
+    assertImports("p1.p2.import1" to null, "p1.p2.import2" to "i2")
   }
 
   /**
-   * Asserts all variables declared in the xml are found up-to-date in the [BindingXmlIndex].
-   * See also: [getIndexEntry]
+   * Asserts all variables declared in the xml are found up-to-date in the [BindingXmlIndex]. See
+   * also: [getIndexEntry]
    *
    * Note: Pairs are name to type.
    */
   private fun assertVariables(vararg expected: Pair<String, String>) {
-    val variables = getIndexEntry().data
-      .variables
-      .map { variable -> variable.name to variable.type }
-      .toSet()
+    val variables =
+      getIndexEntry().data.variables.map { variable -> variable.name to variable.type }.toSet()
     assertEquals(expected.toSet(), variables)
   }
 
   /**
-   * Asserts all imports declared in the xml are found up-to-date in the current [BindingXmlIndex.Entry]
-   * See also: [getIndexEntry]
+   * Asserts all imports declared in the xml are found up-to-date in the current
+   * [BindingXmlIndex.Entry] See also: [getIndexEntry]
    *
    * Note: Pairs are type to alias.
    */
   private fun assertImports(vararg expected: Pair<String, String?>) {
-    val imports = getIndexEntry().data
-        .imports
-        .map { import -> import.type to import.alias }
-        .toSet()
+    val imports = getIndexEntry().data.imports.map { import -> import.type to import.alias }.toSet()
     assertEquals(expected.toSet(), imports)
   }
 
-  /**
-   * Returns the index entry that corresponds to the single layout declared for this test.
-   */
+  /** Returns the index entry that corresponds to the single layout declared for this test. */
   private fun getIndexEntry(): BindingXmlIndex.Entry {
     return BindingXmlIndex.getEntriesForLayout(project, "layout_with_data_binding").first()
   }

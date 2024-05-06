@@ -38,7 +38,6 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
@@ -179,25 +178,25 @@ public class DeviceExplorerPanel {
       .setBackground(UIUtil.getTreeBackground())
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Name")
-                   .setPreferredWidth(JBUIScale.scale(600))
+                   .setPreferredWidth(JBUI.scale(600))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new NameRenderer(treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Permissions")
-                   .setPreferredWidth(JBUIScale.scale(190))
+                   .setPreferredWidth(JBUI.scale(190))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new PermissionsRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Date")
-                   .setPreferredWidth(JBUIScale.scale(280))
+                   .setPreferredWidth(JBUI.scale(280))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new DateRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Size")
-                   .setPreferredWidth(JBUIScale.scale(130))
+                   .setPreferredWidth(JBUI.scale(130))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer())

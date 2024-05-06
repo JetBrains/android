@@ -29,9 +29,11 @@ import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialo
  */
 interface ParametersBindingDialogView {
   fun show()
+
   fun showNamedParameters(parameters: Set<SqliteParameter>)
 
   fun addListener(listener: Listener)
+
   fun removeListener(listener: Listener)
 
   interface Listener {

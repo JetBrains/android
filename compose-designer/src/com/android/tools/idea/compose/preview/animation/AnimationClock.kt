@@ -144,7 +144,7 @@ class AnimationClock(val clock: Any) {
     clock::class
       .java
       .methods
-      .firstOrNull() {
+      .firstOrNull {
         // Convert something like `setClockTime-zrx7VqY` into `setClockTime` in order to handle
         // methods that use inline classes.
         // See https://kotlinlang.org/docs/inline-classes.html#mangling for more info.

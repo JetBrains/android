@@ -37,16 +37,21 @@ class ListenerCollectionTest {
 
     assertTrue(handler.add(listener1))
     assertFalse(handler.add(listener1))
+    assertEquals(1, handler.size())
     handler.clear()
+    assertEquals(0, handler.size())
     assertTrue(handler.add(listener1))
     assertTrue(handler.add(listener2))
     assertFalse(handler.add(listener1))
     assertFalse(handler.remove(listener3)) // Not yet added
     assertTrue(handler.add(listener3))
+    assertEquals(3, handler.size())
     assertTrue(handler.remove(listener3))
     assertFalse(handler.remove(listener3)) // Already removed
     assertTrue(handler.remove(listener1))
+    assertEquals(1, handler.size())
     handler.clear()
+    assertEquals(0, handler.size())
     assertFalse(handler.remove(listener2)) // Already removed
   }
 

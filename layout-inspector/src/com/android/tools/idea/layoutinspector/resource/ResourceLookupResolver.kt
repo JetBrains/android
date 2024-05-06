@@ -37,6 +37,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
+import com.android.ide.common.resources.colorToString
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.toFileResourcePathString
 import com.android.resources.FolderTypeRelationship
@@ -57,7 +58,6 @@ import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.res.ResourceNamespaceContext
 import com.android.tools.idea.res.StateList
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.getItemPsiFile
 import com.android.tools.idea.res.getItemTag
 import com.android.tools.idea.res.resolve
@@ -212,7 +212,7 @@ class ResourceLookupResolver(
     val tag = findViewTagInFile(view, view.layout) ?: return null
     val (namespace, namespaceResolver) = getNamespacesContext(tag)
     val reference = url.resolve(namespace, namespaceResolver) ?: return null
-    return resolver.resolveAsIcon(resolver.getUnresolvedResource(reference), project, appFacet)
+    return resolver.resolveAsIcon(resolver.getUnresolvedResource(reference), appFacet)
   }
 
   /** Attempt to determine if [attributeName] refers to a dimension. */
@@ -224,8 +224,7 @@ class ResourceLookupResolver(
     val isLayoutAttribute = attributeName.startsWith(ATTR_LAYOUT_RESOURCE_PREFIX)
     val qualifiedTagName =
       (if (isLayoutAttribute) ViewNode.readAccess { view.parent?.qualifiedName }
-      else view.qualifiedName)
-        ?: return false
+      else view.qualifiedName) ?: return false
     var psiClass: PsiClass? =
       JavaPsiFacade.getInstance(project)
         .findClass(qualifiedTagName, GlobalSearchScope.allScope(project))
@@ -353,8 +352,7 @@ class ResourceLookupResolver(
     val styleItem =
       styleValue.getItem(attr(property))?.let {
         StyleItemResourceValueWithStyleReference(styleValue, it)
-      }
-        ?: return null
+      } ?: return null
     return resolveValue(property, view, styleItem)
   }
 
@@ -438,12 +436,12 @@ class ResourceLookupResolver(
         object : ResourceNamespace.Resolver {
           override fun uriToPrefix(namespaceUri: String): String? =
             tag.getPrefixByNamespace(namespaceUri)
+
           override fun prefixToUri(namespacePrefix: String): String? =
             tag.getNamespaceByPrefix(namespacePrefix).nullize()
         }
       )
-    }
-      ?: androidNamespaceContext
+    } ?: androidNamespaceContext
   }
 
   // Unfortunately a style item is not a ResourceItem, and we need the style value to locate this
@@ -622,8 +620,7 @@ class ResourceLookupResolver(
           item.originalSource.toVirtualFile()
         }
         else -> null
-      }
-        ?: return null
+      } ?: return null
 
     val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return null
     val locator = ViewLocator(view)

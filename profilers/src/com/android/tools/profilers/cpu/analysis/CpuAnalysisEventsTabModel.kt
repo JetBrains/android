@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadTrackModel
+import kotlin.streams.toList
 
 /**
  * Base model class for the events tab.

@@ -19,7 +19,6 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
@@ -28,7 +27,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -36,27 +34,32 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.argThat
+import org.mockito.Mockito
+import org.mockito.Mockito.argThat
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class LegacyClientTest {
   private val windowIds = mutableListOf<String>()
-
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val scheduler = VirtualTimeScheduler()
-
+  private val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+  private val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+  private val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = mock(LegacyTreeLoader::class.java)
-    doAnswer { windowIds }.whenever(loader).getAllWindowIds(ArgumentMatchers.any())
+    doAnswer { windowIds }.whenever(loader).getAllWindowIds(Mockito.any())
     val client =
       LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector)
         as LegacyClient
@@ -67,7 +70,9 @@ class LegacyClientTest {
         notificationModel,
         ListenerCollection.createWithDirectExecutor(),
         client.stats,
-        scheduler
+        unused,
+        timeoutScope,
+        debuggerScope
       )
     client
   }
@@ -126,7 +131,7 @@ class LegacyClientTest {
     }
     waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.timeoutHandlerScheduled }
     assertThat(client.reloadAllWindows()).isFalse()
-    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    timeoutScope.testScheduler.advanceUntilIdle()
     val notificationModel = inspectorRule.notificationModel
     val notification1 = notificationModel.notifications.single()
     assertThat(notification1.message)

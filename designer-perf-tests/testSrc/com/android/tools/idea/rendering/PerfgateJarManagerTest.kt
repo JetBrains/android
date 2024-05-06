@@ -114,7 +114,7 @@ class PerfgateJarManagerTest {
       val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
       repeat(NUMBER_OF_SAMPLES) {
-        val jarManager = JarManager.withCache()
+        val jarManager = JarManager()
         val stopWatch = Stopwatch.createStarted()
         (0 until numberOfFiles).shuffled().forEach {
           jarManager.loadFileFromJar(URI("jar:file:$jarFile!/file$it"))!!
@@ -140,7 +140,7 @@ class PerfgateJarManagerTest {
     val samples: MutableList<MetricSample> = ArrayList(NUMBER_OF_SAMPLES)
 
     repeat(NUMBER_OF_SAMPLES) {
-      val jarManager = JarManager.withCache()
+      val jarManager = JarManager()
       val stopWatch = Stopwatch.createStarted()
       (0 until numberOfFiles).shuffled().forEach {
         jarManager.loadFileFromJar(URI("jar:file:$jarFile!/file$it"))!!

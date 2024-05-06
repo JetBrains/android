@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
-import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.ANDROIDX_PKG;
 import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 import static com.android.SdkConstants.BUTTON;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.MATERIAL2_PKG;
+import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.SCROLL_VIEW;
 import static com.android.SdkConstants.SWITCH;
 import static com.android.SdkConstants.TEXT_VIEW;
@@ -33,6 +33,7 @@ import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -216,7 +217,7 @@ public class DataModel implements Disposable {
   private static List<String> readFavoriteItems() {
     List<String> favorites = PropertiesComponent.getInstance().getList(FAVORITE_ITEMS);
     if (favorites == null) {
-      return List.of(
+      return Lists.newArrayList(
         TEXT_VIEW,
         BUTTON,
         IMAGE_VIEW,

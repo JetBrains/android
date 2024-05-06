@@ -26,6 +26,7 @@ import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
 import org.junit.Assert.assertThrows
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.BorderLayout
@@ -37,7 +38,8 @@ import javax.swing.JPanel
 import javax.swing.UIManager
 
 class IconTableComponentTest {
-  @get:Rule val disposableRule = DisposableRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Test
   fun updateTablePresentation() {
@@ -56,7 +58,8 @@ class IconTableComponentTest {
     if (ExperimentalUI.isNewUI()) {
       // We don't change the icon colors in the new UI
       assertThat(label.icon).isEqualTo(icon)
-    } else {
+    }
+    else {
       assertSameImage(render(label, label.icon), render(label, icon.applyColor(JBColor.BLUE)))
     }
 

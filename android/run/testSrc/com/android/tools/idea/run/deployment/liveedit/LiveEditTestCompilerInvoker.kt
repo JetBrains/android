@@ -38,6 +38,9 @@ internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: IrClassC
   return compile(inputs, compiler)
 }
 
+internal fun compile(input: KtFile, compiler: LiveEditCompiler): LiveEditCompilerOutput = compile(
+  listOf(LiveEditCompilerInput(input, input)), compiler)
+
 internal fun compile(inputs: List<LiveEditCompilerInput>, compiler: LiveEditCompiler): LiveEditCompilerOutput {
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until

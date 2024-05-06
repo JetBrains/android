@@ -1,0 +1,8 @@
+Root 1:
+      192B/4 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      128B/4 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+       16B/1 objects          +-[]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)
+       16B/1 objects          \-[]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+Root 2:
+       32B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
+       16B/1 objects          myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B(disposed)

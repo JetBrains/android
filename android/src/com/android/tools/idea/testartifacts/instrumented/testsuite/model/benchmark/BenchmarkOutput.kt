@@ -19,6 +19,8 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchma
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput.Companion.LINK_GROUP
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.openapi.util.io.FileUtil
+import java.io.File
 
 /**
  * This class manages the parsed output of a benchmark run. The lines array is a list of benchmark lines with the "benchmark: " prefix

@@ -20,6 +20,7 @@ import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
+import java.lang.StringBuilder
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 
@@ -40,7 +41,7 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
   fun testActions() {
     val menuGroups = ConfigurationSetProvider.getGroupedConfigurationSets()
     val firstOption = menuGroups.firstOrNull()?.firstOrNull() ?: return
-    val menuAction = ConfigurationSetMenuAction(form, firstOption)
+    val menuAction = ConfigurationSetMenuAction(firstOption)
     // Call update(AnActionEvent) for updating text of menuAction.
     menuAction.update(
       createTestActionEvent(menuAction, dataContext = Mockito.mock(DataContext::class.java))
@@ -58,7 +59,13 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
         builder.append("    $SEPARATOR_TEXT\n")
       }
       val groupItems = group.filter { it.visible }
-      groupItems.forEach { builder.append("    ${it.name}\n") }
+      groupItems.forEach {
+        if (it == firstOption) {
+          builder.append("    ✔ ${it.name}\n")
+        } else {
+          builder.append("    ${it.name}\n")
+        }
+      }
       isPreviousGroupEmpty = groupItems.isEmpty()
     }
 

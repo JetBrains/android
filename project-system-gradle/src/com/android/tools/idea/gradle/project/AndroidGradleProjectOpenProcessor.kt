@@ -36,12 +36,13 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.projectImport.ProjectOpenProcessor
 import com.intellij.ui.IdeUICustomization
+
 /**
  * A project open processor to open Gradle projects in Android Studio.
  *
  * It supports opening projects with or without .idea directory.
  */
-internal class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
+class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
   override val name: String
     get() = "Android Gradle"
 

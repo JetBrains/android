@@ -80,19 +80,11 @@ internal fun cloneProjectRootIntoMultipleGradleRoots(
 
 internal fun patchMppProject(
   projectRoot: File,
-  enableHierarchicalSupport: Boolean = true,
   convertAppToKmp: Boolean = false,
   addJvmTo: List<String> = emptyList(),
-  addIosTo: List<String> = emptyList(),
   addIntermediateTo: List<String> = emptyList(),
   addJsModule: Boolean = false
 ) {
-  if (enableHierarchicalSupport) {
-    projectRoot.resolve("gradle.properties").replaceInContent(
-      "kotlin.mpp.hierarchicalStructureSupport=false",
-      "kotlin.mpp.hierarchicalStructureSupport=true"
-    )
-  }
   if (convertAppToKmp) {
     projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
       """
@@ -116,12 +108,6 @@ internal fun patchMppProject(
     projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
       "android()",
       "android()\njvm()"
-    )
-  }
-  for (module in addIosTo) {
-    projectRoot.resolve(module).resolve("build.gradle").replaceInContent(
-      "android()",
-      "android()\niosX64()\niosSimulatorArm64()\niosArm64()"
     )
   }
   for (module in addIntermediateTo) {

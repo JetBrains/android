@@ -47,6 +47,7 @@ class AppInsightsToggleAction(
   }
 
   override fun isSelected(e: AnActionEvent) = currentState.get()
+
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     currentState.set(state)
     onToggle()

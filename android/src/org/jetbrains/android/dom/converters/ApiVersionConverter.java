@@ -7,17 +7,18 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class ApiVersionConverter extends ResolvingConverter<String> {
   @NotNull
   @Override
-  public Collection<String> getVariants(@NotNull ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     final List<String> result = new ArrayList<>(SdkVersionInfo.HIGHEST_KNOWN_API);
 
     for (int i = 1; i <= SdkVersionInfo.HIGHEST_KNOWN_API; i++) {
@@ -43,13 +44,13 @@ public class ApiVersionConverter extends ResolvingConverter<String> {
 
   @Nullable
   @Override
-  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
     return s;
   }
 
   @Nullable
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 }

@@ -23,7 +23,7 @@ import com.android.build.output.LongDownloadsNotifier
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -115,7 +115,7 @@ class SyncAnalyzerOperationHelperExtension : GradleOperationHelperExtension {
                                    buildEnvironment: BuildEnvironment?) {
     // Note: this method is called separately for buildSrc and project itself with the same `id` but with different operations.
     // This means we need to set up listener multiple times but with the same data accumulators.
-    if (id.projectSystemId != GradleUtil.GRADLE_SYSTEM_ID) return
+    if (id.projectSystemId != GradleProjectSystemUtil.GRADLE_SYSTEM_ID) return
     if (id.type != ExternalSystemTaskType.RESOLVE_PROJECT) return
     val project = id.findProject() ?: return
 

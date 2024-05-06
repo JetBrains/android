@@ -19,8 +19,8 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public enum ProfilingTechnology {
   ART_SAMPLED("Java/Kotlin Method Sample Recording (legacy)",

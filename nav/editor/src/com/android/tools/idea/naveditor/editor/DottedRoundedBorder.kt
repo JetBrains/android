@@ -26,8 +26,12 @@ import java.awt.RenderingHints
 import java.awt.geom.RoundRectangle2D
 
 class DottedRoundedBorder(insets: Insets, private val color: Color, private val cornerRadius: Float) : DottedBorder(insets, color) {
+  private val dashedStroke: BasicStroke
   private val dash = floatArrayOf(3.0f)
-  private val dashedStroke = BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, cornerRadius, dash, 0.0f)
+
+  init {
+    dashedStroke = BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, cornerRadius, dash, 0.0f)
+  }
 
   override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
     val g2 = g as? Graphics2D ?: return

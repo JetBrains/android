@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.TITLE;
-
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+
+import static com.android.tools.idea.uibuilder.actions.ConvertToConstraintLayoutAction.TITLE;
 
 /**
  * Dialog for editing convert to constraint layout parameters

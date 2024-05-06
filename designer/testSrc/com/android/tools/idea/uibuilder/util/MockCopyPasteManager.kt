@@ -43,13 +43,18 @@ class MockCopyPasteManager : CopyPasteManager() {
   }
 
   override fun addContentChangedListener(listener: ContentChangedListener) = error(NOT_IMPLEMENTED)
+
   override fun addContentChangedListener(
     listener: ContentChangedListener,
     parentDisposable: Disposable
   ) = error(NOT_IMPLEMENTED)
+
   override fun removeContentChangedListener(listener: ContentChangedListener) =
     error(NOT_IMPLEMENTED)
+
   override fun stopKillRings() = error(NOT_IMPLEMENTED)
+
   override fun stopKillRings(document: Document) = error(NOT_IMPLEMENTED)
+
   override fun isCutElement(element: Any?): Boolean = error(NOT_IMPLEMENTED)
 }

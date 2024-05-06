@@ -17,5 +17,4 @@ package org.jetbrains.android.dom.drawable
 
 import com.intellij.util.xml.DefinesXml
 
-@DefinesXml
-interface CustomDrawableDomElement : DrawableDomElement
+@DefinesXml interface CustomDrawableDomElement : DrawableDomElement

@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
-import static org.mockito.ArgumentMatchers.same;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -35,7 +35,7 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -51,8 +51,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -71,7 +70,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link IdeSdks}.
  */
-public class IdeSdksTest extends HeavyPlatformTestCase {
+public class IdeSdksTest extends PlatformTestCase {
   private IdeInfo myIdeInfo;
 
   private File myAndroidSdkPath;
@@ -86,7 +85,7 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     myIdeInfo = IdeInfo.getInstance();
 
     AndroidTestCaseHelper.removeExistingAndroidSdks();
-    myAndroidSdkPath = getSdk().toFile();
+    myAndroidSdkPath = TestUtils.getSdk().toFile();
 
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
     facet.getProperties().ALLOW_USER_CONFIGURATION = false;
@@ -271,8 +270,8 @@ public class IdeSdksTest extends HeavyPlatformTestCase {
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isFalse();
     assertThat(myIdeSdks.setUseEnvVariableJdk(true)).isTrue();
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
-    File expectedFile = new File(FileUtilRt.toSystemDependentName(validPath));
-    File jdkFile = new File(FileUtilRt.toSystemDependentName(myIdeSdks.getJdk().getHomePath()));
+    File expectedFile = new File(toSystemDependentName(validPath));
+    File jdkFile = new File(toSystemDependentName(myIdeSdks.getJdk().getHomePath()));
     assertThat(jdkFile).isEqualTo(expectedFile);
   }
 

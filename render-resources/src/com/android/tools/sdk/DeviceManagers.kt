@@ -17,9 +17,9 @@ package com.android.tools.sdk
 
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.environment.Logger
 import com.android.tools.idea.layoutlib.LogWrapper
 import com.android.utils.ILogger
-import com.intellij.openapi.diagnostic.Logger
 
 class DeviceManagerCache(val logger: ILogger) {
   private val deviceManagers = mutableMapOf<AndroidSdkHandler, DeviceManager>()

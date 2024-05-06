@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.model
 import com.android.flags.junit.FlagRule
 import com.android.io.readImage
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
@@ -26,6 +26,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.window
@@ -59,7 +61,7 @@ class InspectorModelTest {
     val origRoot = model[ROOT]
     var isModified = false
     var newRootReported: ViewNode? = null
-    model.modificationListeners.add { _, newWindow, structuralChange ->
+    model.addModificationListener { _, newWindow, structuralChange ->
       newRootReported = newWindow?.root
       isModified = structuralChange
     }
@@ -99,7 +101,7 @@ class InspectorModelTest {
     var isModified = false
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]
-    model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
+    model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
       window(ROOT, 1, 2, 3, 4, rootViewQualifiedName = "rootType") {
@@ -138,7 +140,7 @@ class InspectorModelTest {
     var isModified = false
     model.setSelection(model[VIEW3], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW3]
-    model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
+    model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
       window(ROOT, ROOT, 1, 2, 3, 4, rootViewQualifiedName = "rootType") {
@@ -175,7 +177,7 @@ class InspectorModelTest {
     var isModified = false
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]
-    model.modificationListeners.add { _, _, structuralChange -> isModified = structuralChange }
+    model.addModificationListener { _, _, structuralChange -> isModified = structuralChange }
 
     val newWindow =
       window(ROOT, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType") {
@@ -373,7 +375,7 @@ class InspectorModelTest {
   fun fireAttachStateEvent() {
     val model = InspectorModel(mock())
     val mockListener = mock<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
-    model.attachStageListeners.add(mockListener)
+    model.addAttachStageListener(mockListener)
 
     model.fireAttachStateEvent(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
 
@@ -592,21 +594,13 @@ class InspectorModelTest {
     assertThat(inspectorModel.isEmpty).isTrue()
 
     val observedNewWindows = mutableListOf<AndroidWindow?>()
-    inspectorModel.modificationListeners.add(
-      object : InspectorModelModificationListener {
-        override fun onModification(
-          oldWindow: AndroidWindow?,
-          newWindow: AndroidWindow?,
-          isStructuralChange: Boolean
-        ) {
-          observedNewWindows.add(newWindow)
+    inspectorModel.addModificationListener { _, newWindow, _ ->
+      observedNewWindows.add(newWindow)
 
-          if (newWindow == null) {
-            latch.countDown()
-          }
-        }
+      if (newWindow == null) {
+        latch.countDown()
       }
-    )
+    }
 
     // add first window
     val newWindow =
@@ -621,6 +615,58 @@ class InspectorModelTest {
     latch.await(2, TimeUnit.SECONDS)
 
     assertThat(observedNewWindows).containsExactly(newWindow, newWindow, null)
+  }
+
+  @Test
+  fun testListenersAreInvokedWithLastValue() {
+    val model = model { view(ROOT, 1, 2, 3, 4, qualifiedName = "rootType") }
+
+    // Selection
+    model.setSelection(model[ROOT], SelectionOrigin.INTERNAL)
+    val observedSelectedNodes = mutableListOf<ViewNode?>()
+
+    model.addSelectionListener { oldNode, newNode, origin ->
+      assertThat(oldNode).isEqualTo(newNode)
+      assertThat(origin).isEqualTo(SelectionOrigin.INTERNAL)
+      observedSelectedNodes.add(newNode)
+    }
+    assertThat(observedSelectedNodes).containsExactly(model[ROOT])
+
+    // Hover
+    model.hoveredNode = model[ROOT]
+    val observedHoverNode = mutableListOf<ViewNode?>()
+
+    model.addHoverListener { oldNode, newNode ->
+      assertThat(oldNode).isEqualTo(newNode)
+      observedHoverNode.add(newNode)
+    }
+    assertThat(observedHoverNode).containsExactly(model[ROOT])
+
+    // Modification
+    val newWindow = window(VIEW2, ROOT, 2, 4, 6, 8, rootViewQualifiedName = "rootType")
+    model.update(newWindow, listOf(ROOT), 0)
+
+    val observedNewWindows = mutableListOf<AndroidWindow?>()
+    model.addModificationListener { old, new, isStructuralChange ->
+      assertThat(old).isEqualTo(new)
+      assertThat(isStructuralChange).isFalse()
+      observedNewWindows.add(new)
+    }
+    assertThat(observedNewWindows).isEqualTo(model.windows.values.toList())
+
+    // Connection
+    model.updateConnection(DisconnectedClient)
+    val observedClients = mutableListOf<InspectorClient>()
+
+    model.addConnectionListener { observedClients.add(it) }
+    assertThat(observedClients).containsExactly(DisconnectedClient)
+
+    // Attach stage
+    model.fireAttachStateEvent(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
+    val observedStates = mutableListOf<DynamicLayoutInspectorErrorInfo.AttachErrorState>()
+    model.addAttachStageListener { observedStates.add(it) }
+    assertThat(observedStates)
+      .containsExactly(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 
   private fun children(view: ViewNode): List<ViewNode> = ViewNode.readAccess { view.children }

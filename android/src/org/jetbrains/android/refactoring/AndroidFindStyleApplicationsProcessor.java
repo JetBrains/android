@@ -4,11 +4,11 @@ import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFile
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.res.LocalResourceRepository;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.application.ApplicationManager;
@@ -280,7 +280,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
       return;
     }
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(facet);
-    LocalResourceRepository repository = repositoryManager.getAppResources();
+    ResourceRepository repository = repositoryManager.getAppResources();
     List<ResourceItem> styles = repository.getResources(ResourceNamespace.TODO(), ResourceType.STYLE, styleName);
     if (styles.size() == 1) {
       resDirs.addAll(repositoryManager.getAllResourceDirs());

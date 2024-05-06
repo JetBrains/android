@@ -1,11 +1,12 @@
 package com.android.example.appwithdatabinding;
 
 import android.app.Activity;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ObservableArrayList;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ObservableArrayList;
+
 import com.android.example.appwithdatabinding.databinding.ActivityMainBinding;
 
 public class MainActivity extends Activity {

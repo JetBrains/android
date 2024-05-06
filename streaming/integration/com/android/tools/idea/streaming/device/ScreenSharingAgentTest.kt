@@ -15,21 +15,21 @@
  */
 package com.android.tools.idea.streaming.device
 
-import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.TestUtils.getBinPath
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.getBinPath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.asdriver.tests.Adb
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -383,9 +383,9 @@ class ScreenSharingAgentTest {
     private val testRootDisposable
       get() = disposableRule.disposable
     private val emptyDeviceConfiguration =
-      DeviceConfiguration(DeviceProperties.Builder().apply {
+      DeviceConfiguration(DeviceProperties.buildForTest {
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }.buildBase())
+      })
 
     @JvmStatic
     @BeforeClass
@@ -416,9 +416,9 @@ class ScreenSharingAgentTest {
         waitForLog("0", SHORT_DEVICE_OPERATION_TIMEOUT)
       }
 
-      val deviceClient =
-          DeviceClient(testRootDisposable, emulator.serialNumber, mock<DeviceHandle>(), emptyDeviceConfiguration, "x86_64", project)
-      deviceView = DeviceView(testRootDisposable, deviceClient, 0, project)
+      val deviceClient = DeviceClient(emulator.serialNumber, emptyDeviceConfiguration, "x86_64")
+      Disposer.register(testRootDisposable, deviceClient)
+      deviceView = DeviceView(testRootDisposable, deviceClient, PRIMARY_DISPLAY_ID, 0, project)
 
       fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
       fakeUi.render()

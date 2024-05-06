@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
@@ -33,7 +34,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class UnitTestsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<UnitTestsDslElement> UNIT_TESTS =
-    new PropertiesElementDescription<>("unitTests", UnitTestsDslElement.class, UnitTestsDslElement::new);
+    new PropertiesElementDescription<>("unitTests",
+                                       UnitTestsDslElement.class,
+                                       UnitTestsDslElement::new,
+                                       UnitTestsDslElementSchema::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isReturnDefaultValues", property, RETURN_DEFAULT_VALUES, VAR}
@@ -44,12 +48,30 @@ public class UnitTestsDslElement extends GradleDslBlockElement {
     {"returnDefaultValues", exactly(1), RETURN_DEFAULT_VALUES, SET},
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"returnDefaultValues", property, RETURN_DEFAULT_VALUES, VAR},
+  }).collect(toModelMap());
+
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public UnitTestsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class UnitTestsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.UnitTestOptions";
+    }
   }
 }

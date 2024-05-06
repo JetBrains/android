@@ -32,8 +32,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.client.ClientSystemInfo;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.registry.Registry;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -480,7 +480,7 @@ public class GuiInputHandler implements Disposable {
         }
         return;
       }
-      else if (event.getButton() > 1 || ClientSystemInfo.isMac() && event.isControlDown()) {
+      else if (event.getButton() > 1 || SystemInfo.isMac && event.isControlDown()) {
         // mouse release from a popup click (the popup menu was posted on
         // the mousePressed event
         return;
@@ -724,7 +724,7 @@ public class GuiInputHandler implements Disposable {
       // interpreted as a mouseWheel Event with Shift down.
       // If some scrolling imprecision happens for other scroll interaction, it might be good
       // to do the filtering at a higher level
-      if (!e.isShiftDown() && (ClientSystemInfo.isMac() && e.isMetaDown() || e.isControlDown())) {
+      if (!e.isShiftDown() && (SystemInfo.isMac && e.isMetaDown() || e.isControlDown())) {
         if (scrollAmount < 0) {
           myInteractionHandler.zoom(ZoomType.IN, x, y);
         }

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.insights.inspection
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppInsightsModel
+import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
+import com.android.tools.idea.insights.analytics.AppInsightsPerformanceTracker
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.AnnotationResult
 import com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator.InitialInfo
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
@@ -28,6 +31,7 @@ import com.intellij.codeInsight.daemon.LineMarkerSettings
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
@@ -76,7 +80,10 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val project = collectedInfo.project
     val insights = collectedInfo.insights
 
-    if (!project.isChangeAwareAnnotationEnabled()) {
+    if (
+      !StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get() ||
+        !StudioFlags.APP_INSIGHTS_CHANGE_AWARE_ANNOTATION_SUPPORT.get()
+    ) {
       return AnnotationResult(insights)
     }
 
@@ -84,6 +91,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
       insights.mapNotNull { insight ->
         ProgressManager.checkCanceled()
         if (collectedInfo.editor.isDisposed) return@mapNotNull null
+        if (insight.issue.sampleEvent.appVcsInfo !is AppVcsInfo.ValidInfo) return@mapNotNull insight
 
         insight.updateToCurrentLineNumber(
           collectedInfo.vFile,
@@ -173,7 +181,7 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
   }
 
   /**
-   * Returns [AppInsight] with up-to-date [AppInsight.line] or null if there's no matching line
+   * Returns [AppInsight] with the up-to-date [AppInsight.line] or null if there's no matching line
    * number inferred.
    */
   private fun AppInsight.updateToCurrentLineNumber(
@@ -190,9 +198,15 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
     val newLineNumber = getUpToDateLineNumber(oldLineNumber, vcsDocument, document)
 
     val endTime = System.currentTimeMillis()
-    logger.debug(
-      "It takes ${endTime - startTime}ms to map line number from $oldLineNumber to $newLineNumber in $vFile."
-    )
+    val latency = endTime - startTime
+
+    service<AppInsightsPerformanceTracker>()
+      .recordVersionControlBasedLineNumberMappingLatency(latency)
+      .also {
+        logger.debug(
+          "It takes $latency ms to map line number from $oldLineNumber to $newLineNumber in $vFile."
+        )
+      }
 
     newLineNumber ?: return null
 

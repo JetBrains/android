@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.emulator.settings
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DEFAULT_CAMERA_VELOCITY_CONTROLS
 import com.android.tools.idea.streaming.DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY
 import com.android.tools.idea.streaming.EmulatorSettings
@@ -33,8 +32,6 @@ import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.layout.selected
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.Nls
 import javax.swing.JCheckBox
 
@@ -58,13 +55,16 @@ class EmulatorSettingsPage : SearchableConfigurable, Configurable.NoScroll {
   override fun getId() = "emulator.options"
 
   override fun createComponent() = panel {
-    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      row {
-        launchInToolWindowCheckBox =
-          checkBox(AndroidBundle.message("android.emulator.settings.launch.tool.window"))
-            .comment(AndroidBundle.message("android.emulator.settings.launch.tool.window.tooltip"))
-            .component
-      }
+    row {
+      launchInToolWindowCheckBox =
+        checkBox("Launch in the Running Devices tool window")
+          .comment("When this setting is enabled, virtual devices launched from Device Manager or when running an app will appear in" +
+                   " the Running Devices tool window. Otherwise virtual devices will launch in a standalone Android Emulator application." +
+                   " Virtual devices launched from the Running Devices window will always appear in that window regardless of this" +
+                   " setting.")
+          .component
+    }
+    indent {
       row {
         activateOnAppLaunchCheckBox =
           checkBox("Open the Running Devices tool window when launching an app")
@@ -77,100 +77,43 @@ class EmulatorSettingsPage : SearchableConfigurable, Configurable.NoScroll {
             .bindSelected(state::activateOnTestLaunch)
             .component
       }
-      row {
-        synchronizeClipboardCheckBox =
-          checkBox(AndroidBundle.message("android.emulator.settings.clipboard.sharing"))
-            .component
-      }.topGap(TopGap.SMALL)
-      row {
-        showCameraControlPromptsCheckBox =
-          checkBox(AndroidBundle.message("android.emulator.settings.show.camera.control.prompts"))
-            .component
-      }.topGap(TopGap.SMALL)
-      row {
-        panel {
-          row("Velocity control keys for virtual scene camera:") {}
-          row {
-            cameraVelocityControlComboBox =
-              comboBox(cameraVelocityControlComboBoxModel,
-                       renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label })
-                .bindItem(cameraVelocityControlComboBoxModel::getSelectedItem,
-                          cameraVelocityControlComboBoxModel::setSelectedItem)
-                .component
-          }
+    }
+    row {
+      synchronizeClipboardCheckBox =
+        checkBox("Enable clipboard sharing")
+          .component
+    }.topGap(TopGap.SMALL)
+    row {
+      showCameraControlPromptsCheckBox =
+        checkBox("Show camera control prompts")
+          .component
+    }.topGap(TopGap.SMALL)
+    row {
+      panel {
+        row("Velocity control keys for virtual scene camera:") {}
+        row {
+          cameraVelocityControlComboBox =
+            comboBox(cameraVelocityControlComboBoxModel,
+                     renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label })
+              .bindItem(cameraVelocityControlComboBoxModel::getSelectedItem,
+                        cameraVelocityControlComboBoxModel::setSelectedItem)
+              .component
         }
       }
-      row {
-        panel {
-          row("When encountering snapshots incompatible with the current configuration:") {}
-          row {
-            snapshotAutoDeletionPolicyComboBox =
-              comboBox(snapshotAutoDeletionPolicyComboBoxModel,
-                       renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
-                .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem,
-                          snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
-                .component
-          }
-        }
-      }.topGap(TopGap.SMALL)
     }
-    else {
-      row {
-        launchInToolWindowCheckBox =
-          checkBox("Launch in the Running Devices tool window")
-            .comment("When this setting is enabled, Android Emulator will launch in the Running Devices tool window. " +
-                     "Otherwise Android Emulator will launch as a standalone application.")
-            .component
+    row {
+      panel {
+        row("When encountering snapshots incompatible with the current configuration:") {}
+        row {
+          snapshotAutoDeletionPolicyComboBox =
+            comboBox(snapshotAutoDeletionPolicyComboBoxModel,
+                     renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
+              .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem,
+                        snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
+              .component
+        }
       }
-      row {
-        activateOnAppLaunchCheckBox =
-          checkBox("Open the Running Devices tool window when launching an app")
-            .bindSelected(state::activateOnAppLaunch)
-            .component
-      }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
-      row {
-        activateOnTestLaunchCheckBox =
-          checkBox("Open the Running Devices tool window when launching a test")
-            .bindSelected(state::activateOnTestLaunch)
-            .component
-      }.enabledIf(launchInToolWindowCheckBox.selected)
-      row {
-        synchronizeClipboardCheckBox =
-          checkBox("Enable clipboard sharing")
-            .component
-      }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
-      row {
-        showCameraControlPromptsCheckBox =
-          checkBox("Show camera control prompts")
-            .component
-      }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
-      row {
-        panel {
-          row("Velocity control keys for virtual scene camera:") {}
-          row {
-            cameraVelocityControlComboBox =
-              comboBox(cameraVelocityControlComboBoxModel,
-                       renderer = SimpleListCellRenderer.create(DEFAULT_CAMERA_VELOCITY_CONTROLS.label) { it.label })
-                .bindItem(cameraVelocityControlComboBoxModel::getSelectedItem,
-                          cameraVelocityControlComboBoxModel::setSelectedItem)
-                .component
-          }
-        }
-      }.enabledIf(launchInToolWindowCheckBox.selected)
-      row {
-        panel {
-          row("When encountering snapshots incompatible with the current configuration:") {}
-          row {
-            snapshotAutoDeletionPolicyComboBox =
-              comboBox(snapshotAutoDeletionPolicyComboBoxModel,
-                       renderer = SimpleListCellRenderer.create(DEFAULT_SNAPSHOT_AUTO_DELETION_POLICY.displayName) { it.displayName })
-                .bindItem(snapshotAutoDeletionPolicyComboBoxModel::getSelectedItem,
-                          snapshotAutoDeletionPolicyComboBoxModel::setSelectedItem)
-                .component
-          }
-        }
-      }.topGap(TopGap.SMALL).enabledIf(launchInToolWindowCheckBox.selected)
-    }
+    }.topGap(TopGap.SMALL)
   }
 
   override fun isModified(): Boolean {

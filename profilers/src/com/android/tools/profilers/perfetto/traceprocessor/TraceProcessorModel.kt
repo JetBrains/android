@@ -19,11 +19,9 @@ import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.AndroidFrameEventsResult.*
 import com.android.tools.profiler.perfetto.proto.TraceProcessor.PowerCounterTracksResult
 import com.android.tools.profilers.cpu.ThreadState
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreModel
-import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
 import com.android.tools.profilers.cpu.systemtrace.SchedulingEventModel
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceModelAdapter
@@ -34,6 +32,11 @@ import java.io.Serializable
 import java.util.Deque
 import java.util.LinkedList
 import java.util.concurrent.TimeUnit
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailDisplayNameMappings
+import org.jetbrains.annotations.VisibleForTesting
+import kotlin.math.max
+import kotlin.math.min
 
 class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializable {
 
@@ -123,6 +126,27 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
     internal val androidFrameTimelineEvents = mutableListOf<AndroidFrameTimelineEvent>()
     internal var surfaceflingerDisplayTokenToEndNs = mapOf<Long, Long>()
 
+    companion object {
+      /**
+       * Returns the sum of the durations of running scheduling events that are within the range between `rangeStartUs` and `rangeEndUs`.
+       * Assumes the given `schedulingEvents` is already sorted by `startTimestampUs`.
+       */
+      @VisibleForTesting
+      fun getRunningTimeUsInRange(rangeStartUs: Long, rangeEndUs: Long, schedulingEvents: List<SchedulingEventModel>): Long {
+        var firstSchedIndexToCheck = schedulingEvents.binarySearch { sched -> sched.endTimestampUs.compareTo(rangeStartUs) }
+        if (firstSchedIndexToCheck < 0)
+          firstSchedIndexToCheck = -(firstSchedIndexToCheck + 1)
+        var lastSchedIndexToCheck = schedulingEvents.binarySearch { sched -> sched.startTimestampUs.compareTo(rangeEndUs) }
+        if (lastSchedIndexToCheck < 0)
+          lastSchedIndexToCheck = -(lastSchedIndexToCheck + 1)
+        return schedulingEvents.subList(firstSchedIndexToCheck /* inclusive */,
+                                        min(lastSchedIndexToCheck + 1, schedulingEvents.size) /* exclusive */)
+          .filter { it.state in setOf(ThreadState.RUNNING, ThreadState.RUNNING_CAPTURED) }
+          .filter { it.endTimestampUs >= rangeStartUs && it.startTimestampUs <= rangeEndUs }
+          .sumOf { min(it.endTimestampUs, rangeEndUs) - max(it.startTimestampUs, rangeStartUs) }
+      }
+    }
+
     fun addProcessMetadata(processMetadataResult: TraceProcessor.ProcessMetadataResult) {
       for (process in processMetadataResult.processList) {
         processById[process.id.toInt()] = ProcessModel(
@@ -158,11 +182,13 @@ class TraceProcessorModel(builder: Builder) : SystemTraceModelAdapter, Serializa
           val startTimestampUs = convertToUs(event.timestampNanoseconds)
           val durationTimestampUs = convertToUs(event.durationNanoseconds)
           val endTimestampUs = startTimestampUs + durationTimestampUs
+          val cpuTimeUs = getRunningTimeUsInRange(startTimestampUs, endTimestampUs,
+                                                  threadToScheduling.getOrDefault(thread.threadId.toInt(), listOf()))
 
           eventPerId[event.id] = TraceEventModel(event.name,
                                                  startTimestampUs,
                                                  endTimestampUs,
-                                                 durationTimestampUs,
+                                                 cpuTimeUs,
                                                  listOf())
         }
 

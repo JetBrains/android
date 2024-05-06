@@ -15,20 +15,24 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
-        <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
-    <applicationInitializedListener id="Startup.AndroidGradleDisableAutoImportInitializer"
-                                    implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
+    <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"/>
+    <projectService serviceInterface="org.jetbrains.plugins.gradle.settings.GradleSettings"
+                    serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleSettings"
+                    overrides="true"/>
+    <applicationService serviceInterface="org.jetbrains.plugins.gradle.service.GradleInstallationManager"
+                        serviceImplementation="com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager"
+                        overrides="true"/>
+
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidStudioProjectActivity" />
+
     <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />
     <applicationInitializedListener id="Startup.GradleSpecificInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
-    <directoryProjectConfigurator
-      implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectConfigurator"
-      order="after PlatformProjectConfigurator"/>
     <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUpdateService" />
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
@@ -36,6 +40,10 @@
     <registryKey key="unknown.sdk.auto" defaultValue="false" description="Checks and resolves unknown SDKs automatically on start"/>
     <registryKey key="unknown.sdk.modal.jps" defaultValue="false" description="Run unknown JDK test before JPS build is started"/>
     <registryKey key="unknown.sdk.show.editor.actions" defaultValue="false" description="Show editor suggestions to fix missing SKDs"/>
+    <!-- Disable Gradle auto-import by overriding the corresponding registry flag. -->
+    <registryKey key="external.system.auto.import.disabled" defaultValue="true" description="Disable build system auto-import"/>
+    <!-- Disable Kotlin not configured banner. -->
+    <registryKey key="kotlin.not.configured.show.notification" defaultValue="false" description="Show notification about Kotlin missing configuration"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <taskManager implementation="com.android.tools.idea.gradle.task.AndroidGradleTaskManager"/>
@@ -56,6 +64,9 @@
     <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty">
       <add-to-group group-id="BuildMenu" anchor="first"/>
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
+    </action>
+    <action internal="true" id="VerifyGradleTokensAction" class="com.android.tools.idea.projectsystem.VerifyGradleTokensAction">
+      <add-to-group group-id="Internal.Android"/>
     </action>
     <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
       <add-to-group group-id="Android.MainToolbarRight" anchor="first"/>

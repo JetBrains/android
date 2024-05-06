@@ -22,10 +22,13 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-/**
- * Pauses/Resumes Logcat collection
- */
-internal class PauseLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.pause.action.pause.text"), "", AllIcons.Actions.Pause) {
+/** Pauses/Resumes Logcat collection */
+internal class PauseLogcatAction :
+  DumbAwareAction(
+    LogcatBundle.message("logcat.pause.action.pause.text"),
+    "",
+    AllIcons.Actions.Pause
+  ) {
 
   override fun update(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return
@@ -38,8 +41,7 @@ internal class PauseLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.
     val logcatPresenter = e.getLogcatPresenter() ?: return
     if (logcatPresenter.isLogcatPaused()) {
       logcatPresenter.resumeLogcat()
-    }
-    else {
+    } else {
       logcatPresenter.pauseLogcat()
     }
   }
@@ -47,12 +49,14 @@ internal class PauseLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
 
-private fun getActionText(logcatPresenter: LogcatPresenter) = when {
-  logcatPresenter.isLogcatPaused() -> LogcatBundle.message("logcat.pause.action.resume.text")
-  else -> LogcatBundle.message("logcat.pause.action.pause.text")
-}
+private fun getActionText(logcatPresenter: LogcatPresenter) =
+  when {
+    logcatPresenter.isLogcatPaused() -> LogcatBundle.message("logcat.pause.action.resume.text")
+    else -> LogcatBundle.message("logcat.pause.action.pause.text")
+  }
 
-private fun getActionIcon(logcatPresenter: LogcatPresenter) = when {
-  logcatPresenter.isLogcatPaused() -> AllIcons.Actions.Resume
-  else -> AllIcons.Actions.Pause
-}
+private fun getActionIcon(logcatPresenter: LogcatPresenter) =
+  when {
+    logcatPresenter.isLogcatPaused() -> AllIcons.Actions.Resume
+    else -> AllIcons.Actions.Pause
+  }

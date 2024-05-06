@@ -24,10 +24,9 @@ android {
     buildTypes.debug {
         zipAlign true
     }
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 android.applicationVariants.each { variant ->

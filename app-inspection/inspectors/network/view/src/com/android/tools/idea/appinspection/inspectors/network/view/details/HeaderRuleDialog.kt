@@ -25,13 +25,13 @@ import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.event.ItemEvent
 import java.awt.event.ItemEvent.ITEM_STATE_CHANGED
 import javax.swing.JPanel
 import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.DocumentFilter
+import org.jetbrains.annotations.VisibleForTesting
 
 /** A dialog box that allows adding and editing header rules. */
 class HeaderRuleDialog(
@@ -104,7 +104,7 @@ class HeaderRuleDialog(
     okAction.isEnabled =
       (tabs.selectedComponent == newHeaderPanel &&
         newAddedNameLabel.text.isNotBlank()) || // Blank value is fine
-      ((findNameCheckBox.isSelected || findValueCheckBox.isSelected) &&
+        ((findNameCheckBox.isSelected || findValueCheckBox.isSelected) &&
           (replaceNameCheckBox.isSelected || replaceValueCheckBox.isSelected))
     setOKButtonTooltip(
       if (okAction.isEnabled) null
@@ -121,7 +121,7 @@ class HeaderRuleDialog(
   @VisibleForTesting
   val newHeaderPanel =
     JPanel(VerticalLayout(10)).apply {
-      border = JBUI.Borders.empty(15, 0, 0, 0)
+      border = JBUI.Borders.emptyTop(15)
       add(
         createCategoryPanel(
           null,
@@ -134,7 +134,7 @@ class HeaderRuleDialog(
   @VisibleForTesting
   val editHeaderPanel =
     JPanel(VerticalLayout(10)).apply {
-      border = JBUI.Borders.empty(5, 0, 0, 0)
+      border = JBUI.Borders.emptyTop(5)
       add(
         createCategoryPanel(
           "Find by",

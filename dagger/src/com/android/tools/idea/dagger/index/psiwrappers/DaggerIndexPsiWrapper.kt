@@ -51,32 +51,44 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 sealed interface DaggerIndexPsiWrapper {
   class KotlinFactory(ktFile: KtFile) {
     private val importHelper = KotlinImportHelper(ktFile)
+
     fun of(psiElement: KtAnnotationEntry): DaggerIndexAnnotationWrapper =
       KtAnnotationEntryWrapper(psiElement)
+
     fun of(psiElement: KtClassOrObject): DaggerIndexClassWrapper =
       KtClassOrObjectWrapper(psiElement, importHelper)
+
     fun of(psiElement: KtFunction): DaggerIndexMethodWrapper =
       KtFunctionWrapper(psiElement, importHelper)
+
     fun of(psiElement: KtParameter): DaggerIndexParameterWrapper =
       KtParameterWrapper(psiElement, importHelper)
+
     fun of(psiElement: KtProperty): DaggerIndexFieldWrapper =
       KtPropertyWrapper(psiElement, importHelper)
+
     fun of(psiElement: KtTypeReference): DaggerIndexTypeWrapper =
       KtTypeReferenceWrapper(psiElement, importHelper)
   }
 
   class JavaFactory(psiJavaFile: PsiJavaFile) {
     private val importHelper = JavaImportHelper(psiJavaFile)
+
     fun of(psiElement: PsiAnnotation): DaggerIndexAnnotationWrapper =
       PsiAnnotationWrapper(psiElement)
+
     fun of(psiElement: PsiClass): DaggerIndexClassWrapper =
       PsiClassWrapper(psiElement, importHelper)
+
     fun of(psiElement: PsiField): DaggerIndexFieldWrapper =
       PsiFieldWrapper(psiElement, importHelper)
+
     fun of(psiElement: PsiMethod): DaggerIndexMethodWrapper =
       PsiMethodWrapper(psiElement, importHelper)
+
     fun of(psiElement: PsiParameter): DaggerIndexParameterWrapper =
       PsiParameterWrapper(psiElement, importHelper)
+
     fun of(psiElement: PsiTypeElement): DaggerIndexTypeWrapper = PsiTypeElementWrapper(psiElement)
   }
 }

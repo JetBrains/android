@@ -16,7 +16,8 @@
 package com.android.tools.idea;
 
 import com.android.testutils.JarTestSuiteRunner;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
+import com.android.tools.idea.adb.AdbService;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.ClassRule;
@@ -40,6 +41,9 @@ public class IdeaTestSuite extends IdeaTestSuiteBase {
       if (TestUtils.workspaceFileExists(DATA_BINDING_RUNTIME_ZIP)) {
         unzipIntoOfflineMavenRepo(DATA_BINDING_RUNTIME_ZIP);
       }
+
+      // Disable production AdbService to prevent it from interfering with AndroidDebugBridge (b/267107145).
+      AdbService.disabled = true;
     }
     catch (Throwable e) {
       // See b/143359533 for why we are handling errors here

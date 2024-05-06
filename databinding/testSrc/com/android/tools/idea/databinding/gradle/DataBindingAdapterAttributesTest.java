@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.databinding.gradle;
 
-import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT;
+import static com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.databinding.DataBindingMode;

@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -60,6 +61,8 @@ class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderMode
     panel.putClientProperty(SLIDER_KEY, slider)
     return panel
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     val isRotated = renderModelProvider().isRotated

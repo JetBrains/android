@@ -21,6 +21,7 @@ import com.android.tools.asdriver.tests.AndroidStudio;
 import com.android.tools.asdriver.tests.AndroidSystem;
 import com.android.tools.asdriver.tests.Emulator;
 import java.util.concurrent.TimeUnit;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -39,7 +40,7 @@ public class EmulatorAfterStudioTest {
       emulator.waitForBoot();
       adb.waitForDevice(emulator);
       system.getInstallation().getIdeaLog()
-        .waitForMatchingLine(String.format(".*Adding emulator-%s", emulator.getPortString()), 180, TimeUnit.SECONDS);
+        .waitForMatchingLine(String.format(".*Device \\[emulator-%s\\] has come online", emulator.getPortString()), 300, TimeUnit.SECONDS);
     }
   }
 }

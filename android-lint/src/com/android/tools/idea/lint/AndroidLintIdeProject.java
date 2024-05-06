@@ -26,7 +26,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeMultiVariantData;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.lint.model.LintModelFactory;
@@ -37,10 +37,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.ApiConstraint;
-import com.android.tools.lint.detector.api.ExtensionSdk;
 import com.android.tools.lint.detector.api.LintModelModuleAndroidLibraryProject;
 import com.android.tools.lint.detector.api.LintModelModuleProject;
 import com.android.tools.lint.detector.api.Project;
+import com.android.tools.lint.detector.api.ExtensionSdk;
 import com.android.tools.lint.model.LintModelAndroidLibrary;
 import com.android.tools.lint.model.LintModelDependency;
 import com.android.tools.lint.model.LintModelLibrary;
@@ -50,6 +50,8 @@ import com.android.tools.lint.model.LintModelVariant;
 import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -68,7 +70,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -105,9 +106,9 @@ public class AndroidLintIdeProject extends LintIdeProject {
   public static List<Project> create(@NonNull LintIdeClient client, @Nullable List<VirtualFile> files, @NonNull Module... modules) {
     List<Project> projects = new ArrayList<>();
 
-    Map<Project, Module> projectMap = new HashMap<>();
-    Map<Module, Project> moduleMap = new HashMap<>();
-    Map<LintModelAndroidLibrary, Project> libraryMap = new HashMap<>();
+    Map<Project, Module> projectMap = Maps.newHashMap();
+    Map<Module, Project> moduleMap = Maps.newHashMap();
+    Map<LintModelAndroidLibrary, Project> libraryMap = Maps.newHashMap();
     if (files != null && !files.isEmpty()) {
       // Wrap list with a mutable list since we'll be removing the files as we see them
       files = Lists.newArrayList(files);
@@ -148,7 +149,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     // other than the metadata necessary for this file's type
     Project project = createModuleProject(client, module, true);
     Project main = null;
-    Map<Project, Module> projectMap = new HashMap<>();
+    Map<Project, Module> projectMap = Maps.newHashMap();
     if (project != null) {
       project.setDirectLibraries(Collections.emptyList());
       if (file != null) {
@@ -195,8 +196,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
       return null;
     }
 
-    Set<AndroidFacet> facets = new HashSet<>();
-    HashSet<Module> seen = new HashSet<>();
+    Set<AndroidFacet> facets = Sets.newHashSet();
+    HashSet<Module> seen = Sets.newHashSet();
     seen.add(module);
     addAndroidModules(facets, seen, graph, module);
 
@@ -392,7 +393,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
   @Nullable
   public static File getLintProjectDirectory(@NonNull Module module, @Nullable AndroidFacet facet) {
 
-    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleUtil.GRADLE_SYSTEM_ID, module)
+    if (ExternalSystemApiUtil.isExternalSystemAwareModule(GradleProjectSystemUtil.GRADLE_SYSTEM_ID, module)
         && ModuleSystemUtil.isLinkedAndroidModule(module)) {
       String externalProjectPath = ExternalSystemApiUtil.getExternalProjectPath(module);
       if (!Strings.isNullOrEmpty(externalProjectPath)) {

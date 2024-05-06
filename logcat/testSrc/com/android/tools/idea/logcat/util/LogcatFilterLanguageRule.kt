@@ -22,15 +22,16 @@ import org.junit.rules.ExternalResource
 
 private val parserDefinition = LogcatFilterParserDefinition()
 
-/**
- * A [org.junit.rules.TestRule] that registers the Logcat filter language.
- */
+/** A [org.junit.rules.TestRule] that registers the Logcat filter language. */
 internal class LogcatFilterLanguageRule : ExternalResource() {
   override fun before() {
     LanguageParserDefinitions.INSTANCE.addExplicitExtension(LogcatFilterLanguage, parserDefinition)
   }
 
   override fun after() {
-    LanguageParserDefinitions.INSTANCE.removeExplicitExtension(LogcatFilterLanguage, parserDefinition)
+    LanguageParserDefinitions.INSTANCE.removeExplicitExtension(
+      LogcatFilterLanguage,
+      parserDefinition
+    )
   }
 }

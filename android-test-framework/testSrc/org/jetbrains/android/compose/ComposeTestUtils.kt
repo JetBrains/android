@@ -37,7 +37,8 @@ fun CodeInsightTestFixture.stubComposableAnnotation(modulePath: String = "") {
         AnnotationTarget.PROPERTY_GETTER
     )
     annotation class Composable
-    """.trimIndent()
+    """
+      .trimIndent()
   )
 }
 
@@ -92,6 +93,74 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
         operator fun component2(): (T) -> Unit
     }
 
+    interface IntState : State<Int> {
+        override val value: Int
+          get() = intValue
+        val intValue: Int
+    }
+
+    interface MutableIntState : IntState, MutableState<Int> {
+      override var value: Int
+        get() = intValue
+        set(value) { intValue = value }
+      override var intValue: Int
+    }
+
+    fun mutableIntStateOf(value: int): MutableIntState = object : MutableIntState {
+      override var intValue = value
+    }
+
+    interface LongState : State<Long> {
+        override val value: Long
+          get() = longValue
+        val longValue: Long
+    }
+
+    interface MutableLongState : LongState, MutableState<Long> {
+      override var value: Long
+        get() = longValue
+        set(value) { longValue = value }
+      override var longValue: Long
+    }
+
+    fun mutableLongStateOf(value: Long): MutableLongState = object : MutableLongState {
+      override var longValue = value
+    }
+
+    interface FloatState : State<Float> {
+        override val value: Float
+          get() = floatValue
+        val floatValue: Float
+    }
+
+    interface MutableFloatState : FloatState, MutableState<Float> {
+      override var value: Float
+        get() = floatValue
+        set(value) { floaValue = value }
+      override var floatValue: Float
+    }
+
+    fun mutableFloatStateOf(value: Float): MutableFloatState = object : MutableFloatState {
+      override var floatValue = value
+    }
+
+    interface DoubleState : State<Double> {
+        override val value: Double
+          get() = doubleValue
+        val doubleValue: Double
+    }
+
+    interface MutableDoubleState : DoubleState, MutableState<Double> {
+      override var value: Double
+        get() = doubleValue
+        set(value) { doubleValue = value }
+      override var doubleValue: Double
+    }
+
+    fun mutableDoubleStateOf(value: Double): MutableDoubleState = object : MutableDoubleState {
+      override var doubleValue = value
+    }
+
     inline operator fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T = value
 
     inline operator fun <T> MutableState<T>.setValue(thisObj: Any?, property: KProperty<*>, value: T) {
@@ -116,7 +185,8 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
       override operator fun component1(): T = value
       override operator fun component2(): (T) -> Unit = { value = it }
     }
-    """.trimIndent()
+    """
+      .trimIndent()
   )
   addFileToProject(
     "src/androidx/compose/runtime/saveable/RememberSaveable.kt",
@@ -131,7 +201,8 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
       key: String? = null,
       init: () -> T
     ): T = init()
-    """.trimIndent()
+    """
+      .trimIndent()
   )
 }
 
@@ -142,7 +213,9 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
     """
     package kotlin.io
     fun print(message: Any?) {}
-    """.trimIndent()
+    fun println(message: Any?) {}
+    """
+      .trimIndent()
   )
   addFileToProject(
     "src/kotlin/collections/JVMCollections.kt",
@@ -156,7 +229,8 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
     inline fun <T> Iterable<T>.forEach(action: (T) -> Unit) {
         for (element in this) action(element)
     }
-    """.trimIndent()
+    """
+      .trimIndent()
   )
 
   addFileToProject(
@@ -168,7 +242,49 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
     object Math {
       fun random(): Float = 0.5
     }
-    """.trimIndent()
+    """
+      .trimIndent()
+  )
+
+  addFileToProject(
+    "src/kotlin/util/Lazy.kt",
+    // language=kotlin
+    """
+    package kotlin
+
+    interface Lazy<out T> {
+      val value: T
+    }
+
+    inline operator fun <T> Lazy<T>.getValue(thisRef: Any?, property: KProperty<*>): T = value
+
+    fun <T> lazy(init: () -> T): Lazy<T> = SynchronizedLazyImpl(init)
+
+    private class SynchronizedLazyImpl<out T>(init: () -> T) : Lazy<T> {
+      private var _value: Any? = null
+      override val value: T
+        get() {
+          if (_value == null) {
+            _value = init()
+          }
+          return _value
+        }
+    }
+    """
+      .trimIndent()
+  )
+
+  addFileToProject(
+    "src/kotlin/util/Standard.kt",
+    // language=kotlin
+    """
+    package kotlin
+
+    import java.lang.Exception
+
+    inline fun TODO(): Nothing = throw Exception()
+    """
+      .trimIndent()
   )
 }
 
@@ -215,7 +331,8 @@ fun CodeInsightTestFixture.stubPreviewAnnotation(modulePath: String = "") {
         val provider: KClass<out PreviewParameterProvider<*>>,
         val limit: Int = Int.MAX_VALUE
     )
-    """.trimIndent()
+    """
+      .trimIndent()
   )
 }
 
@@ -237,8 +354,14 @@ fun CodeInsightTestFixture.stubConfigurationAsLibrary() {
         public static final int UI_MODE_TYPE_DESK = 0x02;
         public static final int UI_MODE_TYPE_CAR = 0x03;
     }
-    """.trimIndent()
-  this.stubClassAsLibrary("configuration", SdkConstants.CLASS_CONFIGURATION, JavaFileType.INSTANCE, fileContents)
+    """
+      .trimIndent()
+  this.stubClassAsLibrary(
+    "configuration",
+    SdkConstants.CLASS_CONFIGURATION,
+    JavaFileType.INSTANCE,
+    fileContents
+  )
 }
 
 /**
@@ -260,14 +383,23 @@ fun CodeInsightTestFixture.stubDevicesAsLibrary(devicesPackageName: String) {
         const val NEXUS_10 = "name:Nexus 10"
         const val PIXEL_4 = "id:pixel_4"
     }
-    """.trimIndent()
-  this.stubClassAsLibrary("devices", "$devicesPackageName.Devices", KotlinFileType.INSTANCE, fileContents)
+    """
+      .trimIndent()
+  this.stubClassAsLibrary(
+    "devices",
+    "$devicesPackageName.Devices",
+    KotlinFileType.INSTANCE,
+    fileContents
+  )
 }
 
-/**
- * Seems to only work properly in memory/light fixtures. Such as AndroidProjectRule#inMemory
- */
-private fun CodeInsightTestFixture.stubClassAsLibrary(libraryName: String, fqClassName: String, fileType: FileType, fileContents: String) {
+/** Seems to only work properly in memory/light fixtures. Such as AndroidProjectRule#inMemory */
+private fun CodeInsightTestFixture.stubClassAsLibrary(
+  libraryName: String,
+  fqClassName: String,
+  fileType: FileType,
+  fileContents: String
+) {
   val filePath = fqClassName.replace('.', '/') + '.' + fileType.defaultExtension
   tempDirFixture.createFile("external/$libraryName/$filePath", fileContents)
   val libraryDir = tempDirFixture.findOrCreateDir("external/$libraryName")

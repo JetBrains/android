@@ -15,27 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROIDX_PKG_PREFIX;
-import static com.android.SdkConstants.ATTR_CARD_BACKGROUND_COLOR;
-import static com.android.SdkConstants.ATTR_CARD_CORNER_RADIUS;
-import static com.android.SdkConstants.ATTR_CARD_ELEVATION;
-import static com.android.SdkConstants.ATTR_CARD_PREVENT_CORNER_OVERLAP;
-import static com.android.SdkConstants.ATTR_CARD_USE_COMPAT_PADDING;
-import static com.android.SdkConstants.ATTR_CONTENT_PADDING;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.CARD_VIEW_LIB_ARTIFACT;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.support.AndroidxNameUtils;
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.ANDROIDX_CARDVIEW_V7;
+import static com.android.ide.common.repository.GoogleMavenArtifactId.CARDVIEW_V7;
 
 /**
  * Handler for the {@code <CardView>} widget.
@@ -72,9 +65,7 @@ public class CardViewHandler extends FrameLayoutHandler {
 
   @Override
   @NotNull
-  public String getGradleCoordinateId(@NotNull String viewTag) {
-    return viewTag.startsWith(ANDROIDX_PKG_PREFIX) ?
-           AndroidxNameUtils.getCoordinateMapping(CARD_VIEW_LIB_ARTIFACT) :
-           CARD_VIEW_LIB_ARTIFACT;
+  public GoogleMavenArtifactId getGradleCoordinateId(@NotNull String viewTag) {
+    return viewTag.startsWith(ANDROIDX_PKG_PREFIX) ? ANDROIDX_CARDVIEW_V7 : CARDVIEW_V7;
   }
 }

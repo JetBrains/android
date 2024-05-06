@@ -21,6 +21,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.APK_SAN_ANGELES;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
 import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static org.jetbrains.android.AndroidTestBase.getTestDataPath;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -37,7 +38,6 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -91,7 +91,7 @@ public class SmaliFileNotificationProviderTest extends PlatformTestCase {
   private void loadProject(@NotNull String relativePath) throws Exception {
     Project project = getProject();
 
-    File root = new File(getTestDataPath(), FileUtilRt.toSystemDependentName(relativePath));
+    File root = new File(getTestDataPath(), toSystemDependentName(relativePath));
     assertTrue(root.getPath(), root.exists());
     File projectRootPath = getBaseDirPath(project);
     copyDir(root, projectRootPath);

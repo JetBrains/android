@@ -20,26 +20,17 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+
 import java.util.Arrays;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.LayoutFocusTraversalPolicy;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -216,19 +207,19 @@ public class MarginPopup extends JPanel {
 
     gc.gridx = 3;
     gc.gridwidth = 1;
-    gc.insets.bottom = JBUIScale.scale(0);
-    gc.insets.left = JBUIScale.scale(2);
-    gc.insets.right = JBUIScale.scale(5);
-    gc.insets.top = JBUIScale.scale(2);
+    gc.insets.bottom = JBUI.scale(0);
+    gc.insets.left = JBUI.scale(2);
+    gc.insets.right = JBUI.scale(5);
+    gc.insets.top = JBUI.scale(2);
     add(new JBLabel("dp"), gc);
 
     gc.gridwidth = 1;
 
     gc.gridy = 1;
-    gc.insets.bottom = JBUIScale.scale(0);
-    gc.insets.left = JBUIScale.scale(0);
-    gc.insets.right = JBUIScale.scale(0);
-    gc.insets.top = JBUIScale.scale(0);
+    gc.insets.bottom = JBUI.scale(0);
+    gc.insets.left = JBUI.scale(0);
+    gc.insets.right = JBUI.scale(0);
+    gc.insets.top = JBUI.scale(0);
     ((AbstractDocument)myTextField.getDocument()).setDocumentFilter(new DocumentFilter() {
       @Override
       public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
@@ -249,12 +240,12 @@ public class MarginPopup extends JPanel {
       b.addActionListener(myDefaultListener);
       b.setBackground(JBColor.background());
       gc.gridx = i;
-      gc.insets.left = JBUIScale.scale((i == 0) ? 5 : 0);
-      gc.insets.right = JBUIScale.scale((i == 3) ? 5 : 0);
+      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
+      gc.insets.right = JBUI.scale((i == 3) ? 5 : 0);
       add(b, gc);
     }
     gc.gridy = 2;
-    gc.insets.bottom = JBUIScale.scale(7);
+    gc.insets.bottom = JBUI.scale(7);
     for (int i = 0; i < myHistoryButtons.length; i++) {
       myHistoryButtons[i] = new JButton("XXX");
       myHistoryButtons[i].setMargin(margin);
@@ -268,15 +259,15 @@ public class MarginPopup extends JPanel {
       myHistoryButtons[i].addActionListener(myDefaultListener);
 
       gc.gridx = i;
-      gc.insets.left = JBUIScale.scale((i == 0) ? 5 : 0);
-      gc.insets.right = JBUIScale.scale((i == myHistoryButtons.length - 1) ? 5 : 0);
+      gc.insets.left = JBUI.scale((i == 0) ? 5 : 0);
+      gc.insets.right = JBUI.scale((i == myHistoryButtons.length - 1) ? 5 : 0);
       add(myHistoryButtons[i], gc);
     }
     myResourcePickerButton.setMargin(margin);
     myResourcePickerButton.setText("@ ...");
     gc.gridx = 3;
-    gc.insets.left = JBUIScale.scale(0);
-    gc.insets.right = JBUIScale.scale(5);
+    gc.insets.left = JBUI.scale(0);
+    gc.insets.right = JBUI.scale(5);
     add(myResourcePickerButton, gc);
 
     addComponentListener(new ComponentAdapter() {
@@ -294,7 +285,7 @@ public class MarginPopup extends JPanel {
 
   private static void updateFontsForPresentationMode(Component component) {
     Font font = component.getFont();
-    component.setFont(font.deriveFont((float)JBUIScale.scaleFontSize(DEFAULT_FONT_SIZE)));
+    component.setFont(font.deriveFont((float)JBUI.scaleFontSize(DEFAULT_FONT_SIZE)));
   }
 
   public void addResourcePickerActionListener(@NotNull ActionListener listener) {

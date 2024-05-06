@@ -25,7 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
-import com.android.tools.idea.gradle.dsl.model.dependencies.DependenciesModelImpl;
+import com.android.tools.idea.gradle.dsl.model.dependencies.ScriptDependenciesModelImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.model.repositories.RepositoriesModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
@@ -51,7 +51,8 @@ public class BuildScriptModelImpl extends GradleDslBlockModel implements BuildSc
   @Override
   public DependenciesModel dependencies() {
     DependenciesDslElement dependenciesDslElement = myDslElement.ensurePropertyElement(DEPENDENCIES);
-    return new DependenciesModelImpl(dependenciesDslElement);
+    // TODO add build script dependency support for declarative format
+    return new ScriptDependenciesModelImpl(dependenciesDslElement);
   }
 
   @NotNull

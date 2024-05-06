@@ -20,8 +20,8 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
-import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
@@ -43,7 +43,9 @@ import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -51,6 +53,7 @@ import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
+import com.android.tools.module.ModuleDependencies
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
@@ -152,8 +155,6 @@ class DefaultModuleSystem(override val module: Module) :
 
     return null
   }
-
-  override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
 
   // We don't offer maven artifact support for JPS projects because there aren't any use cases that requires this feature.
   // JPS also import their dependencies as modules and don't translate very well to the original maven artifacts.
@@ -258,14 +259,13 @@ class DefaultModuleSystem(override val module: Module) :
     get() = getSubmodules(module.project, module)
 
   private companion object Keys {
-    val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
-    val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName)
-    val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName)
-    val isMlModelBindingEnabled: Key<Boolean> = Key.create(::isMlModelBindingEnabled.qualifiedName)
-    val applicationRClassConstantIds: Key<Boolean> = Key.create(::applicationRClassConstantIds.qualifiedName)
-    val testRClassConstantIds: Key<Boolean> = Key.create(::testRClassConstantIds.qualifiedName)
-    val useAndroidX: Key<Boolean> = Key.create(::useAndroidX.qualifiedName)
-    val enableVcsInfo: Key<Boolean> = Key.create(::enableVcsInfo.qualifiedName)
+    val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName<DefaultModuleSystem>())
+    val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName<DefaultModuleSystem>())
+    val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName<DefaultModuleSystem>())
+    val isMlModelBindingEnabled: Key<Boolean> = Key.create(::isMlModelBindingEnabled.qualifiedName<DefaultModuleSystem>())
+    val applicationRClassConstantIds: Key<Boolean> = Key.create(::applicationRClassConstantIds.qualifiedName<DefaultModuleSystem>())
+    val testRClassConstantIds: Key<Boolean> = Key.create(::testRClassConstantIds.qualifiedName<DefaultModuleSystem>())
+    val useAndroidX: Key<Boolean> = Key.create(::useAndroidX.qualifiedName<DefaultModuleSystem>())
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)
@@ -301,7 +301,8 @@ class DefaultModuleSystem(override val module: Module) :
 
   override var useAndroidX: Boolean by UserData(Keys.useAndroidX, false)
 
-  override var enableVcsInfo: Boolean by UserData(Keys.enableVcsInfo, false)
+  override val moduleDependencies: ModuleDependencies
+    get() = StudioModuleDependencies(module)
 }
 
 /**

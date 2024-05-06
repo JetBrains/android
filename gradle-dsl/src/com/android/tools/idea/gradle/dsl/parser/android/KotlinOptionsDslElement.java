@@ -26,14 +26,19 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class KotlinOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<KotlinOptionsDslElement> KOTLIN_OPTIONS =
-    new PropertiesElementDescription<>("kotlinOptions", KotlinOptionsDslElement.class, KotlinOptionsDslElement::new);
+    new PropertiesElementDescription<>("kotlinOptions",
+                                       KotlinOptionsDslElement.class,
+                                       KotlinOptionsDslElement::new,
+                                       KotlinOptionsDslElementSchema::new);
 
   public static final ExternalToModelMap modelNameMap = Stream.of(new Object[][]{
     {"freeCompilerArgs", property, FREE_COMPILER_ARGS, VAR},
@@ -43,10 +48,24 @@ public class KotlinOptionsDslElement extends GradleDslBlockElement {
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, modelNameMap, modelNameMap);
+    return getExternalToModelMap(converter, modelNameMap, modelNameMap, modelNameMap);
   }
 
   public KotlinOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class KotlinOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @NotNull
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, modelNameMap, modelNameMap, modelNameMap);
+    }
+
+    @Nullable
+    @Override
+    public String getAgpDocClass() {
+      return "org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions";
+    }
   }
 }

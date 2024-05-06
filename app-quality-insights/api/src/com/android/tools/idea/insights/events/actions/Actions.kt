@@ -27,9 +27,6 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
  * interpreted, see [ActionDispatcher].
  */
 sealed class Action {
-  /** Denotes this action can be queued when AQI is in offline mode. */
-  open val supportsOfflineQueueing: Boolean = false
-
   /** Denotes a single(non-composite) action. */
   sealed class Single : Action()
 
@@ -49,6 +46,7 @@ sealed class Action {
       is Single -> maybeDoCancel(listOf(other))
       is Multiple -> maybeDoCancel(other.actions)
     }
+
   protected abstract fun maybeDoCancel(reasons: List<Single>): Action?
 
   /** Refresh all data in App Insights. */
@@ -72,9 +70,22 @@ sealed class Action {
   }
 
   /** Fetch issue details. */
-  data class FetchDetails(override val id: IssueId) : IssueAction() {
+  data class FetchDetails(override val id: IssueId, val variantId: String? = null) : IssueAction() {
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is FetchDetails || shouldCancelFetch(it) }
+  }
+
+  /** Fetch an issue's variants. */
+  data class FetchIssueVariants(override val id: IssueId) : IssueAction() {
+    override fun maybeDoCancel(reasons: List<Single>) =
+      cancelIf(reasons) { it is FetchIssueVariants || shouldCancelFetch(it) }
+  }
+
+  /** Fetch the sample events of an issue. */
+  data class ListEvents(override val id: IssueId, val variantId: String?, val token: String?) :
+    IssueAction() {
+    override fun maybeDoCancel(reasons: List<Single>) =
+      cancelIf(reasons) { it is ListEvents || it is FetchIssueVariants || shouldCancelFetch(it) }
   }
 
   /** Open an issue. */
@@ -110,22 +121,16 @@ sealed class Action {
   /** Add a note to an issue. */
   data class AddNote(val note: Note) : IssueAction() {
     override val id = note.id.issueId
-    override val supportsOfflineQueueing = true
+
     override fun maybeDoCancel(reasons: List<Single>) = this
   }
 
   /** Delete note. */
   data class DeleteNote(val noteId: NoteId) : IssueAction() {
     override val id = noteId.issueId
-    override val supportsOfflineQueueing = true
+
     override fun maybeDoCancel(reasons: List<Single>) =
       cancelIf(reasons) { it is DeleteNote && it.noteId == noteId }
-  }
-
-  /** Retry pending requests. Currently only note requests are retried. */
-  object RetryPendingActions : Single() {
-    override fun maybeDoCancel(reasons: List<Single>) =
-      cancelIf(reasons) { it is RetryPendingActions }
   }
 
   /** Cancel all outstanding fetches. */
@@ -168,6 +173,7 @@ sealed class Action {
     }
 
     override fun equals(other: Any?): Boolean = (other as? Multiple)?.actions == actions
+
     override fun hashCode(): Int = actions.hashCode()
   }
 
@@ -177,6 +183,8 @@ sealed class Action {
    * Note: this method "flattens" actions, i.e. there are not going to be any nested [Multiple]s.
    */
   infix fun and(other: Action): Action {
+    if (this == NONE) return other
+    if (other == NONE) return this
     val notCancelled = maybeCancel(other) ?: return other
     return when (notCancelled) {
       is Multiple ->

@@ -19,12 +19,21 @@ import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.caret
+import com.android.tools.tests.AdtTestProjectDescriptor
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.completion.JavaPsiClassReferenceElement
 import com.intellij.codeInsight.lookup.Lookup
 import org.jetbrains.android.AndroidTestCase
 
 class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
+
+  override fun getProjectDescriptor(): AdtTestProjectDescriptor {
+    // Proguard / R8 config file is neither jar nor kotlin.
+    // Having Kotlin stdlib makes [ProguardR8CompletionContributor] suggest all classes from stdlib whenever possible.
+    // TODO(b/300170256): Remove this once 2023.3 merges
+    return AdtTestProjectDescriptors.java()
+  }
 
   fun testFlagCompletion() {
 
@@ -220,7 +229,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
     keys = myFixture.completeBasic()
 
-    // don't suggests after type
+    // don't suggest after type
     assertThat(keys.map { it.lookupString }.toList()).containsNoneOf("public", "private", "protected",
                                                                      "static", "synchronized", "native", "abstract", "strictfp",
                                                                      "volatile", "transient", "final")
@@ -573,7 +582,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
 class ProguardR8FlagsCodeCompletion : AndroidTestCase() {
 
-  fun testFlagSuggestionRegardinShrinkerType() {
+  fun testFlagSuggestionRegardingShrinkerType() {
     (myModule.getModuleSystem() as DefaultModuleSystem).codeShrinker = CodeShrinker.R8
 
     val justProguardFlag = PROGUARD_FLAGS.minus(R8_FLAGS).first()

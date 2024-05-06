@@ -17,10 +17,12 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class InlineTest {
@@ -30,11 +32,17 @@ class InlineTest {
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
+    disableLiveEdit()
+  }
+
+  @After
+  fun tearDown() {
+    enableLiveEdit()
   }
 
   @Test
   fun testInline() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun inlineMethod(): Int {
           return 0
@@ -42,9 +50,11 @@ class InlineTest {
         fun method() {
           inlineMethod()
         }
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
+    assertNotNull(original)
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         inline fun inlineMethod(): Int {
           return 0
@@ -52,7 +62,9 @@ class InlineTest {
         fun method() {
           inlineMethod()
         }
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
+    assertNotNull(new)
 
     assertChanges(original, new)
 
@@ -65,7 +77,7 @@ class InlineTest {
 
   @Test
   fun testNoInline() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         inline fun inlineMethod(first: () -> Int, second: () -> Int): Int {
           first()
@@ -75,9 +87,10 @@ class InlineTest {
         fun method() {
           inlineMethod({0}, {1})
         }
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+   projectRule.modifyKtFile(file, """
       class A {
         inline fun inlineMethod(first: () -> Int, noinline second: () -> Int): Int {
           first()
@@ -87,7 +100,8 @@ class InlineTest {
         fun method() {
           inlineMethod({0}, {1})
         }
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertChanges(original, new)
   }

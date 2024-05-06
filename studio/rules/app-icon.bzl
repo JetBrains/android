@@ -7,6 +7,7 @@ AppIconInfo = provider(
         "ico": "The Windows app icon.",
         "icns": "The MacOS app icon.",
         "svg": "A svg file used on all platforms.",
+        "svg_small": "A smaller svg icon file.",
     },
 )
 
@@ -23,6 +24,7 @@ def _app_icon_impl(ctx):
         ico = ctx.file.ico,
         icns = ctx.file.icns,
         svg = ctx.file.svg,
+        svg_small = ctx.file.svg_small,
     )
 
 app_icon = rule(
@@ -43,6 +45,10 @@ app_icon = rule(
             doc = "The svg file used on all platforms.",
             allow_single_file = True,
         ),
+        "svg_small": attr.label(
+            doc = "A smaller svg file.",
+            allow_single_file = True,
+        ),
     },
     implementation = _app_icon_impl,
     provides = [AppIconInfo],
@@ -54,8 +60,8 @@ def _modify_exe_launcher(ctx, out, windows_exe, ico_file):
     ctx.actions.run(
         inputs = [ico_file, windows_exe],
         outputs = [out],
-        arguments = [windows_exe.path, ico_file.path, icon_id, out.path],
-        executable = ctx.executable._replace_exe_icon,
+        arguments = [windows_exe.path, out.path, "--replace_icon", icon_id, ico_file.path],
+        executable = ctx.executable._patch_exe,
         mnemonic = "ModifyExeIcon",
     )
 
@@ -74,6 +80,8 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
     if platform_name not in ["linux", "win", "mac", "mac_arm"]:
         fail("Unexpected platform name: '%s'" % platform_name)
 
+    resources_jar = "lib/resources.jar"
+
     new_file_map = {k: v for k, v in file_map.items()}
     if platform_name == "linux":
         if icon_info.png:
@@ -81,6 +89,7 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
         if icon_info.svg:
             new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
     if platform_name in ["mac", "mac_arm"]:
+        resources_jar = "Contents/%s" % resources_jar
         if icon_info.icns:
             new_file_map[_STUDIO_PATH_ICNS] = icon_info.icns
         if icon_info.svg:
@@ -94,5 +103,24 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
             new_file_map[_STUDIO_PATH_WINDOWS_EXE] = new_win_exe
         if icon_info.svg:
             new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
+
+    new_res_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.updated-app-icon-resources.jar" % platform_name)
+    ctx.actions.run(
+        inputs = [file_map[resources_jar], icon_info.svg, icon_info.svg_small],
+        outputs = [new_res_jar],
+        arguments = [
+            "--resources_jar",
+            file_map[resources_jar].path,
+            "--svg",
+            icon_info.svg.path,
+            "--svg_small",
+            icon_info.svg_small.path,
+            "--out",
+            new_res_jar.path,
+        ],
+        executable = ctx.executable._update_resources_jar,
+        mnemonic = "UpdateIntellijResourceJar",
+    )
+    new_file_map[resources_jar] = new_res_jar
 
     return new_file_map

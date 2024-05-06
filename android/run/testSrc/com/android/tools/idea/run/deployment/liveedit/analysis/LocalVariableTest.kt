@@ -7,6 +7,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLabels
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -26,25 +27,33 @@ class LocalVariableTest {
   @Before
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
+    disableLiveEdit()
+  }
+
+  @After
+  fun tearDown() {
+    enableLiveEdit()
   }
 
   @Test
   fun testAddRemoveLocalVar() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun method() {
           var a = ""
         }
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+   projectRule.modifyKtFile(file, """
       class A {
         fun method() {
           var a = ""
           var b = ""
           var c = ""
         }
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -80,19 +89,21 @@ class LocalVariableTest {
 
   @Test
   fun testName() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun method() {
           var a = ""
         }
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         fun method() {
           var b = ""
         }
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -124,19 +135,21 @@ class LocalVariableTest {
 
   @Test
   fun testDesc() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun method() {
           var a = ""
         }
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         fun method() {
           var a = 0
         }
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -169,15 +182,16 @@ class LocalVariableTest {
   // Use of random() to force kotlinc to actually keep local variables around.
   @Test
   fun testSignature() {
-    val original = projectRule.compileIr("""
+    val file = projectRule.createKtFile("A.kt", """
       class A {
         fun method(): Int {
           var a = java.util.Random().nextInt()
           return a
         }
-      }""", "A.kt", "A")
+      }""")
+    val original = projectRule.directApiCompileIr(file)["A"]!!
 
-    val new = projectRule.compileIr("""
+    projectRule.modifyKtFile(file, """
       class A {
         fun method(): Int {
           if (true) {
@@ -186,7 +200,8 @@ class LocalVariableTest {
           }
           return 0
         }
-      }""", "A.kt", "A")
+      }""")
+    val new = projectRule.directApiCompileIr(file)["A"]!!
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))

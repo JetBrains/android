@@ -88,7 +88,7 @@ dependencies {
 
   val allBlocks =
     """
-    ${emptyPluginsBlock(isKts = isKts, useVersionCatalog = useVersionCatalog)}
+    ${emptyPluginsBlock()}
     $androidConfigBlock
     $dependenciesBlock
     """

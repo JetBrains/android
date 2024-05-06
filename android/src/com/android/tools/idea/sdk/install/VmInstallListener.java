@@ -21,6 +21,7 @@ import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.Uninstaller;
 import com.android.tools.idea.sdk.wizard.VmWizard;
+import com.android.tools.idea.welcome.install.VmInstallationIntention;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,8 +41,7 @@ public class VmInstallListener implements PackageOperation.StatusChangeListener 
     throws PackageOperation.StatusChangeListenerException {
 
     if ((op instanceof Uninstaller && op.getInstallStatus() == PackageOperation.InstallStatus.RUNNING) ||
-        (op instanceof Installer && op.getInstallStatus() == PackageOperation.InstallStatus.COMPLETE)
-      ) {
+        (op instanceof Installer && op.getInstallStatus() == PackageOperation.InstallStatus.COMPLETE)) {
       // There are two possible workflows:
       // 1) Installation workflow: Install SDK package -> invoke wizard to run installer
       // 2) Uninstallation workflow: Invoke wizard to run installer with uninstallation params -> Uninstall SDK package
@@ -54,7 +54,10 @@ public class VmInstallListener implements PackageOperation.StatusChangeListener 
 
       final AtomicBoolean result = new AtomicBoolean(false);
       ApplicationManager.getApplication().invokeAndWait(() -> {
-        VmWizard wizard = new VmWizard(op instanceof Uninstaller, myType);
+        // Either we just installed the package and we need to "configure" it (run the installation script),
+        // or we're about to uninstall it.
+        VmWizard wizard =
+          new VmWizard(op instanceof Uninstaller ? VmInstallationIntention.UNINSTALL : VmInstallationIntention.CONFIGURE_ONLY, myType);
         wizard.init();
         result.set(wizard.showAndGet());
       }, ModalityState.any());

@@ -19,10 +19,11 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.rendering.RenderResult;
 import com.intellij.openapi.actionSystem.DataContext;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class that produces a {@link RenderErrorModel} containing the issues found in a {@link RenderResult}.
@@ -35,11 +36,16 @@ public class RenderErrorModelFactory {
    * Returns a new {@RenderErrorModel} with the {@link RenderErrorModel.Issue}s found in the passed {@link RenderResult}.
    */
   @NotNull
-  public static RenderErrorModel createErrorModel(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
+  public static RenderErrorModel createErrorModel(@Nullable EditorDesignSurface surface, @NotNull RenderResult result) {
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
     for (RenderErrorContributor.Provider provider : RenderErrorContributor.Provider.EP_NAME.getExtensions()) {
       if (provider.isApplicable(result.getProject())) {
         issues.addAll(provider.getContributor(surface, result).reportIssues());
+      }
+    }
+    for (RenderIssueCollectionConsumer.Provider provider : RenderIssueCollectionConsumer.Provider.EP_NAME.getExtensions()) {
+      if (provider.isApplicable(result.getProject())) {
+        provider.getConsumer(surface, result).consume(issues);
       }
     }
     return new RenderErrorModel(issues);

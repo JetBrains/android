@@ -54,15 +54,19 @@ class IdeAndroidSyncIssuesAndExceptions(val syncIssues: List<IdeSyncIssue>, val 
  * exception serialization issues across different JVM versions.
  */
 class IdeAndroidSyncError(
+  val type: AndroidSyncExceptionType,
   val message: String,
   val stackTrace: List<String>,
   val buildPath: String? = null,
   val modulePath: String? = null,
-  val syncIssues: List<IdeSyncIssue>? = null) : Serializable
+  val syncIssues: List<IdeSyncIssue>? = null
+) : Serializable
 
 @JvmName("ideAndroidSyncErrorToException")
-fun IdeAndroidSyncError.toException(): AndroidSyncException =
-  AndroidSyncException(message = "$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}",
-                       buildPath = buildPath,
-                       modulePath = modulePath,
-                       syncIssues = syncIssues)
+fun IdeAndroidSyncError.toException(): AndroidSyncException = AndroidSyncException(
+  type = type,
+  message = "$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}",
+  buildPath = buildPath,
+  modulePath = modulePath,
+  syncIssues = syncIssues
+)

@@ -18,9 +18,8 @@ package com.android.tools.compose.code.completion
 import com.android.ide.common.vectordrawable.VdPreview
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
-import com.android.tools.compose.aa.code.isComposableFunctionParameter
+import com.android.tools.compose.code.ComposableFunctionRenderParts
 import com.android.tools.compose.code.getComposableFunctionRenderParts
-import com.android.tools.compose.code.isComposableFunctionParameter
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.base.CaseFormat
@@ -52,6 +51,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -72,6 +72,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
+import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.results.argumentValueType
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 import java.io.BufferedReader
@@ -91,50 +92,53 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
   // The only type in the list is the return type (can be Unit).
   type.isFunctionType && argumentValueType.arguments.size == 1
 
-private fun KtAnalysisSession.isLambdaWithNoParameters(valueParameterSymbol: KtValueParameterSymbol): Boolean {
-  // The only type in the list is the return type (can be Unit).
-  val functionalReturnType = valueParameterSymbol.returnType as? KtFunctionalType ?: return false
-  return functionalReturnType.ownTypeArguments.size == 1
-}
+/** true iff [valueParameterSymbol]'s type arguments contains only the return type (can be Unit). */
+private fun KtAnalysisSession.isLambdaWithNoParameters(
+  valueParameterSymbol: KtValueParameterSymbol
+) = with(valueParameterSymbol) { (returnType as? KtFunctionalType)?.ownTypeArguments?.size == 1 }
 
-/**
- * true iff the last parameter is required, and a lambda type with no parameters.
- */
+/** true iff the last parameter is required, and a lambda type with no parameters. */
 private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
   !hasDefaultValue() && isLambdaWithNoParameters() && varargElementType == null
 
-/**
- * true iff the last parameter is required, and a lambda type with no parameters.
- */
-private fun KtAnalysisSession.isRequiredLambdaWithNoParameters(valueParameterSymbol: KtValueParameterSymbol) =
-  !valueParameterSymbol.hasDefaultValue && isLambdaWithNoParameters(valueParameterSymbol) && !valueParameterSymbol.isVararg
+/** true iff the last parameter is required, and a lambda type with no parameters. */
+private fun KtAnalysisSession.isRequiredLambdaWithNoParameters(
+  valueParameterSymbol: KtValueParameterSymbol
+) = with(valueParameterSymbol) { !hasDefaultValue && isLambdaWithNoParameters(this) && !isVararg }
 
 private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
 
 /**
- * Find the [CallType] from the [InsertionContext]. The [CallType] can be used to detect if the completion is being done in a regular
- * statement, an import or some other expression and decide if we want to apply the [ComposeInsertHandler].
+ * Find the [CallType] from the [InsertionContext]. The [CallType] can be used to detect if the
+ * completion is being done in a regular statement, an import or some other expression and decide if
+ * we want to apply the [ComposeInsertHandler].
  */
 private fun PsiElement?.inferCallType(): CallType<*> {
-  // Look for an existing KtSimpleNameExpression to pass to CallTypeAndReceiver.detect so we can infer the call type.
-  val namedExpression = (this as? KtSimpleNameExpression)?.mainReference?.expression ?: return CallType.DEFAULT
+  // Look for an existing KtSimpleNameExpression to pass to CallTypeAndReceiver.detect so we can
+  // infer the call type.
+  val namedExpression =
+    (this as? KtSimpleNameExpression)?.mainReference?.expression ?: return CallType.DEFAULT
   return CallTypeAndReceiver.detect(namedExpression).callType
 }
 
 /**
  * Return true if element is a KDoc.
  *
- * Ideally, we would use [inferCallType] but there doesn't seem to be a [CallType] for a KDoc element.
+ * Ideally, we would use [inferCallType] but there doesn't seem to be a [CallType] for a KDoc
+ * element.
  */
 private fun PsiElement?.isKdoc() = this is KDocName
 
-/**
- * Modifies [LookupElement]s for composable functions, to improve Compose editing UX.
- */
+/** Modifies [LookupElement]s for composable functions, to improve Compose editing UX. */
 class ComposeCompletionContributor : CompletionContributor() {
-  override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (parameters.position.getModuleSystem()?.usesCompose != true ||
-        parameters.position.language != KotlinLanguage.INSTANCE) {
+  override fun fillCompletionVariants(
+    parameters: CompletionParameters,
+    resultSet: CompletionResultSet
+  ) {
+    if (
+      parameters.position.getModuleSystem()?.usesCompose != true ||
+        parameters.position.language != KotlinLanguage.INSTANCE
+    ) {
       return
     }
 
@@ -149,22 +153,23 @@ class ComposeCompletionContributor : CompletionContributor() {
     // If there's no PsiElement, just leave the result alone.
     val psi = lookupElement.psiElement ?: return completionResult
 
-    return when {
-      psi.isComposableFunction() ->
-        if (lookupElement.isForSpecialLambdaLookupElement()) null
-        else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
-
-      ComposeMaterialIconLookupElement.appliesTo(psi) -> completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
-
-      // No transformation needed.
-      else -> completionResult
+    if (psi.isComposableFunction()) {
+      // Get rid of the extra version of the lookup element shown with trailing lambda
+      // syntax (i.e. "{ }").
+      if (lookupElement.isForSpecialLambdaLookupElement()) return null
+      return completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
     }
+    if (ComposeMaterialIconLookupElement.appliesTo(psi)) {
+      return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
+    }
+    return completionResult
   }
 
   /**
-   * Checks if the [LookupElement] is an additional, "special" lookup element created for functions that can be invoked using the lambda
-   * syntax. These are created by [LookupElementFactory.addSpecialFunctionCallElements] and can be confusing for Compose APIs that often
-   * use overloaded function names.
+   * Checks if the [LookupElement] is an additional, "special" lookup element created for functions
+   * that can be invoked using the lambda syntax. These are created by
+   * [LookupElementFactory.addSpecialFunctionCallElements] and can be confusing for Compose APIs
+   * that often use overloaded function names.
    */
   private fun LookupElement.isForSpecialLambdaLookupElement(): Boolean {
     val presentation = LookupElementPresentation()
@@ -173,13 +178,10 @@ class ComposeCompletionContributor : CompletionContributor() {
   }
 }
 
-/**
- * Wraps original Kotlin [LookupElement]s for composable functions to make them stand out more.
- */
-private class ComposableFunctionLookupElement(original: LookupElement) : LookupElementDecorator<LookupElement>(original) {
-  /**
-   * Set of [CallType]s that should be handled by the [ComposeInsertHandler].
-   */
+/** Wraps original Kotlin [LookupElement]s for composable functions to make them stand out more. */
+private class ComposableFunctionLookupElement(original: LookupElement) :
+  LookupElementDecorator<LookupElement>(original) {
+  /** Set of [CallType]s that should be handled by the [ComposeInsertHandler]. */
   private val validCallTypes = setOf(CallType.DEFAULT, CallType.DOT)
 
   init {
@@ -195,18 +197,18 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
       val element = psiElement
       analyze(element) {
         val functionSymbol = element.getFunctionLikeSymbol()
-        presentation.icon = COMPOSABLE_FUNCTION_ICON
-        presentation.setTypeText(if (functionSymbol.returnType.isUnit) null else presentation.typeText, null)
-        val (parameters, tail) = getComposableFunctionRenderParts(functionSymbol)
-        rewriteSignature(presentation, parameters, tail)
+        val typeText = presentation.typeText.takeUnless { functionSymbol.returnType.isUnit }
+        presentation.setTypeText(typeText, null)
+        presentation.rewriteSignature(getComposableFunctionRenderParts(functionSymbol))
       }
     } else {
       val descriptor = getFunctionDescriptor() ?: return
-      presentation.icon = COMPOSABLE_FUNCTION_ICON
-      presentation.setTypeText(if (descriptor.returnType?.isUnit() == true) null else presentation.typeText, null)
-      val (parameters, tail) = descriptor.getComposableFunctionRenderParts()
-      rewriteSignature(presentation, parameters, tail)
+      val typeText = presentation.typeText.takeUnless { descriptor.returnType?.isUnit() == true }
+      presentation.setTypeText(typeText, null)
+      presentation.rewriteSignature(descriptor.getComposableFunctionRenderParts())
     }
+
+    presentation.icon = COMPOSABLE_FUNCTION_ICON
   }
 
   override fun handleInsert(context: InsertionContext) {
@@ -231,17 +233,20 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
     }
   }
 
-  private fun rewriteSignature(presentation: LookupElementPresentation, parameters: String?, tail: String?) {
-    presentation.clearTail()
-    parameters?.let { presentation.appendTailTextItalic(it, /* grayed = */ false) }
-    tail?.let { presentation.appendTailText(" $it", /* grayed = */ true) }
+  private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
+    clearTail()
+    parts.parameters?.let { appendTailTextItalic(it, /* grayed = */ false) }
+    parts.tail?.let { appendTailText(" $it", /* grayed = */ true) }
   }
 }
 
-/** Lookup element that decorates a Compose material icon property with the actual icon it represents. */
+/**
+ * Lookup element that decorates a Compose material icon property with the actual icon it
+ * represents.
+ */
 @VisibleForTesting
-internal class ComposeMaterialIconLookupElement(private val original: LookupElement)
-  : LookupElementDecorator<LookupElement>(original) {
+internal class ComposeMaterialIconLookupElement(private val original: LookupElement) :
+  LookupElementDecorator<LookupElement>(original) {
 
   init {
     // We know we'll want material icons, so start warming up the cache.
@@ -261,36 +266,42 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
      *
      * The key is the package name, coming from a fully-qualified icon name.
      *
-     * The value is a pair that identifies how to construct names that represent these icons. The first string in each pair represents part
-     * of a directory name where the theme's icons are stored. The second string value represents the prefix of each image's file name.
+     * The value is a pair that identifies how to construct names that represent these icons. The
+     * first string in each pair represents part of a directory name where the theme's icons are
+     * stored. The second string value represents the prefix of each image's file name.
      */
-    private val themeNamingPatterns = mapOf(
-      "androidx.compose.material.icons.filled" to Pair("materialicons", "baseline"),
-      "androidx.compose.material.icons.rounded" to Pair("materialiconsround", "round"),
-      "androidx.compose.material.icons.sharp" to Pair("materialiconssharp", "sharp"),
-      "androidx.compose.material.icons.twotone" to Pair("materialiconstwotone", "twotone"),
-      "androidx.compose.material.icons.outlined" to Pair("materialiconsoutlined", "outline"),
-    )
+    private val themeNamingPatterns =
+      mapOf(
+        "androidx.compose.material.icons.filled" to Pair("materialicons", "baseline"),
+        "androidx.compose.material.icons.rounded" to Pair("materialiconsround", "round"),
+        "androidx.compose.material.icons.sharp" to Pair("materialiconssharp", "sharp"),
+        "androidx.compose.material.icons.twotone" to Pair("materialiconstwotone", "twotone"),
+        "androidx.compose.material.icons.outlined" to Pair("materialiconsoutlined", "outline"),
+      )
 
     /** Whether ComposeMaterialIconLookupElement can apply to the given [LookupElement]. */
     fun appliesTo(psiElement: PsiElement): Boolean {
       if (psiElement !is KtProperty) return false
       val fqName = psiElement.kotlinFqName?.asString() ?: return false
 
-      if (!fqName.startsWith("androidx.compose.material.icons") ||
-          psiElement.typeReference?.text?.endsWith("ImageVector") != true) return false
+      if (
+        !fqName.startsWith("androidx.compose.material.icons") ||
+          psiElement.typeReference?.text?.endsWith("ImageVector") != true
+      )
+        return false
 
       return themeNamingPatterns.containsKey(fqName.substringBeforeLast('.'))
     }
 
     /**
-     * Converts the property name of a Compose material icon to the snake-case equivalent used in file names, with additional underscores
-     * separating digits from non-digit characters.
+     * Converts the property name of a Compose material icon to the snake-case equivalent used in
+     * file names, with additional underscores separating digits from non-digit characters.
      *
      * eg: "AccountBox3" -> "account_box_3"
      *
-     * If a material icon's name starts with a number, the property name has an underscore prepended to make it a valid identifier, even
-     * though the underscore doesn't appear in the file path and name.
+     * If a material icon's name starts with a number, the property name has an underscore prepended
+     * to make it a valid identifier, even though the underscore doesn't appear in the file path and
+     * name.
      *
      * eg: "_1kPlus42" -> "1k_plus_42"
      */
@@ -316,122 +327,158 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
 
     /** Returns an [Icon] given an Android Studio resource path. */
     @VisibleForTesting
-    internal fun getIcon(fqName: String): Icon? {
-      return getIconFromMaterialIconsProvider(fqName) ?: getIconFromResources(fqName)
-    }
+    internal fun getIcon(fqName: String): Icon? =
+      getIconFromMaterialIconsProvider(fqName) ?: getIconFromResources(fqName)
 
     private fun getIconFromMaterialIconsProvider(fqName: String): Icon? {
       val iconFileName = fqName.iconFileNameFromFqName() ?: return null
-      return ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).getIcon(iconFileName)
+      return ComposeMaterialIconService.getInstance(ApplicationManager.getApplication())
+        .getIcon(iconFileName)
     }
 
     private fun getIconFromResources(fqName: String): Icon? {
       val resourcePath = fqName.resourcePathFromFqName() ?: return null
 
-      return ComposeMaterialIconLookupElement::class.java.classLoader.getResourceAsStream(resourcePath)?.use { inputStream ->
-        val content = inputStream.bufferedReader().use(BufferedReader::readText)
-        val errorLog = StringBuilder()
-        val bufferedImage = VdPreview.getPreviewFromVectorXml(VdPreview.TargetSize.createFromMaxDimension(16), content, errorLog)
-        if (errorLog.isNotEmpty()) Logger.getInstance(ComposeMaterialIconLookupElement::class.java).error(errorLog.toString())
+      return ComposeMaterialIconLookupElement::class
+        .java
+        .classLoader
+        .getResourceAsStream(resourcePath)
+        ?.use { inputStream ->
+          val content = inputStream.bufferedReader().use(BufferedReader::readText)
+          val errorLog = StringBuilder()
+          val bufferedImage =
+            VdPreview.getPreviewFromVectorXml(
+              VdPreview.TargetSize.createFromMaxDimension(16),
+              content,
+              errorLog
+            )
+          if (errorLog.isNotEmpty()) {
+            Logger.getInstance(ComposeMaterialIconLookupElement::class.java)
+              .error(errorLog.toString())
+          }
 
-        ImageIcon(bufferedImage)
-      }
+          ImageIcon(bufferedImage)
+        }
     }
   }
 }
 
-private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? {
-  val elementAtCaret = file.findElementAt(editor.caretModel.offset) ?: return null
-  return elementAtCaret.getNextSiblingIgnoringWhitespace(true)
-}
+private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? =
+  file.findElementAt(editor.caretModel.offset)?.getNextSiblingIgnoringWhitespace(true)
 
-private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnoringWhitespace()?.text?.startsWith("{") == true
+private fun InsertionContext.isNextElementOpenCurlyBrace() = nextElementStartsWith("{")
 
-private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
+private fun InsertionContext.nextElementStartsWith(prefix: String) =
+  getNextElementIgnoringWhitespace()?.text?.startsWith(prefix) ?: false
 
-private abstract class ComposeInsertHandler(callType: CallType<*>) : KotlinCallableInsertHandler(callType) {
-  override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
-    super.handleInsert(context, item)
+private abstract class ComposeInsertHandler(callType: CallType<*>) :
+  KotlinCallableInsertHandler(callType) {
+  override fun handleInsert(context: InsertionContext, item: LookupElement) =
+    with(context) {
+      super.handleInsert(context, item)
 
-    if (isNextElementOpenParenthesis()) return
+      if (nextElementStartsWith("(")) return
 
-    // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the call to super above.
-    val psiDocumentManager = PsiDocumentManager.getInstance(project)
-    psiDocumentManager.commitAllDocuments()
-    psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
+      // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the
+      // call to super above.
+      val psiDocumentManager = PsiDocumentManager.getInstance(project)
+      psiDocumentManager.commitAllDocuments()
+      psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
 
-    val templateManager = TemplateManager.getInstance(project)
-    val template = templateManager.createTemplate("", "").apply { configureFunctionTemplate(context, template = this) }
+      val templateManager = TemplateManager.getInstance(project)
+      val template =
+        templateManager.createTemplate("", "").apply {
+          configureFunctionTemplate(context, template = this)
+        }
 
-    templateManager.startTemplate(editor, template, object : TemplateEditingAdapter() {
-      override fun templateFinished(template: Template, brokenOff: Boolean) {
-        if (!brokenOff) {
-          val callExpression = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtCallExpression>() ?: return
-          val valueArgumentList = callExpression.valueArgumentList ?: return
-          if (valueArgumentList.arguments.isEmpty() && callExpression.lambdaArguments.isNotEmpty()) {
-            runWriteAction { valueArgumentList.delete() }
+      templateManager.startTemplate(
+        editor,
+        template,
+        object : TemplateEditingAdapter() {
+          override fun templateFinished(template: Template, brokenOff: Boolean) {
+            if (!brokenOff) {
+              val callExpression =
+                file.findElementAt(editor.caretModel.offset)?.parentOfType<KtCallExpression>()
+                  ?: return
+              val valueArgumentList = callExpression.valueArgumentList ?: return
+              if (
+                valueArgumentList.arguments.isEmpty() && callExpression.lambdaArguments.isNotEmpty()
+              ) {
+                runWriteAction { valueArgumentList.delete() }
+              }
+            }
           }
         }
-      }
-    })
-  }
+      )
+    }
 
   abstract fun configureFunctionTemplate(context: InsertionContext, template: Template)
 
   class ParameterInfo(val name: String, val isLambdaWithNoParameters: Boolean)
 
-  fun configureFunctionTemplate(template: Template,
-                                parameterInfoList: List<ParameterInfo>,
-                                insertLambda: Boolean,
-                                isNextElementOpenCurlyBrace: Boolean) = template.apply {
-    isToReformat = true
-    setToIndent(true)
+  fun configureFunctionTemplate(
+    template: Template,
+    parameterInfoList: List<ParameterInfo>,
+    insertLambda: Boolean,
+    isNextElementOpenCurlyBrace: Boolean
+  ) =
+    template.apply {
+      isToReformat = true
+      setToIndent(true)
 
-    when {
-      parameterInfoList.isNotEmpty() -> {
-        addTextSegment("(")
-        parameterInfoList.forEachIndexed { index, paramInfo ->
-          if (index > 0) {
-            addTextSegment(", ")
+      when {
+        parameterInfoList.isNotEmpty() -> {
+          addTextSegment("(")
+          parameterInfoList.forEachIndexed { index, paramInfo ->
+            if (index > 0) {
+              addTextSegment(", ")
+            }
+            addTextSegment(paramInfo.name + " = ")
+            if (paramInfo.isLambdaWithNoParameters) {
+              addVariable(ConstantNode("{ /*TODO*/ }"), true)
+            } else {
+              addVariable(EmptyExpression(), true)
+            }
           }
-          addTextSegment(paramInfo.name + " = ")
-          if (paramInfo.isLambdaWithNoParameters) {
-            addVariable(ConstantNode("{ /*TODO*/ }"), true)
-          }
-          else {
-            addVariable(EmptyExpression(), true)
-          }
+          addTextSegment(")")
         }
-        addTextSegment(")")
+        !insertLambda -> addTextSegment("()")
       }
 
-      !insertLambda -> addTextSegment("()")
+      if (insertLambda && !isNextElementOpenCurlyBrace) {
+        addTextSegment(" {\n")
+        addEndVariable()
+        addTextSegment("\n}")
+      }
     }
-
-    if (insertLambda && !isNextElementOpenCurlyBrace) {
-      addTextSegment(" {\n")
-      addEndVariable()
-      addTextSegment("\n}")
-    }
-  }
 }
 
-private class ComposeInsertHandlerForK1(val functionDescriptor: FunctionDescriptor, callType: CallType<*>) : ComposeInsertHandler(
-  callType) {
+private class ComposeInsertHandlerForK1(
+  val functionDescriptor: FunctionDescriptor,
+  callType: CallType<*>
+) : ComposeInsertHandler(callType) {
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
     val allParameters = functionDescriptor.valueParameters
-    val requiredParameters = allParameters.filter { !it.declaresDefaultValue() && it.varargElementType == null }
-    val insertLambda = allParameters.lastOrNull()?.let { valueParamDescriptor ->
-      valueParamDescriptor.isComposableFunctionParameter() || valueParamDescriptor.isRequiredLambdaWithNoParameters()
-    } == true
+    val requiredParameters =
+      allParameters.filter { !it.declaresDefaultValue() && it.varargElementType == null }
+    val insertLambda =
+      allParameters.lastOrNull()?.let {
+        !it.isVararg && it.type.isBuiltinFunctionalType && !it.hasDefaultValue()
+      } ?: false
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
-    configureFunctionTemplate(template, inParens.map { ParameterInfo(it.name.asString(), it.isLambdaWithNoParameters()) }, insertLambda,
-                              context.isNextElementOpenCurlyBrace())
+    configureFunctionTemplate(
+      template,
+      inParens.map { ParameterInfo(it.name.asString(), it.isLambdaWithNoParameters()) },
+      insertLambda,
+      context.isNextElementOpenCurlyBrace()
+    )
   }
 }
 
-private class ComposeInsertHandlerForK2(val functionElement: KtNamedFunction, callType: CallType<*>) : ComposeInsertHandler(
-  callType) {
+private class ComposeInsertHandlerForK2(
+  val functionElement: KtNamedFunction,
+  callType: CallType<*>
+) : ComposeInsertHandler(callType) {
   @OptIn(KtAllowAnalysisOnEdt::class)
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
     allowAnalysisOnEdt {
@@ -439,12 +486,17 @@ private class ComposeInsertHandlerForK2(val functionElement: KtNamedFunction, ca
         val functionSymbol = functionElement.getFunctionLikeSymbol()
         val allParameters = functionSymbol.valueParameters
         val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
-        val insertLambda = allParameters.lastOrNull()?.let { valueParamSymbol ->
-          isComposableFunctionParameter(valueParamSymbol) || isRequiredLambdaWithNoParameters(valueParamSymbol)
-        } == true
+        val insertLambda =
+          allParameters.lastOrNull()?.let {
+            !it.isVararg && it.returnType is KtFunctionalType && !it.hasDefaultValue
+          } ?: false
         val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
-        configureFunctionTemplate(template, inParens.map { ParameterInfo(it.name.asString(), isLambdaWithNoParameters(it)) }, insertLambda,
-                                  context.isNextElementOpenCurlyBrace())
+        configureFunctionTemplate(
+          template,
+          inParens.map { ParameterInfo(it.name.asString(), isLambdaWithNoParameters(it)) },
+          insertLambda,
+          context.isNextElementOpenCurlyBrace()
+        )
       }
     }
   }

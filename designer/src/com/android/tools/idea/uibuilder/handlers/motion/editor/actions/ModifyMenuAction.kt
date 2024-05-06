@@ -39,6 +39,6 @@ abstract class ModifyMenuAction : DumbAwareAction("Modify Constraint Set", null,
     val menu =
       JBPopupFactory.getInstance()
         .createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
-    e.inputEvent?.let { menu.showUnderneathOf(it.component) }
+    menu.showUnderneathOf(e.inputEvent!!.component)
   }
 }

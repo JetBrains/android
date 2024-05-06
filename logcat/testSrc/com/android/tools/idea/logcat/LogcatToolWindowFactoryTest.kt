@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.devices.Device
@@ -46,13 +47,13 @@ import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.util.io.delete
+import java.nio.file.Files
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.verify
-import java.nio.file.Files
-import kotlin.test.fail
-
 
 @RunsInEdt
 class LogcatToolWindowFactoryTest {
@@ -62,14 +63,24 @@ class LogcatToolWindowFactoryTest {
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
   @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
-    EdtRule(),
-    disposableRule)
+  val rule =
+    RuleChain(
+      projectRule,
+      ProjectServiceRule(
+        projectRule,
+        DeviceComboBoxDeviceTrackerFactory::class.java,
+        DeviceComboBoxDeviceTrackerFactory { deviceTracker }
+      ),
+      EdtRule(),
+      disposableRule
+    )
 
-  private val project get() = projectRule.project
-  private val disposable get() = disposableRule.disposable
+  private val project
+    get() = projectRule.project
+
+  private val disposable
+    get() = disposableRule.disposable
+
   private val fakeLogcatService = FakeLogcatService()
 
   @Before
@@ -84,9 +95,12 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun isLibraryToolWindow() {
-    val toolWindow = LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Logcat" } ?: fail("Tool window not found")
+    val toolWindow =
+      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Logcat" }
+        ?: fail("Tool window not found")
 
-    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
+    assertThat(toolWindow.librarySearchClass)
+      .isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
   }
 
   @Test
@@ -101,8 +115,9 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun createChildComponent_isLogcatMainPanel() {
-    val childComponent = logcatToolWindowFactory()
-      .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = null)
+    val childComponent =
+      logcatToolWindowFactory()
+        .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = null)
 
     assertThat(childComponent).isInstanceOf(LogcatMainPanel::class.java)
     Disposer.dispose(childComponent as Disposable)
@@ -110,26 +125,36 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun createChildComponent_parsesState() {
-    val logcatPanelConfig = LogcatPanelConfig(
-      device = null,
-      file = null,
-      formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
-      "filter",
-      filterMatchCase = true,
-      isSoftWrap = false)
+    val logcatPanelConfig =
+      LogcatPanelConfig(
+        device = null,
+        file = null,
+        formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(15))),
+        "filter",
+        filterMatchCase = true,
+        isSoftWrap = false
+      )
 
-    val logcatMainPanel = logcatToolWindowFactory()
-      .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = LogcatPanelConfig.toJson(logcatPanelConfig))
+    val logcatMainPanel =
+      logcatToolWindowFactory()
+        .createChildComponent(
+          project,
+          ActionGroup.EMPTY_GROUP,
+          clientState = LogcatPanelConfig.toJson(logcatPanelConfig)
+        )
 
-    // It's enough to assert on just one field in the config. We test more thoroughly in LogcatMainPanelTest
-    assertThat(logcatMainPanel.formattingOptions).isEqualTo(logcatPanelConfig.formattingConfig.toFormattingOptions())
+    // It's enough to assert on just one field in the config. We test more thoroughly in
+    // LogcatMainPanelTest
+    assertThat(logcatMainPanel.formattingOptions)
+      .isEqualTo(logcatPanelConfig.formattingConfig.toFormattingOptions())
     Disposer.dispose(logcatMainPanel)
   }
 
   @Test
   fun createChildComponent_invalidState() {
-    val logcatMainPanel = logcatToolWindowFactory()
-      .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = "invalid state")
+    val logcatMainPanel =
+      logcatToolWindowFactory()
+        .createChildComponent(project, ActionGroup.EMPTY_GROUP, clientState = "invalid state")
 
     assertThat(logcatMainPanel.formattingOptions).isEqualTo(FormattingOptions())
     Disposer.dispose(logcatMainPanel)
@@ -138,10 +163,17 @@ class LogcatToolWindowFactoryTest {
   @Test
   fun startsProcessNameMonitor() {
     val mockProcessNameMonitor = mock<ProcessNameMonitor>()
+    val latch = CountDownLatch(1)
+    var threadName: String? = null
+    whenever(mockProcessNameMonitor.start()).then {
+      threadName = Thread.currentThread().name
+      latch.countDown()
+    }
 
     logcatToolWindowFactory(mockProcessNameMonitor).init(MockToolWindow(project))
 
-    verify(mockProcessNameMonitor).start()
+    latch.await(2, TimeUnit.SECONDS)
+    assertThat(threadName).startsWith("ApplicationImpl pooled thread")
   }
 
   @Test
@@ -152,40 +184,38 @@ class LogcatToolWindowFactoryTest {
     project.replaceService(DeviceFinder::class.java, DeviceFinder { device }, disposable)
     deviceTracker.addDevices(device)
 
-    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(
-      PhysicalDeviceInfo("device1", "11", 30, "Google", "Pixel"),
-      "com.test")
+    project.messageBus
+      .syncPublisher(ShowLogcatListener.TOPIC)
+      .showLogcat(PhysicalDeviceInfo("device1", "11", 30, 30, "Google", "Pixel"), "com.test")
 
     waitForCondition { toolWindow.contentManager.contentCount == 1 }
 
     val content = toolWindow.contentManager.contents.first()
-    val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
-    waitForCondition {
-      logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice() != null
-    }
+    val logcatMainPanel: LogcatMainPanel =
+      TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
+    waitForCondition { logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice() != null }
     assertThat(content.tabName).isEqualTo("com.test (device1)")
-    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice()?.deviceId).isEqualTo("device1")
+    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice()?.deviceId)
+      .isEqualTo("device1")
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:com.test")
   }
 
   @Test
   fun showLogcatFile_opensLogcatPanel() {
-    // Use a real file because the path gets serialized and deserilized and depends on the file system being used.
+    // Use a real file because the path gets serialized and deserilized and depends on the file
+    // system being used.
     val path = Files.createTempFile("logcat", "txt")
     Disposer.register(disposable) { path.delete() }
     val toolWindow = MockToolWindow(project)
     logcatToolWindowFactory().init(toolWindow)
 
     project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcatFile(path, "name")
-    waitForCondition {
-      toolWindow.contentManager.contentCount == 1
-    }
+    waitForCondition { toolWindow.contentManager.contentCount == 1 }
 
     val content = toolWindow.contentManager.contents.first()
-    val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
-    waitForCondition {
-      logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile() != null
-    }
+    val logcatMainPanel: LogcatMainPanel =
+      TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
+    waitForCondition { logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile() != null }
     assertThat(content.tabName).isEqualTo("name")
     assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile()).isEqualTo(path)
   }
@@ -193,7 +223,11 @@ class LogcatToolWindowFactoryTest {
   private fun logcatToolWindowFactory(
     processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor(),
   ): LogcatToolWindowFactory {
-    project.registerOrReplaceServiceInstance(ProcessNameMonitor::class.java, processNameMonitor, disposable)
+    project.registerOrReplaceServiceInstance(
+      ProcessNameMonitor::class.java,
+      processNameMonitor,
+      disposable
+    )
     return LogcatToolWindowFactory()
   }
 }

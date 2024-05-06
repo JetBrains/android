@@ -39,7 +39,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -191,7 +191,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     panel.add(myEventFilter, new TabularLayout.Constraint(3, 1));
 
     JScrollPane logScrollPane = new JBScrollPane(myEventLog);
-    logScrollPane.setMinimumSize(new Dimension(JBUIScale.scale(300), JBUIScale.scale(600)));
+    logScrollPane.setMinimumSize(new Dimension(JBUI.scale(300), JBUI.scale(600)));
     panel.add(logScrollPane, new TabularLayout.Constraint(4, 1, 2));
     myRootPanel.add(panel, BorderLayout.CENTER);
 

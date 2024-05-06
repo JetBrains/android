@@ -20,9 +20,10 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.tools.idea.sdk.install.VmType;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdk.wizard.VmWizard;
+import com.android.tools.idea.sdk.install.VmType;
+import com.android.tools.idea.welcome.install.VmInstallationIntention;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.ExecutionException;
@@ -218,7 +219,7 @@ public class AccelerationErrorSolution {
         final VmType type = myError.getSolution() == INSTALL_AEHD || myError.getSolution() == REINSTALL_AEHD ? VmType.AEHD : VmType.HAXM;
         return () -> {
           try {
-            VmWizard wizard = new VmWizard(false, type);
+            VmWizard wizard = new VmWizard(VmInstallationIntention.INSTALL_WITH_UPDATES, type);
             wizard.init();
             myChangesMade = wizard.showAndGet();
           }

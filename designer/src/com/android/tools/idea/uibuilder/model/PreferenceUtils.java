@@ -15,17 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import static com.android.SdkConstants.PreferenceTags.CHECK_BOX_PREFERENCE;
-import static com.android.SdkConstants.PreferenceTags.EDIT_TEXT_PREFERENCE;
-import static com.android.SdkConstants.PreferenceTags.LIST_PREFERENCE;
-import static com.android.SdkConstants.PreferenceTags.MULTI_SELECT_LIST_PREFERENCE;
-import static com.android.SdkConstants.PreferenceTags.PREFERENCE_CATEGORY;
-import static com.android.SdkConstants.PreferenceTags.PREFERENCE_SCREEN;
-import static com.android.SdkConstants.PreferenceTags.RINGTONE_PREFERENCE;
-import static com.android.SdkConstants.PreferenceTags.SWITCH_PREFERENCE;
-
 import com.google.common.collect.ImmutableSet;
+
 import java.util.Collection;
+
+import static com.android.SdkConstants.PreferenceTags.*;
 
 public final class PreferenceUtils {
   public static final Collection<String> VALUES = ImmutableSet.of(

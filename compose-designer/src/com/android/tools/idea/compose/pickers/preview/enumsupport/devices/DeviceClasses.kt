@@ -15,62 +15,29 @@
  */
 package com.android.tools.idea.compose.pickers.preview.enumsupport.devices
 
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
-import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
-import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
-import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
-import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.pickers.base.enumsupport.PsiEnumValue
-import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.Orientation
-import com.android.tools.idea.compose.pickers.preview.property.Shape
-import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_TABLET_TOOLTIP
-import com.android.tools.idea.configurations.PREDEFINED_WINDOW_SIZES_DEFINITIONS
-import com.android.tools.idea.configurations.WindowSizeData
+import com.android.tools.preview.config.CHIN_SIZE_PX_FOR_ROUND_CHIN
+import com.android.tools.preview.config.DEVICE_BY_ID_PREFIX
+import com.android.tools.preview.config.Densities
+import com.android.tools.preview.config.DeviceConfig
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.ReferenceDesktopConfig
+import com.android.tools.preview.config.ReferenceFoldableConfig
+import com.android.tools.preview.config.ReferencePhoneConfig
+import com.android.tools.preview.config.ReferenceTabletConfig
+import com.android.tools.preview.config.Shape
 import com.android.tools.property.panel.api.EnumValue
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import icons.StudioIcons
 import javax.swing.Icon
 import kotlin.math.round
 import kotlin.math.sqrt
-
-/** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
-internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
-
-/** Default device configuration for Phones */
-internal val ReferencePhoneConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_PHONE_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
-
-/** Default device configuration for Foldables */
-internal val ReferenceFoldableConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_FOLDABLE_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
-
-/** Default device configuration for Tablets */
-internal val ReferenceTabletConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_TABLET_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
-
-/** Default device configuration for Desktops */
-internal val ReferenceDesktopConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_DESKTOP_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
 
 /** The different types of devices that'll be available on the picker 'Device' DropDown. */
 internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
@@ -133,7 +100,7 @@ internal class DeviceEnumValueBuilder {
         val dpiCalc = sqrt((1.0 * widthPx * widthPx) + (1.0 * heightPx * heightPx)) / diagonalIn
         round(dpiCalc * 100) / 100.0
       }
-    val density = AvdScreenData.getScreenDensity(true, dpi, heightPx)
+    val density = Densities.getCommonScreenDensity(true, dpi, heightPx)
     val deviceSpec =
       DeviceConfig(
           width = widthPx.toFloat(),
@@ -149,12 +116,12 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[type]?.add(enumValue)
   }
 
-  fun addWearDevice(
+  private fun addWearDevice(
     isRound: Boolean,
     chinSizePx: Int,
     displayName: String
   ): DeviceEnumValueBuilder = apply {
-    val density = AvdScreenData.getScreenDensity(false, 224.0, 300)
+    val density = Densities.getCommonScreenDensity(false, 224.0, 300)
     val shape = if (isRound) Shape.Round else Shape.Normal
     val deviceSpec =
       DeviceConfig(
@@ -171,7 +138,7 @@ internal class DeviceEnumValueBuilder {
     deviceEnumValues[DeviceClass.Wear]?.add(enumValue)
   }
 
-  fun addTvDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
+  private fun addTvDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
     addDevicePx(
       type = DeviceClass.Tv,
       widthPx = widthPx,
@@ -180,7 +147,11 @@ internal class DeviceEnumValueBuilder {
       orientation = Orientation.landscape
     )
 
-  fun addAutoDevice(widthPx: Int, heightPx: Int, diagonalIn: Double): DeviceEnumValueBuilder =
+  private fun addAutoDevice(
+    widthPx: Int,
+    heightPx: Int,
+    diagonalIn: Double
+  ): DeviceEnumValueBuilder =
     addDevicePx(
       type = DeviceClass.Auto,
       widthPx = widthPx,
@@ -210,30 +181,31 @@ internal class DeviceEnumValueBuilder {
   fun addDesktop(device: Device): DeviceEnumValueBuilder =
     addById(displayName = device.displayName, id = device.id, type = DeviceClass.Desktop)
 
-  fun addPhoneById(
+  private fun addPhoneById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Phone)
 
-  fun addTabletById(
+  private fun addTabletById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Tablet)
 
-  fun addGenericById(
+  private fun addGenericById(
     displayName: String,
     id: String,
   ): DeviceEnumValueBuilder = addById(displayName, id, DeviceClass.Generic)
 
-  fun addById(displayName: String, id: String, type: DeviceClass): DeviceEnumValueBuilder = apply {
-    val enumValue =
-      PsiEnumValue.indented(
-        "$DEVICE_BY_ID_PREFIX$id",
-        displayName,
-        PreviewPickerValue.DEVICE_REF_NONE
-      )
-    deviceEnumValues[type]?.add(enumValue)
-  }
+  private fun addById(displayName: String, id: String, type: DeviceClass): DeviceEnumValueBuilder =
+    apply {
+      val enumValue =
+        PsiEnumValue.indented(
+          "$DEVICE_BY_ID_PREFIX$id",
+          displayName,
+          PreviewPickerValue.DEVICE_REF_NONE
+        )
+      deviceEnumValues[type]?.add(enumValue)
+    }
 
   /**
    * The returned [EnumValue]s is guaranteed to contain a set of pre-defined device options.
@@ -313,17 +285,3 @@ internal class DeviceEnumValueBuilder {
     }
   }
 }
-
-private fun WindowSizeData.toDeviceConfigWithDpDimensions() =
-  DeviceConfig(
-    width = widthDp.toFloat(),
-    height = heightDp.toFloat(),
-    dimUnit = DimUnit.dp,
-    dpi = density.dpiValue,
-    shape = Shape.Normal,
-    orientation =
-      when (defaultOrientation) {
-        ScreenOrientation.LANDSCAPE -> Orientation.landscape
-        else -> Orientation.portrait
-      }
-  )

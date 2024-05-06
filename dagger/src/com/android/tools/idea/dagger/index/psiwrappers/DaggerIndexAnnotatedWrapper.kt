@@ -31,29 +31,29 @@ interface DaggerIndexAnnotatedWrapper : DaggerIndexPsiWrapper {
    * actually matches. This function indicates at best that an annotation *may* be of the given
    * type. A return value of `false` means that it definitively will not be of that type.
    */
-  fun getIsAnnotatedWith(fqName: String) = getAnnotationsByName(fqName).any()
+  fun getIsAnnotatedWith(annotation: DaggerAnnotation) = getAnnotations(annotation).any()
 
   /** Same as [getIsAnnotatedWith], but allowing multiple annotation names. */
-  fun getIsAnnotatedWithAnyOf(vararg fqNames: String) =
-    fqNames.any { fqName -> getIsAnnotatedWith(fqName) }
+  fun getIsAnnotatedWithAnyOf(vararg annotations: DaggerAnnotation) =
+    annotations.any { annotation -> getIsAnnotatedWith(annotation) }
 
   /**
    * Gets a list of annotations on this element that might correspond to the given fully-qualified
    * name. (See [getIsAnnotatedWith] for an explanation of why this is not a guaranteed match.)
    */
-  fun getAnnotationsByName(fqName: String): Sequence<DaggerIndexAnnotationWrapper>
+  fun getAnnotations(annotation: DaggerAnnotation): Sequence<DaggerIndexAnnotationWrapper>
 }
 
 internal abstract class DaggerIndexAnnotatedKotlinWrapper(
   private val ktAnnotated: KtAnnotated,
   private val importHelper: KotlinImportHelper
 ) : DaggerIndexAnnotatedWrapper {
-  override fun getAnnotationsByName(fqName: String) =
+  override fun getAnnotations(annotation: DaggerAnnotation) =
     ktAnnotated.annotationEntries
       .asSequence()
       .map { KtAnnotationEntryWrapper(it) }
       .filter {
-        importHelper.getPossibleAnnotationText(fqName).contains(it.getAnnotationNameInSource())
+        importHelper.getPossibleAnnotationText(annotation).contains(it.getAnnotationNameInSource())
       }
 }
 
@@ -61,11 +61,11 @@ internal abstract class DaggerIndexAnnotatedJavaWrapper(
   private val psiModifierListOwner: PsiModifierListOwner,
   private val importHelper: JavaImportHelper
 ) : DaggerIndexAnnotatedWrapper {
-  override fun getAnnotationsByName(fqName: String) =
+  override fun getAnnotations(annotation: DaggerAnnotation) =
     psiModifierListOwner.annotations
       .asSequence()
       .map { PsiAnnotationWrapper(it) }
       .filter {
-        importHelper.getPossibleAnnotationText(fqName).contains(it.getAnnotationNameInSource())
+        importHelper.getPossibleAnnotationText(annotation).contains(it.getAnnotationNameInSource())
       }
 }

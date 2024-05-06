@@ -19,27 +19,33 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class ProjectLightResourceClassServiceTest {
   @get:Rule val rule: AndroidProjectRule = inMemory()
 
   private fun getProjectRClass(): PsiClass = runReadAction {
     ProjectLightResourceClassService.getInstance(rule.project)
-      .getLightRClassesDefinedByModule(rule.module, false)
+      .getLightRClassesDefinedByModule(rule.module)
       .single()
   }
 
   @Test
-  fun testBuildInvalidatesRClaa() {
+  fun buildInvalidatesRClass() {
     val rClass = getProjectRClass()
-    assertEquals("R", rClass.name)
-    assertEquals(rClass, getProjectRClass())
+    assertThat(rClass.name).isEqualTo("R")
+
+    assertWithMessage("Before a build, the same R class should be returned")
+      .that(getProjectRClass())
+      .isSameAs(rClass)
 
     rule.project.messageBus
       .syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
@@ -50,6 +56,9 @@ class ProjectLightResourceClassServiceTest {
           0
         )
       )
-    assertNotEquals("After a build, R class should re-generate", rClass, getProjectRClass())
+
+    assertWithMessage("After a build, R class should re-generate")
+      .that(getProjectRClass())
+      .isNotSameAs(rClass)
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.analytics
 
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
+import com.android.tools.idea.uibuilder.surface.layout.PositionableGroup
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewCanvasEvent
 import org.junit.Assert.assertEquals
@@ -33,10 +34,14 @@ class PreviewCanvasTrackerTest {
   @Test
   fun testSetLayout() {
     val groupedGridLayout =
-      GroupedGridSurfaceLayoutManager(0, { 0 }) { content -> listOf(content.toList()) }
+      GroupedGridSurfaceLayoutManager(0, 0, { 0 }) { content ->
+        listOf(PositionableGroup(content.toList()))
+      }
     previewCanvasTracker.logSwitchLayout(groupedGridLayout)
     val groupedListLayout =
-      GroupedListSurfaceLayoutManager(0, { 0 }) { content -> listOf(content.toList()) }
+      GroupedListSurfaceLayoutManager(0, 0, { 0 }) { content ->
+        listOf(PositionableGroup(content.toList()))
+      }
     previewCanvasTracker.logSwitchLayout(groupedListLayout)
 
     assertEquals(2, trackedEvents.size)

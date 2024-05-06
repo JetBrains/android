@@ -25,16 +25,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * A [HyperlinkDetector] that adds hyperlinks to an [Editor]
- */
-internal class EditorHyperlinkDetector(private val project: Project, private val editor: EditorEx) : HyperlinkDetector {
+/** A [HyperlinkDetector] that adds hyperlinks to an [Editor] */
+internal class EditorHyperlinkDetector(private val project: Project, private val editor: EditorEx) :
+  HyperlinkDetector {
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
   private val issueExplainer = IssueExplainer.get()
 
-  @VisibleForTesting
-  val filter = SdkSourceRedirectFilter(project, createFilters())
+  @VisibleForTesting val filter = SdkSourceRedirectFilter(project, createFilters())
 
   override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {
     filter.apiLevel = sdk
@@ -42,23 +40,27 @@ internal class EditorHyperlinkDetector(private val project: Project, private val
   }
 
   /**
-   * Create a composite filter containing all the standard [com.intellij.execution.filters.ConsoleFilterProvider] filters.
+   * Create a composite filter containing all the standard
+   * [com.intellij.execution.filters.ConsoleFilterProvider] filters.
    *
-   * In addition to the standard filters, also add our specialized [SimpleFileLinkFilter] which is more reliable for project file links.
+   * In addition to the standard filters, also add our specialized [SimpleFileLinkFilter] which is
+   * more reliable for project file links.
    *
    * Note that SimpleFileLinkFilter could potentially be injected via the
-   * [com.intellij.execution.filters.ConsoleFilterProvider.FILTER_PROVIDERS] extension, we choose not to do that because that would
-   * potentially affect all Console views. We limit this filter to Logcat for now.
+   * [com.intellij.execution.filters.ConsoleFilterProvider.FILTER_PROVIDERS] extension, we choose
+   * not to do that because that would potentially affect all Console views. We limit this filter to
+   * Logcat for now.
    */
   private fun createFilters(): CompositeFilter {
     val filters = buildList {
-      addAll(ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)))
+      addAll(
+        ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project))
+      )
       add(SimpleFileLinkFilter(project))
       if (issueExplainer.isAvailable()) {
         add(StudioBotFilter(editor))
       }
     }
-    return CompositeFilter(project, filters)
-      .apply { setForceUseAllFilters(true) }
+    return CompositeFilter(project, filters).apply { setForceUseAllFilters(true) }
   }
 }

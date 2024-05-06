@@ -39,6 +39,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
@@ -132,7 +133,7 @@ public final class AndroidVirtualDeviceTest {
     DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
     platformDetailsType.setApiLevel(23);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
-    Map<String, RemotePackage> remotes = new HashMap<>();
+    Map<String, RemotePackage> remotes = Maps.newHashMap();
     remotes.put("platforms;android-23", remotePlatform);
     AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
     final AvdInfo avdInfo = createAvd(avd, sdkHandler);
@@ -207,7 +208,7 @@ public final class AndroidVirtualDeviceTest {
     platformDetailsType.setApiLevel(23);
     remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
 
-    Map<String, RemotePackage> remotes = new HashMap<>();
+    Map<String, RemotePackage> remotes = Maps.newHashMap();
 
     AndroidVirtualDevice avd = new AndroidVirtualDevice(remotes, true);
 

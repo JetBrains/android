@@ -28,7 +28,7 @@ import com.google.wireless.android.sdk.stats.TestRun
 /**
  * [ITestRunListener] that builds an [AndroidStudioEvent] and logs it once the run is finished.
  */
-class UsageTrackerTestRunListener(
+class UsageTrackerTestRunListener constructor(
   testLibrariesInUse: TestLibraries?,
   testExecutionOption: TestExecutionOption?,
   private val device: IDevice) : ITestRunListener {

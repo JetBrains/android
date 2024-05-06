@@ -31,7 +31,7 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
-import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
+import com.android.tools.idea.layoutinspector.ui.toolbar.createStandaloneLayoutInspectorToolbar
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
@@ -198,7 +198,12 @@ class DeviceViewPanel(
     )
 
   private val actionToolbar =
-    createLayoutInspectorMainToolbar(this, layoutInspector, targetSelectedAction?.dropDownAction)
+    createStandaloneLayoutInspectorToolbar(
+      disposableParent,
+      this,
+      layoutInspector,
+      targetSelectedAction?.dropDownAction
+    )
 
   private var isCurrentForegroundProcessDebuggable = false
   private var hasForegroundProcess = false
@@ -273,7 +278,7 @@ class DeviceViewPanel(
     val model = layoutInspector.inspectorModel
     val notificationModel = layoutInspector.notificationModel
 
-    model.attachStageListeners.add { state ->
+    model.addAttachStageListener() { state ->
       val text =
         when (state) {
           DynamicLayoutInspectorErrorInfo.AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE ->
@@ -325,7 +330,6 @@ class DeviceViewPanel(
 
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
-        actionToolbar.updateActionsImmediately()
         val performanceWarningNeeded =
           layoutInspector.currentClient.isCapturing &&
             (contentPanel.renderModel.isRotated || model.hasHiddenNodes())
@@ -369,7 +373,7 @@ class DeviceViewPanel(
     var shouldZoomToFit = true
     layoutInspector.processModel?.addSelectedProcessListeners { shouldZoomToFit = true }
 
-    model.modificationListeners.add { oldWindow, newWindow, _ ->
+    model.addModificationListener { oldWindow, newWindow, _ ->
       if (oldWindow == null && newWindow != null) {
         // TODO(b/265150325) move to a more generic place
         layoutInspector.currentClient.stats.recompositionHighlightColor =
@@ -475,6 +479,7 @@ class DeviceViewPanel(
     get() =
       contentPanel.width > scrollPane.viewport.width ||
         contentPanel.height > scrollPane.viewport.height
+
   override var scrollPosition: Point
     get() = scrollPane.viewport.viewPosition
     set(_) {}

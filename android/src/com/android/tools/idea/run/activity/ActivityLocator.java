@@ -16,12 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.utils.concurrency.AsyncSupplier;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class ActivityLocator {
   public static final class ActivityLocatorException extends Exception {
@@ -47,16 +42,4 @@ public abstract class ActivityLocator {
    */
   @NotNull
   public abstract String getQualifiedActivityName(@NotNull IDevice device) throws ActivityLocatorException;
-
-  @Nullable
-  protected static MergedManifestSnapshot getMergedManifest(@NotNull final AndroidFacet facet, boolean usePotentiallyStaleManifest) {
-    if (usePotentiallyStaleManifest) {
-      AsyncSupplier<MergedManifestSnapshot> manifestSupplier = MergedManifestManager.getMergedManifestSupplier(facet.getModule());
-      // This will trigger recomputation of the merged manifest in the background if it's out of date or has never been computed.
-      // Doing so won't help us this time, but it will help keep the manifest fresh for future callers.
-      manifestSupplier.get();
-      return manifestSupplier.getNow();
-    }
-    return MergedManifestManager.getFreshSnapshot(facet.getModule());
-  }
 }

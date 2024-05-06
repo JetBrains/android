@@ -23,6 +23,7 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.project.FacetBasedApplicationProjectContext
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
@@ -34,7 +35,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
+import com.intellij.openapi.progress.runBlockingCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -68,7 +69,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
     )
   }
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Start run tests")
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
@@ -123,7 +124,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
     }
   }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Start debug tests")
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
@@ -139,7 +140,14 @@ open class GradleAndroidTestRunConfigurationExecutor(
 
     val device = devices.single()
 
-    val session = startDebuggerSession(indicator, device, console)
+    val packageNameForDebug = if (
+      GradleAndroidModel.get(facet)?.selectedVariant?.runTestInSeparateProcess == true) {
+      testPackageName
+    } else {
+      packageName
+    }
+
+    val session = startDebuggerSession(indicator, device, FacetBasedApplicationProjectContext(packageNameForDebug, facet), console)
     session.runContentDescriptor
   }
 
@@ -205,12 +213,4 @@ open class GradleAndroidTestRunConfigurationExecutor(
   @VisibleForTesting
   protected open fun gradleConnectedAndroidTestInvoker() =
     GradleConnectedAndroidTestInvoker(env, requireNotNull(GradleUtil.findGradleModuleData(module)?.data))
-
-  override fun applyChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Changes are not supported for Instrumented tests"
-  )
-
-  override fun applyCodeChanges(indicator: ProgressIndicator) = throw UnsupportedOperationException(
-    "Apply Code Changes are not supported for Instrumented tests"
-  )
 }

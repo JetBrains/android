@@ -27,7 +27,6 @@ import com.android.tools.idea.common.model.Coordinates.getAndroidXDip
 import com.android.tools.idea.common.model.Coordinates.getAndroidYDip
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction
@@ -195,20 +194,18 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     val insertType =
       model.determineInsertType(dragType, item, true /* preview */, true /* generate ids */)
 
-    val dragged: List<NlComponent>
-    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && !item.isFromPalette) {
-      // When dragging from ComponentTree, it should reuse the existing NlComponents rather than
-      // creating the new ones.
-      // This impacts some Handlers, using StudioFlag to protect for now.
-      // Most of Handlers should be removed once this flag is removed.
-      dragged = ArrayList<NlComponent>(surface.selectionModel.selection)
-    } else {
+    val dragged: List<NlComponent> =
       if (item.isFromPalette) {
         // remove selection when dragging from Palette.
         surface.selectionModel.clear()
+        model.createComponents(item, insertType)
+      } else {
+        // When dragging from ComponentTree, it should reuse the existing NlComponents rather than
+        // creating the new ones.
+        // This impacts some Handlers, using StudioFlag to protect for now.
+        // Most of Handlers should be removed once this flag is removed.
+        ArrayList<NlComponent>(surface.selectionModel.selection)
       }
-      dragged = model.createComponents(item, insertType)
-    }
 
     if (dragged.isEmpty()) {
       event.reject()
@@ -238,7 +235,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
   }
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
-    surface.zoom(type, mouseX, mouseY)
+    surface.zoomable.zoom(type, mouseX, mouseY)
   }
 
   override fun hoverWhenNoInteraction(
@@ -398,24 +395,36 @@ object NopInteractionHandler : InteractionHandler {
     mouseY: Int,
     modifiersEx: Int
   ): Interaction? = null
+
   override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
     null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
+
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
     null
+
   override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
+
   override fun singleClick(x: Int, y: Int, modifiersEx: Int) {}
+
   override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
+
   override fun zoom(type: ZoomType, x: Int, y: Int) {}
+
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {}
+
   override fun stayHovering(mouseX: Int, mouseY: Int) {}
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {}
+
   override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
     null
+
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? = null
+
   override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) {}
+
   override fun mouseExited() {}
 }
 

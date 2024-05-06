@@ -17,13 +17,13 @@
 
 package com.android.tools.idea.actions.annotations
 
+import com.android.SdkConstants
+import com.android.SdkConstants.ATTR_VALUE
 import com.android.AndroidXConstants.INT_DEF_ANNOTATION
+import com.android.SdkConstants.KOTLIN_SUPPRESS
 import com.android.AndroidXConstants.LONG_DEF_ANNOTATION
 import com.android.AndroidXConstants.STRING_DEF_ANNOTATION
 import com.android.AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX
-import com.android.SdkConstants
-import com.android.SdkConstants.ATTR_VALUE
-import com.android.SdkConstants.KOTLIN_SUPPRESS
 import com.android.resources.ResourceType
 import com.android.support.AndroidxName
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.annotationNames
@@ -1438,7 +1438,10 @@ class InferredConstraints private constructor(
      */
     fun transferArgumentToParameter(qualifiedName: String): Boolean {
       if (isResourceAnnotation(qualifiedName)) {
-        return qualifiedName != ANY_RES_ANNOTATION.newName()
+        if (qualifiedName == ANY_RES_ANNOTATION.newName()) {
+          return false
+        }
+        return true
       }
 
       return when (qualifiedName) {

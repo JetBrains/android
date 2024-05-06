@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.compose.preview.util.createToolbarWithNavigation
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -49,7 +50,7 @@ class BottomPanel(
     }
 
   private val westToolbar =
-    DefaultToolbarImpl(
+    createToolbarWithNavigation(
       rootComponent,
       "ResetCoordinationTimeline",
       listOf(ClockTimeLabel(), Separator()) +
@@ -58,12 +59,13 @@ class BottomPanel(
     )
 
   private val resetListeners: MutableList<() -> Unit> = mutableListOf()
+
   fun addResetListener(listener: () -> Unit) {
     resetListeners.add(listener)
   }
 
   init {
-    add(westToolbar, BorderLayout.WEST)
+    add(westToolbar.component, BorderLayout.WEST)
     border = MatteBorder(1, 0, 0, 0, JBColor.border())
     preferredSize = Dimension(width, InspectorLayout.BOTTOM_PANEL_HEIGHT)
   }
@@ -75,6 +77,8 @@ class BottomPanel(
         foreground = UIUtil.getContextHelpForeground()
         border = JBUI.Borders.empty(6) // Empty border to align label vertically.
       }
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
       super.update(e)

@@ -28,12 +28,13 @@ private val internalComponent = object : JComponent() {}
 /**
  * A noop implementation of [ConsoleView].
  *
- * The sole purpose of this class to allow us to access [com.intellij.execution.ConsoleFolding.isEnabledForConsole] which requires a valid
- * ConsoleView object.
+ * The sole purpose of this class to allow us to access
+ * [com.intellij.execution.ConsoleFolding.isEnabledForConsole] which requires a valid ConsoleView
+ * object.
  *
- * This is so that we can ignore non-relevant ConsoleFolding extensions such as GitProgressOutputConsoleFolding etc.
+ * This is so that we can ignore non-relevant ConsoleFolding extensions such as
+ * GitProgressOutputConsoleFolding etc.
  */
-
 internal class ConsoleViewForFolding : ConsoleView {
   override fun dispose() {}
 

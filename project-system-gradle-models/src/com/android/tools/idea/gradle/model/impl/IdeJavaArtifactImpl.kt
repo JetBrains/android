@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaArtifactCore
@@ -36,8 +37,9 @@ data class IdeJavaArtifactCoreImpl(
   override val runtimeClasspathCore: IdeDependenciesCoreImpl,
   override val unresolvedDependencies: List<IdeUnresolvedDependencyImpl>,
   override val mockablePlatformJar: File?,
-  override val generatedClassPaths: Map<String, File>
-) : IdeJavaArtifactCore
+  override val generatedClassPaths: Map<String, File>,
+  override val bytecodeTransforms: Collection<IdeBytecodeTransformation>?,
+  ) : IdeJavaArtifactCore
 
 data class IdeJavaArtifactImpl(
   private val core: IdeJavaArtifactCore,

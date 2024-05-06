@@ -39,6 +39,7 @@ class StackTraceGroupStub : StackTraceGroup {
 
 class StackTraceViewStub(private val model: StackTraceModel) : StackTraceView {
   private val component = JPanel()
+
   override fun getModel(): StackTraceModel {
     return model
   }

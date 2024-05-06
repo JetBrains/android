@@ -100,10 +100,12 @@ sealed class DrawViewNode(owner: ViewNode) {
   // Children at the start of the child list that have canCollapse = true will be drawn as part of
   // the parent rather than as separate nodes.
   abstract fun canCollapse(treeSettings: TreeSettings): Boolean
+
   open val drawWhenCollapsed: Boolean
     get() = true
 
   abstract fun paint(g2: Graphics2D, model: InspectorModel)
+
   abstract fun paintBorder(
     g2: Graphics2D,
     isSelected: Boolean,
@@ -120,10 +122,12 @@ sealed class DrawViewNode(owner: ViewNode) {
 class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
   override fun canCollapse(treeSettings: TreeSettings): Boolean =
     !unfilteredOwner.isInComponentTree(treeSettings)
+
   override val drawWhenCollapsed: Boolean
     get() = false
 
   override fun paint(g2: Graphics2D, model: InspectorModel) {}
+
   override fun paintBorder(
     g2: Graphics2D,
     isSelected: Boolean,

@@ -16,28 +16,16 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.sdklib.deviceprovisioner.DeviceProperties
-import com.intellij.openapi.util.SystemInfo
 import icons.StudioIcons
-import org.junit.Assume.assumeTrue
 
-/**
- * Checks if the current platform is suitable for tests depending on the FFmpeg library.
- * For some unclear reason FFmpeg-dependent tests fail on Windows with
- * "UnsatisfiedLinkError: no jniavcodec in java.library.path".
- */
-fun isFFmpegAvailableToTest(): Boolean = !SystemInfo.isWindows
-
-/** Makes the test run only when the FFmpeg library is functional in the test environment. */
-fun assumeFFmpegAvailable() = assumeTrue(isFFmpegAvailableToTest())
-
-/**
- * Creates a [DeviceConfiguration] for testing purposes.
- */
+/** Creates a [DeviceConfiguration] for testing purposes. */
 fun createDeviceConfiguration(propertyMap: Map<String, String>): DeviceConfiguration {
-  val properties = DeviceProperties.Builder()
-  properties.readCommonProperties(propertyMap)
-  properties.icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-  return DeviceConfiguration(properties.buildBase())
+  val properties =
+    DeviceProperties.buildForTest {
+      readCommonProperties(propertyMap)
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+    }
+  return DeviceConfiguration(properties)
 }
 
 val emptyDeviceConfiguration: DeviceConfiguration = createDeviceConfiguration(mapOf())

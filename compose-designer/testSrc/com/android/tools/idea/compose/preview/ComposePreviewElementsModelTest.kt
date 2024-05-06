@@ -17,11 +17,13 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
-import com.android.tools.rendering.ModuleRenderContext
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
 class ComposePreviewElementsModelTest {
@@ -32,7 +34,7 @@ class ComposePreviewElementsModelTest {
 
     // Fake PreviewElementTemplate that generates a couple of instances
     val template =
-      object : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
+      object : ComposePreviewElement by basePreviewElement {
         private val templateInstances =
           listOf(
             SingleComposePreviewElementInstance.forTesting(
@@ -42,9 +44,8 @@ class ComposePreviewElementsModelTest {
             SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup")
           )
 
-        override fun instances(
-          renderContext: ModuleRenderContext?
-        ): Sequence<ComposePreviewElementInstance> = templateInstances.asSequence()
+        override fun resolve(): Sequence<ComposePreviewElementInstance> =
+          templateInstances.asSequence()
       }
     val allPreviews =
       listOf(
@@ -66,7 +67,7 @@ class ComposePreviewElementsModelTest {
         filterFlow
       )
 
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
       .containsExactly(
         "PreviewMethod1",
         "SeparatePreview",
@@ -75,23 +76,24 @@ class ComposePreviewElementsModelTest {
         "Instance1",
         "Instance2"
       )
+      .inOrder()
 
     // Set an instance filter
     filterFlow.value =
       ComposePreviewElementsModel.Filter.Single(
         allPreviews.first() as SingleComposePreviewElementInstance
       )
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
-      .containsExactly("PreviewMethod1")
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn }).containsExactly("PreviewMethod1")
 
     // Set the group filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
       .containsExactly("PreviewMethod1", "SeparatePreview")
+      .inOrder()
 
     // Remove instance filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
       .containsExactly(
         "PreviewMethod1",
         "SeparatePreview",
@@ -100,6 +102,7 @@ class ComposePreviewElementsModelTest {
         "Instance1",
         "Instance2"
       )
+      .inOrder()
 
     // This should filter and keep the group
     filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
@@ -110,6 +113,7 @@ class ComposePreviewElementsModelTest {
         "PreviewMethod1 (GroupA)",
         "SeparatePreview (GroupA)",
       )
+      .inOrder()
   }
 
   @Test

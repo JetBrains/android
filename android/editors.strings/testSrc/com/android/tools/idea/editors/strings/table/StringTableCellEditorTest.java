@@ -25,7 +25,6 @@ import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 public final class StringTableCellEditorTest {
@@ -42,7 +41,7 @@ public final class StringTableCellEditorTest {
 
     assertFalse(new StringTableCellEditor(myComponent).stopCellEditing());
 
-    Mockito.verify(myComponent).setBorder(ArgumentMatchers.<LineBorder>argThat(
+    Mockito.verify(myComponent).setBorder(Mockito.<LineBorder>argThat(
       actual -> JBColor.RED.equals(actual.getLineColor()) && 1 == actual.getThickness() && !actual.getRoundedCorners()));
   }
 

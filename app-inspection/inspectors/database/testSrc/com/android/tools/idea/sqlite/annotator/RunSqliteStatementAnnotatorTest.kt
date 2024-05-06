@@ -28,14 +28,14 @@ import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.concurrency.EdtExecutorService
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.ide.PooledThreadExecutor
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
+import org.jetbrains.ide.PooledThreadExecutor
 
-class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
+class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase() {
   private lateinit var ideComponents: IdeComponents
 
   private lateinit var databaseInspectorProjectService: DatabaseInspectorProjectService
@@ -48,11 +48,14 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     super.setUp()
     sqliteDatabaseId1 = SqliteDatabaseId.fromLiveDatabase("db1", 1)
 
-    myFixture.addClass("""
-      package androidx.room;      
+    myFixture.addClass(
+      """
+      package androidx.room;
 
       class Entity { }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val model = DatabaseInspectorModelImpl()
     databaseInspectorProjectService =

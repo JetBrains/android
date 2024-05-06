@@ -21,9 +21,12 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerAnnotation
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
+import com.android.tools.idea.dagger.index.psiwrappers.hasAnnotation
+import com.android.tools.idea.dagger.index.readClassId
+import com.android.tools.idea.dagger.index.writeClassId
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.kotlin.hasAnnotation
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
@@ -36,8 +39,7 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.asJava.toLightClass
-import org.jetbrains.kotlin.idea.core.util.readString
-import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -75,11 +77,11 @@ object ComponentAndModuleDaggerConcept : DaggerConcept {
   internal val annotationsByDataType =
     EnumMap(
       mapOf(
-        IndexValue.DataType.COMPONENT_WITH_MODULE to DaggerAnnotations.COMPONENT,
-        IndexValue.DataType.COMPONENT_WITH_DEPENDENCY to DaggerAnnotations.COMPONENT,
-        IndexValue.DataType.SUBCOMPONENT_WITH_MODULE to DaggerAnnotations.SUBCOMPONENT,
-        IndexValue.DataType.MODULE_WITH_INCLUDE to DaggerAnnotations.MODULE,
-        IndexValue.DataType.MODULE_WITH_SUBCOMPONENT to DaggerAnnotations.MODULE,
+        IndexValue.DataType.COMPONENT_WITH_MODULE to DaggerAnnotation.COMPONENT,
+        IndexValue.DataType.COMPONENT_WITH_DEPENDENCY to DaggerAnnotation.COMPONENT,
+        IndexValue.DataType.SUBCOMPONENT_WITH_MODULE to DaggerAnnotation.SUBCOMPONENT,
+        IndexValue.DataType.MODULE_WITH_INCLUDE to DaggerAnnotation.MODULE,
+        IndexValue.DataType.MODULE_WITH_SUBCOMPONENT to DaggerAnnotation.MODULE,
       )
     )
 
@@ -112,11 +114,11 @@ private object ComponentIndexer : DaggerConceptIndexer<DaggerIndexClassWrapper> 
     val annotationName = annotationsByDataType[dataType]!!
     val annotationArgumentName = annotationArgumentsByDataType[dataType]!!
     val listedClasses =
-      wrapper.getAnnotationsByName(annotationName).flatMap { annotation ->
+      wrapper.getAnnotations(annotationName).flatMap { annotation ->
         annotation.getArgumentClassNames(annotationArgumentName)
       }
     for (className in listedClasses) {
-      val indexValue = ClassIndexValue(dataType, wrapper.getFqName())
+      val indexValue = ClassIndexValue(dataType, wrapper.getClassId())
       val classSimpleName =
         className.substringAfterLast('.', /* missingDelimiterValue = */ className)
       indexEntries.addIndexValue(classSimpleName, indexValue)
@@ -127,38 +129,38 @@ private object ComponentIndexer : DaggerConceptIndexer<DaggerIndexClassWrapper> 
 @VisibleForTesting
 internal data class ClassIndexValue(
   override val dataType: DataType,
-  private val classFqName: String
+  private val classId: ClassId,
 ) : IndexValue() {
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
   }
 
   class Reader
-  private constructor(override val supportedType: DataType, val factory: (String) -> IndexValue) :
+  private constructor(override val supportedType: DataType, val factory: (ClassId) -> IndexValue) :
     IndexValue.Reader {
-    override fun read(input: DataInput) = factory.invoke(input.readString())
+    override fun read(input: DataInput) = factory.invoke(input.readClassId())
 
     companion object {
       val ComponentWithModule =
-        Reader(DataType.COMPONENT_WITH_MODULE) { classFqName ->
-          ClassIndexValue(DataType.COMPONENT_WITH_MODULE, classFqName)
+        Reader(DataType.COMPONENT_WITH_MODULE) { classId ->
+          ClassIndexValue(DataType.COMPONENT_WITH_MODULE, classId)
         }
       val ComponentWithDependency =
-        Reader(DataType.COMPONENT_WITH_DEPENDENCY) { classFqName ->
-          ClassIndexValue(DataType.COMPONENT_WITH_DEPENDENCY, classFqName)
+        Reader(DataType.COMPONENT_WITH_DEPENDENCY) { classId ->
+          ClassIndexValue(DataType.COMPONENT_WITH_DEPENDENCY, classId)
         }
       val SubcomponentWithModule =
-        Reader(DataType.SUBCOMPONENT_WITH_MODULE) { classFqName ->
-          ClassIndexValue(DataType.SUBCOMPONENT_WITH_MODULE, classFqName)
+        Reader(DataType.SUBCOMPONENT_WITH_MODULE) { classId ->
+          ClassIndexValue(DataType.SUBCOMPONENT_WITH_MODULE, classId)
         }
       val ModuleWithInclude =
-        Reader(DataType.MODULE_WITH_INCLUDE) { classFqName ->
-          ClassIndexValue(DataType.MODULE_WITH_INCLUDE, classFqName)
+        Reader(DataType.MODULE_WITH_INCLUDE) { classId ->
+          ClassIndexValue(DataType.MODULE_WITH_INCLUDE, classId)
         }
       val ModuleWithSubcomponent =
-        Reader(DataType.MODULE_WITH_SUBCOMPONENT) { classFqName ->
-          ClassIndexValue(DataType.MODULE_WITH_SUBCOMPONENT, classFqName)
+        Reader(DataType.MODULE_WITH_SUBCOMPONENT) { classId ->
+          ClassIndexValue(DataType.MODULE_WITH_SUBCOMPONENT, classId)
         }
     }
   }
@@ -168,20 +170,20 @@ internal data class ClassIndexValue(
       when {
         psiElement is KtEnumEntry -> null
         (psiElement as? KtClass)?.isEnum() == true -> null
-        psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
-        psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+        psiElement.hasAnnotation(DaggerAnnotation.COMPONENT) -> ComponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotation.SUBCOMPONENT) ->
           SubcomponentDaggerElement(psiElement)
-        psiElement.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotation.MODULE) -> ModuleDaggerElement(psiElement)
         else -> null
       }
 
     private fun identify(psiElement: PsiClass): DaggerElement? =
       when {
         psiElement.isEnum -> null
-        psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
-        psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+        psiElement.hasAnnotation(DaggerAnnotation.COMPONENT) -> ComponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotation.SUBCOMPONENT) ->
           SubcomponentDaggerElement(psiElement)
-        psiElement.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotation.MODULE) -> ModuleDaggerElement(psiElement)
         else -> null
       }
 
@@ -192,10 +194,8 @@ internal data class ClassIndexValue(
       )
   }
 
-  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
-    return JavaPsiFacade.getInstance(project).findClass(classFqName, scope)?.let { listOf(it) }
-      ?: emptyList()
-  }
+  override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> =
+    listOfNotNull(JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope))
 
   override val daggerElementIdentifiers = identifiers
 }
@@ -216,7 +216,7 @@ internal sealed class ClassDaggerElement : DaggerElement() {
    */
   protected abstract fun getRelatedAnnotationForRelatedIndexElement(
     relatedType: DaggerElement
-  ): Pair<String, String>?
+  ): Pair<DaggerAnnotation, String>?
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean {
     // As an example, the resolve candidate is a DaggerElement pointing to the `CoffeeShop` class,
@@ -227,18 +227,18 @@ internal sealed class ClassDaggerElement : DaggerElement() {
     //
     //   @Component(modules = DripCoffeeModule.class)
     //   interface CoffeeShop {}
-    val (annotationFqName, argumentName) =
+    val (annotation, argumentName) =
       getRelatedAnnotationForRelatedIndexElement(resolveCandidate) ?: return false
     val resolveCandidateClassElement =
       when (val element = resolveCandidate.psiElement) {
         is PsiClass -> element
         is KtClassOrObject -> element.toLightClass()
         else -> null
-      }
-        ?: return false
+      } ?: return false
     val annotationArgument =
-      resolveCandidateClassElement.getAnnotation(annotationFqName)?.findAttributeValue(argumentName)
-        ?: return false
+      resolveCandidateClassElement
+        .getAnnotation(annotation.fqNameString)
+        ?.findAttributeValue(argumentName) ?: return false
 
     // In Java, the annotation's array argument may be specified without the array syntax if there's
     // only a single value. Look for both variations. (In Kotlin, the list form is always used.)
@@ -264,11 +264,11 @@ internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
 
   override fun getRelatedAnnotationForRelatedIndexElement(
     relatedType: DaggerElement
-  ): Pair<String, String>? =
+  ): Pair<DaggerAnnotation, String>? =
     when (relatedType) {
-      is ComponentDaggerElement -> DaggerAnnotations.COMPONENT to "modules"
-      is ModuleDaggerElement -> DaggerAnnotations.MODULE to "includes"
-      is SubcomponentDaggerElement -> DaggerAnnotations.SUBCOMPONENT to "modules"
+      is ComponentDaggerElement -> DaggerAnnotation.COMPONENT to "modules"
+      is ModuleDaggerElement -> DaggerAnnotation.MODULE to "includes"
+      is SubcomponentDaggerElement -> DaggerAnnotation.SUBCOMPONENT to "modules"
       else -> null
     }
 
@@ -309,31 +309,31 @@ internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
 
 internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
 
-  protected abstract val definingAnnotationName: String
+  protected abstract val definingAnnotation: DaggerAnnotation
 
   @VisibleForTesting
   internal fun getIncludedModulesAndSubcomponents(): List<DaggerRelatedElement> {
     val moduleClasses =
       getRelatedDaggerElementsFromAnnotation(
         psiElement,
-        definingAnnotationName,
+        definingAnnotation,
         "modules",
-        DaggerAnnotations.MODULE
+        DaggerAnnotation.MODULE
       )
     val subcomponentClasses =
       moduleClasses.flatMap {
         getRelatedDaggerElementsFromAnnotation(
           it,
-          DaggerAnnotations.MODULE,
+          DaggerAnnotation.MODULE,
           "subcomponents",
-          DaggerAnnotations.SUBCOMPONENT
+          DaggerAnnotation.SUBCOMPONENT
         )
       }
 
     val moduleElements =
       moduleClasses.map {
         DaggerRelatedElement(
-          ModuleDaggerElement(it.navigationElement),
+          ModuleDaggerElement(it.kotlinOriginOrSelf),
           DaggerBundle.message("modules.included"),
           "navigate.to.included.module"
         )
@@ -341,7 +341,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
     val subcomponentElements =
       subcomponentClasses.map {
         DaggerRelatedElement(
-          SubcomponentDaggerElement(it.navigationElement),
+          SubcomponentDaggerElement(it.kotlinOriginOrSelf),
           DaggerBundle.message("subcomponents"),
           "navigate.to.subcomponent"
         )
@@ -363,9 +363,9 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
      */
     private fun getRelatedDaggerElementsFromAnnotation(
       psiElement: PsiElement,
-      annotationName: String,
+      annotation: DaggerAnnotation,
       annotationArgumentName: String,
-      requiredAnnotationNameOnTarget: String
+      requiredAnnotationOnTarget: DaggerAnnotation
     ): List<PsiClass> {
       val psiClass =
         when (psiElement) {
@@ -375,7 +375,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
         }
 
       val attributeValue =
-        psiClass?.getAnnotation(annotationName)?.findAttributeValue(annotationArgumentName)
+        psiClass?.getAnnotation(annotation.fqNameString)?.findAttributeValue(annotationArgumentName)
           ?: return emptyList()
       val referencedClassExpressions =
         when (attributeValue) {
@@ -387,7 +387,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
 
       return referencedClassExpressions.mapNotNull {
         val referencedClass = (it.operand.type as? PsiClassType)?.resolve()
-        referencedClass?.takeIf { c -> c.hasAnnotation(requiredAnnotationNameOnTarget) }
+        referencedClass?.takeIf { c -> c.hasAnnotation(requiredAnnotationOnTarget) }
       }
     }
   }
@@ -398,13 +398,13 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
 
   override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT
 
-  override val definingAnnotationName = DaggerAnnotations.COMPONENT
+  override val definingAnnotation = DaggerAnnotation.COMPONENT
 
   override fun getRelatedAnnotationForRelatedIndexElement(
     relatedType: DaggerElement
-  ): Pair<String, String>? =
+  ): Pair<DaggerAnnotation, String>? =
     when (relatedType) {
-      is ComponentDaggerElement -> DaggerAnnotations.COMPONENT to "dependencies"
+      is ComponentDaggerElement -> DaggerAnnotation.COMPONENT to "dependencies"
       else -> null
     }
 
@@ -426,13 +426,13 @@ internal data class SubcomponentDaggerElement(override val psiElement: PsiElemen
 
   override val metricsElementType = DaggerEditorEvent.ElementType.SUBCOMPONENT
 
-  override val definingAnnotationName = DaggerAnnotations.SUBCOMPONENT
+  override val definingAnnotation = DaggerAnnotation.SUBCOMPONENT
 
   override fun getRelatedAnnotationForRelatedIndexElement(
     relatedType: DaggerElement
-  ): Pair<String, String>? =
+  ): Pair<DaggerAnnotation, String>? =
     when (relatedType) {
-      is ModuleDaggerElement -> DaggerAnnotations.MODULE to "subcomponents"
+      is ModuleDaggerElement -> DaggerAnnotation.MODULE to "subcomponents"
       else -> null
     }
 

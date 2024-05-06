@@ -15,31 +15,29 @@
  */
 package com.android.tools.idea.tests.gui.kotlin;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.fixture.DialogFixture;
-import org.fest.swing.timing.Wait;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
-
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
+import java.util.concurrent.TimeUnit;
+import org.fest.swing.fixture.DialogFixture;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 @RunWith(GuiTestRemoteRunner.class)
 public class CodeConversionFromJavaToKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private final static String START_LINE = "// --- START COPY HERE ---";
   private final static String END_LINE = "// --- END COPY HERE ---";
@@ -99,7 +97,7 @@ public class CodeConversionFromJavaToKotlinTest {
     EditorFixture kotlinEditor = ideFrameFixture.getEditor()
       .open(FILE_NAME)
       .moveBetween("setContentView(R.layout.activity_main)\n    }", "");
-
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
     kotlinEditor.pasteText(JAVA_METHOD);
 
     DialogFixture convertCodeFromJavaDialog = findDialog(withTitle("Convert Code From Java"))

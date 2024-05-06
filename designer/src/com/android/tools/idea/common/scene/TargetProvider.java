@@ -42,4 +42,11 @@ public interface TargetProvider {
   default List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
     return Collections.emptyList();
   }
+
+  /**
+   * Returns whether the {@link SceneComponent} should have a drag target associated.
+   */
+  default boolean shouldAddCommonDragTarget(@NotNull SceneComponent component) {
+    return false;
+  }
 }

@@ -15,28 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_CHECKED;
-import static com.android.SdkConstants.ATTR_SHOW_TEXT;
-import static com.android.SdkConstants.ATTR_SPLIT_TRACK;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.ATTR_SWITCH_MIN_WIDTH;
-import static com.android.SdkConstants.ATTR_SWITCH_PADDING;
-import static com.android.SdkConstants.ATTR_SWITCH_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_TEXT_OFF;
-import static com.android.SdkConstants.ATTR_TEXT_ON;
-import static com.android.SdkConstants.ATTR_THUMB;
-import static com.android.SdkConstants.ATTR_THUMB_TINT;
-import static com.android.SdkConstants.ATTR_TRACK;
-import static com.android.SdkConstants.ATTR_TRACK_TINT;
-import static com.android.SdkConstants.PREFIX_ANDROID;
-import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import icons.StudioIcons;
-import java.util.List;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class SwitchHandler extends ButtonHandler {
   @Override

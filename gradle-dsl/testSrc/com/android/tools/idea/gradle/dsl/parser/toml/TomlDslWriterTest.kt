@@ -17,21 +17,41 @@ package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.utils.EXT_DECLARATIVE_TOML
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
+import org.jetbrains.kotlin.tools.projectWizard.core.ignore
+import org.junit.Assume
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.io.File
 
-class TomlDslWriterTest : PlatformTestCase() {
+@RunWith(Parameterized::class)
+class TomlDslWriterTest(private val fileName: String) : LightPlatformTestCase() {
 
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "For file: {0}")
+    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
+  }
+
+  override fun setUp(){
+    Registry.`is`("android.gradle.declarative.plugin.studio.support", true)
+    super.setUp()
+  }
+
+  @Test
   fun testSingleLiteral() {
     val contents = mapOf("foo" to "bar")
     val expected = """
@@ -41,6 +61,19 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
+  fun testSingleLiteralDottedName() {
+    Assume.assumeTrue("Notation is specified only for catalog", !isDeclarative())
+    if(isDeclarative()) ignore()
+    val contents = mapOf("foo.bar" to "val")
+    val expected = """
+      "foo.bar" = "val"
+    """.trimIndent()
+
+    doTest(contents, expected)
+  }
+
+  @Test
   fun testMultipleLiterals() {
     val contents = mapOf("foo" to "bar", "baz" to "quux")
     val expected = """
@@ -51,6 +84,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testSingleTable() {
     val contents = mapOf("foo" to mapOf("bar" to "baz"))
     val expected = """
@@ -61,6 +95,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testMultipleTables() {
     val contents = mapOf("foo" to mapOf("fooA" to "fooB"), "bar" to mapOf ("barA" to "barB"))
     val expected = """
@@ -73,6 +108,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testTableAfterLiteral() {
     val contents = mapOf("foo" to "bar", "baz" to mapOf("bazA" to "bazB"))
     val expected = """
@@ -84,6 +120,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testEmptyInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf<String,Any>()))
     val expected = """
@@ -94,6 +131,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to "quux")))
     val expected = """
@@ -104,6 +142,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testMultipleEntriesInInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("a" to "b", "c" to "d", "e" to "f")))
     val expected = """
@@ -114,6 +153,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testEntriesOfMultipleKindsInInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("a" to "b", "c" to mapOf("d" to "e"), "f" to "g")))
     val expected = """
@@ -124,6 +164,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testNestedInlineTables() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to mapOf("quux" to "frob"))))
     val expected = """
@@ -134,6 +175,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testEmptyArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf<String>()))
     val expected = """
@@ -144,6 +186,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", "two", "three")))
     val expected = """
@@ -154,6 +197,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testNestedEmptyArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", listOf<String>(), "two")))
     val expected = """
@@ -164,6 +208,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testNestedArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", listOf("two", "three"), "four")))
     val expected = """
@@ -174,6 +219,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testInlineTableInArray() {
     val contents = mapOf("foo" to mapOf("bar" to listOf("one", mapOf("two" to "three"), "four")))
     val expected = """
@@ -184,6 +230,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     doTest(contents, expected)
   }
 
+  @Test
   fun testArrayInInlineTable() {
     val contents = mapOf("foo" to mapOf("bar" to mapOf("baz" to listOf("one", "two"), "quux" to "frob")))
     val expected = """
@@ -199,7 +246,7 @@ class TomlDslWriterTest : PlatformTestCase() {
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
     dslFile.parse()
     mapToProperties(contents, dslFile)
-    runWriteCommandAction(project) {
+    WriteCommandAction.runWriteCommandAction(project) {
       dslFile.applyChanges()
       dslFile.saveAllChanges()
     }
@@ -210,76 +257,19 @@ class TomlDslWriterTest : PlatformTestCase() {
   private fun writeLibsTomlFile(text: String): VirtualFile {
     lateinit var libsTomlFile: VirtualFile
     runWriteAction {
-      val baseDir = getOrCreateProjectBaseDir()
-      val gradlePath = VfsUtil.createDirectoryIfMissing(baseDir, "gradle")
-      libsTomlFile = gradlePath.createChildData(this, "libs.versions.toml")
+      val file: File = File(project.basePath, fileName).getCanonicalFile()
+      FileUtil.createParentDirs(file)
+      val parent = VfsUtil.findFile(file.parentFile.toPath(), true)!!
+      libsTomlFile = parent.createChildData(this, file.name)
       VfsUtil.saveText(libsTomlFile, text)
     }
     return libsTomlFile
-  }
-
-  fun testSimpleBlock() {
-    val contents = mapOf("block" to blockOf("key1" to "value1", "key2" to "value2"))
-    val expected = """
-      [block]
-      key1 = "value1"
-      key2 = "value2"
-    """.trimIndent()
-
-    doTest(contents, expected)
-  }
-
-  fun testParentChildBlocksWithAttributes() {
-    val contents = mapOf("block1" to blockOf("key1" to "value1", "block2" to blockOf( "key2" to "value2")))
-    val expected = """
-      [block1]
-      key1 = "value1"
-      [block1.block2]
-      key2 = "value2"
-    """.trimIndent()
-
-    doTest(contents, expected)
-  }
-
-  fun testCreatingSegmentedBlock() {
-    val contents = mapOf("block1" to blockOf("block2" to blockOf( "key2" to "value2")))
-    val expected = """
-      [block1.block2]
-      key2 = "value2"
-    """.trimIndent()
-
-    doTest(contents, expected)
-  }
-
-  fun testCreatingArrayInBlock() {
-    val contents = mapOf("block1" to blockOf("array" to listOf("element1", "element2")))
-    val expected = """
-      [block1]
-      array = ["element1", "element2"]
-    """.trimIndent()
-
-    doTest(contents, expected)
-  }
-
-  fun testCreatingMapInBlock  () {
-    val contents = mapOf("block1" to blockOf("key" to mapOf("key1" to "value1")))
-    val expected = """
-      [block1]
-      key = { key1 = "value1" }
-    """.trimIndent()
-
-    doTest(contents, expected)
   }
 
   private fun mapToProperties(map: Map<String,Any>, dslFile: GradleDslFile) {
     fun populate(key: String, value: Any, element: GradlePropertiesDslElement) {
       when (value) {
         is String -> element.setNewLiteral(key, value)
-        is Block<*,*> -> {
-          val block = TestBlockElement(element, key)
-          value.forEach { (k, v) -> populate(k as String, v as Any, block) }
-          element.setNewElement(block)
-        }
         is List<*> -> {
           val dslList = GradleDslExpressionList(element, GradleNameElement.create(key), true)
           value.forEachIndexed { i, v -> populate(i.toString(), v as Any, dslList) }
@@ -295,19 +285,6 @@ class TomlDslWriterTest : PlatformTestCase() {
     map.forEach { (k, v) -> populate(k, v, dslFile) }
   }
 
-  private class TestBlockElement(parent: GradleDslElement, name: String) : GradleDslBlockElement(parent, GradleNameElement.create(name))
+  private fun isDeclarative() = fileName.endsWith(EXT_DECLARATIVE_TOML)
 
-  private class Block<K,V> : HashMap<K,V>()
-
-  private fun <K, V> blockOf(vararg pairs: Pair<K, V>): Map<K, V> {
-    val b = Block<K,V>()
-    pairs.toMap(b)
-    return b
-  }
-
-  private fun <K,V> blockOf(pair: Pair<K, V>): Map<K, V> {
-    val b = Block<K,V>()
-    b[pair.first] =  pair.second
-    return b
-  }
 }

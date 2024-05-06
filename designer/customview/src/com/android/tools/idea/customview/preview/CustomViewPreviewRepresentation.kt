@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
@@ -37,7 +38,6 @@ import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
-import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
@@ -63,6 +63,8 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.BiFunction
 import javax.swing.JComponent
 
@@ -111,18 +113,24 @@ class CustomViewPreviewRepresentation(
   companion object {
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
   }
+
   private val project = psiFile.project
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
+  private val _isActive = AtomicBoolean(false)
+  private val _hasPendingRefresh = AtomicBoolean(true)
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
   override val preferredInitialVisibility: PreferredVisibility? = null
+
   private fun dimensionsPropertyNameForClass(className: String) =
     "${previewId}_${className}_DIMENSIONS"
+
   private fun wrapContentWidthPropertyNameForClass(className: String) =
     "${previewId}_${className}_WRAP_CONTENT_W"
+
   private fun wrapContentHeightPropertyNameForClass(className: String) =
     "${previewId}_${className}_WRAP_CONTENT_H"
 
@@ -219,6 +227,14 @@ class CustomViewPreviewRepresentation(
   private val uniqueUpdateModelLauncher =
     UniqueTaskCoroutineLauncher(scope, "CustomViewPreviewRepresentation updateModel")
 
+  @get:TestOnly
+  val hasPendingRefresh: Boolean
+    get() = _hasPendingRefresh.get()
+
+  @get:TestOnly
+  val isActive: Boolean
+    get() = _isActive.get()
+
   init {
     val buildState = buildStateProvider(project)
     val fileState =
@@ -276,7 +292,12 @@ class CustomViewPreviewRepresentation(
             }
 
           stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.SUCCESSFUL)
-          refresh()
+          if (!_isActive.get()) {
+            LOG.debug("Preview was not active, scheduling refresh for later")
+            _hasPendingRefresh.set(true)
+          } else {
+            refresh()
+          }
         }
 
         override fun buildFailed() {
@@ -302,8 +323,6 @@ class CustomViewPreviewRepresentation(
       },
       this
     )
-
-    refresh()
   }
 
   override val component = workbench
@@ -312,10 +331,12 @@ class CustomViewPreviewRepresentation(
 
   /** Refresh the preview surfaces */
   private fun refresh() {
+    LOG.debug("Refresh")
     if (Bridge.hasNativeCrash()) {
       workbench.handleLayoutlibNativeCrash { refresh() }
       return
     }
+    _hasPendingRefresh.set(false)
     val psiFile =
       AndroidPsiUtils.getPsiFileSafely(psiFilePointer)
         ?: run {
@@ -377,8 +398,7 @@ class CustomViewPreviewRepresentation(
             CustomViewLightVirtualFile("custom_preview.xml", fileContent) { psiFile.virtualFile }
           val config =
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
-          NlModel.builder(facet, customPreviewXml, config)
-            .withParentDisposable(this@CustomViewPreviewRepresentation)
+          NlModel.builder(this@CustomViewPreviewRepresentation, facet, customPreviewXml, config)
             .withXmlProvider(
               BiFunction { project, _ ->
                 AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile
@@ -400,10 +420,9 @@ class CustomViewPreviewRepresentation(
 
       // Load and set preview size if exists for this custom view
       withContext(uiThread) {
-        persistenceManager.getList(dimensionsPropertyNameForClass(className))?.let {
+        persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let {
           previewDimensions ->
-          updateConfigurationScreenSize(
-            configuration,
+          configuration.updateScreenSize(
             previewDimensions[0].toInt(),
             previewDimensions[1].toInt(),
             configuration.device
@@ -418,8 +437,13 @@ class CustomViewPreviewRepresentation(
       }
     }
 
+  override fun onActivate() {
+    _isActive.set(true)
+    if (_hasPendingRefresh.getAndSet(false)) refresh()
+  }
+
   override fun onDeactivate() {
-    super.onDeactivate()
+    _isActive.set(false)
 
     // Persist the current dimensions
     surface.models.firstOrNull()?.configuration?.let { configuration ->

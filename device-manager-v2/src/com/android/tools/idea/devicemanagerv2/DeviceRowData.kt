@@ -70,7 +70,7 @@ internal data class DeviceRowData(
         type = properties.deviceType ?: DeviceType.HANDHELD,
         icon = properties.icon,
         androidVersion = properties.androidVersion,
-        abi = properties.abi,
+        abi = properties.primaryAbi,
         status =
           when {
             state.isOnline() -> Status.ONLINE
@@ -98,7 +98,7 @@ internal data class DeviceRowData(
         type = properties.deviceType ?: DeviceType.HANDHELD,
         icon = properties.icon,
         androidVersion = properties.androidVersion,
-        abi = properties.abi,
+        abi = properties.primaryAbi,
         status = Status.OFFLINE,
         error = null,
         handleType = HandleType.REMOTE,
@@ -111,6 +111,7 @@ internal data class DeviceRowData(
   enum class Status {
     OFFLINE,
     ONLINE;
+
     override fun toString() = name.titlecase()
   }
 

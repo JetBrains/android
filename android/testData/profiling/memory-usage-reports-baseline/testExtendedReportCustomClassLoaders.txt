@@ -1,0 +1,55 @@
+========== CATEGORY ANDROID:UNCATEGORIZED =========
+Owned: 152B/3 objects
+      Histogram:
+        104B/1 objects: [Ljava.lang.Object;
+        24B/1 objects: [B
+        24B/1 objects: java.lang.String
+      Studio objects histogram:
+      Category roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+=============== CATEGORY DIAGNOSTICS ==============
+Owned: 320B/20 objects
+      Histogram:
+        320B/20 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+      Studio objects histogram:
+        320B/20 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+      Category roots histogram:
+        320B/20 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+Platform object: 0B/0 objects[0B/0 objects]
+=========== COMPONENT UNCATEGORIZED_MAIN ==========
+Owned: 152B/3 objects
+      Histogram:
+        104B/1 objects: [Ljava.lang.Object;
+        24B/1 objects: [B
+        24B/1 objects: java.lang.String
+      Studio objects histogram:
+      Component roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+=================== COMPONENT B ===================
+Owned: 320B/20 objects
+      Histogram:
+        320B/20 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+      Studio objects histogram:
+        320B/20 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+      Component roots histogram:
+        320B/20 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+Number of instances of tracked classes:
+      com.android.tools.idea.diagnostics.heap.SampleClass:20
+Platform object: 0B/0 objects[0B/0 objects]
+================ EXCEEDED CLUSTER B ===============
+======== INSTANCES OF EACH NOMINATED CLASS ========
+Nominated classes:
+ --> [320B/20 objects] com.android.tools.idea.diagnostics.heap.SampleClass
+
+CLASS: com.android.tools.idea.diagnostics.heap.SampleClass (20 objects)
+Root 1:
+[   20/100%/  320B]      472B/1 objects          (root): [Ljava.lang.Object;
+[   20/100%/  320B]     320B/20 objects *        []: com.android.tools.idea.diagnostics.heap.SampleClass
+================= OBJECTS RETAINING NOMINATED LOADERS ================
+Nominated ClassLoaders:
+ --> com.android.testutils.classloader.MultiClassLoader: 20
+Duplicated classes:
+ --> com.android.tools.idea.diagnostics.heap.SampleClass: 20
+Root 1:
+[   20/100%/  320B]      472B/1 objects          (root): [Ljava.lang.Object;
+[   20/100%/  320B]     320B/20 objects *        []: com.android.tools.idea.diagnostics.heap.SampleClass

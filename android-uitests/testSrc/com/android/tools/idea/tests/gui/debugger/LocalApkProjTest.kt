@@ -85,7 +85,7 @@ class LocalApkProjTest {
     val downloadDialog = try {
       WindowFinder
         .findDialog(DialogMatcher.withTitle("APK Import"))
-        .withTimeout(1, TimeUnit.SECONDS)
+        .withTimeout(10, TimeUnit.SECONDS)
         .using(guiTest.robot())
     }
     catch (e: WaitTimedOutError) {
@@ -97,14 +97,21 @@ class LocalApkProjTest {
       useExistFolder.click()
     }
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
     val ideFrame = guiTest.ideFrame()
     val editor = ideFrame.editor
+
+    ideFrame.clearNotificationsPresentOnIdeFrame()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
     attachJavaSources(ideFrame, File(projectRoot, "app/src/main/java"))
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     // need to wait since the editor doesn't open the java file immediately
     waitForJavaFileToShow(editor)
 
-    val debugSymbols = File(projectRoot, "app/build/intermediates/merged_native_libs/debug/out/lib/x86/libsanangeles.so")
+    val debugSymbols = File(projectRoot, "app/build/intermediates/")
     editor.open("lib/x86/libsanangeles.so")
       .librarySymbolsFixture
       .addDebugSymbols(debugSymbols)
@@ -114,16 +121,16 @@ class LocalApkProjTest {
     val srcNodes = getLibChildren(ideFrame, "libsanangeles")
 
     Assert.assertEquals(2, countOccurrencesOfSourceFolders(srcNodes).toLong())
-  }
+0  }
 
   private fun buildApkLocally(apkProjectToImport: String): File {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(180))
 
-    guiTest.waitForBackgroundTasks()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     ideFrame.invokeAndWaitForBuildAction("Build", "Build Bundle(s) / APK(s)", "Build APK(s)")
 
-    guiTest.waitForBackgroundTasks()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val projectRoot = ideFrame.projectPath
     // We will have another window opened for the APK project. Close this window
@@ -147,6 +154,8 @@ class LocalApkProjTest {
     welcomeFrame.profileOrDebugApk(apk)
       .select(apkFile)
       .clickOkAndWaitToClose()
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
   }
 
   private fun attachJavaSources(ideFrame: IdeFrameFixture, sourceDir: File): IdeFrameFixture {
@@ -154,8 +163,10 @@ class LocalApkProjTest {
     val sourceDirVirtualFile = VfsUtil.findFileByIoFile(sourceDir, true) ?: throw IllegalArgumentException("Nonexistent $sourceDir")
 
     ideFrame.clearNotificationsPresentOnIdeFrame()
+    ideFrame.focus()
     val editorFixture = ideFrame.editor
-      .open(smaliFile)
+    editorFixture.open(smaliFile)
+    editorFixture.waitForFileToActivate()
     Wait.seconds(5)
       .expecting("notification bar with Attach Kotlin/Java sources..")
       .until{
@@ -199,7 +210,7 @@ class LocalApkProjTest {
   }
 
   private fun waitForJavaFileToShow(editor: EditorFixture) {
-    Wait.seconds(5)
+    Wait.seconds(30)
       .expecting("DemoActivity.java file to open after attaching sources")
       .until { "DemoActivity.java" == editor.currentFileName }
   }

@@ -26,6 +26,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
+import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger
 import com.android.tools.idea.io.grpc.stub.ClientCallStreamObserver
 import com.android.tools.idea.io.grpc.stub.ClientResponseObserver
 import com.android.tools.idea.io.grpc.stub.StreamObserver
@@ -50,6 +51,7 @@ import com.intellij.debugger.ui.DebuggerContentInfo
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -68,7 +70,6 @@ import com.intellij.xdebugger.XDebuggerManagerListener
 import com.intellij.xdebugger.frame.XExecutionStack
 import com.intellij.xdebugger.frame.XStackFrame
 import com.intellij.xdebugger.frame.XSuspendContext
-import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
@@ -89,7 +90,7 @@ private const val NOTIFICATION_GROUP_NAME = "Retention Snapshot Load"
 class FindEmulatorAndSetupRetention(private val avdManagerCache: AvdManagerCache = IdeAvdManagers) : AnAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val dataContext = event.dataContext
-    val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return
+    val project = dataContext.getData<Project>(CommonDataKeys.PROJECT) ?: return
     ProgressManager.getInstance().run(
       object : Task.Backgroundable(project, "Loading retained test failure", true) {
         override fun onFinished() {
@@ -317,6 +318,8 @@ class FindEmulatorAndSetupRetention(private val avdManagerCache: AvdManagerCache
     val snapshotFile = event.dataContext.getData(EMULATOR_SNAPSHOT_FILE_KEY)
     event.presentation.isEnabledAndVisible = (snapshotId != null && snapshotFile != null)
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
 
 private fun bootEmulator(project: Project, avdInfo: AvdInfo, isManagedDevice: Boolean, parameters: List<String>): ListenableFuture<IDevice> {
@@ -366,7 +369,7 @@ private fun connectDebugger(device: IDevice, dataContext: DataContext) {
     LOG.warn("Cannot connect to ${packageName}")
     return
   }
-  val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return
+  val project = dataContext.getData<Project>(CommonDataKeys.PROJECT) ?: return
   val androidDebugger = AndroidDebugger.EP_NAME.extensions.find {
     it.supportsProject(project) && it.id == AndroidJavaDebugger.ID
   }
@@ -374,7 +377,7 @@ private fun connectDebugger(device: IDevice, dataContext: DataContext) {
     LOG.warn("Cannot find java debuggers.")
     return
   }
-  AndroidConnectDebuggerAction.closeOldSessionAndRun(project, androidDebugger, client, null)
+  AndroidConnectDebugger.closeOldSessionAndRun(project, androidDebugger, client, null)
 }
 
 /**

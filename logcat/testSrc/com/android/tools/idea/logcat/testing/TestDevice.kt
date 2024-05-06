@@ -40,10 +40,13 @@ internal class TestDevice(
   private val avdName: String = "",
 ) {
 
-  val device = when {
-    serialNumber.isEmulatorSerial() -> Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName)
-    else -> Device.createPhysical(serialNumber, state == ONLINE, release, sdk, manufacturer, model)
-  }
+  val device =
+    when {
+      serialNumber.isEmulatorSerial() ->
+        Device.createEmulator(serialNumber, state == ONLINE, release, sdk, avdName)
+      else ->
+        Device.createPhysical(serialNumber, state == ONLINE, release, sdk, manufacturer, model)
+    }
   private val deviceProperties =
     when {
       serialNumber.isEmulatorSerial() ->
@@ -51,10 +54,10 @@ internal class TestDevice(
           makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk))
         ) {
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+          populateDeviceInfoProto("Test", null, emptyMap(), "connectionId")
         }
-
       else ->
-        DeviceProperties.build {
+        DeviceProperties.buildForTest {
           manufacturer = this@TestDevice.manufacturer
           model = this@TestDevice.model
           androidRelease = release

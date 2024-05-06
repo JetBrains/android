@@ -9,6 +9,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
@@ -23,6 +24,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
     ],
 )
 
@@ -43,6 +45,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor[module, test]",
+        "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
@@ -55,6 +58,8 @@ iml_module(
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
-        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
     ],
 )

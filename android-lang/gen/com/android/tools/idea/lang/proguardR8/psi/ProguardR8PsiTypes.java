@@ -55,6 +55,7 @@ public interface ProguardR8PsiTypes {
   IElementType PARAMETERS = new ProguardR8AstNodeType("PARAMETERS");
   IElementType QUALIFIED_NAME = new ProguardR8AstNodeType("QUALIFIED_NAME");
   IElementType RULE = new ProguardR8AstNodeType("RULE");
+  IElementType RULE_WITH_CLASS_FILTER = new ProguardR8AstNodeType("RULE_WITH_CLASS_FILTER");
   IElementType RULE_WITH_CLASS_SPECIFICATION = new ProguardR8AstNodeType("RULE_WITH_CLASS_SPECIFICATION");
   IElementType SUPER_CLASS_NAME = new ProguardR8AstNodeType("SUPER_CLASS_NAME");
   IElementType TYPE = new ProguardR8AstNodeType("TYPE");
@@ -222,6 +223,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == RULE) {
         return new ProguardR8RuleImpl(node);
+      }
+      else if (type == RULE_WITH_CLASS_FILTER) {
+        return new ProguardR8RuleWithClassFilterImpl(node);
       }
       else if (type == RULE_WITH_CLASS_SPECIFICATION) {
         return new ProguardR8RuleWithClassSpecificationImpl(node);

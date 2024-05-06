@@ -16,12 +16,10 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import java.util.Random
 
 interface DaggerAnalyticsTracker {
@@ -37,9 +35,13 @@ interface DaggerAnalyticsTracker {
    * We use it for sampling logs for frequent events.
    */
   fun shouldLog(percentage: Int): Boolean
+
   fun trackFindUsagesNodeWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long)
+
   fun trackGutterWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long)
+
   fun trackClickOnGutter(ownerElement: DaggerEditorEvent.ElementType)
+
   fun trackOpenLinkFromError()
 }
 
@@ -116,8 +118,6 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
     track(DaggerEditorEvent.newBuilder().setType(DaggerEditorEvent.Type.OPENED_LINK_FROM_ERROR))
 
   private fun track(daggerEventBuilder: DaggerEditorEvent.Builder) {
-    daggerEventBuilder.usingBuiltInAnnotationSearch =
-      StudioFlags.DAGGER_BUILT_IN_SEARCH_ENABLED.get()
     val studioEvent: AndroidStudioEvent.Builder =
       AndroidStudioEvent.newBuilder()
         .setKind(AndroidStudioEvent.EventKind.DAGGER_EDITOR)
@@ -128,25 +128,5 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
     //  after code is moved out of monolithic core module
     studioEvent.projectId = AnonymizerUtil.anonymizeUtf8(project.basePath!!)
     UsageTracker.log(studioEvent)
-  }
-}
-
-// TODO(b/157548167): Use correct types for isDaggerEntryPoint, isDaggerComponentMethod and
-// isDaggerEntryPointMethod
-internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementType {
-  return when {
-    element.isDaggerConsumer -> DaggerEditorEvent.ElementType.CONSUMER
-    element.isDaggerProvider -> DaggerEditorEvent.ElementType.PROVIDER
-    element.isDaggerModule -> DaggerEditorEvent.ElementType.MODULE
-    element.isDaggerComponent -> DaggerEditorEvent.ElementType.COMPONENT
-    element.isDaggerEntryPoint -> DaggerEditorEvent.ElementType.ENTRY_POINT
-    element.isDaggerSubcomponent -> DaggerEditorEvent.ElementType.SUBCOMPONENT
-    element.isDaggerComponentInstantiationMethod -> DaggerEditorEvent.ElementType.COMPONENT_METHOD
-    element.isDaggerEntryPointInstantiationMethod ->
-      DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD
-    element.isAssistedInjectedConstructor ->
-      DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
-    element.isAssistedFactoryMethod -> DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
-    else -> error("Invalid PsiElement for metrics")
   }
 }

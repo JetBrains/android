@@ -27,17 +27,17 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.Densit
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DimensionUnitEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.OrientationEnumSupport
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.createDeviceEnumSupport
-import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
-import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
-import com.android.tools.idea.compose.preview.PARAMETER_GROUP
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
-import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
-import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
+import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_DEVICE
+import com.android.tools.preview.config.PARAMETER_FONT_SCALE
+import com.android.tools.preview.config.PARAMETER_GROUP
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DENSITY
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
+import com.android.tools.preview.config.PARAMETER_LOCALE
+import com.android.tools.preview.config.PARAMETER_UI_MODE
+import com.android.tools.preview.config.PARAMETER_WALLPAPER
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.EnumValue
@@ -67,8 +67,7 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
               UiMode.values().firstOrNull {
                 it.resolvedValue.toIntOrNull() == UI_MODE_TYPE_MASK and numberValue
               }
-            }
-              ?: return@uiMode EnumValue.item(stringValue, "Unknown") // Unknown uiMode type
+            } ?: return@uiMode EnumValue.item(stringValue, "Unknown") // Unknown uiMode type
 
           val supportsNightMode = initialResolvedValue and UI_MODE_NIGHT_MASK != 0
           if (supportsNightMode) {

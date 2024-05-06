@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.DynamicValueResourceRepository
 import com.android.tools.idea.res.createTestModuleRepository
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -55,7 +55,7 @@ class StringResourceRepositoryTest {
   private lateinit var resourceDirectory: VirtualFile
   private lateinit var key1: StringResourceKey
   private lateinit var invalidKey: StringResourceKey
-  private lateinit var localResourceRepository: LocalResourceRepository
+  private lateinit var localResourceRepository: LocalResourceRepository<VirtualFile>
   private lateinit var stringResourceRepository: StringResourceRepository
 
   @Before

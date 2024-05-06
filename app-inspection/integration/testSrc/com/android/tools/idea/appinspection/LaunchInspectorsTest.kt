@@ -43,6 +43,13 @@ class LaunchInspectorsTest {
    * 7. Open the App Inspection tool window again Verify: Project builds successfully and runs on
    *    the emulator Find specific UI components for all inspectors Find specific logs for all
    *    inspector deployments </pre>
+   *
+   * TODO(b/255808916): The test should be able to run as described above, with the App Inspection
+   *   tool launched before the app. But for some reason, the app detaches if the inspectors are
+   *   initialized right away. A workaround is to not deploy the inspectors until after the app has
+   *   launched. When this bug is fixed, we should add another test so we have 2 versions. One with
+   *   the inspectors tool already open when the app is launched, and another where the tool is
+   *   started after the app is run.
    */
   @Test
   fun openAppInspectionToolWindow() {
@@ -57,49 +64,30 @@ class LaunchInspectorsTest {
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
 
-          /**
-           * Android Studio deploys agents to the device after opening the App Inspection tool
-           * window, which may terminate the running process in RBE environment. To avoid the issue
-           * temporarily, we open the tool window before launching the app.
-           *
-           * TODO (b/255808916): prevent process from being terminated after opening the app
-           * inspection tool window.
-           */
-          studio.showToolWindow(APP_INSPECTION_TOOL_WINDOW_TITLE)
-          system.installation.ideaLog.waitForMatchingLine(
-            ".*TransportProxy successfully created for device.*",
-            60,
-            TimeUnit.SECONDS
-          )
-
+          emulator.waitForBoot()
           studio.executeAction("Run")
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.minapp",
             60,
             TimeUnit.SECONDS
           )
-
-          /**
-           * The Run tool window pops up immediately after launching the application. To prevent the
-           * Run tool window from covering the App Inspection tool window, we need to wait until the
-           * Run tool window pops up before showing the App Inspection tool window again.
-           */
-          studio.waitForComponent("Run:")
-          studio.showToolWindow(APP_INSPECTION_TOOL_WINDOW_TITLE)
-          studio.waitForComponentByClass("WorkBenchLoadingPanel")
-          // Component for Background Task Inspector.
-          studio.waitForComponentByClass("BackgroundTaskEntriesView")
-          // Component for Network Inspector.
-          studio.waitForComponentByClass("RangeTooltipComponent")
+          studio.waitForComponentWithExactText("Run:")
           adb.runCommand("logcat") {
-            // Log for Database Inspector: Accessing hidden method
-            // Landroid/database/sqlite/SQLiteDatabase
-            waitForLog(".*Accessing hidden method.*SQLiteDatabase.*", 60.seconds)
-            // Log for Background Task Inspector: Transformed class:
-            // android/os/PowerManager$WakeLock
-            waitForLog(".*Transformed class.*WakeLock.*", 60.seconds)
-            // Log for Network Inspector: Transformed class: java/net/URL
-            waitForLog(".*Transformed class.*URL.*", 60.seconds)
+
+            // TODO(b/255808916): See TODO section in the test KDoc.
+            waitForLog(".*Hello Minimal World!.*", 60.seconds)
+            Thread.sleep(2_000)
+
+            studio.showToolWindow(APP_INSPECTION_TOOL_WINDOW_TITLE)
+            studio.waitForComponentByClass("WorkBenchLoadingPanel")
+            // Component for Background Task Inspector.
+            studio.waitForComponentByClass("BackgroundTaskEntriesView")
+            // Component for Network Inspector.
+            studio.waitForComponentByClass("RangeTooltipComponent")
+
+            waitForLog(".*Inspector installed: androidx.sqlite.inspection", 60.seconds)
+            waitForLog(".*Inspector installed: backgroundtask.inspection", 60.seconds)
+            waitForLog(".*Inspector installed: studio.network.inspection", 60.seconds)
           }
         }
       }

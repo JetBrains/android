@@ -66,7 +66,7 @@ class FromProtoConversionTest {
           navigationHidden = NAVIGATIONHIDDEN_NO
           uiMode = UI_MODE_TYPE_NORMAL or UI_MODE_NIGHT_NO
           smallestScreenWidthDp = 200
-          density = 0
+          density = 345
           orientation = ORIENTATION_PORTRAIT
           screenWidthDp = 480
           screenHeightDp = 800
@@ -94,6 +94,7 @@ class FromProtoConversionTest {
           "highdr",
           "port",
           "notnight",
+          "345dpi",
           "stylus",
           "keysexposed",
           "qwerty",

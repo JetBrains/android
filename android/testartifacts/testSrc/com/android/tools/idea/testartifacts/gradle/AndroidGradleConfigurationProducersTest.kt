@@ -40,13 +40,15 @@ import com.intellij.coverage.IDEACoverageRunner
 import com.intellij.coverage.JavaCoverageEngine
 import com.intellij.execution.actions.ConfigurationFromContextImpl
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.Pair
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDirectory
@@ -56,12 +58,12 @@ import com.intellij.psi.impl.source.PsiMethodImpl
 import com.intellij.psi.search.GlobalSearchScope
 import junit.framework.Assert
 import junit.framework.TestCase
-import org.jetbrains.kotlin.daemon.common.trimQuotes
 import org.jetbrains.plugins.gradle.GradleManager
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.GradleTestsExecutionConsoleManager
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 /**
@@ -105,7 +107,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     loadProject(TEST_RESOURCES)
 
     // Create the Run configuration.
-    val listener = object : ExternalSystemTaskNotificationListener {
+    val listener = object : ExternalSystemTaskNotificationListenerAdapter() {
       var messagesLog = StringBuilder()
       var finalMessage = ""
 
@@ -127,36 +129,48 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     // that is passed to the Gradle executor as such.
     assertThat(gradleRunConfiguration.settings.taskNames).isEqualTo(listOf(":app:testDebugUnitTest", "--tests", "\"com.example.app.ExampleUnitTest\""))
     // Set the execution settings using the runConfiguration parameters.
-    val executionSettings = GradleManager()
-      .executionSettingsProvider
-      .`fun`(Pair.create(project, project.basePath))
-    executionSettings.isRunAsTest = true
+    val firstExecutionSettings =
+      ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, project.basePath!!, GradleConstants.SYSTEM_ID)
+
+    // Get all the UserData properties we get from creating a test RC. These need to be passed to the execution settings because they
+    // determine if the task will be executed as a test and that they will be forcefully re-executed.
+    val keyMap = gradleRunConfiguration.get()
+    for (key in keyMap.keys) {
+      firstExecutionSettings.putUserData(key as Key<Any>, keyMap[key])
+    }
 
     AndroidGradleTaskManager().executeTasks(
       ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
       listOf(":app:testDebugUnitTest"),
       project.basePath!!,
-      executionSettings,
+      firstExecutionSettings,
       null,
       listener
     )
 
     assertThat(listener.finalMessage.lines()).contains("> Task :app:testDebugUnitTest")
-
     // Clear the logged messages.
     listener.messagesLog = StringBuilder()
 
+    // Prepare for second tasks execution.
+    val secondExecutionSettings =
+      ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, project.basePath!!, GradleConstants.SYSTEM_ID)
+    for (key in keyMap.keys) {
+      secondExecutionSettings.putUserData(key as Key<Any>, keyMap[key])
+    }
+
     AndroidGradleTaskManager().executeTasks(
       ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
-      gradleRunConfiguration.settings.taskNames.map { it.trimQuotes()},
+      listOf(":app:testDebugUnitTest"),
       project.basePath!!,
-      executionSettings,
+      secondExecutionSettings,
       null,
       listener
     )
 
-    // Check that the test task was re-executed, and not marked as UP-TO-DATE.
-    assertThat(listener.messagesLog.lines()).doesNotContain("> Task :app:testDebugUnitTest UP-TO-DATE")
+    // Check that the test task was re-executed because the task.upToDateWhen is set to false.
+    val expectedMessage = "Task ':app:testDebugUnitTest' is not up-to-date because:((\r)?\n)+\\s+Task\\.upToDateWhen is false\\.".toRegex()
+    assertThat(expectedMessage.containsMatchIn(listener.finalMessage)).isTrue()
     assertThat(listener.messagesLog.lines()).contains("> Task :app:testDebugUnitTest")
   }
 
@@ -221,7 +235,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       project.basePath!!,
       GradleManager().executionSettingsProvider.`fun`(Pair.create(project, project.basePath)),
       null,
-      ExternalSystemTaskNotificationListener.NULL_OBJECT
+      object : ExternalSystemTaskNotificationListenerAdapter() {}
     )
 
     // Check that the JavaCoverageEngine won't require project rebuild.

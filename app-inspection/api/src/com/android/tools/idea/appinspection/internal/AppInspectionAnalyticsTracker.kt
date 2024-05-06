@@ -20,23 +20,33 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 
 interface AppInspectionAnalyticsTracker {
   fun trackErrorOccurred(errorKind: AppInspectionEvent.ErrorKind)
+
   fun trackToolWindowOpened()
+
   fun trackToolWindowHidden()
+
   fun trackProcessSelected(device: DeviceDescriptor, numDevices: Int, numProcesses: Int)
+
   fun trackInspectionStopped()
+
   fun trackInspectionRestarted()
 }
 
 val STUB_TRACKER =
   object : AppInspectionAnalyticsTracker {
     override fun trackErrorOccurred(errorKind: AppInspectionEvent.ErrorKind) {}
+
     override fun trackToolWindowOpened() {}
+
     override fun trackToolWindowHidden() {}
+
     override fun trackProcessSelected(
       device: DeviceDescriptor,
       numDevices: Int,
       numProcesses: Int
     ) {}
+
     override fun trackInspectionStopped() {}
+
     override fun trackInspectionRestarted() {}
   }

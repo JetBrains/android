@@ -54,6 +54,7 @@ interface ShowLogcatListener {
       serialNumber: String,
       val release: String,
       val sdk: Int,
+      val featureLevel: Int,
       val manufacturer: String,
       val model: String,
     ) : DeviceInfo(serialNumber, serialNumber)
@@ -62,6 +63,7 @@ interface ShowLogcatListener {
       serialNumber: String,
       val release: String,
       val sdk: Int,
+      val featureLevel: Int,
       val avdName: String,
     ) : DeviceInfo(avdName, serialNumber)
   }
@@ -72,16 +74,15 @@ interface ShowLogcatListener {
 
     private fun IDevice.toDeviceInfo(): DeviceInfo {
       val release = getProperty(IDevice.PROP_BUILD_VERSION) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.version")
-      val sdk = getProperty(IDevice.PROP_BUILD_API_LEVEL)?.toIntOrNull() ?: 0
       return if (serialNumber.startsWith("emulator-")) {
         val avdName = avdData.getDoneOrNull()?.name ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.avd")
-        EmulatorDeviceInfo(serialNumber, release, sdk, avdName)
+        EmulatorDeviceInfo(serialNumber, release, version.apiLevel, version.featureLevel, avdName)
       }
       else {
         val manufacturer =
           getProperty(IDevice.PROP_DEVICE_MANUFACTURER) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.manufacturer")
         val model = getProperty(IDevice.PROP_DEVICE_MODEL) ?: AndroidBundle.message("android.launch.task.show.logcat.unknown.model")
-        DeviceInfo.PhysicalDeviceInfo(serialNumber, release, sdk, manufacturer, model)
+        DeviceInfo.PhysicalDeviceInfo(serialNumber, release, version.apiLevel, version.featureLevel, manufacturer, model)
       }
     }
 

@@ -62,7 +62,8 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
   private val centerPanel = JPanel(BorderLayout())
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
-  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Database Inspector", null, parentDisposable)
+  private val workBench: WorkBench<SqliteViewContext> =
+    WorkBench(project, "Database Inspector", null, parentDisposable)
   private val tabs = BorderedTabs(project, project)
 
   override val component: JComponent = workBench
@@ -83,20 +84,22 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
       setTabDraggingEnabled(true)
-      setUiDecorator(object : UiDecorator {
-        override fun getDecoration(): UiDecorator.UiDecoration {
-          return UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 6))
+      setUiDecorator(
+        object : UiDecorator {
+          override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 6))
         }
-      })
-      addTabMouseListener(object : MouseAdapter() {
-        override fun mousePressed(e: MouseEvent) {
-          if (UIUtil.isCloseClick(e)) {
-            val targetTabInfo = findInfo(e)
-            val tabId = targetTabInfo?.`object` as? TabId ?: return
-            listeners.forEach { it.closeTabActionInvoked(tabId) }
+      )
+      addTabMouseListener(
+        object : MouseAdapter() {
+          override fun mousePressed(e: MouseEvent) {
+            if (UIUtil.isCloseClick(e)) {
+              val targetTabInfo = findInfo(e)
+              val tabId = targetTabInfo?.`object` as? TabId ?: return
+              listeners.forEach { it.closeTabActionInvoked(tabId) }
+            }
           }
         }
-      })
+      )
     }
   }
 

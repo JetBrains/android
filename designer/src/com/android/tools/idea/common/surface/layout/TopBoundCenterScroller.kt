@@ -24,40 +24,16 @@ import java.awt.Point
  * position after zooming.
  */
 class TopBoundCenterScroller(
-  @SwingCoordinate private val oldViewSize: Dimension,
-  @SwingCoordinate private val scrollPosition: Point
-) : DesignSurfaceViewportScroller {
-  override fun scroll(port: DesignSurfaceViewport) {
-    // the preferred size would be the actual canvas size in viewport.
-    val newViewSize = port.viewComponent.preferredSize
-    if (newViewSize.width == 0 || newViewSize.height == 0) {
-      return
-    }
-    val portSize = port.extentSize
-
-    if (oldViewSize.width == 0 || oldViewSize.height == 0) {
-      // The view was not visible before, no need to change the scroll position.
-      return
-    }
-
-    val newViewPositionX =
-      if (portSize.width >= newViewSize.width) 0
-      else {
-        val halfPortWidth = portSize.width / 2
-        val oldXCenter = scrollPosition.x + halfPortWidth
-        val xWeight = oldXCenter.toDouble() / oldViewSize.width
-        maxOf(0, (xWeight * newViewSize.width).toInt() - halfPortWidth)
-      }
-
-    val newViewPositionY =
-      if (portSize.height >= newViewSize.height) 0
-      else {
-        val oldY = scrollPosition.y
-        val oldHeight = oldViewSize.height
-        val yWeight = oldY.toDouble() / oldHeight
-        (yWeight * newViewSize.height).toInt()
-      }
-
-    port.viewPosition = Point(newViewPositionX, newViewPositionY)
-  }
-}
+  @SwingCoordinate oldViewSize: Dimension,
+  @SwingCoordinate scrollPosition: Point,
+  @SwingCoordinate portSize: Dimension,
+  oldScale: Double,
+  newScale: Double
+) :
+  ReferencePointScroller(
+    oldViewSize,
+    scrollPosition,
+    Point(scrollPosition.x + portSize.width / 2, scrollPosition.y),
+    oldScale,
+    newScale
+  )

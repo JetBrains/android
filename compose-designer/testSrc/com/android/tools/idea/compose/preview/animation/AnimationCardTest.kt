@@ -21,7 +21,7 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.findExpandButt
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -52,7 +52,7 @@ class AnimationCardTest {
         .apply { setDuration(111) }
     card.setSize(300, 300)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(card)
       ui.updateToolbars()
       ui.layout()
@@ -113,35 +113,36 @@ class AnimationCardTest {
   }
 
   @Test
-  fun `create animation card if coordination is not available`(): Unit = invokeAndWaitIfNeeded {
-    val card =
-      AnimationCard(
-          TestUtils.testPreviewState(false),
-          Mockito.mock(DesignSurface::class.java),
-          ElementState("Title"),
-          emptyList(),
-          NoopAnimationTracker,
-        )
-        .apply {
-          setDuration(111)
-          setSize(300, 300)
+  fun `create animation card if coordination is not available`(): Unit =
+    ApplicationManager.getApplication().invokeAndWait {
+      val card =
+        AnimationCard(
+            TestUtils.testPreviewState(false),
+            Mockito.mock(DesignSurface::class.java),
+            ElementState("Title"),
+            emptyList(),
+            NoopAnimationTracker,
+          )
+          .apply {
+            setDuration(111)
+            setSize(300, 300)
+          }
+      val ui =
+        FakeUi(card).apply {
+          updateToolbars()
+          layout()
         }
-    val ui =
-      FakeUi(card).apply {
-        updateToolbars()
-        layout()
-      }
 
-    // Lock button is not available.
-    findFreezeButton(card).also {
-      // Button is here and visible.
-      assertTrue(it.isVisible)
-      assertFalse(it.isEnabled)
-      TestUtils.assertBigger(minimumSize, it.size)
+      // Lock button is not available.
+      findFreezeButton(card).also {
+        // Button is here and visible.
+        assertTrue(it.isVisible)
+        assertFalse(it.isEnabled)
+        TestUtils.assertBigger(minimumSize, it.size)
+      }
+      // Uncomment to preview ui.
+      // ui.render()
     }
-    // Uncomment to preview ui.
-    // ui.render()
-  }
 
   private fun findFreezeButton(parent: Component): Component {
     return parent.findToolbar("AnimationCard").components[0]

@@ -24,7 +24,9 @@ class InsightsFakeClock : Clock() {
   private var now = Instant.now(fixed(Instant.parse("2022-06-08T10:00:00Z"), ZoneOffset.UTC))
 
   override fun getZone(): ZoneId = ZoneOffset.UTC
+
   override fun withZone(zone: ZoneId?): Clock = throw NotImplementedError()
+
   override fun instant(): Instant = now
 
   fun advanceTimeBy(timeMs: Long) {

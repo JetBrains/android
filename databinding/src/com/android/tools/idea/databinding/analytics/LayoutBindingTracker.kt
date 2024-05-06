@@ -29,15 +29,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DataBindingEvent
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
+import java.util.concurrent.Callable
 
-/**
- * Class for logging data binding and view binding related metrics.
- */
+/** Class for logging data binding and view binding related metrics. */
 @VisibleForTesting // This class uses inheritance to override threading behavior for tests only
 open class LayoutBindingTracker(private val project: Project) : DataBindingTracker {
 
@@ -47,7 +47,10 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
     }
   }
 
-  override fun trackDataBindingCompletion(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
+  override fun trackDataBindingCompletion(
+    eventType: DataBindingEvent.EventType,
+    context: DataBindingEvent.DataBindingContext
+  ) {
     if (isDataBindingEnabled()) {
       trackUserEvent(eventType, context)
     }
@@ -55,76 +58,104 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
 
   private val enabledFacetsProvider = LayoutBindingEnabledFacetsProvider.getInstance(project)
 
-  private fun isDataBindingEnabled() = enabledFacetsProvider.getDataBindingEnabledFacets().isNotEmpty()
+  private fun isDataBindingEnabled() =
+    enabledFacetsProvider.getDataBindingEnabledFacets().isNotEmpty()
 
-  private fun isViewBindingEnabled() = enabledFacetsProvider.getViewBindingEnabledFacets().isNotEmpty()
+  private fun isViewBindingEnabled() =
+    enabledFacetsProvider.getViewBindingEnabledFacets().isNotEmpty()
 
-  private fun trackUserEvent(eventType: DataBindingEvent.EventType, context: DataBindingEvent.DataBindingContext) {
-    val studioEventBuilder = createStudioEventBuilder().apply {
-      dataBindingEvent = DataBindingEvent.newBuilder().apply {
-        type = eventType
-        this.context = context
-      }.build()
-    }
+  private fun trackUserEvent(
+    eventType: DataBindingEvent.EventType,
+    context: DataBindingEvent.DataBindingContext
+  ) {
+    val studioEventBuilder =
+      createStudioEventBuilder().apply {
+        dataBindingEvent =
+          DataBindingEvent.newBuilder()
+            .apply {
+              type = eventType
+              this.context = context
+            }
+            .build()
+      }
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
-  private fun trackPollingEvent(eventType: DataBindingEvent.EventType,
-                                dataBindingMetadata: DataBindingEvent.DataBindingPollMetadata?,
-                                viewBindingMetaData: DataBindingEvent.ViewBindingPollMetadata?) {
-    val studioEventBuilder = createStudioEventBuilder().apply {
-      dataBindingEvent = DataBindingEvent.newBuilder().apply {
-        type = eventType
-        pollMetadata = dataBindingMetadata
-        viewBindingMetadata = viewBindingMetaData
-      }.build()
-    }
+  private fun trackPollingEvent(
+    eventType: DataBindingEvent.EventType,
+    dataBindingMetadata: DataBindingEvent.DataBindingPollMetadata?,
+    viewBindingMetaData: DataBindingEvent.ViewBindingPollMetadata?
+  ) {
+    val studioEventBuilder =
+      createStudioEventBuilder().apply {
+        dataBindingEvent =
+          DataBindingEvent.newBuilder()
+            .apply {
+              type = eventType
+              pollMetadata = dataBindingMetadata
+              viewBindingMetadata = viewBindingMetaData
+            }
+            .build()
+      }
     UsageTracker.log(studioEventBuilder.withProjectId(project))
   }
 
-  /**
-   * This task must be run inside of a read action. Collects basic data binding usage metrics.
-   */
+  /** This task must be run inside of a read action. Collects basic data binding usage metrics. */
   private inner class TrackPollingMetadataTask(val project: Project) : Runnable {
     override fun run() {
-      DumbService.getInstance(project).runReadActionInSmartMode {
-        var dataBindingLayoutCount = 0
-        var viewBindingLayoutCount = 0
-        var importCount = 0
-        var variableCount = 0
-
-        FileTypeIndex
-          .getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
-          .filter { BindingXmlIndex.acceptsFile(it) }
-          .mapNotNull { BindingXmlIndex.getDataForFile(project, it) }
-          .forEach { layoutInfo ->
-            if (layoutInfo.layoutType == DATA_BINDING_LAYOUT) {
-              dataBindingLayoutCount++
-              importCount += layoutInfo.imports.size
-              variableCount += layoutInfo.variables.size
-            } else if (layoutInfo.layoutType == PLAIN_LAYOUT && !layoutInfo.viewBindingIgnore) {
-              viewBindingLayoutCount++
+      val bindingXmlData =
+        ReadAction.nonBlocking(
+            Callable {
+              // BindingXmlIndex uses the shared "single entry" index. As such, calling
+              // FileBasedIndex.getAllKeys() for it returns a key for every file in the project, not
+              // just those that are binding files.
+              // Instead, the best that can be done here is to scope down to only XML files and then
+              // call into BindingXmlIndex. There will obviously be false positive keys, but the
+              // index will just return a null value for them.
+              FileTypeIndex.getFiles(XmlFileType.INSTANCE, GlobalSearchScope.projectScope(project))
+                .mapNotNull {
+                  ProgressManager.checkCanceled()
+                  BindingXmlIndex.getDataForFile(project, it)
+                }
             }
-          }
+          )
+          .inSmartMode(project)
+          .executeSynchronously()
 
-        trackPollingEvent(DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
-                          DataBindingEvent.DataBindingPollMetadata.newBuilder().apply {
-                            dataBindingEnabled = isDataBindingEnabled()
-                            layoutXmlCount = dataBindingLayoutCount
-                            this.importCount = importCount
-                            this.variableCount = variableCount
-                            // We only care about Android modules (modules with an android facet).
-                            moduleCount = ModuleManager.getInstance(project).modules.count { it.androidFacet != null }
-                            dataBindingEnabledModuleCount = ModuleManager.getInstance(project).modules
-                              .mapNotNull { it.androidFacet }
-                              .count { DataBindingUtil.isDataBindingEnabled(it) }
-                          }.build(),
-                          DataBindingEvent.ViewBindingPollMetadata.newBuilder().apply {
-                            viewBindingEnabled = isViewBindingEnabled()
-                            layoutXmlCount = viewBindingLayoutCount
-                          }.build()
-                          )
-      }
+      val dataBindingLayouts =
+        bindingXmlData.asSequence().filter { it.layoutType == DATA_BINDING_LAYOUT }
+
+      val dataBindingLayoutCount = dataBindingLayouts.count()
+      val importCount = dataBindingLayouts.sumOf { it.imports.size }
+      val variableCount = dataBindingLayouts.sumOf { it.variables.size }
+
+      val viewBindingLayoutCount =
+        bindingXmlData.count { it.layoutType == PLAIN_LAYOUT && !it.viewBindingIgnore }
+
+      trackPollingEvent(
+        DataBindingEvent.EventType.DATA_BINDING_BUILD_EVENT,
+        DataBindingEvent.DataBindingPollMetadata.newBuilder()
+          .apply {
+            dataBindingEnabled = isDataBindingEnabled()
+            layoutXmlCount = dataBindingLayoutCount
+            this.importCount = importCount
+            this.variableCount = variableCount
+            // We only care about Android modules (modules with an Android facet).
+            moduleCount =
+              ModuleManager.getInstance(project).modules.count { it.androidFacet != null }
+            dataBindingEnabledModuleCount =
+              ModuleManager.getInstance(project).modules.count {
+                it.androidFacet?.let(DataBindingUtil::isDataBindingEnabled) ?: false
+              }
+          }
+          .build(),
+        DataBindingEvent.ViewBindingPollMetadata.newBuilder()
+          .apply {
+            viewBindingEnabled = isViewBindingEnabled()
+            layoutXmlCount = viewBindingLayoutCount
+          }
+          .build()
+      )
     }
   }
 
@@ -136,6 +167,6 @@ open class LayoutBindingTracker(private val project: Project) : DataBindingTrack
     ApplicationManager.getApplication().executeOnPooledThread(runnable)
   }
 
-  private fun createStudioEventBuilder() = AndroidStudioEvent.newBuilder()
-    .setKind(AndroidStudioEvent.EventKind.DATA_BINDING)
+  private fun createStudioEventBuilder() =
+    AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.DATA_BINDING)
 }

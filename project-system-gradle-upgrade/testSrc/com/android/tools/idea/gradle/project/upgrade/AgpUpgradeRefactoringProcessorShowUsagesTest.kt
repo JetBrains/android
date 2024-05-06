@@ -22,9 +22,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.usages.UsageViewManager
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -42,6 +44,11 @@ class AgpUpgradeRefactoringProcessorShowUsagesTest {
   val project by lazy { projectRule.project }
 
   val currentAgpVersion = AgpVersion.parse("4.1.0")
+
+  @After
+  fun tearDown() {
+    JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
+  }
 
   @Test
   fun testShowUsageViewNoBuildFiles() {

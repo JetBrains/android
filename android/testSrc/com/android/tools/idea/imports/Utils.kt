@@ -20,7 +20,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
@@ -30,51 +29,33 @@ import com.intellij.psi.PsiManager
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
-/**
- * Testing infrastructure.
- */
-fun performWithoutSync(projectRule: AndroidGradleProjectRule, action: AndroidMavenImportIntentionAction, element: PsiElement) {
-  action.perform(projectRule.project, projectRule.fixture.editor, element, false)
-}
-
-fun PreparedTestProject.Context.performWithoutSync(action: AndroidMavenImportIntentionAction, element: PsiElement) {
+fun PreparedTestProject.Context.performWithoutSync(
+    action: AndroidMavenImportIntentionAction,
+    element: PsiElement
+) {
   action.perform(project, fixture.editor, element, false)
 }
 
-fun performAndWaitForSyncEnd(
-  projectRule: AndroidGradleProjectRule,
-  invoke: () -> Unit,
-) {
-  val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
-  val project = projectRule.project
-  project.messageBus.connect()
-    .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        publishedResult.set(result)
-      }
-    })
-
-  invoke()
-
-  val results = publishedResult.get(10, TimeUnit.SECONDS)
-  assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
-}
-
 fun PreparedTestProject.Context.performAndWaitForSyncEnd(
-  invoke: () -> Unit,
+    invoke: () -> Unit,
 ) {
   val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
-  project.messageBus.connect()
-    .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        publishedResult.set(result)
-      }
-    })
+  project.messageBus
+      .connect(project)
+      .subscribe(
+          PROJECT_SYSTEM_SYNC_TOPIC,
+          object : ProjectSystemSyncManager.SyncResultListener {
+            override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+              publishedResult.set(result)
+            }
+          })
 
   invoke()
 
   val results = publishedResult.get(10, TimeUnit.SECONDS)
-  assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
+  assertThat(results)
+      .named("Second sync result")
+      .isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
 }
 
 fun checkBuildGradle(project: Project, check: (String) -> Boolean): Boolean {
@@ -91,8 +72,9 @@ fun assertBuildGradle(project: Project, check: (String) -> Boolean) {
 val fakeMavenClassRegistryManager: MavenClassRegistryManager
   get() {
     val gMavenIndexRepositoryMock: GMavenIndexRepository = mock()
-    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk()).thenReturn(
-      """
+    whenever(gMavenIndexRepositoryMock.loadIndexFromDisk())
+        .thenReturn(
+            """
           {
             "Index": [
               {
@@ -175,11 +157,25 @@ val fakeMavenClassRegistryManager: MavenClassRegistryManager
                 "fqcns": [
                   "androidx.compose.ui.tooling.preview.Preview"
                 ]
+              },
+              {
+                "groupId": "my.madeup.pkg",
+                "artifactId": "amazing-pkg",
+                "version": "4.2.0",
+                "ktxTargets": [],
+                "fqcns": [],
+                "ktlfns": [
+                  {
+                    "xfqn": "my.madeup.pkg.amazing.StringsKt.extensionFunction",
+                    "rcvr": "kotlin.String"
+                  }
+                ]
               }
             ]
           }
-        """.trimIndent().byteInputStream(UTF_8)
-    )
+        """
+                .trimIndent()
+                .byteInputStream(UTF_8))
 
     val mavenClassRegistry = MavenClassRegistry(gMavenIndexRepositoryMock)
 

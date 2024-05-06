@@ -31,8 +31,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.util.GradleVersion
-import org.jetbrains.kotlin.idea.base.facet.isMultiPlatformModule
-import org.jetbrains.kotlin.idea.gradleJava.configuration.kotlinGradleProjectDataOrNull
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -181,7 +179,9 @@ class GradleTaskFinderWorker private constructor(
           BuildMode.REBUILD ->
             moduleToProcess.getTasksBy { listOfNotNull(
               it.assembleTaskName,
-              it.getPrivacySandboxSdkTask())
+              it.getPrivacySandboxSdkTask(),
+              it.getAdditionalApkSplitTask(),
+              it.getPrivacySandboxSdkLegacyTask())
             }.copy( cleanTasks = setOf("clean"))
           // Note, this should eventually include ":clean" tasks, but it is dangerous right now as it might run in a separate but second
           // invocation.
@@ -191,7 +191,9 @@ class GradleTaskFinderWorker private constructor(
             moduleToProcess.getTasksBy {
               listOfNotNull(
                 it.assembleTaskName,
-                it.getPrivacySandboxSdkTask())
+                it.getPrivacySandboxSdkTask(),
+                it.getAdditionalApkSplitTask(),
+                it.getPrivacySandboxSdkLegacyTask())
             }
           BuildMode.COMPILE_JAVA ->
             moduleToProcess
@@ -205,7 +207,9 @@ class GradleTaskFinderWorker private constructor(
             moduleToProcess.getTasksBy {
               listOfNotNull(
                 (it as? IdeAndroidArtifact)?.buildInformation?.bundleTaskName,
-                it.getPrivacySandboxSdkTask())
+                it.getPrivacySandboxSdkTask(),
+                it.getPrivacySandboxSdkLegacyTask()
+              ) // Don't need getAdditionalApkSplitTask for bundle deployment
             }
           }
           BuildMode.APK_FROM_BUNDLE -> {
@@ -217,8 +221,9 @@ class GradleTaskFinderWorker private constructor(
               moduleToProcess.getTasksBy {
                 listOfNotNull(
                   (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName,
-                  it.getPrivacySandboxSdkTask()
-                )
+                  it.getPrivacySandboxSdkTask(),
+                  it.getPrivacySandboxSdkLegacyTask()
+                ) // Don't need getAdditionalApkSplitTask for bundle deployment
               }.tasks +
               if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE && moduleToProcess.testCompileMode.compileAndroidTests)
                 setOfNotNull(moduleToProcess.androidModel.selectedVariant.androidTestArtifact?.assembleTaskName)
@@ -228,33 +233,12 @@ class GradleTaskFinderWorker private constructor(
         }
       }
 
-      moduleToProcess.isKmpModule -> {
-        when (moduleToProcess.buildMode) {
-          BuildMode.ASSEMBLE -> ModuleTasks(
-            module = moduleToProcess.module,
-            cleanTasks = emptySet(),
-            tasks = setOf(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME)
-          )
-          BuildMode.REBUILD -> ModuleTasks(
-            module = moduleToProcess.module,
-            cleanTasks = setOf(GradleBuilds.CLEAN_TASK_NAME),
-            tasks = setOf(GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME)
-          )
-          BuildMode.COMPILE_JAVA -> ModuleTasks(
-            module = moduleToProcess.module,
-            cleanTasks = emptySet(),
-            tasks = setOf(JavaPlugin.COMPILE_JAVA_TASK_NAME)
-          )
-          else -> null
-        }
-      }
-
       moduleToProcess.isGradleJavaModule -> {
         ModuleTasks(
           module = moduleToProcess.module,
           cleanTasks = when (moduleToProcess.buildMode) {
             BuildMode.CLEAN -> emptySet() // TODO(b/235567998): Unify clean handling.
-            BuildMode.REBUILD -> setOf(GradleBuilds.CLEAN_TASK_NAME)
+            BuildMode.REBUILD -> setOf("clean")
             BuildMode.ASSEMBLE, BuildMode.COMPILE_JAVA, BuildMode.SOURCE_GEN, BuildMode.BUNDLE, BuildMode.APK_FROM_BUNDLE -> emptySet()
           },
           tasks = getGradleJavaTaskNames(moduleToProcess.buildMode, moduleToProcess.testCompileMode)
@@ -268,6 +252,11 @@ class GradleTaskFinderWorker private constructor(
   private fun IdeBaseArtifact.getPrivacySandboxSdkTask() =
     (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.task
 
+  private fun IdeBaseArtifact.getAdditionalApkSplitTask() =
+    (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.additionalApkSplitTask
+
+  private fun IdeBaseArtifact.getPrivacySandboxSdkLegacyTask() =
+    (this as? IdeAndroidArtifact)?.privacySandboxSdkInfo?.taskLegacy
 
   private fun GradleProjectPath.toModuleAndMode(
     buildMode: BuildMode,
@@ -310,15 +299,7 @@ private data class ModuleAndMode(
   val expand: Boolean = true
 ) {
   val androidModel: GradleAndroidModel? = GradleAndroidModel.get(module)
-  val isKmpModule: Boolean = module.isMultiPlatformModule()
   val isGradleJavaModule: Boolean = if (androidModel == null) module.isGradleJavaModule() else false
-}
-
-@Suppress("UnstableApiUsage")
-private fun Module.isMultiPlatformModule(): Boolean {
-  if (isMultiPlatformModule) return true
-  // Check to see if the KMP plugin is applied to this project.
-  return CachedModuleDataFinder.findMainModuleData(this)?.kotlinGradleProjectDataOrNull?.isHmpp ?: false
 }
 
 @Suppress("UnstableApiUsage")

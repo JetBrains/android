@@ -56,11 +56,6 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.IOException;
-import java.util.List;
-
 /**
  * Notifies users that a model file is not in the correct ml folder in order to use ML Model Binding feature.
  */

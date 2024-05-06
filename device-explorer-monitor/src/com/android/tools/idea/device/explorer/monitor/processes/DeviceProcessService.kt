@@ -23,7 +23,8 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
-import com.android.tools.idea.run.AndroidRunConfigurationBase
+import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger
+import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger
 import com.intellij.execution.RunManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
@@ -33,15 +34,14 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.ThreadingAssertions
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 
 @UiThread
-class DeviceProcessService @NonInjectable constructor(private val connectDebuggerAction: (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: AndroidRunConfigurationBase) -> Unit) {
+class DeviceProcessService @NonInjectable constructor(private val connectDebuggerAction: (debugger: AndroidDebugger<AndroidDebuggerState>, client: Client, config: RunConfigurationWithDebugger) -> Unit) {
 
   @Suppress("unused")
   constructor(project: Project) : this({ debugger, client, config ->
     AppExecutorUtil.getAppExecutorService().execute {
-      AndroidConnectDebuggerAction.closeOldSessionAndRun(project, debugger, client, config)
+      AndroidConnectDebugger.closeOldSessionAndRun(project, debugger, client, config)
     }
   })
   /**
@@ -135,7 +135,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
     if (process.device.serialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {
         val client = device.getClient(process.safeProcessName)
-        val config = RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfigurationBase
+        val config = RunManager.getInstance(project).selectedConfiguration?.configuration as? RunConfigurationWithDebugger
         val debugger = config?.androidDebuggerContext?.androidDebugger
 
         if (client != null && config != null && debugger != null) {

@@ -91,7 +91,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
   private fun handleKotlin(element: PsiElement, context: AndroidQuickfixContexts.Context) {
     val methodCall =
       PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
-    val methodExpression = methodCall.calleeExpression
+    val methodExpression = methodCall.getCalleeExpression()
     if (methodExpression is KtNameReferenceExpression) {
       val identifier: PsiElement? = methodExpression.getIdentifier()
       if (identifier != null) {

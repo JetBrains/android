@@ -28,7 +28,6 @@ import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.PathUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -38,6 +37,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Predicate;
+import com.android.tools.sdk.AndroidSdkData;
 import org.mockito.Mockito;
 
 /**

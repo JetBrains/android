@@ -34,28 +34,28 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.Wallpaper
 import com.android.tools.idea.compose.pickers.preview.inspector.PreviewPropertiesInspectorBuilder
 import com.android.tools.idea.compose.pickers.preview.property.DeviceParameterPropertyItem
 import com.android.tools.idea.compose.pickers.preview.utils.addNewValueArgument
-import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.pickers.preview.utils.getArgumentForParameter
-import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
-import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
-import com.android.tools.idea.compose.preview.PARAMETER_BACKGROUND_COLOR
-import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_FONT_SCALE
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT
-import com.android.tools.idea.compose.preview.PARAMETER_HEIGHT_DP
-import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_BACKGROUND
-import com.android.tools.idea.compose.preview.PARAMETER_SHOW_SYSTEM_UI
-import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
-import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
-import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
-import com.android.tools.idea.compose.preview.UNDEFINED_API_LEVEL
-import com.android.tools.idea.compose.preview.UNDEFINED_DIMENSION
-import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.preview.findPreviewDefaultValues
+import com.android.tools.preview.UNDEFINED_API_LEVEL
+import com.android.tools.preview.UNDEFINED_DIMENSION
+import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_BACKGROUND_COLOR
+import com.android.tools.preview.config.PARAMETER_DEVICE
+import com.android.tools.preview.config.PARAMETER_FONT_SCALE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.preview.config.PARAMETER_HEIGHT
+import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
+import com.android.tools.preview.config.PARAMETER_LOCALE
+import com.android.tools.preview.config.PARAMETER_SHOW_BACKGROUND
+import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
+import com.android.tools.preview.config.PARAMETER_UI_MODE
+import com.android.tools.preview.config.PARAMETER_WALLPAPER
+import com.android.tools.preview.config.PARAMETER_WIDTH
+import com.android.tools.preview.config.PARAMETER_WIDTH_DP
+import com.android.tools.preview.config.findOrParseFromDefinition
+import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -173,6 +173,7 @@ private constructor(
             PARAMETER_LOCALE -> entry.value ?: "Default (en-US)"
             PARAMETER_WALLPAPER ->
               Wallpaper.values().firstOrNull { it.resolvedValue == entry.value }?.display ?: "None"
+            PARAMETER_FONT_SCALE -> entry.value?.removeSuffix("f")
             else -> entry.value
           }
         }

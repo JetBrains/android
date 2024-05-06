@@ -22,20 +22,4 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 class StyleItemResourceValueWithStyleReference(
   val style: StyleResourceValue,
   private val item: StyleItemResourceValue
-) : StyleItemResourceValue {
-
-  override fun getResourceType() = item.resourceType
-  override fun getLibraryName() = item.libraryName
-  override fun isUserDefined() = item.isUserDefined
-  override fun setValue(value: String?) {
-    item.value = value
-  }
-  override fun getAttrName() = item.attrName
-  override fun getName() = item.attrName
-  override fun getNamespace() = item.namespace
-  override fun isFramework() = item.isFramework
-  override fun getValue() = item.value
-  override fun asReference() = item.asReference()
-  override fun getNamespaceResolver() = item.namespaceResolver
-  override fun getAttr() = item.attr
-}
+) : StyleItemResourceValue by item

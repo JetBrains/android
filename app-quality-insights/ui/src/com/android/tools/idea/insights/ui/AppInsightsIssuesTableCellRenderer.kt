@@ -32,20 +32,11 @@ import javax.swing.JTable
 
 object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
 
-  private val pendingRequestIcon =
-    SimpleColoredComponent().apply {
-      icon = offlineModeIcon
-      iconTextGap = 0
-      border = JBUI.Borders.empty()
-      isOpaque = false
-      isVisible = false
-    }
   private val renderer = SimpleColoredComponent().apply { isOpaque = false }
   private val leftPanel =
     JPanel(FlowLayout(FlowLayout.CENTER, 0, 0)).apply {
       isOpaque = false
       border = JBUI.Borders.empty()
-      add(pendingRequestIcon)
       add(renderer)
     }
   private val signalPanel =
@@ -61,7 +52,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
     }
 
   override fun updateRenderer() {
-    renderer.font = StartupUiUtil.getLabelFont()
+    renderer.font = StartupUiUtil.labelFont
   }
 
   override fun getTableCellRendererComponent(
@@ -97,8 +88,6 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
       signalPanel.add(iconLabel)
       availableWidth -= JBUIScale.scale(20)
     }
-
-    pendingRequestIcon.isVisible = issue.pendingRequests > 0
 
     val (className, methodName) = issue.issueDetails.getDisplayTitle()
     renderer.foreground = foreground

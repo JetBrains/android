@@ -18,10 +18,10 @@ package com.android.tools.adtui.util;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.AbstractLayout;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.containers.Stack;
+import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -85,7 +85,7 @@ public class FormScalingUtil {
    * @param clazz the class associated to the <code>.form</code> file
    */
   public FormScalingUtil(Class clazz) {
-    this(clazz, JBUIScale.scale(1.0f));
+    this(clazz, JBUI.scale(1.0f));
   }
 
   /**

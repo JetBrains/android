@@ -39,8 +39,7 @@ import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCache
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
-import com.android.tools.idea.gradle.util.AndroidStudioPreferences
-import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
@@ -68,15 +67,20 @@ import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
+import org.jetbrains.android.AndroidStartupManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.idea.base.util.isAndroidModule
+import org.jetbrains.plugins.gradle.config.GradleSettingsListenerAdapter
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.settings.GradleSettings
+import org.jetbrains.plugins.gradle.settings.GradleSettingsListener
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 /**
@@ -84,16 +88,19 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
  */
 class AndroidGradleProjectStartupActivity : StartupActivity {
   override fun runActivity(project: Project) {
+    if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
+
     val gradleProjectInfo = GradleProjectInfo.getInstance(project)
+    val info = Info.getInstance(project)
 
     fun shouldSyncOrAttachModels(): Boolean {
       if (gradleProjectInfo.isSkipStartupActivity) return false
 
       // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
-      if (gradleProjectInfo.androidModules.isNotEmpty()) return true
+      if (info.androidModules.isNotEmpty()) return true
 
       // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-      return IdeInfo.getInstance().isAndroidStudio && gradleProjectInfo.isBuildWithGradle
+      return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
     }
 
     // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
@@ -105,15 +112,9 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
         invokeAndWaitIfNeeded {
           removePointlessModules(project)
           attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+          subscribeToGradleSettingChanges(project)
         }
       }
-    }
-
-    // Disable all settings sections that we don't want to be present in Android Studio.
-    // See AndroidStudioPreferences for a full list.
-    if (IdeInfo.getInstance().isAndroidStudio) {
-      AndroidStudioPreferences.cleanUpPreferences(project)
-      showNeededNotifications(project)
     }
 
     gradleProjectInfo.isSkipStartupActivity = false
@@ -121,6 +122,16 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
 }
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
+
+private fun subscribeToGradleSettingChanges(project: Project) {
+  val disposable = project.getService(AndroidStartupManager.ProjectDisposableScope::class.java)
+  val connection = project.messageBus.connect(disposable)
+  connection.subscribe(GradleSettingsListener.TOPIC, object : GradleSettingsListenerAdapter() {
+    override fun onGradleJvmChange(oldGradleJvm: String?, newGradleJvm: String?, linkedProjectPath: String) {
+      GradleSyncStateHolder.getInstance(project).recordGradleJvmConfigurationChanged()
+    }
+  })
+}
 
 private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
   if (project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
@@ -258,7 +269,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       // For other types of root we do not perform any validations since urls are intentionally or unintentionally not removed
       // from libraries if the location changes. See TODO: b/160088430.
       val expectedUrls = library.getUrls(OrderRootType.CLASSES)
-      if (expectedUrls.none { url: String -> VirtualFileManager.getInstance().findFileByUrl(url) != null }) {
+      if (expectedUrls.isNotEmpty() && expectedUrls.none { url: String -> VirtualFileManager.getInstance().findFileByUrl(url) != null }) {
         requestSync(
           "Cannot find any of:\n ${expectedUrls.joinToString(separator = ",\n") { it }}\n in ${library.name}"
         )
@@ -290,10 +301,11 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
           if (sourceSets.isEmpty()) {
             listOf(ModuleSetupData(module, node, modelFactory))
           } else {
-            sourceSets.map {
-              val moduleId = modulesById[it.data.id] ?: run { requestSync("Module $externalId not found"); return }
-              ModuleSetupData(moduleId, it, modelFactory)
-            } + ModuleSetupData(module, node, modelFactory)
+            sourceSets
+              .mapNotNull { sourceSet ->
+                val moduleId = modulesById[sourceSet.data.id] ?: run { requestSync("Module ${sourceSet.data.id} not found"); return }
+                if (moduleId.isAndroidModule()) ModuleSetupData(moduleId, sourceSet, modelFactory) else null
+              } + ModuleSetupData(module, node, modelFactory)
           }
         }
     }
@@ -370,6 +382,7 @@ private fun additionalProjectSetup(project: Project) {
     project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
   }
   ProjectStructure.getInstance(project).analyzeProjectStructure()
+  GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)
 }
 
 private fun removeGradleProducersFromIgnoredList(project: Project) {

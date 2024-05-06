@@ -98,9 +98,9 @@ class ConfigureBenchmarkModuleStep(
     }, model.benchmarkModuleType)
 
     val minAgpVersion = AgpVersion.parse(MACRO_AGP_MIN_VERSION)
-    validatorPanel.registerValidator(agpVersion, createValidator { version ->
+    validatorPanel.registerValidator(model.agpVersion, createValidator { version ->
       if (model.benchmarkModuleType.get() == MACROBENCHMARK &&
-          version.isPresent && version.get().compareIgnoringQualifiers(minAgpVersion) < 0)
+          version.compareIgnoringQualifiers(minAgpVersion) < 0)
         Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.macro.benchmark", MACRO_AGP_MIN_VERSION))
       else
         OK

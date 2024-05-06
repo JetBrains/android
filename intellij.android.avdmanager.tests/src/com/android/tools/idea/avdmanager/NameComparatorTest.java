@@ -16,6 +16,7 @@
 package com.android.tools.idea.avdmanager;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.devices.Device;
 import java.util.ArrayList;
@@ -178,16 +179,6 @@ public final class NameComparatorTest {
   }
 
   @NotNull
-  private static Device mockDevice(@NotNull String name) {
-    var device = Mockito.mock(Device.class);
-
-    Mockito.when(device.getDisplayName()).thenReturn(name);
-    Mockito.when(device.toString()).thenReturn(name);
-
-    return device;
-  }
-
-  @NotNull
   private static List<Device> shuffle(@NotNull Collection<Device> expectedDevices) {
     var actualDevices = new ArrayList<>(expectedDevices);
     Collections.shuffle(actualDevices);
@@ -198,5 +189,35 @@ public final class NameComparatorTest {
 
     System.out.println("Shuffled devices: " + actualNames);
     return actualDevices;
+  }
+
+  @Test
+  public void compareIdsAreDifferent() {
+    // Arrange
+    // system-images;android-21;android-tv;x86
+    var device1 = mockDevice("Android TV (1080p)", "Android TV (1080p)");
+
+    // tv.xml at Commit df3a41ec30df6edc79a4e3823698640f114b05a4
+    var device2 = mockDevice("Android TV (1080p)", "tv_1080p");
+
+    // Act
+    var result = myComparator.compare(device1, device2);
+
+    // Assert
+    assertTrue(result < 0);
+  }
+
+  private static @NotNull Device mockDevice(@NotNull String name) {
+    return mockDevice(name, "");
+  }
+
+  private static @NotNull Device mockDevice(@NotNull String name, @NotNull String id) {
+    var device = Mockito.mock(Device.class);
+
+    Mockito.when(device.getDisplayName()).thenReturn(name);
+    Mockito.when(device.getId()).thenReturn(id);
+    Mockito.when(device.toString()).thenReturn(name);
+
+    return device;
   }
 }

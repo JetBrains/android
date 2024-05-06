@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.util;
 import static com.android.SdkConstants.NDK_DIR_PROPERTY;
 import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -26,19 +27,18 @@ import static org.mockito.Mockito.when;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.io.FilePaths;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.testFramework.ApplicationRule;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -111,7 +111,7 @@ public class LocalPropertiesTest {
 
   @Test
   public void testSetAndroidSdkPathWithString() throws Exception {
-    String androidSdkPath = FileUtilRt.toSystemDependentName("/home/sdk2");
+    String androidSdkPath = toSystemDependentName("/home/sdk2");
     myLocalProperties.setAndroidSdkPath(androidSdkPath);
     myLocalProperties.save();
 
@@ -122,7 +122,7 @@ public class LocalPropertiesTest {
 
   @Test
   public void testSetAndroidSdkPathWithSdk() throws Exception {
-    String androidSdkPath = FileUtilRt.toSystemDependentName("/home/sdk2");
+    String androidSdkPath = toSystemDependentName("/home/sdk2");
     Sdk sdk = mock(Sdk.class);
     when(sdk.getHomePath()).thenReturn(androidSdkPath);
     myLocalProperties.setAndroidSdkPath(sdk);
@@ -135,7 +135,7 @@ public class LocalPropertiesTest {
 
   @Test
   public void testSetAndroidNdkPathWithString() throws Exception {
-    String androidNdkPath = FileUtilRt.toSystemDependentName("/home/ndk2");
+    String androidNdkPath = toSystemDependentName("/home/ndk2");
     myLocalProperties.setAndroidNdkPath(androidNdkPath);
     myLocalProperties.save();
 
@@ -146,7 +146,7 @@ public class LocalPropertiesTest {
 
   @Test
   public void testSetAndroidNdkPathWithFile() throws Exception {
-    String androidNdkPath = FileUtilRt.toSystemDependentName("/home/ndk2");
+    String androidNdkPath = toSystemDependentName("/home/ndk2");
     myLocalProperties.setAndroidNdkPath(new File(androidNdkPath));
     myLocalProperties.save();
 
@@ -178,7 +178,7 @@ public class LocalPropertiesTest {
 
     // Next write properties using the UTF-8 encoding. Chars will no longer be escaped.
     // Confirm that we read these in properly too.
-    try (Writer writer = new OutputStreamWriter(new FileOutputStream(localPropertiesFile), StandardCharsets.UTF_8)) {
+    try (Writer writer = new OutputStreamWriter(new FileOutputStream(localPropertiesFile), Charsets.UTF_8)) {
       outProperties.store(writer, null);
     }
 

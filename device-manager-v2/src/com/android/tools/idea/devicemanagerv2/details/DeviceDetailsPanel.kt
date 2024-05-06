@@ -28,7 +28,6 @@ import com.intellij.util.ui.JBUI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 import javax.swing.JComponent
 
 /**
@@ -73,7 +72,8 @@ private constructor(
       pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>
     ): DeviceDetailsPanel {
       val deviceInfoPanel = DeviceInfoPanel()
-      scope.launch(uiThread) { populateDeviceInfo(deviceInfoPanel, handle) }
+      deviceInfoPanel.trackDeviceProperties(scope, handle)
+      deviceInfoPanel.trackDevicePowerAndStorage(scope, handle)
 
       val pairedDevicesPanel =
         handle.state.properties.wearPairingId?.let {

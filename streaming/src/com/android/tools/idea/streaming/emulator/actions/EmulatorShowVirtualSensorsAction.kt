@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 /**
  * Shows the virtual sensors page of the emulator extended controls.
  */
-class EmulatorShowVirtualSensorsAction : AbstractEmulatorAction(configFilter = { it.isFoldable || it.isRollable}) {
+class EmulatorShowVirtualSensorsAction : AbstractEmulatorAction() {
 
   override fun actionPerformed(event: AnActionEvent) {
     val emulatorController = getEmulatorController(event) ?: return

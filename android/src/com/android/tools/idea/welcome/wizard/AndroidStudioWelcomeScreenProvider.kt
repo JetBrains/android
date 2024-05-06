@@ -35,6 +35,8 @@ import com.intellij.util.proxy.CommonProxy
 import java.io.IOException
 import javax.swing.JRootPane
 
+val log = logger<AndroidStudioWelcomeScreenProvider>()
+
 /**
  * Shows a wizard first time Android Studio is launched.
  */
@@ -121,7 +123,7 @@ class AndroidStudioWelcomeScreenProvider : WelcomeScreenProvider {
           if (e.toString().contains("crypto")) {
             message += "; check your JDK/JRE installation / consider running on a newer version."
           }
-          logger<AndroidStudioWelcomeScreenProvider>().warn(message, e)
+          log.warn(message, e)
         }
       } while (retryConnection)
     }

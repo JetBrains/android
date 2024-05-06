@@ -91,7 +91,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   @NotNull
   private static Set<PsiClass> findRelatedActivitiesForMenu(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     final String resourceName = SdkUtils.fileNameToResourceName(file.getName());
-    final PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, ResourceType.MENU.getName(), resourceName, true);
+    final PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, ResourceType.MENU.getName(), resourceName);
 
     if (fields.length == 0) {
       return Collections.emptySet();

@@ -33,14 +33,12 @@ import com.intellij.util.xml.GenericDomValue
 import com.intellij.util.xml.Required
 import com.intellij.util.xml.ResolvingConverter
 import com.intellij.util.xml.ResolvingConverter.StringConverter
+import java.util.stream.Collectors
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.stream.Collectors
 
-/**
- * Public tag DOM for values resource files in library modules.
- */
-interface PublicResource: GenericDomValue<String>, AndroidDomElement {
+/** Public tag DOM for values resource files in library modules. */
+interface PublicResource : GenericDomValue<String>, AndroidDomElement {
   @Required
   @Convert(PublicResourceNameConverter::class)
   fun getName(): GenericAttributeValue<String?>?
@@ -50,46 +48,46 @@ interface PublicResource: GenericDomValue<String>, AndroidDomElement {
   fun getType(): GenericAttributeValue<ResourceType>?
 }
 
-/**
- * Converter for <public\> tag name attributes.
- */
-class PublicResourceNameConverter: StringConverter() {
+/** Converter for <public\> tag name attributes. */
+class PublicResourceNameConverter : StringConverter() {
 
   override fun resolve(resourceName: String?, context: ConvertContext): PsiElement? {
     if (resourceName == null) {
       return null
     }
-    val element = context.xmlElement ?: return null
+    val element = context?.xmlElement ?: return null
     val resourceNamespace = element.resourceNamespace ?: return null
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java) ?: return null
     val xmlAttribute: XmlAttribute = tag.getAttribute("type") ?: return null
     val attributeValue = xmlAttribute.value ?: return null
     val resourceType = ResourceType.fromXmlValue(attributeValue) ?: return null
-    return ResourceReferencePsiElement(element, ResourceReference(resourceNamespace, resourceType, resourceName))
+    return ResourceReferencePsiElement(
+      element,
+      ResourceReference(resourceNamespace, resourceType, resourceName)
+    )
   }
 
   override fun getVariants(context: ConvertContext): Collection<String> {
-    val element = context.invocationElement.parent as? PublicResource ?: return emptyList()
+    val element = context?.invocationElement?.parent as? PublicResource ?: return emptyList()
     val module = context.module ?: return emptyList()
     val facet = AndroidFacet.getInstance(module) ?: return emptyList()
     val elementType = element.getType()?.value
     val moduleResources = StudioResourceRepositoryManager.getInstance(facet).moduleResources
     return if (elementType == null) {
       // No type attribute set, show all resources.
-      moduleResources.allResources.stream().map { obj: ResourceItem -> obj.name }.collect(Collectors.toList())
-    }
-    else {
+      moduleResources.allResources
+        .stream()
+        .map { obj: ResourceItem -> obj.name }
+        .collect(Collectors.toList())
+    } else {
       // User has already provided the type attribute, so we can filter by ResourceType.
       moduleResources.getResourceNames(ResourceNamespace.RES_AUTO, elementType)
     }
   }
 }
 
-
-/**
- * Converter for <public\> tag type attributes.
- */
-class PublicResourceTypeConverter: ResolvingConverter<ResourceType>() {
+/** Converter for <public\> tag type attributes. */
+class PublicResourceTypeConverter : ResolvingConverter<ResourceType>() {
   override fun toString(resourceType: ResourceType?, context: ConvertContext): String? {
     return resourceType?.getName()
   }

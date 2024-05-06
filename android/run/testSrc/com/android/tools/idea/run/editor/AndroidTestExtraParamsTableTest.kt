@@ -19,7 +19,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ex.ActionUtil.createEmptyEvent
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -53,7 +52,7 @@ class AndroidTestExtraParamsTableTest {
     assertThat(addButton.isVisible).isTrue()
     assertThat(addButton.isEnabled).isTrue()
     addButton.actionPerformed(createEmptyEvent())
-    dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue();
     assertThat(table.tableView.tableViewModel.items).containsExactly(AndroidTestExtraParam())
 
     // Make sure delete button is displayed and tapping the button deletes the element.
@@ -62,7 +61,7 @@ class AndroidTestExtraParamsTableTest {
     assertThat(deleteButton.isVisible).isTrue()
     assertThat(deleteButton.isEnabled).isTrue()
     deleteButton.actionPerformed(createEmptyEvent())
-    dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue();
     assertThat(table.tableView.tableViewModel.items).isEmpty()
   }
 
@@ -93,14 +92,12 @@ class AndroidTestExtraParamsTableTest {
     table.tableView.addSelection(params[1])
 
     // Make sure revert button is displayed and tapping the button reverts the modification on the element.
-    val toolbar = requireNotNull(findComponentOfType(table.component, CommonActionsPanel::class.java)).toolbar
-    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync());
-    val availableActions = toolbar.actions
+    val availableActions = requireNotNull(findComponentOfType(table.component, CommonActionsPanel::class.java)).toolbar.actions
     val revertAction = availableActions.first { action ->
       action.templatePresentation.icon == AllIcons.Actions.Rollback
     }
     revertAction.actionPerformed(createEmptyEvent())
-    dispatchAllEventsInIdeEventQueue()
+    dispatchAllEventsInIdeEventQueue();
 
     // Make sure only first two items are reverted.
     assertThat(table.tableView.tableViewModel.items).containsExactly(

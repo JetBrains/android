@@ -19,13 +19,12 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.markup.TextAttributes
 
-/**
- * Accumulates fragments of text into a text buffer and a list of colored ranges.
- */
+/** Accumulates fragments of text into a text buffer and a list of colored ranges. */
 internal class TextAccumulator {
   private val stringBuilder = StringBuilder()
 
-  val text: String get() = stringBuilder.toString()
+  val text: String
+    get() = stringBuilder.toString()
 
   val textAttributesRanges = mutableListOf<Range<TextAttributes>>()
   val textAttributesKeyRanges = mutableListOf<Range<TextAttributesKey>>()
@@ -34,15 +33,17 @@ internal class TextAccumulator {
   fun accumulate(
     text: String,
     textAttributes: TextAttributes? = null,
-    textAttributesKey: TextAttributesKey? = null): TextAccumulator {
-    assert(textAttributes == null || textAttributesKey == null) { "Only one of textAttributesKey and textAttributesKeyKey can be set" }
+    textAttributesKey: TextAttributesKey? = null
+  ): TextAccumulator {
+    assert(textAttributes == null || textAttributesKey == null) {
+      "Only one of textAttributesKey and textAttributesKeyKey can be set"
+    }
     val start = stringBuilder.length
     val end = start + text.length
     stringBuilder.append(text)
     if (textAttributes != null) {
       textAttributesRanges.add(Range(start, end, textAttributes))
-    }
-    else if (textAttributesKey != null) {
+    } else if (textAttributesKey != null) {
       textAttributesKeyRanges.add(Range(start, end, textAttributesKey))
     }
     return this
@@ -55,5 +56,4 @@ internal class TextAccumulator {
   }
 
   internal data class Range<T>(val start: Int, val end: Int, val data: T)
-
 }

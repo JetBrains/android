@@ -15,37 +15,29 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_TEXT;
-import static com.android.SdkConstants.ATTR_TEXT_APPEARANCE;
-import static com.android.SdkConstants.AUTO_COMPLETE_TEXT_VIEW;
-import static com.android.SdkConstants.EDIT_TEXT;
-import static com.android.SdkConstants.MULTI_AUTO_COMPLETE_TEXT_VIEW;
-import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
-import static com.android.SdkConstants.TOOLS_URI;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
-import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
 import com.android.tools.idea.uibuilder.handlers.actions.PickTextAppearanceViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.TextViewAssistant;
+import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory;
 import com.android.xml.XmlBuilder;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.List;
-import java.util.Set;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+import java.util.Set;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for several widgets that have a {@code text} attribute.

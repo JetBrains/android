@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.actions.DESIGN_SURFACE
+import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
-import com.android.tools.idea.common.error.setIssuePanelVisibility
-import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
-import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 /** [AnAction] that can be used to show an icon according to the [PreviewViewModelStatus]. */
-class PreviewStatusIcon(private val sceneView: SceneView) : AnAction() {
+class PreviewStatusIcon : AnAction() {
   override fun update(e: AnActionEvent) {
     val previewViewModelStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS)
     e.presentation.apply {
-      if (sceneView.hasRenderErrors() && previewViewModelStatus?.isRefreshing == false) {
+      if (hasSceneViewErrors(e.dataContext) && previewViewModelStatus?.isRefreshing == false) {
         isVisible = true
         isEnabled = true
         icon = StudioIcons.Common.WARNING
@@ -47,13 +44,10 @@ class PreviewStatusIcon(private val sceneView: SceneView) : AnAction() {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true) {
-      if (sceneView == null) {
-        return@setIssuePanelVisibility
-      }
-      val project = e.project ?: return@setIssuePanelVisibility
-      val service = IssuePanelService.getInstance(project)
-      service.setSelectedNode(SceneViewIssueNodeVisitor(sceneView))
+    val project = e.project ?: return
+    val service = IssuePanelService.getInstance(project)
+    service.setSharedIssuePanelVisibility(true) {
+      e.getData(SCENE_VIEW)?.let { service.setSelectedNode(SceneViewIssueNodeVisitor(it)) }
     }
   }
 }

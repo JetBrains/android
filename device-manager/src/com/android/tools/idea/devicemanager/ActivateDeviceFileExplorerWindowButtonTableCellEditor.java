@@ -18,8 +18,6 @@ package com.android.tools.idea.devicemanager;
 import com.android.tools.idea.device.explorer.DeviceExplorerService;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice;
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorer;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
@@ -41,9 +39,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
                                                                @NotNull EventKind kind) {
     super(ActivateDeviceFileExplorerWindowValue.INSTANCE,
           AllIcons.Actions.MenuOpen,
-          StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
-            ? "Open this device in the Device Explorer."
-            : "Open this device in the Device File Explorer.");
+          "Open this device in the Device Explorer.");
 
     myProject = project;
     myTable = table;
@@ -82,18 +78,10 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
     ApplicationManager.getApplication().invokeLater(() -> {
       if (myProject != null && !myProject.isDisposed()) {
         if (myDevice instanceof VirtualDevice) {
-          if (StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()) {
-            DeviceExplorerService.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
-          } else {
-            DeviceExplorer.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
-          }
+          DeviceExplorerService.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
         }
         else if (myDevice instanceof PhysicalDevice) {
-          if (StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()) {
-            DeviceExplorerService.openAndShowDevice(myProject, myDevice.getKey().toString());
-          } else {
-            DeviceExplorer.openAndShowDevice(myProject, myDevice.getKey().toString());
-          }
+          DeviceExplorerService.openAndShowDevice(myProject, myDevice.getKey().toString());
         }
         else {
           assert false;

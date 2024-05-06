@@ -29,5 +29,6 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="gradle-shared-proto" level="project" />
     <orderEntry type="library" name="google-api-client" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.sdk-common"/>
   </component>
 </module>

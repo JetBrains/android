@@ -52,6 +52,7 @@ import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.android.tools.lint.helpers.DefaultUastParser;
 import com.android.tools.lint.model.LintModelLintOptions;
 import com.android.tools.lint.model.LintModelModule;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
@@ -78,7 +79,6 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -87,13 +87,13 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
+import com.intellij.util.PathUtil;
 import com.intellij.util.lang.UrlClassLoader;
 import com.intellij.util.net.HttpConfigurable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -123,7 +123,7 @@ public class LintIdeClient extends LintClient implements Disposable {
    * this might need some work before we enable it.
    */
   public static final boolean SUPPORT_CLASS_FILES = false;
-  protected static final Logger LOG = Logger.getInstance(LintIdeClient.class);
+  protected static final Logger LOG = Logger.getInstance("#com.android.tools.idea.lint.common.LintIdeClient");
 
   @NonNull protected Project myProject;
   @Nullable protected Map<com.android.tools.lint.detector.api.Project, Module> myModuleMap;
@@ -413,7 +413,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     }
 
     if (inScope) {
-      file = new File(FileUtil.toCanonicalPath(file.getPath()));
+      file = new File(PathUtil.getCanonicalPath(file.getPath()));
 
       Map<File, List<LintProblemData>> file2ProblemList = myProblemMap.get(issue);
       if (file2ProblemList == null) {
@@ -615,7 +615,7 @@ public class LintIdeClient extends LintClient implements Disposable {
 
     if (vFile == null) {
       try {
-        return Files.asCharSource(file, StandardCharsets.UTF_8).read();
+        return Files.asCharSource(file, Charsets.UTF_8).read();
       }
       catch (IOException ioe) {
         LOG.debug("Cannot find file " + file.getPath() + " in the VFS");
@@ -701,7 +701,7 @@ public class LintIdeClient extends LintClient implements Disposable {
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     final String path = ourSystemPath != null
                         ? ourSystemPath
-                        : (ourSystemPath = FileUtil.toCanonicalPath(PathManager.getSystemPath()));
+                        : (ourSystemPath = PathUtil.getCanonicalPath(PathManager.getSystemPath()));
     String relative = "lint";
     if (name != null) {
       relative += File.separator + name;

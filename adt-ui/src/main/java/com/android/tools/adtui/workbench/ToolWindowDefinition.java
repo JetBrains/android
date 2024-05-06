@@ -18,7 +18,7 @@ package com.android.tools.adtui.workbench;
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
 import com.intellij.openapi.Disposable;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.util.function.Function;
 import javax.swing.Icon;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  * @param <T> Specifies the type of data controlled by a {@link WorkBench}.
  */
 public class ToolWindowDefinition<T> {
-  public static final int DEFAULT_SIDE_WIDTH = JBUIScale.scale(225);
+  public static final int DEFAULT_SIDE_WIDTH = JBUI.scale(225);
   public static final Dimension DEFAULT_BUTTON_SIZE = DEFAULT_MINIMUM_BUTTON_SIZE;
   public static final int ALLOW_BASICS = 0x0;
   public static final int ALLOW_FLOATING = 0x01;
@@ -49,6 +49,10 @@ public class ToolWindowDefinition<T> {
   private final Dimension myButtonSize;
   private final int myFeatures;
   private final Function<Disposable, ToolContent<T>> myFactory;
+  private final boolean myShowGearAction;
+  private final boolean myShowHideAction;
+  private final boolean myOverrideSide;
+  private final boolean myOverrideSplit;
 
   public ToolWindowDefinition(@NotNull String title,
                               @NotNull Icon icon,
@@ -57,7 +61,7 @@ public class ToolWindowDefinition<T> {
                               @NotNull Split split,
                               @NotNull AutoHide autoHide,
                               @NotNull Function<Disposable, ToolContent<T>> factory) {
-    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, ALLOW_FLOATING | ALLOW_SPLIT_MODE, factory);
+    this(title, icon, name, side, split, autoHide, DEFAULT_SIDE_WIDTH, DEFAULT_BUTTON_SIZE, ALLOW_FLOATING | ALLOW_SPLIT_MODE, true, true, false, false, factory);
   }
 
   public ToolWindowDefinition(@NotNull String title,
@@ -70,6 +74,23 @@ public class ToolWindowDefinition<T> {
                               @NotNull Dimension buttonSize,
                               int features,
                               @NotNull Function<Disposable, ToolContent<T>> factory) {
+    this(title, icon, name, side, split, autoHide, minimumSize, buttonSize, features, true, true, false, false, factory);
+  }
+
+  public ToolWindowDefinition(@NotNull String title,
+                              @NotNull Icon icon,
+                              @NotNull String name,
+                              @NotNull Side side,
+                              @NotNull Split split,
+                              @NotNull AutoHide autoHide,
+                              int minimumSize,
+                              @NotNull Dimension buttonSize,
+                              int features,
+                              boolean showGearAction,
+                              boolean showHideAction,
+                              boolean overrideSide,
+                              boolean overrideSplit,
+                              @NotNull Function<Disposable, ToolContent<T>> factory) {
     myTitle = title;
     myIcon = icon;
     myName = name;
@@ -80,6 +101,10 @@ public class ToolWindowDefinition<T> {
     myButtonSize = buttonSize;
     myFeatures = features;
     myFactory = factory;
+    myShowGearAction = showGearAction;
+    myShowHideAction = showHideAction;
+    myOverrideSide = overrideSide;
+    myOverrideSplit = overrideSplit;
   }
 
   /**
@@ -188,5 +213,35 @@ public class ToolWindowDefinition<T> {
    */
   public boolean isSplitModeChangesAllowed() {
     return (myFeatures & ALLOW_SPLIT_MODE) != 0;
+  }
+
+  /**
+   * When true, the gear action will be hidden from the tool window.
+   */
+  boolean showGearAction() {
+    return myShowGearAction;
+  }
+
+  /**
+   * When true, hide action will be hidden from the tool window.
+   */
+  boolean showHideAction() {
+    return myShowHideAction;
+  }
+
+  /**
+   * When true, the {@link Side} recorded by the system from the previous interaction with the Tool Window
+   * will be overridden with the one defined in this {@link ToolWindowDefinition}.
+   */
+  boolean overrideSide() {
+    return myOverrideSide;
+  }
+
+  /**
+   * When true, the {@link Split} recorded by the system from the previous interaction with the Tool Window
+   * will be overridden with the one defined in this {@link ToolWindowDefinition}.
+   */
+  boolean overrideSplit() {
+    return myOverrideSplit;
   }
 }

@@ -19,11 +19,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.sdk.AndroidPlatform;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
-import javax.swing.JComponent;
+import com.intellij.openapi.projectRoots.*;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
   private final AndroidSdkConfigurableForm myForm;

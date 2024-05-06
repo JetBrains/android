@@ -157,7 +157,7 @@ class TaskDetailsPageTest {
       Type: CompilationType<BR/>
       <BR/>
       <B>Warnings</B><BR/>
-      
+
       <table><tr><td><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td><B>Always-Run Tasks</B></td></tr>
       <tr><td></td><td>This task runs on every build because it declares no outputs,<BR/>
       which it must do in order to support incremental builds.<BR/>
@@ -259,7 +259,7 @@ class TaskDetailsPageTest {
   }
 
   @Test
-  @Ignore("Currently does not work because can not open browser in test, needs refactoring, will address in the following CL")
+  @Ignore("b/303118095")
   @RunsInEdt
   fun testLearnMoreLinkClicked() {
     val taskData = mockTask(":module1", "task1", "myPlugin", 100, criticalPathDurationMs = 1000).apply {
@@ -307,7 +307,7 @@ class TaskDetailsPageTest {
       Task Execution Categories: Android Resources<BR/>
       <BR/>
       <B>Warnings</B><BR/>
-      
+
       <table><tr><td><icon alt='Warning' src='AllIcons.General.BalloonWarning'></td><td>This task is impacted by 1 issue found in the <a href='ANDROID_RESOURCES'>Android Resources</a> category.</td></tr>
       </table>
       <B>Reason task ran</B><BR/>

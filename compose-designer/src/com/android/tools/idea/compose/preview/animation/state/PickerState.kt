@@ -26,9 +26,10 @@ import com.intellij.openapi.actionSystem.AnAction
 class PickerState(tracker: AnimationTracker, callback: () -> Unit) : AnimationState(callback) {
 
   private val buttonAction = PickerButtonAction(tracker, stateCallback)
+
   override fun stateHashCode(): Int = buttonAction.stateHashCode()
 
-  override fun getState(index: Int): Any? {
+  override fun getState(index: Int): Any {
     return buttonAction.getState(index)
   }
 

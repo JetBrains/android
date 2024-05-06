@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.debuggers.coroutine
 
-import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.xdebugger.XDebugProcess
@@ -42,7 +42,7 @@ class CoroutineDebuggerProjectListener : ProjectManagerListener {
     }
     associatedProject = project
 
-    val connection = project.messageBus.connect()
+    val connection = project.messageBus.connect(project)
 
     val executionListener = CoroutineDebuggerListener(project)
     connection.subscribe(XDebuggerManager.TOPIC, executionListener)
@@ -58,7 +58,7 @@ private class CoroutineDebuggerListener(private val project: Project) : XDebugge
     }
     // we check the process handler to differentiate between regular JVM processes and Android processes.
     // we don't want to create the panel if the process is regular JVM.
-    if (debugProcess.processHandler.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY) == null) {
+    if (AndroidSessionInfo.from(debugProcess.processHandler) == null) {
       return
     }
 

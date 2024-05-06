@@ -29,17 +29,16 @@ import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckStat
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecCheckStateKey
 import com.android.tools.idea.compose.annotator.check.device.DeviceSpecRule
 import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
-import com.android.tools.idea.compose.pickers.preview.utils.DEFAULT_DEVICE_ID
-import com.android.tools.idea.compose.pickers.preview.utils.DEFAULT_DEVICE_ID_WITH_PREFIX
-import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_ID_PREFIX
-import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_NAME_PREFIX
-import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_SPEC_PREFIX
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
-import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.compose.preview.message
+import com.android.tools.preview.config.DEFAULT_DEVICE_ID
+import com.android.tools.preview.config.DEFAULT_DEVICE_ID_WITH_PREFIX
+import com.android.tools.preview.config.DEVICE_BY_ID_PREFIX
+import com.android.tools.preview.config.DEVICE_BY_NAME_PREFIX
+import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
+import com.android.tools.preview.config.PARAMETER_DEVICE
+import com.android.tools.preview.config.Preview.DeviceSpec
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -140,7 +139,6 @@ internal object PreviewAnnotationCheck {
 
         val rule =
           when {
-            !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get() -> DeviceSpecRule.Legacy
             deviceParameterValue.contains(DeviceSpec.PARAMETER_SHAPE) -> {
               // The Legacy format is the only one with a `shape` parameter
               DeviceSpecRule.Legacy

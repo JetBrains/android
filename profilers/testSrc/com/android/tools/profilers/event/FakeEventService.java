@@ -15,17 +15,10 @@
  */
 package com.android.tools.profilers.event;
 
-import com.android.tools.idea.io.grpc.stub.StreamObserver;
-import com.android.tools.profiler.proto.EventProfiler.ActivityData;
-import com.android.tools.profiler.proto.EventProfiler.ActivityDataResponse;
-import com.android.tools.profiler.proto.EventProfiler.EventDataRequest;
-import com.android.tools.profiler.proto.EventProfiler.EventStartRequest;
-import com.android.tools.profiler.proto.EventProfiler.EventStartResponse;
-import com.android.tools.profiler.proto.EventProfiler.EventStopRequest;
-import com.android.tools.profiler.proto.EventProfiler.EventStopResponse;
-import com.android.tools.profiler.proto.EventProfiler.SystemData;
-import com.android.tools.profiler.proto.EventProfiler.SystemDataResponse;
+import com.android.tools.profiler.proto.EventProfiler.*;
 import com.android.tools.profiler.proto.EventServiceGrpc;
+import com.android.tools.idea.io.grpc.stub.StreamObserver;
+
 import java.util.HashMap;
 import java.util.Map;
 

@@ -15,15 +15,15 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.android.tools.perflib.heap.ArrayInstance;
 import com.android.tools.perflib.heap.ClassObj;
 import com.android.tools.perflib.heap.Heap;
 import com.android.tools.perflib.heap.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class MockArrayInstance extends ArrayInstance {
   @NotNull private final Object[] myArrayValues;

@@ -89,7 +89,7 @@ public class MavenPoms {
         version = textOf(childElement);
       }
       else if ("optional".equals(name)) {
-        optional = Boolean.parseBoolean(textOf(childElement));
+        optional = Boolean.valueOf(textOf(childElement));
       }
       else if ("scope".equals(name)) {
         scope = textOf(childElement);

@@ -23,20 +23,21 @@ import static com.android.SdkConstants.DOT_XML;
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceType;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon;
-import com.android.tools.res.FileResourceReader;
-import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.HashCodes;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -71,7 +72,6 @@ import java.awt.Color;
 import java.awt.MouseInfo;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -81,8 +81,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.psi.KtExpression;
-import org.jetbrains.kotlin.psi.KtPsiFactory;
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
+import org.jetbrains.kotlin.psi.KtPsiFactory;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
@@ -154,7 +154,7 @@ public class AndroidAnnotatorUtil {
       switch (tagName) {
         case "vector": {
           // Take a look and see if we have a bitmap we can fall back to.
-          LocalResourceRepository resourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
+          ResourceRepository resourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
           List<ResourceItem> items =
             resourceRepository.getResources(resourceValue.getNamespace(), resourceValue.getResourceType(), resourceValue.getName());
           for (ResourceItem item : items) {
@@ -319,8 +319,7 @@ public class AndroidAnnotatorUtil {
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
     private final boolean myHasCustomColor;
-    // TODO(b/188937633): We should fix the root caused of memory leakage instead of using weak references.
-    @Nullable private final WeakReference<Configuration> myConfigurationRef;
+    private final AndroidFacet myFacet;
     private final Icon myIcon;
 
     public ColorRenderer(@NotNull PsiElement element,
@@ -328,16 +327,16 @@ public class AndroidAnnotatorUtil {
                          @NotNull ResourceResolver resolver,
                          @Nullable ResourceValue resourceValue,
                          boolean hasCustomColor,
-                         @Nullable Configuration configuration) {
+                         @NotNull AndroidFacet facet) {
       myElement = element;
       myColor = color;
       myResolver = resolver;
       myResourceValue = resourceValue;
+      myFacet = facet;
 
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
       mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
-      myConfigurationRef = new WeakReference<>(configuration);
 
       // compute icon when renderer created on background thread
       myIcon = buildIcon();
@@ -351,19 +350,16 @@ public class AndroidAnnotatorUtil {
 
     private @NotNull Icon buildIcon() {
       if (myResourceValue != null && myElement.isValid()) {
-        AndroidFacet facet = AndroidFacet.getInstance(myElement);
-        if (facet != null) {
-          List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, myResourceValue, facet.getModule().getProject());
-          if (!colors.isEmpty()) {
-            MultipleColorIcon icon = new MultipleColorIcon();
-            icon.setColors(colors);
-            int scaledIconSize = JBUIScale.scale(ICON_SIZE);
-            icon.setWidth(scaledIconSize);
-            icon.setHeight(scaledIconSize);
-            return icon;
-          }
-          return JBUIScale.scaleIcon(EmptyIcon.create(ICON_SIZE));
+        List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, myResourceValue, myFacet.getModule().getProject());
+        if (!colors.isEmpty()) {
+          MultipleColorIcon icon = new MultipleColorIcon();
+          icon.setColors(colors);
+          int scaledIconSize = JBUIScale.scale(ICON_SIZE);
+          icon.setWidth(scaledIconSize);
+          icon.setHeight(scaledIconSize);
+          return icon;
         }
+        return JBUIScale.scaleIcon(EmptyIcon.create(ICON_SIZE));
       }
 
       Color color = getCurrentColor();
@@ -377,10 +373,10 @@ public class AndroidAnnotatorUtil {
       }
       if (myElement.isValid()) {
         if (myElement instanceof XmlTag) {
-          return IdeResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
+          return ResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
         }
         else if (myElement instanceof XmlAttributeValue) {
-          return IdeResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
+          return ResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
         }
       }
       return null;
@@ -394,9 +390,15 @@ public class AndroidAnnotatorUtil {
       return new AnAction() {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
+          PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
+          if (file == null) return;
+          AndroidFacet facet = AndroidFacet.getInstance(file);
+          if (facet == null) return;
+
+          Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(file, facet);
           Editor editor = e.getData(CommonDataKeys.EDITOR);
-          if (editor != null) {
-            openColorPicker(getCurrentColor());
+          if (editor != null && configuration != null) {
+            openColorPicker(getCurrentColor(), configuration);
           }
         }
       };
@@ -408,7 +410,7 @@ public class AndroidAnnotatorUtil {
       return myElement;
     }
 
-    private void openColorPicker(@Nullable Color currentColor) {
+    private void openColorPicker(@Nullable Color currentColor, @NotNull Configuration configuration) {
       List<ResourcePickerSources> pickerSources = new ArrayList<>();
       pickerSources.add(ResourcePickerSources.PROJECT);
       pickerSources.add(ResourcePickerSources.ANDROID);
@@ -422,7 +424,7 @@ public class AndroidAnnotatorUtil {
       ResourceChooserHelperKt.createAndShowColorPickerPopup(
         currentColor,
         myResourceValue,
-        myConfigurationRef.get(),
+        configuration,
         pickerSources,
         null,
         MouseInfo.getPointerInfo().getLocation(),
@@ -437,7 +439,7 @@ public class AndroidAnnotatorUtil {
     }
 
     private void setColorToAttribute(@NotNull Color color) {
-      setColorStringAttribute(IdeResourcesUtil.colorToString(color));
+      setColorStringAttribute(ResourcesUtil.colorToString(color));
     }
 
     private void setColorStringAttribute(@NotNull String colorString) {

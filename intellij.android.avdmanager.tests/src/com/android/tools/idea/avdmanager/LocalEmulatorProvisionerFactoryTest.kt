@@ -16,18 +16,19 @@
 package com.android.tools.idea.avdmanager
 
 import com.android.adblib.testing.FakeAdbSession
-import com.android.adblib.testingutils.CoroutineTestUtils
+import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
+import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.FakeAvdManager
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProvisionerPlugin
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
+import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
-import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -36,14 +37,16 @@ import javax.swing.Icon
 
 class LocalEmulatorProvisionerFactoryTest {
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
 
   private val session = FakeAdbSession()
-  private val avdManager = FakeAvdManager(session)
+  private lateinit var avdManager: FakeAvdManager
   private lateinit var plugin: LocalEmulatorProvisionerPlugin
   private lateinit var provisioner: DeviceProvisioner
 
   @Before
   fun setUp() {
+    avdManager = FakeAvdManager(session, temporaryDirectoryRule.newPath())
     plugin =
       LocalEmulatorProvisionerFactory()
         .create(session.scope, session, projectRule.project, avdManager)
@@ -58,33 +61,33 @@ class LocalEmulatorProvisionerFactoryTest {
   }
 
   @Test
-  fun testIcons(): Unit = runBlocking {
+  fun testIcons(): Unit = runBlockingWithTimeout {
     suspend fun validateIcon(avdInfo: AvdInfo, icon: Icon) {
       println("e")
       avdManager.createAvd(avdInfo)
       plugin.refreshDevices()
-      CoroutineTestUtils.yieldUntil { provisioner.devices.value.size == 1 }
+      yieldUntil { provisioner.devices.value.size == 1 }
 
       val handle = provisioner.devices.value[0]
       handle.activationAction?.activate()
       assertThat(handle.state.properties.icon).isEqualTo(icon)
 
       handle.deactivationAction?.deactivate()
-      CoroutineTestUtils.yieldUntil { handle.state is DeviceState.Disconnected }
+      yieldUntil { handle.state is DeviceState.Disconnected }
       handle.deleteAction?.delete()
-      CoroutineTestUtils.yieldUntil { provisioner.devices.value.isEmpty() }
+      yieldUntil { provisioner.devices.value.isEmpty() }
     }
     validateIcon(avdManager.makeAvdInfo(1), StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
     validateIcon(
-      avdManager.makeAvdInfo(2, tag = SystemImage.GOOGLE_TV_TAG),
+      avdManager.makeAvdInfo(2, tag = SystemImageTags.GOOGLE_TV_TAG),
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
     )
     validateIcon(
-      avdManager.makeAvdInfo(3, tag = SystemImage.WEAR_TAG),
+      avdManager.makeAvdInfo(3, tag = SystemImageTags.WEAR_TAG),
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
     )
     validateIcon(
-      avdManager.makeAvdInfo(4, tag = SystemImage.AUTOMOTIVE_TAG),
+      avdManager.makeAvdInfo(4, tag = SystemImageTags.AUTOMOTIVE_TAG),
       StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
     )
   }

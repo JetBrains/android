@@ -71,14 +71,17 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
     return tempChannel
   }
 
-  val fileBackedListProvider = object: ListProvider {
+  private val fileBackedListProvider = object: ListProvider {
     override fun createUByteList(name: String, size: Long) = FileBackedUByteList.createEmpty(openTempEmptyFileChannel(name), size)
     override fun createUShortList(name: String, size: Long) = FileBackedUShortList.createEmpty(openTempEmptyFileChannel(name), size)
     override fun createIntList(name: String, size: Long) = FileBackedIntList.createEmpty(openTempEmptyFileChannel(name), size)
   }
 
-  fun analyze(progress: ProgressIndicator): String {
+  data class AnalysisResult(val report: String, val summary: String)
+
+  fun analyze(progress: ProgressIndicator): AnalysisResult {
     val result = StringBuilder()
+    var summary = ""
     val totalStopwatch = Stopwatch.createStarted()
     val prepareFilesStopwatch = Stopwatch.createStarted()
     val analysisStopwatch = Stopwatch.createUnstarted()
@@ -107,8 +110,8 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       // Currently, there is a maximum count of supported instances. Produce simplified report
       // (histogram only), if the count exceeds maximum.
       if (!isSupported(histogram.instanceCount)) {
-        result.appendLine(histogram.prepareReport("All", 50))
-        return result.toString()
+        result.appendln(histogram.prepareReport("All", 50))
+        return AnalysisResult(result.toString(), summary)
       }
 
       val idMappingChannel = openTempEmptyFileChannel("id-mapping")
@@ -117,8 +120,9 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
         histogram.instanceCount)
 
       parser.accept(remapIDsVisitor, "id mapping")
-      parser.setIdRemappingFunction(remapIDsVisitor.getRemappingFunction())
-      hprofMetadata.remapIds(remapIDsVisitor.getRemappingFunction())
+      val idMapper = remapIDsVisitor.getIDMapper()
+      parser.setIDMapper(idMapper)
+      hprofMetadata.remapIds(idMapper)
 
       progress.text2 = "Create reference graph"
       progress.fraction = 0.3
@@ -154,23 +158,24 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       )
 
       val analysisReport = AnalyzeGraph(analysisContext, fileBackedListProvider).analyze(PartialProgressIndicator(progress, 0.4, 0.4))
+      summary = analysisReport.summary.toString()
 
       result.appendln(analysisReport.mainReport)
 
       analysisStopwatch.stop()
 
       if (includeMetaInfo) {
-        result.appendLine(sectionHeader("Analysis information"))
-        result.appendLine("Prepare files duration: $prepareFilesStopwatch")
-        result.appendLine("Analysis duration: $analysisStopwatch")
-        result.appendLine("TOTAL DURATION: $totalStopwatch")
-        result.appendLine("Temp files:")
-        result.appendLine("  heapdump = ${toShortStringAsCount(hprofFileChannel.size())}")
+        result.appendln(sectionHeader("Analysis information"))
+        result.appendln("Prepare files duration: $prepareFilesStopwatch")
+        result.appendln("Analysis duration: $analysisStopwatch")
+        result.appendln("TOTAL DURATION: $totalStopwatch")
+        result.appendln("Temp files:")
+        result.appendln("  heapdump = ${toShortStringAsCount(hprofFileChannel.size())}")
 
         tempFiles.forEach { temp ->
           val channel = temp.channel
           if (channel.isOpen) {
-            result.appendLine("  ${temp.type} = ${toShortStringAsCount(channel.size())}")
+            result.appendln("  ${temp.type} = ${toShortStringAsCount(channel.size())}")
           }
         }
         result.appendln(analysisReport.metaInfo)
@@ -180,7 +185,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
       parser.close()
       closeAndDeleteTemporaryFiles()
     }
-    return result.toString()
+    return AnalysisResult(result.toString(), summary)
   }
 
   private fun isSupported(instanceCount: Long): Boolean {

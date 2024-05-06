@@ -17,6 +17,7 @@ package com.android.ide.gradle.model.artifacts;
 
 import com.android.ide.gradle.model.ArtifactIdentifier;
 import java.io.File;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +32,10 @@ public interface AdditionalClassifierArtifacts {
   ArtifactIdentifier getId();
 
   /**
-   * Returns the location of downloaded Sources file, null if Sources is not available.
+   * Returns the locations of downloaded Sources file, empty list if Sources are unavailable.
    */
-  @Nullable
-  File getSources();
+  @NotNull
+  List<File> getSources();
 
   /**
    * Returns the location of downloaded Javadoc file, null if Javadoc is not available.
@@ -42,11 +43,6 @@ public interface AdditionalClassifierArtifacts {
   @Nullable
   File getJavadoc();
 
-  /**
-   * Returns the location of downloaded sources of samples file, null if samples sources is not available.
-   */
-  @Nullable
-  File getSampleSources();
 
   /**
    * Returns the location of downloaded pom file, null if pom file is not available.

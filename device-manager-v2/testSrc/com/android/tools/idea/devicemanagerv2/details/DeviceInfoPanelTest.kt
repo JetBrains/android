@@ -27,27 +27,35 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.devices.Abi
+import com.android.testutils.retryUntilPassing
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.seconds
 
 class DeviceInfoPanelTest {
 
   @get:Rule val applicationRule = ApplicationRule()
 
+  val batteryHandler = DumpsysBatteryHandler()
+
   @get:Rule
   val deviceProvisionerRule = DeviceProvisionerRule {
     installDefaultCommandHandlers()
-    installDeviceHandler(DumpsysBatteryHandler())
+    installDeviceHandler(batteryHandler)
     installDeviceHandler(DfHandler())
   }
 
-  class DumpsysBatteryHandler : SimpleShellHandler(ShellProtocolType.SHELL, "dumpsys") {
+  class DumpsysBatteryHandler : SimpleShellHandler(ShellProtocolType.SHELL_V2, "dumpsys") {
+    var batteryLevel = 83
+
     override fun execute(
       fakeAdbServer: FakeAdbServer,
       statusWriter: StatusWriter,
@@ -70,7 +78,7 @@ class DeviceInfoPanelTest {
             status: 4
             health: 2
             present: true
-            level: 83
+            level: $batteryLevel
             scale: 100
             voltage: 5000
             temperature: 250
@@ -78,13 +86,15 @@ class DeviceInfoPanelTest {
           """
             .trimIndent()
         )
+        shellCommandOutput.writeExitCode(0)
       } else {
         statusWriter.writeFail()
+        shellCommandOutput.writeExitCode(1)
       }
     }
   }
 
-  class DfHandler : SimpleShellHandler(ShellProtocolType.SHELL, "df") {
+  class DfHandler : SimpleShellHandler(ShellProtocolType.SHELL_V2, "df") {
     override fun execute(
       fakeAdbServer: FakeAdbServer,
       statusWriter: StatusWriter,
@@ -102,45 +112,80 @@ class DeviceInfoPanelTest {
             """
             .trimIndent()
         )
+        shellCommandOutput.writeExitCode(0)
       } else {
         statusWriter.writeFail()
+        shellCommandOutput.writeExitCode(1)
       }
     }
   }
 
   @Test
-  fun testPopulateDeviceInfo() = runBlocking {
-    val handle =
-      deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(
-        "1",
-        DeviceProperties.build {
-          manufacturer = "Google"
-          model = "Pixel 6"
-          androidVersion = AndroidVersion(33, null, 4, false)
-          androidRelease = "11"
-          abi = Abi.ARM64_V8A
-          isVirtual = false
-          resolution = Resolution(1080, 2280)
-          density = 440
-          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+  fun testPopulateDeviceInfo() {
+    fun makeProps(abi: Abi?) =
+      DeviceProperties.buildForTest {
+        manufacturer = "Google"
+        model = "Pixel 6"
+        androidVersion = AndroidVersion(30, null, 0, true)
+        androidRelease = "11"
+        abiList = listOfNotNull(abi)
+        isVirtual = false
+        resolution = Resolution(1080, 2280)
+        density = 440
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      }
+
+    val handle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice("1", makeProps(null))
+
+    runBlocking {
+      handle.activationAction.activate()
+      yieldUntil { handle.state.isOnline() }
+    }
+
+    lateinit var panel: DeviceInfoPanel
+    ApplicationManager.getApplication().invokeAndWait {
+      panel =
+        DeviceInfoPanel().also {
+          it.trackDeviceProperties(handle.scope, handle)
+          it.trackDevicePowerAndStorage(handle.scope, handle)
         }
+    }
+
+    ApplicationManager.getApplication().invokeAndWait {
+      retryUntilPassing(5.seconds) {
+        assertThat(panel.apiLevel).isEqualTo("30")
+        assertThat(panel.power).isEqualTo("Battery: 83")
+        assertThat(panel.resolution).isEqualTo("1080 × 2280")
+        assertThat(panel.resolutionDp).isEqualTo("393 × 830")
+        assertThat(panel.abiList).isEqualTo("Unknown")
+        assertThat(panel.availableStorage).isEqualTo("2,542 MB")
+      }
+    }
+
+    runBlocking { handle.deactivationAction.deactivate() }
+
+    ApplicationManager.getApplication().invokeAndWait {
+      retryUntilPassing(5.seconds) { assertThat(panel.powerLabel.isVisible).isFalse() }
+    }
+
+    batteryHandler.batteryLevel = 81
+    runBlocking { handle.activationAction.activate() }
+
+    ApplicationManager.getApplication().invokeAndWait {
+      retryUntilPassing(5.seconds) {
+        assertThat(panel.power).isEqualTo("Battery: 81")
+        assertThat(panel.availableStorage).isEqualTo("2,542 MB")
+      }
+    }
+
+    handle.stateFlow.update {
+      (it as com.android.sdklib.deviceprovisioner.DeviceState.Connected).copy(
+        makeProps(Abi.ARM64_V8A)
       )
+    }
 
-    handle.activationAction.activate()
-
-    yieldUntil { handle.state.isOnline() }
-
-    withContext(uiThread) {
-      val panel = DeviceInfoPanel()
-
-      populateDeviceInfo(panel, handle)
-
-      assertThat(panel.apiLevel).isEqualTo("33-ext4")
-      assertThat(panel.power).isEqualTo("Battery: 83")
-      assertThat(panel.resolution).isEqualTo("1080 × 2280")
-      assertThat(panel.resolutionDp).isEqualTo("393 × 830")
-      assertThat(panel.abiList).isEqualTo("arm64-v8a")
-      assertThat(panel.availableStorage).isEqualTo("2,542 MB")
+    ApplicationManager.getApplication().invokeAndWait {
+      retryUntilPassing(5.seconds) { assertThat(panel.abiList).isEqualTo("arm64-v8a") }
     }
   }
 

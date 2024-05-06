@@ -32,7 +32,9 @@ sealed class MockObjectReference(
   }
 
   override fun virtualMachine(): VirtualMachine = virtualMachine
+
   override fun type(): Type = referenceType
+
   override fun referenceType(): ReferenceType = referenceType
 }
 
@@ -43,8 +45,14 @@ class MockClassObjectReference(
   override fun reflectedType(): ReferenceType = referenceType
 
   override fun toString(): String {
-    return "instance of " + referenceType().name() +
-           "(reflected class=" + reflectedType().name() + ", " + "id=" + "@fakeUniqueId" + ")"
+    return "instance of " +
+      referenceType().name() +
+      "(reflected class=" +
+      reflectedType().name() +
+      ", " +
+      "id=" +
+      "@fakeUniqueId" +
+      ")"
   }
 }
 
@@ -54,5 +62,6 @@ class MockStringReference(
   vm: VirtualMachine
 ) : StringReference, MockObjectReference(referenceType, vm) {
   override fun value(): String = value
+
   override fun toString(): String = "\"$value\""
 }

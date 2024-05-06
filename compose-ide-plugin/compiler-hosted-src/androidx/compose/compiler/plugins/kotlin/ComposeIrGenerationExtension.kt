@@ -32,7 +32,6 @@ import androidx.compose.compiler.plugins.kotlin.lower.LiveLiteralTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.decoys.CreateDecoysTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.decoys.RecordDecoySignaturesTransformer
 import androidx.compose.compiler.plugins.kotlin.lower.decoys.SubstituteDecoyCallsTransformer
-import org.jetbrains.kotlin.backend.common.extensions.FirIncompatiblePluginAPI
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
@@ -66,7 +65,6 @@ class ComposeIrGenerationExtension(
 
         // TODO: refactor transformers to work with just BackendContext
         val bindingTrace = DelegatingBindingTrace(
-            @OptIn(ObsoleteDescriptorBasedAPI::class, FirIncompatiblePluginAPI::class)
             pluginContext.bindingContext,
             "trace in " +
                 "ComposeIrGenerationExtension"

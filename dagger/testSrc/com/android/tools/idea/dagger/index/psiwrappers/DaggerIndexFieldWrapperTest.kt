@@ -66,9 +66,9 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isFalse()
   }
 
   @Test
@@ -102,11 +102,13 @@ class DaggerIndexFieldWrapperTest {
         """
       package com.example
 
+      import dagger.*
+
       class Foo {
 
-        @Annotation1
-        @Annotation2()
-        @Annotation3(true)
+        @Binds
+        @Module()
+        @Component(true)
         val bar: Baz
       }
       """
@@ -117,12 +119,12 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation2")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation3")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation4")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.PROVIDES)).isFalse()
   }
 
   @Test
@@ -144,9 +146,9 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isFalse()
   }
 
   @Test
@@ -157,11 +159,14 @@ class DaggerIndexFieldWrapperTest {
         // language=java
         """
       package com.example;
+
+      import dagger.*;
+
       public class Foo {
 
-        @Annotation1
-        @Annotation2()
-        @Annotation3(true)
+        @Binds
+        @Module()
+        @Component(true)
         private Baz bar;
       }
       """
@@ -172,11 +177,11 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getClassId()?.asString()).isEqualTo("com/example/Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation2")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation3")).isTrue()
-    assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation4")).isFalse()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.BINDS)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.MODULE)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.COMPONENT)).isTrue()
+    assertThat(wrapper.getIsAnnotatedWith(DaggerAnnotation.PROVIDES)).isFalse()
   }
 }

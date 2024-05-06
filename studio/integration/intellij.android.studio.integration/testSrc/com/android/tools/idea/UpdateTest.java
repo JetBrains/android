@@ -292,11 +292,6 @@ public class UpdateTest {
          FileServer fileServer = new FileServer()) {
       fileServer.start();
       install = AndroidStudioInstallation.fromZip(fileSystem);
-      // Every time a notification shows up, NotificationsManagerImpl#createActionPanel is called.
-      // If this happens while the notification panel is already open, it will be closed and this
-      // test will be unable to proceed since it never tries reopening that panel. Thus, we need to
-      // ensure that a single notification is produced: the "Update available" notification.
-      install.preventProguardNotification();
       install.createFirstRunXml();
       // Prevent an error related to jumplists on Windows.
       install.createGeneralPropertiesXml();

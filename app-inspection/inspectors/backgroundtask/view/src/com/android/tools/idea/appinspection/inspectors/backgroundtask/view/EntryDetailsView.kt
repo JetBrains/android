@@ -42,10 +42,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -58,6 +54,10 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JViewport
 import javax.swing.SwingUtilities
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val MINIMUM_DETAILS_VIEW_WIDTH = 400
 private const val BUTTON_SIZE =
@@ -467,7 +467,7 @@ class EntryDetailsView(
             else -> null
           }
         }
-      // Layout the stack trace views in a vertical layout so they can have the same width.
+      // Layout the stack trace views in a vertical layout, so they can have the same width.
       val containerPanel = JPanel(VerticalLayout(6))
       stackTraceComponents.forEach { containerPanel.add(it) }
       add(buildCategoryPanel("Callstacks", listOf(containerPanel)))

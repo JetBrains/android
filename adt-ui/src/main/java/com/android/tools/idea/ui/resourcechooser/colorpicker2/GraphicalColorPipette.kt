@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcechooser.colorpicker2
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.ui.picker.ColorPipetteBase
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.picker.MacColorPipette
 import com.intellij.util.Alarm
 import com.intellij.util.ui.StartupUiUtil
@@ -125,7 +125,7 @@ open class GraphicalColorPipette(private val parent: JComponent) : ColorPipette 
   override val pressedIcon: Icon = AllIcons.Ide.Pipette_rollover
 
   override fun pick(callback: ColorPipette.Callback) = when {
-    ColorPipetteBase.canUseMacPipette() -> MacPickerDialog(parent, callback).pick()
+    SystemInfo.isMac -> MacPickerDialog(parent, callback).pick()
     else -> DefaultPickerDialog(parent, callback).pick()
   }
 }

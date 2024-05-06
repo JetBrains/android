@@ -21,31 +21,33 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceType;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.android.utils.Pair;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
 
 public class MotionLayoutComponentHelper {
 
-  private static final boolean USE_MOTIONLAYOUT_HELPER_CACHE = true;
-
-  private InvokeMethod myGetKeyframeAtLocation = new InvokeMethod<>("getKeyframeAtLocation", Object.class, float.class, float.class);
-  private InvokeMethod myGetKeyframe = new InvokeMethod<>("getKeyframe", Object.class, int.class, int.class);
+  private final InvokeMethod<Object> myGetKeyframeAtLocation = new InvokeMethod<>("getKeyframeAtLocation", Object.class, float.class, float.class);
+  private final InvokeMethod<Object> myGetKeyframe = new InvokeMethod<>("getKeyframe", Object.class, int.class, int.class);
 
   private Method myCallSetTransitionPosition;
   private Method myCallSetState;
@@ -66,10 +68,10 @@ public class MotionLayoutComponentHelper {
 
   private Object myDesignTool;
   private final NlComponent myMotionLayoutComponent;
-  private final boolean DEBUG = false;
   private static boolean mShowPaths = true;
-  private CompletableFuture<Void> myFuture;
-  private HashMap<String, float[]> myCachedPath = new HashMap<>();
+  @NotNull
+  private final CompletableFuture<Void> myFuture;
+  private final HashMap<String, float[]> myCachedPath = new HashMap<>();
   private boolean myCachedPositionKeyframe = false;
   private String myCachedState = null;
   private String myCachedStartState = null;
@@ -77,24 +79,24 @@ public class MotionLayoutComponentHelper {
   private float myCachedProgress = 0;
   private boolean myCachedIsInTransition = false;
   private long myCachedMaxTimeMs = 0L;
-  private HashMap<String, KeyframePos> myCachedKeyframePos = new HashMap<>();
-  private HashMap<String, KeyframeInfo> myCachedKeyframeInfo = new HashMap<>();
+  private final HashMap<String, KeyframePos> myCachedKeyframePos = new HashMap<>();
+  private final HashMap<String, KeyframeInfo> myCachedKeyframeInfo = new HashMap<>();
 
-  static WeakHashMap<NlComponent, MotionLayoutComponentHelper> sCache = new WeakHashMap<>();
+  private static final Cache<NlComponent, MotionLayoutComponentHelper> sCache = CacheBuilder.newBuilder()
+    .weakValues()
+    .weakKeys()
+    .build();
+
 
   public static void clearCache() {
-    sCache.clear();
+    sCache.invalidateAll();
   }
 
   public static MotionLayoutComponentHelper create(@NotNull NlComponent component) {
-    if (USE_MOTIONLAYOUT_HELPER_CACHE) {
-      MotionLayoutComponentHelper helper = sCache.get(component);
-      if (helper == null) {
-        helper = new MotionLayoutComponentHelper(component);
-        sCache.put(component, helper);
-      }
-      return helper;
-    } else {
+    try {
+      return sCache.get(component, () -> new MotionLayoutComponentHelper(component));
+    }
+    catch (ExecutionException e) {
       return new MotionLayoutComponentHelper(component);
     }
   }
@@ -103,35 +105,33 @@ public class MotionLayoutComponentHelper {
     component = MotionUtils.getMotionLayoutAncestor(component);
     ViewInfo info = component != null ? NlComponentHelperKt.getViewInfo(component) : null;
     if (info == null) {
+      myFuture = CompletableFuture.completedFuture(null);
       myDesignTool = null;
       myMotionLayoutComponent = null;
       return;
     }
     Object instance = info.getViewObject();
     if (instance == null) {
+      myFuture = CompletableFuture.completedFuture(null);
       myDesignTool = null;
       myMotionLayoutComponent = null;
       return;
     }
+    CompletableFuture<Void> getDesignToolFuture = null;
     try {
       Method accessor = instance.getClass().getMethod("getDesignTool");
-      if (accessor != null) {
-        try {
-          myFuture =
-            RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> getDesignInstance(accessor, instance));
-        }
-        catch (Exception e) {
-          if (DEBUG) {
-            e.printStackTrace();
-          }
-        }
+      try {
+        getDesignToolFuture =
+          RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> getDesignInstance(accessor, instance));
+      }
+      catch (Exception e) {
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
     catch (NoSuchMethodException e) {
-      if (DEBUG) {
-        e.printStackTrace();
-      }
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
+    myFuture = getDesignToolFuture != null ? getDesignToolFuture : CompletableFuture.completedFuture(null);
     myMotionLayoutComponent = component;
   }
 
@@ -141,11 +141,8 @@ public class MotionLayoutComponentHelper {
       myGetKeyframeAtLocation.update(myDesignTool);
       myGetKeyframe.update(myDesignTool);
     }
-    catch (IllegalAccessException e) {
-      e.printStackTrace();
-    }
-    catch (InvocationTargetException e) {
-      e.printStackTrace();
+    catch (IllegalAccessException | InvocationTargetException e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
   }
 
@@ -165,10 +162,6 @@ public class MotionLayoutComponentHelper {
       return;
     }
 
-    if (myFuture == null) {
-      return;
-    }
-
     myFuture.thenRunAsync(() -> {
       if (myDesignTool == null) {
         runnable.run();
@@ -176,38 +169,30 @@ public class MotionLayoutComponentHelper {
     }, EdtExecutorService.getInstance());
   }
 
-  private boolean isMyDesignToolAvailable() {
+  private boolean isMyDesignToolNotAvailable() {
     if (myDesignTool == null) {
-      if (myFuture != null) {
-        try {
-          myFuture.get();
-        }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-        catch (ExecutionException e) {
-          e.printStackTrace();
-        }
+      try {
+        myFuture.get(250, TimeUnit.MILLISECONDS);
       }
-      if (myDesignTool == null) {
-        return false;
+      catch (InterruptedException | ExecutionException | TimeoutException e) {
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
+      return myDesignTool == null;
     }
-    return true;
+    return false;
   }
 
   private void cachedGetPath(NlComponent nlComponent, final float[] path, int size) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myGetAnimationPathMethod == null) {
       try {
-        Method[] methods = myDesignTool.getClass().getMethods();
         myGetAnimationPathMethod = myDesignTool.getClass().getMethod("getAnimationPath",
                                                                      Object.class, float[].class, int.class);
       }
       catch (NoSuchMethodException e) {
-        e.printStackTrace();
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
 
@@ -225,13 +210,12 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetAnimationPathMethod = null;
-            e.printStackTrace();
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           }
-          return;
         });
       }
       catch (Exception e) {
-        e.printStackTrace();
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
   }
@@ -244,13 +228,13 @@ public class MotionLayoutComponentHelper {
    * Utility class for invoking methods
    * @param <T>
    */
-  private class InvokeMethod<T> {
+  private static class InvokeMethod<T> {
     String myMethodName;
     Method myMethod = null;
     Object myDesignTool = null;
-    Class[] myParameters = null;
+    Class<?>[] myParameters = null;
 
-    public InvokeMethod(String methodName, Class... parameters) {
+    public InvokeMethod(String methodName, Class<?>... parameters) {
       myMethodName = methodName;
       myParameters = ArrayUtil.copyOf(parameters);
     }
@@ -264,9 +248,7 @@ public class MotionLayoutComponentHelper {
         myMethod = designTool.getClass().getMethod(myMethodName, myParameters);
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
 
@@ -275,20 +257,16 @@ public class MotionLayoutComponentHelper {
         try {
           return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
             try {
-              T result = (T) myMethod.invoke(myDesignTool, parameters);
-              return result;
+              //noinspection unchecked
+              return (T) myMethod.invoke(myDesignTool, parameters);
             } catch (Exception e) {
-              if (true || DEBUG) {
-                e.printStackTrace();
-              }
+              Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
             }
             return null;
-          }).get();
+          }).get(250, TimeUnit.MILLISECONDS);
         }
         catch (Exception e) {
-          if (DEBUG) {
-            e.printStackTrace();
-          }
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         }
       }
       return null;
@@ -301,7 +279,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetPositionKeyframe(Object keyframe, Object view, float x, float y, String[] attributes, float[] values) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myGetPositionKeyframeMethod == null) {
@@ -311,9 +289,7 @@ public class MotionLayoutComponentHelper {
                                                                         String[].class, float[].class);
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
 
@@ -325,22 +301,18 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetPositionKeyframeMethod = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           }
         });
       }
       catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
   }
 
   public void setKeyframe(Object keyframe, String tag, Object value) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (mySetKeyframeMethod == null) {
@@ -349,9 +321,7 @@ public class MotionLayoutComponentHelper {
                                                                 Object.class, String.class, Object.class);
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
 
@@ -363,22 +333,18 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             mySetKeyframeMethod = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           }
         });
       }
       catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
   }
 
   public void setAttributes(int dpiValue, String constraintSetId, Object view, Object attributes) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (mySetAttributesMethod == null) {
@@ -387,9 +353,7 @@ public class MotionLayoutComponentHelper {
                                                                   int.class, String.class, Object.class, Object.class);
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
     if (mySetAttributesMethod != null) {
@@ -400,16 +364,12 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             mySetAttributesMethod = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           }
         });
       }
       catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
   }
@@ -420,37 +380,26 @@ public class MotionLayoutComponentHelper {
         myCallSetTransitionPosition = myDesignTool.getClass().getMethod("setToolPosition", float.class);
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallSetTransitionPosition = null;
         return false;
       }
     }
-    if (myCallSetTransitionPosition != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCallSetTransitionPosition.invoke(myDesignTool, Float.valueOf(position));
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallSetTransitionPosition = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCallSetTransitionPosition.invoke(myDesignTool, position);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallSetTransitionPosition = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+      });
     }
-    if (myCallSetTransitionPosition == null) {
-      return false;
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
-    return true;
+    return myCallSetTransitionPosition != null;
   }
 
   public void setProgress(float value) {
@@ -467,7 +416,7 @@ public class MotionLayoutComponentHelper {
   }
 
   public void setTransition(String start, String end) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myCallSetTransition == null) {
@@ -476,32 +425,24 @@ public class MotionLayoutComponentHelper {
         myCallSetTransition = myDesignTool.getClass().getMethod("setTransition", String.class, String.class);
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallSetTransition = null;
         return;
       }
     }
-    if (myCallSetTransition != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCallSetTransition.invoke(myDesignTool, start, end);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallSetTransition = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCallSetTransition.invoke(myDesignTool, start, end);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallSetTransition = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+      });
+    }
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
     if (myCallSetTransition == null) {
       return;
@@ -517,32 +458,24 @@ public class MotionLayoutComponentHelper {
           myCallSetState = myDesignTool.getClass().getMethod("setState", String.class);
         }
         catch (NoSuchMethodException e) {
-          if (DEBUG) {
-            e.printStackTrace();
-          }
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           myCallSetState = null;
           return;
         }
       }
-      if (myCallSetState != null) {
-        try {
-          RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-            try {
-              myCallSetState.invoke(myDesignTool, state);
-            }
-            catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-              myCallSetState = null;
-              if (DEBUG) {
-                e.printStackTrace();
-              }
-            }
-          });
-        }
-        catch (Exception e) {
-          if (DEBUG) {
-            e.printStackTrace();
+      try {
+        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+          try {
+            myCallSetState.invoke(myDesignTool, state);
           }
-        }
+          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            myCallSetState = null;
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+          }
+        });
+      }
+      catch (Exception e) {
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
       if (myCallSetState == null) {
         return;
@@ -553,7 +486,7 @@ public class MotionLayoutComponentHelper {
   }
 
   public void disableAutoTransition(boolean disable) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myCallDisableAutoTransition == null) {
@@ -562,32 +495,24 @@ public class MotionLayoutComponentHelper {
         myCallDisableAutoTransition = myDesignTool.getClass().getMethod("disableAutoTransition", boolean.class);
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallDisableAutoTransition = null;
         return;
       }
     }
-    if (myCallDisableAutoTransition != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCallDisableAutoTransition.invoke(myDesignTool, disable);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallDisableAutoTransition = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCallDisableAutoTransition.invoke(myDesignTool, disable);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallDisableAutoTransition = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+      });
+    }
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
   }
 
@@ -597,7 +522,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetState() {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myCallGetState == null) {
@@ -605,33 +530,24 @@ public class MotionLayoutComponentHelper {
         myCallGetState = myDesignTool.getClass().getMethod("getState");
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallGetState = null;
         return;
       }
     }
-    if (myCallGetState != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCachedState = (String)myCallGetState.invoke(myDesignTool);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallSetState = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-          return;
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCachedState = (String)myCallGetState.invoke(myDesignTool);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallSetState = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+      });
+    }
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
   }
 
@@ -641,7 +557,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetStartState() {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myCallGetStartState == null) {
@@ -649,33 +565,24 @@ public class MotionLayoutComponentHelper {
         myCallGetStartState = myDesignTool.getClass().getMethod("getStartState");
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallGetStartState = null;
         return;
       }
     }
-    if (myCallGetStartState != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCachedStartState = (String)myCallGetStartState.invoke(myDesignTool);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallGetStartState = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-          return;
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCachedStartState = (String)myCallGetStartState.invoke(myDesignTool);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallGetStartState = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+      });
+    }
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
   }
 
@@ -685,7 +592,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetEndState() {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myCallGetEndState == null) {
@@ -693,33 +600,25 @@ public class MotionLayoutComponentHelper {
         myCallGetEndState = myDesignTool.getClass().getMethod("getEndState");
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallGetEndState = null;
         return;
       }
     }
-    if (myCallGetEndState != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCachedEndState = (String)myCallGetEndState.invoke(myDesignTool);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallGetEndState = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-          return;
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCachedEndState = (String)myCallGetEndState.invoke(myDesignTool);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallGetEndState = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+        return;
+      });
+    }
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
   }
 
@@ -729,7 +628,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetProgress() {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myCallGetProgress == null) {
@@ -737,33 +636,24 @@ public class MotionLayoutComponentHelper {
         myCallGetProgress = myDesignTool.getClass().getMethod("getProgress");
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallGetProgress = null;
         return;
       }
     }
-    if (myCallGetProgress != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCachedProgress = (Float)myCallGetProgress.invoke(myDesignTool);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallGetProgress = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-          return;
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCachedProgress = (Float)myCallGetProgress.invoke(myDesignTool);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallGetProgress = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+      });
+    }
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
   }
 
@@ -773,7 +663,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedIsInTransition() {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myCallIsInTransition == null) {
@@ -781,33 +671,24 @@ public class MotionLayoutComponentHelper {
         myCallIsInTransition = myDesignTool.getClass().getMethod("isInTransition");
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
         myCallIsInTransition = null;
         return;
       }
     }
-    if (myCallIsInTransition != null) {
-      try {
-        RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
-          try {
-            myCachedIsInTransition = (Boolean)myCallIsInTransition.invoke(myDesignTool);
-          }
-          catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
-            myCallIsInTransition = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-          }
-          return;
-        });
-      }
-      catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
+    try {
+      RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+        try {
+          myCachedIsInTransition = (Boolean)myCallIsInTransition.invoke(myDesignTool);
         }
-      }
+        catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+          myCallIsInTransition = null;
+          Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
+        }
+      });
+    }
+    catch (Exception e) {
+      Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
     }
   }
 
@@ -817,7 +698,7 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetMaxTimeMs() {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     if (myGetMaxTimeMethod == null) {
@@ -825,9 +706,7 @@ public class MotionLayoutComponentHelper {
         myGetMaxTimeMethod = myDesignTool.getClass().getMethod("getTransitionTimeMs");
       }
       catch (NoSuchMethodException e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
 
@@ -839,25 +718,18 @@ public class MotionLayoutComponentHelper {
           }
           catch (IllegalAccessException | InvocationTargetException e) {
             myGetMaxTimeMethod = null;
-            if (DEBUG) {
-              e.printStackTrace();
-            }
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           }
-          return;
         });
       }
       catch (Exception e) {
-        if (DEBUG) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
   }
 
   /**
    * Make sure we have usable Ids, even if only temporary
-   *
-   * @param component
    */
   private void updateIds(@NotNull NlComponent component) {
     ResourceIdManager manager = ResourceIdManager.get(component.getModel().getModule());
@@ -877,27 +749,26 @@ public class MotionLayoutComponentHelper {
 
   private void updateId(@NotNull ResourceIdManager manager, @NotNull NlComponent component) {
     String id = component.getId();
+    if (id == null) return;
     ResourceReference reference = new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, id);
     Integer resolved = manager.getCompiledId(reference);
     if (resolved == null) {
       resolved = manager.getOrGenerateId(reference);
-      if (resolved != null) {
-        ViewInfo view = NlComponentHelperKt.getViewInfo(component);
-        if (view != null && view.getViewObject() != null) {
-          android.view.View androidView = (android.view.View)view.getViewObject();
-          androidView.setId(resolved.intValue());
-        }
+      ViewInfo view = NlComponentHelperKt.getViewInfo(component);
+      if (view != null && view.getViewObject() != null) {
+        View androidView = (View)view.getViewObject();
+        androidView.setId(resolved);
       }
     }
   }
 
-  public void updateLiveAttributes(NlComponent component, ComponentModification modification, String state) {
+  public void updateLiveAttributes(ComponentModification modification, String state) {
     final Configuration configuration = modification.getComponent().getModel().getConfiguration();
     final int dpiValue = configuration.getDensity().getDpiValue();
     ResourceIdManager manager = ResourceIdManager.get(modification.getComponent().getModel().getModule());
     ViewInfo info = NlComponentHelperKt.getViewInfo(modification.getComponent());
 
-    if (info == null || (info != null && info.getViewObject() == null)) {
+    if (info == null || info.getViewObject() == null) {
       return;
     }
 
@@ -912,9 +783,7 @@ public class MotionLayoutComponentHelper {
             updateIds(modification.getComponent());
             resolved = manager.getOrGenerateId(new ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, value));
           }
-          if (resolved != null) {
-            value = resolved.toString();
-          }
+          value = resolved.toString();
         }
         else if (value.equalsIgnoreCase("parent")) {
           value = "0";
@@ -963,12 +832,12 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetKeyframePos(NlComponent component, int[] type, float[] pos) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
 
-    if (info == null || (info != null && info.getViewObject() == null)) {
+    if (info == null || info.getViewObject() == null) {
       return;
     }
 
@@ -978,9 +847,7 @@ public class MotionLayoutComponentHelper {
                                                                          Object.class, int[].class, float[].class);
       }
       catch (NoSuchMethodException e) {
-        if (true) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
 
@@ -995,17 +862,12 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetKeyFramePositionsMethod = null;
-            if (true) {
-              e.printStackTrace();
-            }
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           }
-          return;
-        }).get();
+        }).get(250, TimeUnit.MILLISECONDS);
       }
       catch (Exception e) {
-        if (true) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
   }
@@ -1018,10 +880,14 @@ public class MotionLayoutComponentHelper {
     int myKeyInfoCount;
     int myOffsetCursor = 0;
     int myCursor = 0;
+    @SuppressWarnings("unused")
     public static final int KEY_TYPE_ATTRIBUTES = 1;
     public static final int KEY_TYPE_POSITION = 2;
+    @SuppressWarnings("unused")
     public static final int KEY_TYPE_TIME_CYCLE = 3;
+    @SuppressWarnings("unused")
     public static final int KEY_TYPE_CYCLE = 4;
+    @SuppressWarnings("unused")
     public static final int KEY_TYPE_TRIGGER = 5;
     private final static int OFF_TYPE = 1;
     private final static int OFF_FRAME_POS = 2;
@@ -1036,38 +902,7 @@ public class MotionLayoutComponentHelper {
     }
 
     /**
-     * Debugging utility to dump contents
-     * @param info
-     * @param count
-     */
-    public static void dumpInfo(int[] info, int count) {
-      Debug.println(3,"dumpInfo ");
-      KeyInfo ki = new KeyInfo();
-      ki.setInfo(info, count);
-      ki.dumpInfo();
-
-    }
-    public void dumpInfo( ) {
-      while (next()) {
-        Debug.println("---------record# =" + myCursor+" ("+myOffsetCursor+")----------");
-        Debug.println("          length =" + getRecordLength());
-        Debug.println("            Type =" + getType());
-        Debug.println("  FramePosition =" + getFramePosition());
-        Debug.println("       Location =" + getLocationX() + ", " + getLocationY());
-        if (getType() == KEY_TYPE_POSITION) {
-          Debug.println("   getKeyPosType =" + getKeyPosType());
-          Debug.println("        PercentX =" + getKeyPosPercentX());
-          Debug.println("        PercentY =" + getKeyPosPercentY());
-        }
-      }
-      reset();
-    }
-
-
-    /**
      * Set the info int array on this object so that it can be parsed
-     * @param info
-     * @param count
      */
     public void setInfo(int[] info, int count) {
       myOffsetCursor = 0;
@@ -1092,10 +927,6 @@ public class MotionLayoutComponentHelper {
         myOffsetCursor += len ;
       }
       return myCursor < myKeyInfoCount;
-    }
-
-    int getRecordLength() {
-      return myInfo[myOffsetCursor];
     }
 
     public int getType() {
@@ -1141,9 +972,7 @@ public class MotionLayoutComponentHelper {
     cachedGetKeyframeInfo(component, type, keyInfo);
     if (myCachedKeyframeInfo.containsKey(component.getId())) {
       KeyframeInfo tmpInfo = myCachedKeyframeInfo.get(component.getId());
-      for (int i = 0; i < tmpInfo.myKeyInfo.length; i++) {
-        keyInfo[i] = tmpInfo.myKeyInfo[i];
-      }
+      System.arraycopy(tmpInfo.myKeyInfo, 0, keyInfo, 0, tmpInfo.myKeyInfo.length);
       return tmpInfo.myNoOfKeyPosition;
     }
     return -1;
@@ -1160,12 +989,12 @@ public class MotionLayoutComponentHelper {
   }
 
   private void cachedGetKeyframeInfo(NlComponent component, int type, int[] keyInfo) {
-    if (!isMyDesignToolAvailable()) {
+    if (isMyDesignToolNotAvailable()) {
       return;
     }
     ViewInfo info = NlComponentHelperKt.getViewInfo(component);
 
-    if (info == null || (info != null && info.getViewObject() == null)) {
+    if (info == null || info.getViewObject() == null) {
       return;
     }
 
@@ -1175,9 +1004,7 @@ public class MotionLayoutComponentHelper {
                                                                     Object.class, int.class, int[].class);
       }
       catch (NoSuchMethodException e) {
-        if (true) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
 
@@ -1191,17 +1018,12 @@ public class MotionLayoutComponentHelper {
           }
           catch (Exception e) {
             myGetKeyFrameInfoMethod = null;
-            if (true) {
-              e.printStackTrace();
-            }
+            Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
           }
-          return;
         });
       }
       catch (Exception e) {
-        if (true) {
-          e.printStackTrace();
-        }
+        Logger.getInstance(MotionLayoutComponentHelper.class).debug(e);
       }
     }
   }

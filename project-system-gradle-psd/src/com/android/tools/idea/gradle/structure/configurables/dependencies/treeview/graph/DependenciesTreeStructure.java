@@ -15,7 +15,13 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph;
 
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeStructure;
+import com.android.tools.idea.gradle.structure.model.PsBaseDependency;
+import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
+import com.intellij.ui.treeStructure.SimpleNode;
+import java.util.Arrays;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public class DependenciesTreeStructure extends AbstractBaseTreeStructure {
@@ -31,7 +37,25 @@ public class DependenciesTreeStructure extends AbstractBaseTreeStructure {
     return myRootNode;
   }
 
-  void reset() {
+  public void reset() {
     myRootNode.reset();
+  }
+
+  @NotNull
+  public Optional<SimpleNode> findDeclaredDependencyNode(@NotNull PsDeclaredDependency dependency) {
+    return Arrays.stream(myRootNode.getChildren())
+      .filter(simpleNode -> {
+        if (simpleNode instanceof AbstractDependencyNode) {
+          AbstractDependencyNode<?, PsBaseDependency> node = (AbstractDependencyNode)simpleNode;
+          for (PsBaseDependency model : node.getModels()) {
+            // Checking for reference equality since declared dependencies are always reloaded.
+            if (dependency == model) {
+              return true;
+            }
+          }
+        }
+        return false;
+      })
+      .findFirst();
   }
 }

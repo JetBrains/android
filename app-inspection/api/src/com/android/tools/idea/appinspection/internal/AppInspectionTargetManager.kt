@@ -26,10 +26,10 @@ import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.manager.TransportStreamChannel
 import com.google.common.annotations.VisibleForTesting
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
-import java.util.concurrent.ConcurrentHashMap
 
 /** A class that exclusively attaches, tracks, and disposes of [AppInspectionTarget]. */
 @AnyThread

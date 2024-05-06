@@ -58,4 +58,8 @@ public class NotificationCenterPanelFixture {
   public boolean isVisible() {
     return notificationPanel.isVisible();
   }
+
+  public Container target() {
+    return notificationPanel;
+  }
 }

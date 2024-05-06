@@ -20,9 +20,8 @@ import com.android.tools.idea.compose.gradle.navigation.PreviewNavigationTest
 import com.android.tools.idea.compose.preview.ComposeViewInfo
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.parseViewInfo
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -51,7 +50,6 @@ class ViewInfoParserTest {
   @Test
   fun testDefaultPreviewRendering() {
     val facet = projectRule.androidFacet(":app")
-    val module = facet.module
     val previewStartLine = runReadAction {
       val file =
         VfsUtil.findRelativeFile(

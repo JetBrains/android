@@ -23,7 +23,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils.findAllCards
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
 import com.android.tools.idea.compose.preview.animation.TestUtils.findToolbar
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert
 import org.junit.Assert.assertEquals
@@ -198,7 +198,7 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
     ComposePreviewAnimationManager.onAnimationSubscribed(clock, animation)
     UIUtil.pump() // Wait for the tab to be added on the UI thread
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(inspector.component.apply { size = Dimension(500, 400) })
       ui.updateToolbars()
       ui.layoutAndDispatchEvents()

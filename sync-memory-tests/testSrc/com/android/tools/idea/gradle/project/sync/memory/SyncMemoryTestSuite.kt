@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_100
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_200
@@ -25,6 +26,8 @@ import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_50
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_500
 import com.android.tools.idea.gradle.project.sync.FEATURE_RUNTIME_CLASSPATH_1000
+import com.android.tools.idea.gradle.project.sync.MULTI_APP_100_NAME
+import com.android.tools.idea.gradle.project.sync.MULTI_APP_190_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_100_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
@@ -77,6 +80,19 @@ class Benchmark2000MemoryTest {
 
 class Benchmark4200MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_4200_NAME, STANDARD_4200)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
+}
+
+class BenchmarkMultiApp100MemoryTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(MULTI_APP_100_NAME, BenchmarkProject.MULTI_APP_100)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @Test fun testMemory() = benchmarkTestRule.openProject()
+}
+
+class BenchmarkMultiApp190MemoryTest {
+  @get:Rule
+  val benchmarkTestRule = createBenchmarkTestRule(MULTI_APP_190_NAME, BenchmarkProject.MULTI_APP_190)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }

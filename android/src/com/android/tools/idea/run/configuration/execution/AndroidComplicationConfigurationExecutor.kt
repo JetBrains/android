@@ -27,6 +27,7 @@ import com.android.tools.deployer.model.component.WearComponent.CommandResultRec
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
+import com.android.tools.idea.projectsystem.ApplicationProjectContext
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -57,12 +58,17 @@ class AndroidComplicationConfigurationExecutor(
   appRunSettings: AppRunSettings,
   applicationIdProvider: ApplicationIdProvider,
   apkProvider: ApkProvider,
+  applicationContext: ApplicationProjectContext,
   deployer: ApplicationDeployer
-) : AndroidWearConfigurationExecutor(environment, deviceFutures,
-                                     appRunSettings,
-                                     applicationIdProvider,
-                                     apkProvider,
-                                     deployer) {
+) : AndroidWearConfigurationExecutor(
+  environment,
+  deviceFutures,
+  appRunSettings,
+  applicationIdProvider,
+  apkProvider,
+  applicationContext,
+  deployer
+) {
   private val complicationLaunchOptions = appRunSettings.componentLaunchOptions as ComplicationLaunchOptions
 
   @WorkerThread
@@ -85,25 +91,27 @@ class AndroidComplicationConfigurationExecutor(
     installWatchApp(device, console, indicator)
 
     complicationLaunchOptions.chosenSlots.forEach { slot ->
-      setComplicationOnWatchFace(app, slot, mode, indicator)
+      setComplicationOnWatchFace(app, slot, mode, indicator, device)
     }
     showWatchFace(device, console, indicator)
   }
 
-  private fun setComplicationOnWatchFace(app: App, slot: ChosenSlot, mode: AppComponent.Mode, indicator: ProgressIndicator?) {
+  private fun setComplicationOnWatchFace(app: App, slot: ChosenSlot, mode: AppComponent.Mode, indicator: ProgressIndicator?, device: IDevice) {
     if (slot.type == null) {
       throw ExecutionException("Slot type is not specified for slot(id: ${slot.id}).")
     }
     val receiver = RecordOutputReceiver { indicator?.isCanceled == true }
 
-    val watchFaceInfo = "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
+    val watchFaceInfo =
+      "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
     try {
-      app.activateComponent(
+      getActivator(app).activate(
         complicationLaunchOptions.componentType,
         complicationLaunchOptions.componentName!!,
         "$watchFaceInfo ${slot.id} ${slot.type}",
         mode,
-        receiver)
+        receiver,
+        device)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while launching complication, message: ${receiver.getOutput().ifEmpty { ex.details }}", ex)
@@ -127,8 +135,8 @@ class AndroidComplicationConfigurationExecutor(
     return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, indicator).app
   }
 
-  override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
-    val complicationComponentName = AppComponent.getFQEscapedName(appId, complicationLaunchOptions.componentName!!)
+  override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {
+    val complicationComponentName = AppComponent.getFQEscapedName(applicationId, complicationLaunchOptions.componentName!!)
     return getStopComplicationCallback(complicationComponentName, console, isDebug)
   }
 }

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.metrics.statistics
 
+import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
+import com.intellij.openapi.diagnostic.Logger
 
 /** Attachment information for the current session. */
 class AttachStatistics(
@@ -33,6 +35,10 @@ class AttachStatistics(
   private var pausedDuringAttach = false
   private var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
   private var composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+
+  companion object {
+    private val logger = Logger.getInstance(AttachStatistics::class.java)
+  }
 
   fun start() {
     success = false
@@ -71,16 +77,30 @@ class AttachStatistics(
   }
 
   fun attachError(errorCode: AttachErrorCode) {
+    assertErrorNotGeneric(errorCode)
     error = true
     this.errorCode = errorCode
   }
 
   fun composeAttachError(errorCode: AttachErrorCode) {
+    assertErrorNotGeneric(errorCode)
     composeErrorCode = errorCode
   }
 
   fun debuggerInUse(isPaused: Boolean) {
     debugging = true
     pausedDuringAttach = pausedDuringAttach || isPaused
+  }
+
+  private fun assertErrorNotGeneric(errorCode: AttachErrorCode) {
+    if (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_THROW_UNEXPECTED_ERROR.get()) {
+      return
+    }
+
+    if (errorCode == AttachErrorCode.UNKNOWN_ERROR_CODE) {
+      logger.error("Logging UNKNOWN_ERROR_CODE. This error should never be logged.")
+    } else if (errorCode == AttachErrorCode.UNEXPECTED_ERROR) {
+      logger.error("Logging UNEXPECTED_ERROR. This error should be classified.")
+    }
   }
 }

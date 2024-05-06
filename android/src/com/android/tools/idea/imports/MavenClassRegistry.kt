@@ -19,31 +19,67 @@ import com.android.tools.idea.imports.MavenClassRegistryBase.LibraryImportData
 import com.google.gson.stream.JsonReader
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.FileType
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.name.FqName
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.name.FqName
 
 /**
  * Registry contains [lookup] extracted by reading indices from [GMavenIndexRepository].
  *
- * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes` to include in
- * go/studio-auto-import-packages.
+ * Here, it covers all the latest stable versions of libraries which are explicitly marked as `Yes`
+ * to include in go/studio-auto-import-packages.
  */
-class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : MavenClassRegistryBase() {
+class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) :
+  MavenClassRegistryBase() {
   val lookup: LookupData = generateLookup()
 
   /**
-   * Given an unresolved name, returns the likely collection of [LibraryImportData] objects for the maven.google.com artifacts containing a
-   * class or function matching the name.
+   * Given an unresolved name, returns the likely collection of
+   * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
+   * containing a class or function matching the [name] and [receiverType].
    *
    * This implementation only returns results of index data from [GMavenIndexRepository].
    *
-   * @param name simple or fully-qualified name typed by the user. May correspond to a class name (any files) or a top-level Kotlin function
-   * name (Kotlin files only).
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name
+   *   (any files) or a top-level Kotlin function name (Kotlin files only).
+   * @param receiverType the fully-qualified name of the receiver type, if any, or `null` for no
+   *   receiver.
    */
-  override fun findLibraryData(name: String, useAndroidX: Boolean, completionFileType: FileType?): Collection<LibraryImportData> {
+  override fun findLibraryData(
+    name: String,
+    receiverType: String?,
+    useAndroidX: Boolean,
+    completionFileType: FileType?
+  ): Collection<LibraryImportData> =
+    findLibraryDataInternal(name, receiverType, false, useAndroidX, completionFileType)
+
+  /**
+   * Given an unresolved name, returns the likely collection of
+   * [MavenClassRegistryBase.LibraryImportData] objects for the maven.google.com artifacts
+   * containing a class or function matching the [name].
+   *
+   * This implementation only returns results of index data from [GMavenIndexRepository].
+   *
+   * @param name simple or fully-qualified name typed by the user. May correspond to a class name
+   *   (any files) or a top-level Kotlin function name, including extension functions (Kotlin files
+   *   only).
+   */
+  override fun findLibraryDataAnyReceiver(
+    name: String,
+    useAndroidX: Boolean,
+    completionFileType: FileType?
+  ): Collection<LibraryImportData> =
+    findLibraryDataInternal(name, null, true, useAndroidX, completionFileType)
+
+  private fun findLibraryDataInternal(
+    name: String,
+    receiverType: String?,
+    anyReceiver: Boolean,
+    useAndroidX: Boolean,
+    completionFileType: FileType?
+  ): Collection<LibraryImportData> {
     // We only support projects that set android.useAndroidX=true.
     if (!useAndroidX) return emptyList()
 
@@ -51,10 +87,16 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
     val packageName = name.substringBeforeLast('.', missingDelimiterValue = "")
 
     val foundArtifacts = buildList {
-      lookup.classNameMap[shortName]?.let { addAll(it) }
-
+      if (anyReceiver || receiverType == null) lookup.classNameMap[shortName]?.let { addAll(it) }
       // Only suggest top-level Kotlin functions when completing in a Kotlin file.
-      if (completionFileType == KotlinFileType.INSTANCE) lookup.topLevelFunctionsMap[shortName]?.let { addAll(it) }
+      if (completionFileType == KotlinFileType.INSTANCE) {
+        if (anyReceiver) {
+          lookup.topLevelFunctionsMapAllReceivers[shortName]?.let { addAll(it) }
+        } else {
+          val functionSpecifier = FunctionSpecifier(shortName, receiverType?.let(::FqName))
+          lookup.topLevelFunctionsMap[functionSpecifier]?.let { addAll(it) }
+        }
+      }
     }
 
     if (packageName.isEmpty()) return foundArtifacts
@@ -75,8 +117,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
 
     return try {
       data.use { readIndicesFromJsonFile(it) }
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
       logger<MavenClassRegistry>().warn("Problem reading GMaven index file: ${e.message}")
       LookupData.EMPTY
     }
@@ -102,7 +143,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
   @Throws(IOException::class)
   private fun readIndexArray(reader: JsonReader): LookupData {
     val classNames: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
-    val topLevelFunctions: MutableList<Pair<String, LibraryImportData>> = mutableListOf()
+    val topLevelFunctions: MutableList<Pair<FunctionSpecifier, LibraryImportData>> = mutableListOf()
     val ktxMap: MutableMap<String, String> = mutableMapOf()
     val coordinateList: MutableList<Coordinate> = mutableListOf()
 
@@ -114,12 +155,10 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
       classNames.addAll(indexData.getClassSimpleNamesWithLibraries())
 
       // Get top-level function names and their associated libraries.
-      topLevelFunctions.addAll(indexData.getTopLevelFunctionSimpleNamesWithLibraries())
+      topLevelFunctions.addAll(indexData.getTopLevelFunctionSpecifiersWithLibraries())
 
       // Update "artifact to the associated KTX artifact" map.
-      indexData.toKtxMapEntry()?.let {
-        ktxMap[it.targetLibrary] = it.ktxLibrary
-      }
+      indexData.toKtxMapEntry()?.let { ktxMap[it.targetLibrary] = it.ktxLibrary }
 
       // Update maven artifact coordinate list.
       coordinateList.add(Coordinate(indexData.groupId, indexData.artifactId, indexData.version))
@@ -140,7 +179,8 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
     var version: String? = null
     var ktxTargets: Collection<String>? = null
     var fqcns: Collection<FqName>? = null
-    // Top-level functions aren't in the index when empty in order to save bytes. Missing is not consider malformed, so allow empty list.
+    // Top-level functions aren't in the index when empty in order to save bytes. Missing is not
+    // consider malformed, so allow empty list.
     var topLevelFunctions: Collection<KotlinTopLevelFunction> = emptyList()
     while (reader.hasNext()) {
       when (reader.nextName()) {
@@ -168,14 +208,18 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
       }
     }
 
-    val gMavenIndex = GMavenArtifactIndex(
-      groupId = groupId ?: throw MalformedIndexException("Group ID is missing($reader)."),
-      artifactId = artifactId ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
-      version = version ?: throw MalformedIndexException("Version is missing($reader)."),
-      ktxTargets = ktxTargets ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
-      fqcns = fqcns ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
-      topLevelFunctions = topLevelFunctions,
-    )
+    val gMavenIndex =
+      GMavenArtifactIndex(
+        groupId = groupId ?: throw MalformedIndexException("Group ID is missing($reader)."),
+        artifactId = artifactId
+            ?: throw MalformedIndexException("Artifact ID is missing($reader)."),
+        version = version ?: throw MalformedIndexException("Version is missing($reader)."),
+        ktxTargets = ktxTargets
+            ?: throw MalformedIndexException("Ktx targets are missing($reader)."),
+        fqcns = fqcns
+            ?: throw MalformedIndexException("Fully qualified class names are missing($reader)."),
+        topLevelFunctions = topLevelFunctions,
+      )
     reader.endObject()
     return gMavenIndex
   }
@@ -198,15 +242,23 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
       while (reader.hasNext()) {
         reader.beginObject()
         var fqName: String? = null
+        var xFqName: String? = null
+        var receiverFqName: String? = null
         while (reader.hasNext()) {
           when (reader.nextName()) {
             "fqn" -> fqName = reader.nextString()
+            "xfqn" -> xFqName = reader.nextString()
+            "rcvr" -> receiverFqName = reader.nextString()
             else -> reader.skipValue()
           }
         }
         reader.endObject()
 
-        if (fqName != null) add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
+        when {
+          fqName != null -> add(KotlinTopLevelFunction.fromJvmQualifiedName(fqName))
+          xFqName != null && receiverFqName != null ->
+            add(KotlinTopLevelFunction.fromJvmQualifiedName(xFqName, receiverFqName))
+        }
       }
       reader.endArray()
     }
@@ -233,9 +285,7 @@ class MavenClassRegistry(private val indexRepository: GMavenIndexRepository) : M
   }
 }
 
-/**
- * An index of a specific [version] of GMaven Artifact.
- */
+/** An index of a specific [version] of GMaven Artifact. */
 data class GMavenArtifactIndex(
   val groupId: String,
   val artifactId: String,
@@ -247,28 +297,31 @@ data class GMavenArtifactIndex(
 
   /** Gets a list of simple class names and their corresponding [LibraryImportData]s. */
   fun getClassSimpleNamesWithLibraries(): List<Pair<String, LibraryImportData>> {
-    return fqcns
-      .map { fqName ->
-        fqName.shortName().asString() to LibraryImportData(
+    return fqcns.map { fqName ->
+      fqName.shortName().asString() to
+        LibraryImportData(
           artifact = "$groupId:$artifactId",
           importedItemFqName = fqName.asString(),
           importedItemPackageName = fqName.parent().asString(),
           version = version
         )
-      }
+    }
   }
 
-  /** Gets a list of top-level function simple names and their corresponding [LibraryImportData]s. */
-  fun getTopLevelFunctionSimpleNamesWithLibraries(): List<Pair<String, LibraryImportData>> {
-    return topLevelFunctions
-      .map { topLevelFunction ->
-        topLevelFunction.simpleName to LibraryImportData(
+  /**
+   * Gets a list of top-level function simple names and their corresponding [LibraryImportData]s.
+   */
+  fun getTopLevelFunctionSpecifiersWithLibraries():
+    List<Pair<FunctionSpecifier, LibraryImportData>> {
+    return topLevelFunctions.map { topLevelFunction ->
+      topLevelFunction.toSpecifier() to
+        LibraryImportData(
           artifact = "$groupId:$artifactId",
           importedItemFqName = topLevelFunction.kotlinFqName.asString(),
           importedItemPackageName = topLevelFunction.packageName,
           version = version
         )
-      }
+    }
   }
 
   /**
@@ -279,17 +332,13 @@ data class GMavenArtifactIndex(
   fun toKtxMapEntry(): KtxMapEntry? {
     if (ktxTargets.isEmpty()) return null
 
-    // It's implicit that there's up to one target artifact that's associated to the given KTX artifact.
-    return KtxMapEntry(
-      ktxLibrary = "$groupId:$artifactId",
-      targetLibrary = ktxTargets.first()
-    )
+    // It's implicit that there's up to one target artifact that's associated to the given KTX
+    // artifact.
+    return KtxMapEntry(ktxLibrary = "$groupId:$artifactId", targetLibrary = ktxTargets.first())
   }
 }
 
-/**
- * An entry of a map from the KTX library to its decorated library.
- */
+/** An entry of a map from the KTX library to its decorated library. */
 data class KtxMapEntry(val ktxLibrary: String, val targetLibrary: String)
 
 /** A top-level Kotlin function. */
@@ -299,14 +348,22 @@ data class KotlinTopLevelFunction(
   /** Package name of the function. */
   val packageName: String,
   /**
-   * Fully-qualified name of the function in Kotlin. This does not contain the synthetic class (e.g. "FileFacadeKt") that contains the
-   * function in the JVM. That makes this name appropriate to use when calling from Kotlin, but not from Java.
+   * Fully-qualified name of the function in Kotlin. This does not contain the synthetic class (e.g.
+   * "FileFacadeKt") that contains the function in the JVM. That makes this name appropriate to use
+   * when calling from Kotlin, but not from Java.
    */
   val kotlinFqName: FqName,
+  /** Fully-qualified name of the function's receiver in Kotlin. */
+  val receiverFqName: FqName?,
 ) {
 
+  fun toSpecifier() = FunctionSpecifier(simpleName, receiverFqName)
+
   companion object {
-    fun fromJvmQualifiedName(fqName: String): KotlinTopLevelFunction {
+    fun fromJvmQualifiedName(
+      fqName: String,
+      receiverFqName: String? = null
+    ): KotlinTopLevelFunction {
       require(fqName.contains('.')) {
         "fqName does not have file facade class containing the function: '$fqName'"
       }
@@ -317,42 +374,45 @@ data class KotlinTopLevelFunction(
       val packagePrefix = if (packageName.isEmpty()) "" else "$packageName."
 
       return KotlinTopLevelFunction(
-          simpleName = functionSimpleName,
-          kotlinFqName = FqName("$packagePrefix$functionSimpleName"),
-          packageName = packageName)
+        simpleName = functionSimpleName,
+        packageName = packageName,
+        kotlinFqName = FqName("$packagePrefix$functionSimpleName"),
+        receiverFqName = receiverFqName?.let(::FqName),
+      )
     }
   }
 }
 
-/**
- * Lookup data extracted from an index file.
- */
+/** Lookup data extracted from an index file. */
 data class LookupData(
-  /**
-   * A map from simple class names to the corresponding [LibraryImportData] objects.
-   */
+  /** A map from simple class names to the corresponding [LibraryImportData] objects. */
   val classNameMap: Map<String, List<LibraryImportData>>,
-  /**
-   * A map from simple Kotlin top-level function names to the corresponding [LibraryImportData] objects.
-   */
-  val topLevelFunctionsMap: Map<String, List<LibraryImportData>>,
-  /**
-   * A map from non-KTX libraries to the associated KTX libraries.
-   */
+  /** A map from function specifiers to the corresponding [LibraryImportData] objects. */
+  val topLevelFunctionsMap: Map<FunctionSpecifier, List<LibraryImportData>>,
+  /** A map from non-KTX libraries to the associated KTX libraries. */
   val ktxMap: Map<String, String>,
 
-  /**
-   * A list of Google Maven [MavenClassRegistryBase.Coordinate].
-   */
+  /** A list of Google Maven [MavenClassRegistryBase.Coordinate]. */
   val coordinateList: List<MavenClassRegistryBase.Coordinate>,
 ) {
+  /**
+   * A map from simple names (irrespective of receiver) to corresponding [LibraryImportData]
+   * objects.
+   */
+  val topLevelFunctionsMapAllReceivers: Map<String, List<LibraryImportData>> =
+    topLevelFunctionsMap.entries.groupBy({ it.key.simpleName }, { it.value }).mapValues {
+      it.value.flatten().distinct()
+    }
+
   companion object {
-    @JvmStatic
-    val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
+    @JvmStatic val EMPTY = LookupData(emptyMap(), emptyMap(), emptyMap(), emptyList())
   }
 }
 
-/**
- * Exception thrown when parsing malformed GMaven index file.
- */
+data class FunctionSpecifier(
+  val simpleName: String,
+  val receiverFqName: FqName?,
+)
+
+/** Exception thrown when parsing malformed GMaven index file. */
 private class MalformedIndexException(message: String) : RuntimeException(message)

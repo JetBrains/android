@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
@@ -69,8 +69,8 @@ class DrawSnapTarget : DrawRegion {
   }
 
   companion object {
-    const val NORMAL: Int = 0
-    const val OVER: Int = 1
+    val NORMAL: Int = 0
+    val OVER: Int = 1
 
     fun add(
       list: DisplayList,

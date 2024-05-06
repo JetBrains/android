@@ -51,7 +51,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.RefactoringActionHandler
-import com.intellij.refactoring.actions.BaseRefactoringAction
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
@@ -61,6 +60,7 @@ import com.intellij.usages.UsageView
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.refactoring.AndroidGradleBaseRefactoringAction
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.project
 import org.jetbrains.android.refactoring.syncBeforeFinishingRefactoring
@@ -78,14 +78,15 @@ private fun findFacetsToMigrate(project: Project): List<AndroidFacet> {
  *
  * Decides if the refactoring is available and constructs the right [MigrateToNonTransitiveRClassesHandler] object if it is.
  */
-class MigrateToNonTransitiveRClassesAction : BaseRefactoringAction() {
+class MigrateToNonTransitiveRClassesAction : AndroidGradleBaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext) = MigrateToNonTransitiveRClassesHandler()
   override fun isHidden() = StudioFlags.MIGRATE_TO_NON_TRANSITIVE_R_CLASSES_REFACTORING_ENABLED.get().not()
   override fun isAvailableInEditorOnly() = false
   override fun isAvailableForLanguage(language: Language?) = true
 
   override fun isEnabledOnDataContext(dataContext: DataContext) = dataContext.project?.let(this::isEnabledOnProject) ?: false
-  override fun isEnabledOnElements(elements: Array<PsiElement>) = isEnabledOnProject(elements.first().project)
+  override fun isEnabledOnElements(elements: Array<PsiElement>) = elements.firstOrNull()
+    ?.let { isEnabledOnProject(it.project) } ?: false
 
   override fun isAvailableOnElementInEditorAndFile(element: PsiElement, editor: Editor, file: PsiFile, context: DataContext): Boolean {
     return isEnabledOnProject(element.project)

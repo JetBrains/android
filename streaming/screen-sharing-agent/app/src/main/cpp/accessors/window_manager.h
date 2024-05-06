@@ -16,10 +16,11 @@
 
 #pragma once
 
-#include <memory>
-#include <set>
+#include <map>
+#include <mutex>
 
 #include "common.h"
+#include "concurrent_list.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -31,32 +32,46 @@ public:
     virtual void OnRotationChanged(int rotation) = 0;
   };
 
-  ~WindowManager();
+  static void FreezeRotation(Jni jni, int32_t display_id, int32_t rotation);
+  static void ThawRotation(Jni jni, int32_t display_id);
+  static bool IsRotationFrozen(Jni jni, int32_t display_id);
+  static int32_t WatchRotation(Jni jni, int32_t display_id, RotationWatcher* watcher);
+  static void RemoveRotationWatcher(Jni jni, int32_t display_id, RotationWatcher* watcher);
 
-  static int GetDefaultDisplayRotation(Jni jni);
-  static void FreezeRotation(Jni jni, int32_t rotation);
-  static void ThawRotation(Jni jni);
-  static bool IsRotationFrozen(Jni jni);
-  static int32_t WatchRotation(Jni jni, RotationWatcher* watcher);
-  static void RemoveRotationWatcher(Jni jni, RotationWatcher* watcher);
-
-  void OnRotationChanged(int32_t rotation);
+  static void OnRotationChanged(int32_t display_id, int32_t rotation);
 
 private:
-  WindowManager(Jni jni);
-  static WindowManager& GetInstance(Jni jni);
+  // Tracks rotation of a single display.
+  struct DisplayRotationTracker {
+    DisplayRotationTracker();
 
-  JObject window_manager_;
-  jmethodID get_default_display_rotation_method_;
-  jmethodID freeze_rotation_method_;
-  jmethodID thaw_rotation_method_;
-  jmethodID is_rotation_frozen_method_;
-  std::atomic_int32_t rotation_;
-  JObject watcher_object_;
-  // Copy-on-write set of display_rotation watchers.
-  std::atomic<std::set<RotationWatcher*>*> rotation_watchers_;
+    JObject watcher_adapter;
+    // List of display rotation watchers.
+    ConcurrentList<RotationWatcher> rotation_watchers;
+    std::atomic_int32_t rotation;
 
-  DISALLOW_COPY_AND_ASSIGN(WindowManager);
+    DISALLOW_COPY_AND_ASSIGN(DisplayRotationTracker);
+  };
+
+  WindowManager() = delete;
+
+  static void InitializeStatics(Jni jni);
+
+  // WindowManager class.
+  static JObject window_manager_;
+  static JClass window_manager_class_;
+  static jmethodID freeze_display_rotation_method_;
+  static bool freeze_display_rotation_method_requires_attribution_tag_;
+  static jmethodID thaw_display_rotation_method_;
+  static jmethodID is_display_rotation_frozen_method_;
+  static jmethodID watch_rotation_method_;
+  // RotationWatcher class.
+  static JClass rotation_watcher_class_;
+  static jmethodID rotation_watcher_constructor_;
+
+  static std::mutex mutex_;
+  // Display rotation trackers keyed by display IDs.
+  static std::map<int32_t, DisplayRotationTracker> rotation_trackers_;  // GUARDED_BY(mutex_)
 };
 
 }  // namespace screensharing

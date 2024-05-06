@@ -19,6 +19,7 @@ import com.android.tools.idea.npw.importing.SourceToGradleModuleModel;
 import com.android.tools.idea.npw.importing.SourceToGradleModuleStep;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.wizard.ui.StudioWizardDialogBuilder;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -42,6 +43,13 @@ public class AndroidImportModuleAction extends AnAction implements DumbAware {
           project, new ProjectSyncInvoker.DefaultProjectSyncInvoker())), "Import module from source")
         .build().show();
     }
+  }
+
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

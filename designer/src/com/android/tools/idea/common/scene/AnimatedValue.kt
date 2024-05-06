@@ -17,5 +17,6 @@ package com.android.tools.idea.common.scene
 
 abstract class AnimatedValue<out T> {
   abstract fun isComplete(time: Long): Boolean
+
   abstract fun getValue(time: Long): T
 }

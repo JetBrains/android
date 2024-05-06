@@ -26,6 +26,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.databinding.tests",
+    generate_k2_tests = True,
     iml_files = ["intellij.android.databinding.tests.iml"],
     split_test_targets = {
         "gradle": {
@@ -46,6 +47,7 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
+        "//tools/adt/idea/android/testData",
         "//tools/adt/idea/databinding/testData",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
@@ -112,7 +114,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
-        "@maven//:org.mockito.mockito-core_4.8.0",
+        "@maven//:org.mockito.mockito-core_5.6.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

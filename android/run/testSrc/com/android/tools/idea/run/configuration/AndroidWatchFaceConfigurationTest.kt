@@ -16,38 +16,27 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.idea.execution.common.DeployableToDevice
-import com.android.tools.idea.testing.disposable
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ProgramRunner
-import com.intellij.facet.Facet
-import com.intellij.facet.FacetConfiguration
-import com.intellij.facet.FacetType
-import com.intellij.facet.FacetTypeId
-import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.replaceService
 import org.junit.Rule
 import org.junit.Test
 
 class AndroidWatchFaceConfigurationTest {
 
   @get:Rule
-  val projectRule = ProjectRule()
+  var androidProjectRule = AndroidProjectRule.inMemory().onEdt()
 
   val project: Project
-    get() = projectRule.project
-
-  private val projectFacetManager = newProjectFacetManager()
+    get() = androidProjectRule.project
 
   @Test
   fun testProgramRunnerAvailable() {
-    project.replaceService(ProjectFacetManager::class.java, projectFacetManager, projectRule.disposable)
-
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run watch face", AndroidWatchFaceConfigurationType().configurationFactories.single())
 
@@ -60,38 +49,9 @@ class AndroidWatchFaceConfigurationTest {
 
   @Test
   fun testDeploysToLocalDevice() {
-    project.replaceService(ProjectFacetManager::class.java, projectFacetManager, projectRule.disposable)
-
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run watch face", AndroidWatchFaceConfigurationType().configurationFactories.single())
 
     assertThat(DeployableToDevice.deploysToLocalDevice(configSettings.configuration)).isTrue()
-  }
-
-  private fun newProjectFacetManager(): ProjectFacetManager {
-    return object : ProjectFacetManager() {
-      override fun hasFacets(typeId: FacetTypeId<*>): Boolean {
-        return true
-      }
-
-      override fun <F : Facet<*>?> getFacets(typeId: FacetTypeId<F>, modules: Array<Module>): List<F> {
-        return emptyList()
-      }
-
-      override fun <F : Facet<*>?> getFacets(typeId: FacetTypeId<F>): List<F> {
-        return emptyList()
-      }
-
-      override fun getModulesWithFacet(typeId: FacetTypeId<*>): List<Module> {
-        return emptyList()
-      }
-
-      override fun <C : FacetConfiguration?> createDefaultConfiguration(facetType: FacetType<*, C>): C? {
-        return null
-      }
-
-      override fun <C : FacetConfiguration?> setDefaultConfiguration(facetType: FacetType<*, C>, configuration: C & Any) {
-      }
-    }
   }
 }

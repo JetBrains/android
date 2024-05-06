@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle;
 
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
 import java.lang.reflect.Field;
@@ -49,18 +49,28 @@ public class HeapTraverseUtil {
 
   @NotNull
   public static String getObjectsSizePresentation(long bytes,
-                                                  SizePresentationStyle style) {
-    if (style == SizePresentationStyle.BYTES) {
+                                                  PresentationStyle style) {
+    if (style == PresentationStyle.PLAIN_VALUES) {
       return String.format(Locale.US, "%d bytes", bytes);
     }
-    return HeapReportUtils.INSTANCE.toShortStringAsCount(bytes);
+    return HeapReportUtils.INSTANCE.toShortStringAsSize(bytes);
+  }
+
+  @NotNull
+  public static String getObjectsCountPresentation(int count,
+                                                   PresentationStyle style) {
+    if (style == PresentationStyle.OPTIMAL_UNITS) {
+      return HeapReportUtils.INSTANCE.toShortStringAsCount(count);
+    }
+    return Integer.toString(count);
   }
 
   @NotNull
   public static String getObjectsStatsPresentation(ObjectsStatistics statistics,
-                                                   SizePresentationStyle style) {
-    return String.format(Locale.US, "%s/%d objects",
-                         getObjectsSizePresentation(statistics.getTotalSizeInBytes(), style), statistics.getObjectsCount());
+                                                   PresentationStyle style) {
+    return String.format(Locale.US, "%s/%s objects",
+                         getObjectsSizePresentation(statistics.getTotalSizeInBytes(), style),
+                         getObjectsCountPresentation(statistics.getObjectsCount(), style));
   }
 
   @Nullable

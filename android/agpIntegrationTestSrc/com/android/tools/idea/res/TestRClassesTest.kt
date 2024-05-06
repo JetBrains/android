@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res;
 
+import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -29,11 +30,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil.createFile
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import java.io.File
 
 /**
@@ -44,13 +47,16 @@ import java.io.File
 sealed class TestRClassesTest : AndroidGradleTestCase() {
 
   protected open val disableNonTransitiveRClass = false
+
+  protected val projectRootDirectory by lazy { project.guessProjectDir()!! }
+
   override fun setUp() {
     super.setUp()
 
     val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
 
     createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/androidTest/res/values/strings.xml",
       // language=xml
       """
@@ -63,7 +69,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/androidTest/res/values/strings.xml",
       // language=xml
       """
@@ -76,7 +82,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/main/res/values/strings.xml",
       // language=xml
       """
@@ -87,7 +93,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     if (disableNonTransitiveRClass) {
-      File(project.guessProjectDir()!!.toIoFile(), "gradle.properties").appendText(
+      File(projectRootDirectory.toIoFile(), "gradle.properties").appendText(
         "android.nonTransitiveRClass=false"
       )
     }
@@ -112,6 +118,142 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
         }
       """)
   }
+
+  protected fun doTestNavigateToDefinitionJavaToAppTestResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int id = com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource;
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
+  }
+
+  protected fun doTestNavigateToDefinitionKotlinToAppTestResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.kt",
+      // language=kotlin
+      """
+      package com.example.projectwithappandlib.app
+
+      class RClassAndroidTest {
+          fun useResources() {
+             val id = com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
+  }
+
+  protected fun doTestNavigateToDefinitionJavaToAppResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int id = com.example.projectwithappandlib.app.R.string.${caret}app_name;
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/main/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("app_name\">projectWithAppandLib</string>")
+  }
+
+  protected fun doTestNavigateToDefinitionKotlinToAppResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.kt",
+      // language=kotlin
+      """
+      package com.example.projectwithappandlib.app
+
+      class RClassAndroidTest {
+          fun useResources() {
+             val id = com.example.projectwithappandlib.app.R.string.${caret}app_name
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/main/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("app_name\">projectWithAppandLib</string>")
+  }
 }
 
 /**
@@ -123,7 +265,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
 class EnableNonTransitiveRClassTest: TestRClassesTest() {
   fun testNonTransitive_withoutRestart() {
     val normalClass = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
       // language=java
       """
@@ -165,7 +307,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testAppTestResources() {
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
       """
@@ -207,7 +349,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testLibTestResources() {
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
       // language=java
       """
@@ -246,7 +388,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testResolveScope() {
     val unitTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
       // language=java
       """
@@ -267,7 +409,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     myFixture.checkHighlighting()
 
     val normalClass = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
       // language=java
       """
@@ -293,16 +435,17 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     val libModule = getModule("lib")
     val service = ProjectLightResourceClassService.getInstance(project)
 
-    assertThat(service.getLightRClassesDefinedByModule(appModule, true).map { it.qualifiedName }).containsExactly(
+    assertThat(service.getLightRClassesDefinedByModule(appModule).map { it.qualifiedName }).containsExactly(
       "com.example.projectwithappandlib.app.R",
-      "com.example.projectwithappandlib.app.test.R"
     )
-    assertThat(service.getLightRClassesDefinedByModule(appModule, false).map { it.qualifiedName }).containsExactly(
-      "com.example.projectwithappandlib.app.R"
+    assertThat(service.getLightRClassesDefinedByModule(appModule.getAndroidTestModule()!!).map { it.qualifiedName }).containsExactly(
+      "com.example.projectwithappandlib.app.test.R",
     )
-    assertThat(service.getLightRClassesDefinedByModule(libModule, true).map { it.qualifiedName }).containsExactly(
+    assertThat(service.getLightRClassesDefinedByModule(libModule).map { it.qualifiedName }).containsExactly(
       "com.example.projectwithappandlib.lib.R",
-      "com.example.projectwithappandlib.lib.test.R"
+    )
+    assertThat(service.getLightRClassesDefinedByModule(libModule.getAndroidTestModule()!!).map { it.qualifiedName }).containsExactly(
+      "com.example.projectwithappandlib.lib.test.R",
     )
   }
 
@@ -370,6 +513,22 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     assertTrue(
       libTestScope.contains(myFixture.findClass("com.example.projectwithappandlib.lib.RClassAndroidTest").containingFile.virtualFile))
   }
+
+  fun testNavigateToDefinitionJavaToAppTestResource() {
+    doTestNavigateToDefinitionJavaToAppTestResource()
+  }
+
+  fun testNavigateToDefinitionKotlinToAppTestResource() {
+    doTestNavigateToDefinitionKotlinToAppTestResource()
+  }
+
+  fun testNavigateToDefinitionJavaToAppResource() {
+    doTestNavigateToDefinitionJavaToAppResource()
+  }
+
+  fun testNavigateToDefinitionKotlinToAppResource() {
+    doTestNavigateToDefinitionKotlinToAppResource()
+  }
 }
 
 class NonTransitiveTestRClassesTest : TestRClassesTest() {
@@ -383,7 +542,7 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(project.findAppModule().getModuleSystem().isRClassTransitive).named("transitive flag").isFalse()
 
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
       """
@@ -420,7 +579,7 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testLibTestResources() {
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
       // language=java
       """
@@ -448,6 +607,22 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
+  }
+
+  fun testNavigateToDefinitionJavaToAppTestResource() {
+    doTestNavigateToDefinitionJavaToAppTestResource()
+  }
+
+  fun testNavigateToDefinitionKotlinToAppTestResource() {
+    doTestNavigateToDefinitionKotlinToAppTestResource()
+  }
+
+  fun testNavigateToDefinitionJavaToAppResource() {
+    doTestNavigateToDefinitionJavaToAppResource()
+  }
+
+  fun testNavigateToDefinitionKotlinToAppResource() {
+    doTestNavigateToDefinitionKotlinToAppResource()
   }
 }
 

@@ -84,6 +84,11 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   @NotNull
+  public static <T> String idOf(@NotNull String workBenchName, @NotNull ToolWindowDefinition<T> definition) {
+    return String.format("%s - %s", workBenchName, definition.getTitle());
+  }
+
+  @NotNull
   private ToolWindowType toToolWindowType(@NotNull AttachedToolWindow<T> attachedToolWindow) {
     if (attachedToolWindow.isFloating()) {
       return ToolWindowType.FLOATING;
@@ -98,10 +103,23 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myCorrespondingToolWindow = correspondingWindow;
   }
 
+  public void setMinimized(boolean value) {
+    if (myCorrespondingToolWindow != null) {
+      myCorrespondingToolWindow.setMinimized(value);
+    }
+  }
+
+  public boolean isMinimized() {
+    if (myCorrespondingToolWindow == null) {
+      return false;
+    }
+    return myCorrespondingToolWindow.isMinimized();
+  }
+
   private ToolWindowEx createToolWindow(@NotNull ToolWindowManager toolWindowManager,
                                         @NotNull String workBenchName,
                                         @NotNull ToolWindowDefinition<T> definition) {
-    String id = String.format("%s - %s", workBenchName, definition.getTitle());
+    String id = idOf(workBenchName, definition);
     ToolWindowEx window = (ToolWindowEx)toolWindowManager.getToolWindow(id);
     if (window == null) {
       ToolWindowAnchor anchor = definition.getSide().isLeft() ? ToolWindowAnchor.LEFT : ToolWindowAnchor.RIGHT;
@@ -149,9 +167,11 @@ class DetachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   public void updateSettingsInAttachedToolWindow() {
-    myCorrespondingToolWindow.setAutoHide(myToolWindow.getType() == ToolWindowType.SLIDING);
-    myCorrespondingToolWindow.setFloating(myToolWindow.getType() == ToolWindowType.FLOATING);
-    myCorrespondingToolWindow.setSplit(myToolWindow.isSplitMode());
+    if (myCorrespondingToolWindow != null) {
+      myCorrespondingToolWindow.setAutoHide(myToolWindow.getType() == ToolWindowType.SLIDING);
+      myCorrespondingToolWindow.setFloating(myToolWindow.getType() == ToolWindowType.FLOATING);
+      myCorrespondingToolWindow.setSplit(myToolWindow.isSplitMode());
+    }
   }
 
   private class AttachToSideAction extends DumbAwareAction {

@@ -358,7 +358,7 @@ open class AddActionDialog(
                                                 index: Int,
                                                 isSelected: Boolean,
                                                 cellHasFocus: Boolean): Component {
-        if (value?.isSeparator == true) return separator
+        if (value?.isSeparator == true) return separator;
         return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
       }
 
@@ -380,7 +380,7 @@ open class AddActionDialog(
               text += " (Self)"
             }
             else if (index != -1 && !value.isParent) {
-              text = "  $text"
+              text = "  " + text
             }
             setText(text)
           }

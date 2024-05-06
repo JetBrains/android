@@ -19,7 +19,6 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.index.getIndexKeys
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
@@ -30,10 +29,12 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import org.jetbrains.annotations.PropertyKey
+import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
@@ -96,7 +97,7 @@ sealed class DaggerElement {
    * applicable. This includes comparing [PsiType]s, although the exact comparison depends on the
    * relationship between this [DaggerElement] and the candidate.
    */
-  abstract fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean
+  protected abstract fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean
 
   /**
    * Gets the index keys associated with the given [PsiType], using the project and project scope
@@ -143,19 +144,18 @@ class DaggerElementIdentifiers(
   }
 
   fun getDaggerElement(psiElement: PsiElement): DaggerElement? {
-    return when (psiElement) {
-      is KtClassOrObject -> ktClassIdentifiers.getFirstDaggerElement(psiElement)
-      is KtFunction ->
-        (psiElement as? KtConstructor<*>)?.let {
-          ktConstructorIdentifiers.getFirstDaggerElement(psiElement)
-        }
-          ?: ktFunctionIdentifiers.getFirstDaggerElement(psiElement)
-      is KtParameter -> ktParameterIdentifiers.getFirstDaggerElement(psiElement)
-      is KtProperty -> ktPropertyIdentifiers.getFirstDaggerElement(psiElement)
-      is PsiClass -> psiClassIdentifiers.getFirstDaggerElement(psiElement)
-      is PsiField -> psiFieldIdentifiers.getFirstDaggerElement(psiElement)
-      is PsiMethod -> psiMethodIdentifiers.getFirstDaggerElement(psiElement)
-      is PsiParameter -> psiParameterIdentifiers.getFirstDaggerElement(psiElement)
+    return when (val origin = psiElement.kotlinOriginOrSelf) {
+      is KtClassOrObject -> ktClassIdentifiers.getFirstDaggerElement(origin)
+      is KtFunction -> {
+        (origin as? KtConstructor<*>)?.let { ktConstructorIdentifiers.getFirstDaggerElement(it) }
+          ?: ktFunctionIdentifiers.getFirstDaggerElement(origin)
+      }
+      is KtParameter -> ktParameterIdentifiers.getFirstDaggerElement(origin)
+      is KtProperty -> ktPropertyIdentifiers.getFirstDaggerElement(origin)
+      is PsiClass -> psiClassIdentifiers.getFirstDaggerElement(origin)
+      is PsiField -> psiFieldIdentifiers.getFirstDaggerElement(origin)
+      is PsiMethod -> psiMethodIdentifiers.getFirstDaggerElement(origin)
+      is PsiParameter -> psiParameterIdentifiers.getFirstDaggerElement(origin)
       else -> null
     }
   }
@@ -199,6 +199,19 @@ internal fun PsiElement.classToPsiType(): PsiType =
     is PsiClass -> classToPsiType()
     else -> throw IllegalArgumentException("Unsupported type ${this::class}")
   }
+
+/** Given a [PsiElement], returns its origin [KtElement] if it has one. */
+private val PsiElement.kotlinOrigin: KtElement?
+  get() =
+    when (this) {
+      is KtElement -> this
+      is KtLightElement<*, *> -> kotlinOrigin
+      else -> null
+    }
+
+/** Given a [PsiElement], returns its origin [KtElement], or itself if it is not from Kotlin. */
+internal val PsiElement.kotlinOriginOrSelf: PsiElement
+  get() = kotlinOrigin ?: this
 
 /**
  * A [DaggerElement] that is related to some other source [DaggerElement]. For example, if the

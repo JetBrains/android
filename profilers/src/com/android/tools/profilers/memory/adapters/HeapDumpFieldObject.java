@@ -15,32 +15,17 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BOOLEAN;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.BYTE;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.CHAR;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.CLASS;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.DOUBLE;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.FLOAT;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.INT;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.LONG;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.NULL;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.OBJECT;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.SHORT;
-import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.STRING;
-
-import com.android.tools.perflib.heap.ArrayInstance;
-import com.android.tools.perflib.heap.ClassInstance;
+import com.android.tools.perflib.heap.*;
 import com.android.tools.perflib.heap.ClassInstance.FieldValue;
-import com.android.tools.perflib.heap.ClassObj;
-import com.android.tools.perflib.heap.Instance;
-import com.android.tools.perflib.heap.Type;
 import com.google.common.collect.ImmutableMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.*;
 
 final class HeapDumpFieldObject implements FieldObject {
   private static final Map<Type, ValueType> ourPrimitiveValueTypeMap = ImmutableMap.<Type, ValueObject.ValueType>builder()

@@ -79,7 +79,7 @@ class Jfr {
     }
 
     val dt = LocalDateTime.now(ZoneId.of("America/Los_Angeles"))
-    val path = Files.createTempFile("studio-${dt.year}-${dt.monthValue}-${dt.dayOfMonth}-${dt.hour}-${dt.minute}-${dt.second}-", ".jfr")
+    val path = Files.createTempFile("studio-${dt.year}-${dt.monthValue}-${dt.dayOfMonth}-${dt.hour}-${dt.minute}-${dt.second}-", ".jfr");
     r?.dump(path)
     LOG.info("Saved JFR Recording in $path")
     return path

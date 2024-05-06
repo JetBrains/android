@@ -16,75 +16,64 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.SdkConstants
+import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DataContextHolder
-import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.preview.PreviewElementModelAdapter
-import com.android.tools.idea.preview.xml.PreviewXmlBuilder
-import com.intellij.openapi.actionSystem.DataContext
+import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
+import com.android.tools.preview.PreviewXmlBuilder
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 
 private const val PREFIX = "WearTilePreview"
 private val WEAR_TILE_PREVIEW_ELEMENT_INSTANCE =
-  DataKey.create<ClassPreviewElement>("$PREFIX.PreviewElement")
-
-/** [PreviewElementModelAdapter] adapting [ClassPreviewElement] to [NlModel]. */
-internal abstract class ClassPreviewElementModelAdapter<T : ClassPreviewElement, M : DataContextHolder> :
-  PreviewElementModelAdapter<T, M> {
-  override fun calcAffinity(el1: T, el2: T?): Int {
-    if (el2 == null) return 3
-
-    return when {
-      // These are the same
-      el1 == el2 -> 0
-
-      // The class name and display settings are the same
-      el1.fqcn == el2.fqcn && el1.displaySettings == el2.displaySettings -> 1
-
-      // The name names match but other settings might be different
-      el1.fqcn == el2.fqcn -> 2
-
-      // No match
-      else -> 4
-    }
-  }
-
-  override fun applyToConfiguration(previewElement: T, configuration: Configuration) {
-    configuration.target = configuration.settings.highestApiTarget
-  }
-
-  override fun modelToElement(model: M): T? =
-    if (!Disposer.isDisposed(model)) {
-      model.dataContext.getData(WEAR_TILE_PREVIEW_ELEMENT_INSTANCE) as? T
-    } else null
-
-  /**
-   * Creates a [DataContext] that is when assigned to [NlModel] can be retrieved with
-   * [modelToElement] call against that model.
-   */
-  override fun createDataContext(previewElement: T) = DataContext { dataId ->
-    when (dataId) {
-      WEAR_TILE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
-      else -> null
-    }
-  }
-
-  override fun toLogString(previewElement: T) = "displayName=${previewElement.displaySettings.name}"
-}
+  DataKey.create<WearTilePreviewElement>("$PREFIX.PreviewElement")
 
 internal const val TILE_SERVICE_VIEW_ADAPTER = "androidx.wear.tiles.tooling.TileServiceViewAdapter"
+internal const val DEFAULT_WEAR_TILE_BACKGROUND = "#ff000000"
 
-internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> : ClassPreviewElementModelAdapter<WearTilePreviewElement, M>() {
-  override fun toXml(previewElement: WearTilePreviewElement) =
+internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
+  MethodPreviewElementModelAdapter<WearTilePreviewElement, M>(WEAR_TILE_PREVIEW_ELEMENT_INSTANCE) {
+    override fun toXml(previewElement: WearTilePreviewElement) =
     PreviewXmlBuilder(TILE_SERVICE_VIEW_ADAPTER)
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, "wrap_content")
-      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, "wrap_content")
-      .toolsAttribute("tileServiceName", previewElement.fqcn)
+      .androidAttribute(SdkConstants.ATTR_LAYOUT_WIDTH, SdkConstants.VALUE_MATCH_PARENT)
+      .androidAttribute(SdkConstants.ATTR_LAYOUT_HEIGHT, SdkConstants.VALUE_MATCH_PARENT)
+      .androidAttribute(
+        SdkConstants.ATTR_BACKGROUND,
+        previewElement.displaySettings.backgroundColor ?: DEFAULT_WEAR_TILE_BACKGROUND
+      )
+      .toolsAttribute("tilePreviewMethodFqn", previewElement.methodFqn)
       .buildString()
 
-  override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long): LightVirtualFile =
+  override fun createLightVirtualFile(
+    content: String,
+    backedFile: VirtualFile,
+    id: Long
+  ): LightVirtualFile =
     WearTileAdapterLightVirtualFile("model-weartile-$id.xml", content) { backedFile }
+
+  override fun applyToConfiguration(
+    previewElement: WearTilePreviewElement,
+    configuration: Configuration
+  ) {
+    configuration.apply {
+      startBulkEditing()
+      target = configuration.settings.highestApiTarget
+      val device = settings.devices.findById(previewElement.configuration.device)
+      device?.let {
+        setEffectiveDevice(null, null)
+        setDevice(device, false)
+      }
+      previewElement.configuration.locale?.let {
+        locale = it
+      }
+      fontScale = previewElement.configuration.fontScale
+      finishBulkEditing()
+    }
+  }
+}
+
+private fun Collection<Device>.findById(deviceDefinition: String): Device? {
+  val id = deviceDefinition.removePrefix("id:")
+  return firstOrNull { it.id == id }
 }

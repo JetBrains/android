@@ -37,8 +37,6 @@ class AsmTransformingLoader @JvmOverloads constructor(
   private val asmFlags: Int = ClassWriter.COMPUTE_FRAMES,
   private val onRewrite: (fqcn: String, durationMs: Long, size: Int) -> Unit = { _, _, _ -> }) : DelegatingClassLoader.Loader {
 
-  val transformId: String get() = transform.id
-
   override fun loadClass(fqcn: String): ByteArray? {
     val bytes = delegate.loadClass(fqcn) ?: return null
     val startTime = System.currentTimeMillis()

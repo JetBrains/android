@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.kotlin.findAnnotation
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -31,13 +31,11 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleEx
 import com.intellij.usages.rules.UsageGroupingRuleProviderEx
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFunction
 import javax.swing.Icon
 
-private val PREVIEW_FQ_NAME = FqName("androidx.compose.ui.tooling.preview.Preview")
+private val PREVIEW_CLASS_ID = ClassId.fromString("androidx/compose/ui/tooling/preview/Preview")
 
 /** Returns whether a [PsiElement] is used within a Kotlin function annotated with @Preview. */
 private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
@@ -49,21 +47,21 @@ private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
 }
 
 /** Returns whether a [KtFunction] is annotated with @Preview. */
-private fun KtFunction.hasPreviewAnnotation() = if (KotlinPluginModeProvider.isK2Mode()) {
-  findAnnotation(PREVIEW_FQ_NAME) != null
-} else {
-  descriptor?.annotations?.hasAnnotation(PREVIEW_FQ_NAME) == true
-}
+private fun KtFunction.hasPreviewAnnotation() = hasAnnotation(PREVIEW_CLASS_ID)
 
 /** Returns whether any of the [UsageTarget]s represent @Composable functions. */
-private fun Array<out UsageTarget>.containsComposable(): Boolean = asSequence()
-  .filterIsInstance<PsiElementUsageTarget>()
-  .mapNotNull { it.element as? KtFunction }
-  .any { it.hasComposableAnnotation() }
+private fun Array<out UsageTarget>.containsComposable(): Boolean =
+  asSequence()
+    .filterIsInstance<PsiElementUsageTarget>()
+    .mapNotNull { it.element as? KtFunction }
+    .any { it.hasComposableAnnotation() }
 
 class ComposeUsageGroupingRuleProvider : UsageGroupingRuleProviderEx {
-  override fun getActiveRules(project: Project): Array<UsageGroupingRule> = arrayOf(PreviewUsageGroupingRule)
-  override fun getAllRules(project: Project, usageView: UsageView?): Array<UsageGroupingRule> = arrayOf(PreviewUsageGroupingRule)
+  override fun getActiveRules(project: Project): Array<UsageGroupingRule> =
+    arrayOf(PreviewUsageGroupingRule)
+
+  override fun getAllRules(project: Project, usageView: UsageView?): Array<UsageGroupingRule> =
+    arrayOf(PreviewUsageGroupingRule)
 }
 
 private object PreviewUsageGroupingRule : UsageGroupingRuleEx {
@@ -75,11 +73,14 @@ private object PreviewUsageGroupingRule : UsageGroupingRuleEx {
   override fun getTitle() = ComposeBundle.message("separate.preview.usages")
 
   override fun getParentGroupsFor(usage: Usage, targets: Array<out UsageTarget>): List<UsageGroup> {
-    // This block exists to facilitate end-to-end testing for ShowUsages. When ShowUsages is invoked, irrespective of whether anything
-    // related to compose is happening, this code will execute for each Usage seen, logging something to idea.log we can look for in our
+    // This block exists to facilitate end-to-end testing for ShowUsages. When ShowUsages is
+    // invoked, irrespective of whether anything
+    // related to compose is happening, this code will execute for each Usage seen, logging
+    // something to idea.log we can look for in our
     // end-to-end test, provided we turn on debugging for this class.
     if (java.lang.Boolean.getBoolean("studio.run.under.integration.test")) {
-      Logger.getInstance(ComposeUsageGroupingRuleProvider::class.java).debug("Saw usage: ${usage.presentation.plainText.trim()}")
+      Logger.getInstance(ComposeUsageGroupingRuleProvider::class.java)
+        .debug("Saw usage: ${usage.presentation.plainText.trim()}")
     }
 
     val element = (usage as? PsiElementUsage)?.element ?: return emptyList()
@@ -101,5 +102,6 @@ internal object PreviewUsageGroup : UsageGroupBase(1) {
 internal object ProductionUsageGroup : UsageGroupBase(0) {
   override fun getIcon(): Icon? = null
 
-  override fun getPresentableGroupText() = ComposeBundle.message("usage.group.in.nonpreview.function")
+  override fun getPresentableGroupText() =
+    ComposeBundle.message("usage.group.in.nonpreview.function")
 }

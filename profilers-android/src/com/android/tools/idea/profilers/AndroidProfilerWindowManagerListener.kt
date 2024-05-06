@@ -27,9 +27,9 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 /**
  * This class maps 1-to-1 with an [AndroidProfilerToolWindow] instance.
  */
-class AndroidProfilerWindowManagerListener(private val project: Project,
-                                           private val profilers: StudioProfilers,
-                                           private val profilersView: StudioProfilersView) : ToolWindowManagerListener {
+class AndroidProfilerWindowManagerListener constructor(private val project: Project,
+                                                       private val profilers: StudioProfilers,
+                                                       private val profilersView: StudioProfilersView) : ToolWindowManagerListener {
   private var isProfilingActiveBalloonShown = false
   private var wasWindowExpanded = false
 

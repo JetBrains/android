@@ -22,10 +22,8 @@ import com.android.sdklib.devices.DeviceManager.DeviceFilter;
 import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.sdk.DeviceManagers;
-import com.android.utils.ILogger;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.FileInputStream;
@@ -45,6 +43,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * A wrapper class which manages a {@link DeviceManager} instance and provides convenience functions
@@ -52,20 +51,21 @@ import org.jetbrains.annotations.Nullable;
  */
 public class DeviceManagerConnection {
   private static final Logger IJ_LOG = Logger.getInstance(AvdManagerConnection.class);
-  private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG).alwaysLogAsDebug(true).allowVerbose(false);
   private static final DeviceManagerConnection NULL_CONNECTION = new DeviceManagerConnection(null);
   private static Map<Path, DeviceManagerConnection> ourCache = new WeakHashMap<>();
-  private DeviceManager ourDeviceManager;
-  @Nullable private Path mySdkPath;
+  @Nullable private final DeviceManager deviceManager;
 
-  public DeviceManagerConnection(@Nullable Path sdkPath) {
-    mySdkPath = sdkPath;
+  @VisibleForTesting
+  DeviceManagerConnection(@Nullable DeviceManager deviceManager) {
+    this.deviceManager = deviceManager;
   }
 
   @NotNull
   public static DeviceManagerConnection getDeviceManagerConnection(@NotNull Path sdkPath) {
     if (!ourCache.containsKey(sdkPath)) {
-      ourCache.put(sdkPath, new DeviceManagerConnection(sdkPath));
+      DeviceManager deviceManager =
+        DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, sdkPath));
+      ourCache.put(sdkPath, new DeviceManagerConnection(deviceManager));
     }
     return ourCache.get(sdkPath);
   }
@@ -76,25 +76,14 @@ public class DeviceManagerConnection {
     Path sdkPath = handler.getLocation();
     if (sdkPath != null) {
       return getDeviceManagerConnection(sdkPath);
-    }
-    else {
+    } else {
+      IJ_LOG.error("No installed SDK found!");
       return NULL_CONNECTION;
     }
   }
 
-
-  /**
-   * Setup our static instances if required. If the instance already exists, then this is a no-op.
-   */
-  private boolean initIfNecessary() {
-    if (ourDeviceManager == null) {
-      if (mySdkPath == null) {
-        IJ_LOG.error("No installed SDK found!");
-        return false;
-      }
-      ourDeviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, mySdkPath));
-    }
-    return true;
+  private boolean hasDeviceManager() {
+    return deviceManager != null;
   }
 
   @NotNull
@@ -104,11 +93,11 @@ public class DeviceManagerConnection {
 
   @NotNull
   Collection<Device> getDevices(@NotNull Collection<DeviceFilter> filters) {
-    if (!initIfNecessary()) {
+    if (!hasDeviceManager()) {
       return List.of();
     }
 
-    return ourDeviceManager.getDevices(filters);
+    return deviceManager.getDevices(filters);
   }
 
   /**
@@ -116,10 +105,10 @@ public class DeviceManagerConnection {
    */
   @Nullable
   public Device getDevice(@NotNull String id, @NotNull String manufacturer) {
-    if (!initIfNecessary()) {
+    if (!hasDeviceManager()) {
       return null;
     }
-    return ourDeviceManager.getDevice(id, manufacturer);
+    return deviceManager.getDevice(id, manufacturer);
   }
 
   /**
@@ -128,11 +117,11 @@ public class DeviceManagerConnection {
    */
   @NotNull
   public String getUniqueId(@Nullable String id) {
-    String baseId = id == null? "New Device" : id;
-    if (!initIfNecessary()) {
+    String baseId = id == null ? "New Device" : id;
+    if (!hasDeviceManager()) {
       return baseId;
     }
-    var devices = ourDeviceManager.getDevices(DeviceFilter.USER);
+    var devices = deviceManager.getDevices(DeviceFilter.USER);
     String candidate = baseId;
     int i = 0;
     while (anyIdMatches(candidate, devices)) {
@@ -155,11 +144,11 @@ public class DeviceManagerConnection {
    */
   public void deleteDevice(@Nullable Device info) {
     if (info != null) {
-      if (!initIfNecessary()) {
+      if (!hasDeviceManager()) {
         return;
       }
-      ourDeviceManager.removeUserDevice(info);
-      ourDeviceManager.saveUserDevices();
+      deviceManager.removeUserDevice(info);
+      deviceManager.saveUserDevices();
     }
   }
 
@@ -167,33 +156,33 @@ public class DeviceManagerConnection {
    * Edit the given device, overwriting existing data, or creating it if it does not exist.
    */
   public void createOrEditDevice(@NotNull Device device) {
-    if (!initIfNecessary()) {
+    if (!hasDeviceManager()) {
       return;
     }
-    ourDeviceManager.replaceUserDevice(device);
-    ourDeviceManager.saveUserDevices();
+    deviceManager.replaceUserDevice(device);
+    deviceManager.saveUserDevices();
   }
 
   /**
    * Create the given devices
    */
   public void createDevices(@NotNull List<Device> devices) {
-    if (!initIfNecessary()) {
+    if (!hasDeviceManager()) {
       return;
     }
     for (Device device : devices) {
       // Find a unique ID for this new device
       String deviceIdBase = device.getId();
       String deviceNameBase = device.getDisplayName();
-      int i = 2;
-      while (isUserDevice(device)) {
+
+      for (int i = 2; isUserDevice(device); i++) {
         String id = String.format(Locale.getDefault(), "%1$s_%2$d", deviceIdBase, i);
         String name = String.format(Locale.getDefault(), "%1$s_%2$d", deviceNameBase, i);
         device = cloneDeviceWithNewIdAndName(device, id, name);
       }
-      ourDeviceManager.addUserDevice(device);
+      deviceManager.addUserDevice(device);
     }
-    ourDeviceManager.saveUserDevices();
+    deviceManager.saveUserDevices();
   }
 
   private static Device cloneDeviceWithNewIdAndName(@NotNull Device device, @NotNull String id, @NotNull String name) {
@@ -207,11 +196,11 @@ public class DeviceManagerConnection {
    * Return true iff the given device matches one of the user declared devices.
    */
   public boolean isUserDevice(@NotNull final Device device) {
-    if (!initIfNecessary()) {
+    if (!hasDeviceManager()) {
       return false;
     }
 
-    return ourDeviceManager.getDevices(DeviceFilter.USER).stream()
+    return deviceManager.getDevices(DeviceFilter.USER).stream()
       .map(Device::getId)
       .anyMatch(device.getId()::equalsIgnoreCase);
   }

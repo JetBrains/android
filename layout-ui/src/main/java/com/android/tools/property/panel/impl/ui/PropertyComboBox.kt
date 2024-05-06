@@ -175,7 +175,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
     )
     if (context != EditorContext.STAND_ALONE_EDITOR) {
-      putClientProperty(IS_TABLE_CELL_EDITOR_PROPERTY, true)
+      putClientProperty("JComboBox.isTableCellEditor", true)
       // A table cell renderer and editor has a border on the parent PropertyComboBox. Remove the
       // border from the ComboBox itself:
       border = JBUI.Borders.empty()

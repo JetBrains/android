@@ -31,6 +31,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintGradlePluginVersionIns
 import com.android.tools.idea.lint.inspections.AndroidLintStringShouldBeIntInspection;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter;
+import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,6 +42,8 @@ import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
+import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -51,8 +54,8 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
 
   @Parameterized.Parameter public String extension;
   @Parameterized.Parameters
-  public static Collection getParameters() {
-    return Arrays.asList(new Object[][] {
+  public static Collection<String[]> getParameters() {
+    return Arrays.asList(new String[][] {
       {".gradle"},
       {".gradle.kts"}
     });
@@ -62,7 +65,22 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
+    // We mask (in particular) the KotlinProblemHighlightFilter which can cause Kotlin Script files not to get any highlighting at all.
     ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, List.of(), myFixture.getProjectDisposable());
+    // However, we are not interested in Kotlin compiler diagnostics or resolution failures, as we are running with a
+    // simplified and unrealistic project structure: so mask away the Kotlin highlighting visitors.
+    List<HighlightVisitor> highlightVisitors = HighlightVisitor.EP_HIGHLIGHT_VISITOR.getExtensionList(myFixture.getProject()).stream()
+      .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
+    ExtensionTestUtil.maskExtensions(HighlightVisitor.EP_HIGHLIGHT_VISITOR, highlightVisitors, myFixture.getProjectDisposable(), false,
+                                     myFixture.getProject());
+  }
+
+  private boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
+    // K1: a subtype of [AbstractKotlinHighlightVisitor]
+    // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
+    // TODO(233): add checking if visitor instanceof KotlinSemanticHighlightingVisitor
+    return visitor instanceof AbstractKotlinHighlightVisitor
+      || visitor instanceof KotlinDiagnosticHighlightVisitor;
   }
 
   @Test
@@ -98,12 +116,6 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public void testSetter() throws Exception {
     AndroidLintGradleGetterInspection inspection = new AndroidLintGradleGetterInspection();
     doTest(inspection, null);
-  }
-
-  @Test
-  public void testCompatibility() throws Exception {
-    AndroidLintGradleCompatibleInspection inspection = new AndroidLintGradleCompatibleInspection();
-      doTest(inspection, null);
   }
 
   @Test

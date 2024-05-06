@@ -209,8 +209,14 @@
     <option name="code" hit="Code" />
     <option name="compose" hit="Compose Preview" />
     <option name="preview" hit="Compose Preview" />
-    <option name="compose" hit="Compose files:" />
-    <option name="files" hit="Compose files:" />
+    <option name="compose" hit="Compose files with previews:" />
+    <option name="files" hit="Compose files with previews:" />
+    <option name="previews" hit="Compose files with previews:" />
+    <option name="with" hit="Compose files with previews:" />
+    <option name="compose" hit="Compose files without previews:" />
+    <option name="files" hit="Compose files without previews:" />
+    <option name="previews" hit="Compose files without previews:" />
+    <option name="without" hit="Compose files without previews:" />
     <option name="default" hit="Default Editor Mode" />
     <option name="editor" hit="Default Editor Mode" />
     <option name="mode" hit="Default Editor Mode" />

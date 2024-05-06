@@ -21,7 +21,6 @@ import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.icons.AllIcons
-import com.intellij.notification.EventLog
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
@@ -121,8 +120,7 @@ sealed class PreviewStatus(
 class ShowEventLogAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    EventLog.getEventLog(project)?.activate(null)
-      ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
+    ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
   }
 }
 
@@ -157,6 +155,6 @@ class ShowProblemsPanel : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     IssuePanelService.getInstance(project)
-      .setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
+      .setIssuePanelVisibility(true, IssuePanelService.TabCategory.DESIGN_TOOLS)
   }
 }

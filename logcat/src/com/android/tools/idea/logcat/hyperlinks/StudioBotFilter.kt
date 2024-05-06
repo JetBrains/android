@@ -51,7 +51,8 @@ internal class StudioBotFilter(private val editor: EditorEx) : Filter {
     override fun navigate(project: Project) {
       val offset = editor.caretModel.offset
       editor.document.processRangeMarkersOverlappingWith(offset, offset) {
-        val message = it.getUserData(LOGCAT_MESSAGE_KEY) ?: return@processRangeMarkersOverlappingWith true
+        val message =
+          it.getUserData(LOGCAT_MESSAGE_KEY) ?: return@processRangeMarkersOverlappingWith true
         val question = message.extractStudioBotQuestion()
         IssueExplainer.get().explain(project, question, LOGCAT)
         ApplicationManager.getApplication().invokeLater {

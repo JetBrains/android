@@ -22,7 +22,7 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.tree.AbstractInsnNode
 import org.jetbrains.org.objectweb.asm.tree.InsnList
 
-class IrInstructionList(insnList: InsnList) {
+class IrInstructionList(insnList: InsnList): Iterable<IrInstruction> {
   private val list = mutableListOf<IrInstruction>()
 
   val labels = IrLabels()
@@ -71,6 +71,10 @@ class IrInstructionList(insnList: InsnList) {
 
   override fun hashCode(): Int {
     return list.hashCode()
+  }
+
+  override fun iterator(): Iterator<IrInstruction> {
+    return list.iterator()
   }
 }
 

@@ -48,6 +48,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 
@@ -227,7 +228,7 @@ class LayoutInspectorTest {
     inspectorModel.update(newWindow, listOf(ROOT), 0)
 
     assertThat(imagesRefreshed).isTrue()
-    verify(mockRenderModel).refresh()
+    verify(mockRenderModel, times(2)).refresh()
   }
 
   /** Connect a device to the transport and to adb. */

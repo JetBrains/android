@@ -51,63 +51,93 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     val cachedValuesManager = CachedValuesManager.getManager(project)
     val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker.getInstance(project)
 
-    lightBindingCache = cachedValuesManager.createCachedValue {
-      val allBindingClasses = enabledFacetsProvider.getAllBindingEnabledFacets()
-        .flatMap { facet ->
-          val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
-          val groups = bindingModuleCache.bindingLayoutGroups
-          groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
+    lightBindingCache =
+      cachedValuesManager.createCachedValue {
+        val allBindingClasses =
+          enabledFacetsProvider.getAllBindingEnabledFacets().flatMap { facet ->
+            val bindingModuleCache = LayoutBindingModuleCache.getInstance(facet)
+            val groups = bindingModuleCache.bindingLayoutGroups
+            groups.flatMap { group -> bindingModuleCache.getLightBindingClasses(group) }
+          }
+
+        val groupedClasses = allBindingClasses.groupBy { it.name }.toMutableMap()
+        for (suffix in listOf("Binding", "BindingImpl")) {
+          allBindingClasses
+            .filter { bindingClass -> bindingClass.name.endsWith(suffix) }
+            .takeIf { matches -> matches.isNotEmpty() }
+            ?.let { matches -> groupedClasses[suffix] = matches }
         }
 
-      val groupedClasses = allBindingClasses.groupBy { it.name }.toMutableMap()
-      for (suffix in listOf("Binding", "BindingImpl")) {
-        allBindingClasses
-          .filter { bindingClass -> bindingClass.name.endsWith(suffix) }
-          .takeIf { matches -> matches.isNotEmpty() }
-          ?.let { matches -> groupedClasses[suffix] = matches }
+        CachedValueProvider.Result.create(
+          groupedClasses as Map<String, List<LightBindingClass>>,
+          enabledFacetsProvider,
+          resourcesModifiedTracker
+        )
       }
 
-      CachedValueProvider.Result.create(
-        groupedClasses as Map<String, List<LightBindingClass>>,
-        enabledFacetsProvider,
-        resourcesModifiedTracker)
-    }
+    allClassNamesCache =
+      cachedValuesManager.createCachedValue {
+        CachedValueProvider.Result.create(
+          ArrayUtil.toStringArray(lightBindingCache.value.keys),
+          enabledFacetsProvider,
+          resourcesModifiedTracker
+        )
+      }
 
-    allClassNamesCache = cachedValuesManager.createCachedValue {
-      CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), enabledFacetsProvider, resourcesModifiedTracker)
-    }
+    methodsByNameCache =
+      cachedValuesManager.createCachedValue {
+        val allMethods =
+          lightBindingCache.value.values
+            .flatten()
+            .flatMap { psiClass -> psiClass.methods.asIterable() }
+            .groupBy { method -> method.name }
 
-    methodsByNameCache = cachedValuesManager.createCachedValue {
-      val allMethods = lightBindingCache.value.values
-        .flatten()
-        .flatMap { psiClass -> psiClass.methods.asIterable() }
-        .groupBy { method -> method.name }
+        CachedValueProvider.Result.create(
+          allMethods,
+          enabledFacetsProvider,
+          resourcesModifiedTracker
+        )
+      }
 
-      CachedValueProvider.Result.create(allMethods, enabledFacetsProvider, resourcesModifiedTracker)
-    }
+    fieldsByNameCache =
+      cachedValuesManager.createCachedValue {
+        val allFields =
+          lightBindingCache.value.values
+            .flatten()
+            .flatMap { psiClass -> psiClass.fields.asIterable() }
+            .groupBy { field -> field.name }
 
-    fieldsByNameCache = cachedValuesManager.createCachedValue {
-      val allFields = lightBindingCache.value.values
-        .flatten()
-        .flatMap { psiClass -> psiClass.fields.asIterable() }
-        .groupBy { field -> field.name }
+        CachedValueProvider.Result.create(
+          allFields,
+          enabledFacetsProvider,
+          resourcesModifiedTracker
+        )
+      }
 
-      CachedValueProvider.Result.create(allFields, enabledFacetsProvider, resourcesModifiedTracker)
-    }
+    allMethodNamesCache =
+      cachedValuesManager.createCachedValue {
+        val names = methodsByNameCache.value.keys
+        CachedValueProvider.Result.create(
+          names.toTypedArray(),
+          enabledFacetsProvider,
+          resourcesModifiedTracker
+        )
+      }
 
-    allMethodNamesCache = cachedValuesManager.createCachedValue {
-      val names = methodsByNameCache.value.keys
-      CachedValueProvider.Result.create(names.toTypedArray(), enabledFacetsProvider, resourcesModifiedTracker)
-    }
-
-    allFieldNamesCache = cachedValuesManager.createCachedValue {
-      val names = fieldsByNameCache.value.keys
-      CachedValueProvider.Result.create(names.toTypedArray(), enabledFacetsProvider, resourcesModifiedTracker)
-    }
+    allFieldNamesCache =
+      cachedValuesManager.createCachedValue {
+        val names = fieldsByNameCache.value.keys
+        CachedValueProvider.Result.create(
+          names.toTypedArray(),
+          enabledFacetsProvider,
+          resourcesModifiedTracker
+        )
+      }
   }
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
-    val bindingClasses = lightBindingCache.value[name]?.takeUnless { it.isEmpty() } ?: return PsiClass.EMPTY_ARRAY
+    val bindingClasses =
+      lightBindingCache.value[name]?.takeUnless { it.isEmpty() } ?: return PsiClass.EMPTY_ARRAY
     return bindingClasses
       .filter { psiClass -> PsiSearchScopeUtil.isInScope(scope, psiClass) }
       .toTypedArray()
@@ -122,13 +152,19 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return methods.filter { PsiSearchScopeUtil.isInScope(scope, it) }.toTypedArray()
   }
 
-  override fun getMethodsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiMethod> {
+  override fun getMethodsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiMethod> {
     return getMethodsByName(name, scope).take(maxCount).toTypedArray()
   }
 
-  override fun processMethodsWithName(name: String,
-                                      scope: GlobalSearchScope,
-                                      processor: Processor<in PsiMethod>): Boolean {
+  override fun processMethodsWithName(
+    name: String,
+    scope: GlobalSearchScope,
+    processor: Processor<in PsiMethod>
+  ): Boolean {
     for (method in getMethodsByName(name, scope)) {
       if (!processor.process(method)) {
         return false
@@ -146,7 +182,11 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
     return fields.filter { field -> PsiSearchScopeUtil.isInScope(scope, field) }.toTypedArray()
   }
 
-  override fun getFieldsByNameIfNotMoreThan(name: String, scope: GlobalSearchScope, maxCount: Int): Array<PsiField> {
+  override fun getFieldsByNameIfNotMoreThan(
+    name: String,
+    scope: GlobalSearchScope,
+    maxCount: Int
+  ): Array<PsiField> {
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }
 

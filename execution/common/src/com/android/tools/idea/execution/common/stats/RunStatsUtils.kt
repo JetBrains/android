@@ -15,7 +15,14 @@
  */
 package com.android.tools.idea.execution.common.stats
 
+import com.android.adblib.serialNumber
+import com.android.ddmlib.IDevice
+import com.android.tools.analytics.deviceToDeviceInfo
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.LaunchTaskDetail
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 
 /**
  * Executes a task and adds its execution statistics to Android Run Event.
@@ -38,4 +45,26 @@ inline fun <T> RunStats.track(taskId: String, task: LaunchTaskDetail.Builder.() 
   }.also {
     endCustomTask(customTask, null)
   }
+}
+
+
+/**
+ * ** This is a temporary workaround **
+ *
+ * Find a DeviceHandle for IDevice by comparing serial numbers
+ * and get the DeviceInfo from the handle. If not found, fall
+ * back to getting DeviceInfo from IDevice.
+ * @param device the device for which DeviceInfo is required
+ * @return DeviceInfo for the device
+ */
+fun getDeviceInfo(device: IDevice, project: Project): DeviceInfo {
+  val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
+
+  for (handle in deviceProvisioner.devices.value) {
+    val connectedDevice = handle.state.connectedDevice ?: continue
+    if (device.getSerialNumber() == connectedDevice.serialNumber) {
+      return handle.state.properties.deviceInfoProto
+    }
+  }
+  return deviceToDeviceInfo(device)
 }

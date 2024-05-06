@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionSupport
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -42,6 +43,8 @@ class SingleDeviceSelectProcessAction(
 ) : DropDownAction("Select Process", "Select a process to connect to.", ICON_PHONE) {
 
   override fun displayTextInToolbar() = true
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     super.update(event)
@@ -80,6 +83,9 @@ class SingleDeviceSelectProcessAction(
 
   private inner class SelectProcessAction(private val processDescriptor: ProcessDescriptor) :
     ToggleAction(processDescriptor.name) {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return processDescriptor == deviceModel.selectedProcess
     }

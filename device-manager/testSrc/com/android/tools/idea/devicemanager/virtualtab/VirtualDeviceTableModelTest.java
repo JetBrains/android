@@ -25,8 +25,8 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.devicemanager.CountDownLatchAssert;
-import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.concurrency.CountDownLatchAssert;
+import com.android.tools.idea.concurrency.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceTableModel.SetAllOnline;
@@ -47,7 +47,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatcher;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
@@ -82,7 +81,7 @@ public final class VirtualDeviceTableModelTest {
     CountDownLatchAssert.await(latch);
 
     assertEquals(List.of(TestVirtualDevices.onlinePixel5Api31(myAvd)), model.getDevices());
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
+    Mockito.verify(myListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
   }
 
   private static @NotNull FutureCallback<Boolean> newSetOnline(@NotNull VirtualDeviceTableModel model,
@@ -182,7 +181,7 @@ public final class VirtualDeviceTableModelTest {
     assertEquals(device, model.getValueAt(0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
 
     TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+    Mockito.verify(myListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(event)));
   }
 
   @Test
@@ -216,9 +215,9 @@ public final class VirtualDeviceTableModelTest {
     assertEquals(TestVirtualDevices.pixel5Api31(myAvd), model.getValueAt(0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
 
     TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+    Mockito.verify(myListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(event)));
 
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
+    Mockito.verify(myListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
 
     Mockito.verify(showErrorDialog).accept(throwable, null);
   }
@@ -255,16 +254,16 @@ public final class VirtualDeviceTableModelTest {
     assertEquals(TestVirtualDevices.onlinePixel5Api31(myAvd), model.getValueAt(0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
 
     TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+    Mockito.verify(myListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(event)));
 
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
+    Mockito.verify(myListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(new TableModelEvent(model, 0))));
 
     ErrorDialogException exception = new ErrorDialogException(
       "Unable to stop Pixel 5 API 31",
       "An error occurred stopping Pixel 5 API 31. To stop the device, try manually closing the Pixel 5 API 31 emulator window.");
 
     ArgumentMatcher<Throwable> matcher = new ErrorDialogExceptionArgumentMatcher(exception);
-    Mockito.verify(showErrorDialog).accept(ArgumentMatchers.argThat(matcher), ArgumentMatchers.isNull());
+    Mockito.verify(showErrorDialog).accept(Mockito.argThat(matcher), Mockito.isNull());
   }
 
   private static final class ErrorDialogExceptionArgumentMatcher implements ArgumentMatcher<Throwable> {
@@ -326,7 +325,7 @@ public final class VirtualDeviceTableModelTest {
     assertEquals(device, model.getValueAt(0, VirtualDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX));
 
     TableModelEvent event = new TableModelEvent(model, 0, 0, VirtualDeviceTableModel.LAUNCH_OR_STOP_MODEL_COLUMN_INDEX);
-    Mockito.verify(myListener).tableChanged(ArgumentMatchers.argThat(new TableModelEventArgumentMatcher(event)));
+    Mockito.verify(myListener).tableChanged(Mockito.argThat(new TableModelEventArgumentMatcher(event)));
 
     InOrder inOrder = Mockito.inOrder(console);
 

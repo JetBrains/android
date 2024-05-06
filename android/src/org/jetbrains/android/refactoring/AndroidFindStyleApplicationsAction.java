@@ -19,11 +19,11 @@ import java.util.Map;
 import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
 import org.jetbrains.android.refactoring.errorreporter.ProjectBasedErrorReporter;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.refactoring.errorreporter.ErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

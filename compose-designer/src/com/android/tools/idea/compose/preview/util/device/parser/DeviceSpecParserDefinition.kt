@@ -29,13 +29,20 @@ import com.intellij.psi.tree.TokenSet
 /** [ParserDefinition] for the Compose Preview device parameter specification. */
 class DeviceSpecParserDefinition : ParserDefinition {
   override fun createLexer(project: Project?): Lexer = DeviceSpecLexer()
+
   override fun createParser(project: Project?): PsiParser = DeviceSpecParser()
+
   override fun getFileNodeType(): IFileElementType = DEVICE_SPEC_FILE_TYPE
+
   override fun getCommentTokens(): TokenSet = TokenSet.EMPTY
+
   override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
+
   override fun createElement(node: ASTNode?): PsiElement =
     DeviceSpecTypes.Factory.createElement(node)
+
   override fun createFile(viewProvider: FileViewProvider): PsiFile = DeviceSpecPsiFile(viewProvider)
+
   override fun spaceExistenceTypeBetweenTokens(left: ASTNode?, right: ASTNode?) =
     ParserDefinition.SpaceRequirements.MAY
 }

@@ -31,7 +31,7 @@ import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TestLocalResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository {
+public class TestLocalResourceRepository extends LocalResourceRepository<VirtualFile> implements SingleNamespaceResourceRepository {
   @NotNull private final ResourceNamespace myNamespace;
   @NotNull private final ResourceTable myResourceTable = new ResourceTable();
 

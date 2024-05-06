@@ -33,7 +33,7 @@ class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>)
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
     val sceneView = surface.focusedSceneView ?: return null
-    return SceneInteraction(sceneView)
+    return SceneInteraction(sceneView);
   }
 
   override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,

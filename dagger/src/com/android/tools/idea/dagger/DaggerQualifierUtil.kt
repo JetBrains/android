@@ -34,24 +34,18 @@ import org.jetbrains.kotlin.analysis.api.annotations.KtConstantAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtEnumEntryAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.annotations
-import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.base.KtConstantValue
-import org.jetbrains.kotlin.analysis.api.calls.KtAnnotationCall
-import org.jetbrains.kotlin.analysis.api.calls.singleCallOrNull
-import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.constants.AnnotationValue
@@ -69,14 +63,12 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 
-private const val QUALIFIER_ANNOTATION_CLASS_FQ = "javax.inject.Qualifier"
-
 /**
  * Contains a serialized representation of a qualifier annotation.
  *
  * Includes qualifier's fqcn and serialized representation of attribute values.
  *
- * Qualifier is an annotation that has [QUALIFIER_ANNOTATION_CLASS_FQ] annotation.
+ * Qualifier is an annotation that has [DaggerClasses.Qualifier] annotation.
  *
  * [fqName]
  * - fq name of qualifier [attributes]
@@ -244,16 +236,9 @@ private fun KtAnnotated.getQualifierInfoFromKtAnnotatedK2(): QualifierInfo? {
   allowAnalysisOnEdt {
     analyze(this) {
       val ktDeclarationSymbol =
-        (this@getQualifierInfoFromKtAnnotatedK2 as? KtDeclaration)?.getSymbol()
-          as? KtDeclarationSymbol
-          ?: return null
+        (this@getQualifierInfoFromKtAnnotatedK2 as? KtDeclaration)?.getSymbol() ?: return null
       val qualifier =
-        ktDeclarationSymbol.annotations.singleOrNull {
-          val ktAnnotationCall =
-            it.psi?.resolveCall()?.singleCallOrNull<KtAnnotationCall>() ?: return@singleOrNull false
-          isQualifier(ktAnnotationCall)
-        }
-          ?: return null
+        ktDeclarationSymbol.annotations.singleOrNull { isQualifier(it.classId) } ?: return null
 
       val qualifierFqName = qualifier.classId?.asFqNameString() ?: return null
       val qualifierAttributes =
@@ -290,15 +275,15 @@ private fun KtAnnotationEntry.getDescriptor() =
   analyzeK1(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)
 
 private val AnnotationDescriptor.isQualifier: Boolean
-  get() = annotationClass?.annotations?.hasAnnotation(FqName(QUALIFIER_ANNOTATION_CLASS_FQ)) == true
+  get() = annotationClass?.annotations?.hasAnnotation(DaggerClasses.Qualifier.fqName) == true
 
-private fun KtAnalysisSession.isQualifier(ktAnnotationCall: KtAnnotationCall): Boolean =
-  ktAnnotationCall.symbol.originalContainingClassForOverride
-    ?.annotationsByClassId(ClassId.fromString(QUALIFIER_ANNOTATION_CLASS_FQ))
-    ?.isNotEmpty() == true
+private fun KtAnalysisSession.isQualifier(annotationClassId: ClassId?): Boolean =
+  annotationClassId
+    ?.let { getClassOrObjectSymbolByClassId(it) }
+    ?.hasAnnotation(DaggerClasses.Qualifier.classId) == true
 
 private val PsiAnnotation.isQualifier: Boolean
   get() {
     val cls = (this.nameReferenceElement?.resolve() as? PsiClass) ?: return false
-    return cls.isAnnotationType && cls.hasAnnotation(QUALIFIER_ANNOTATION_CLASS_FQ)
+    return cls.isAnnotationType && cls.hasAnnotation(DaggerClasses.Qualifier.fqNameString)
   }

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
-import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.util.listenUntilNextSync
@@ -91,9 +90,6 @@ object VisualizationFormProvider : VisualizationContentProvider {
           return@addDataProvider DataManager.getDataProvider(fileEditor.component)
             ?.getData(dataId!!)
         }
-      }
-      if (DESIGN_SURFACE.`is`(dataId)) {
-        return@addDataProvider visualizationForm.surface
       }
       if (VisualizationContent.VISUALIZATION_CONTENT.`is`(dataId)) {
         return@addDataProvider visualizationForm

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.common.error
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.TestToolWindowManager
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -35,8 +35,6 @@ class IssuePanelStartupActivityTest {
 
   @Before
   fun setup() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
-
     rule.projectRule.replaceProjectService(
       ToolWindowManager::class.java,
       TestToolWindowManager(rule.project)
@@ -45,14 +43,11 @@ class IssuePanelStartupActivityTest {
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
     val content =
-      contentManager.factory.createContent(null, "Current File", true).apply { isCloseable = false }
+      contentManager.factory.createContent(mock(), "Current File", true).apply {
+        isCloseable = false
+      }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.clearOverride()
   }
 
   /** Regression test for b/235316289. */

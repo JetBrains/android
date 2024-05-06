@@ -23,9 +23,7 @@ import com.android.tools.idea.logcat.messages.TagFormat
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for [LogcatPanelConfig]
- */
+/** Tests for [LogcatPanelConfig] */
 class LogcatPanelConfigTest {
   @Test
   fun formattingConfig_serializePreset() {
@@ -53,7 +51,8 @@ class LogcatPanelConfigTest {
 
   @Test
   fun restoreDeviceStateFromPreviousVersion_physicalDevice() {
-    val state = """
+    val state =
+      """
         {
           'device': {
             'serialNumber': 'HT85F1A00630',
@@ -72,7 +71,8 @@ class LogcatPanelConfigTest {
           'filter': 'package:mine',
           'isSoftWrap': false
         }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
       .isEqualTo(Device.createPhysical("HT85F1A00630", false, "11", 30, "Google", "Pixel 2"))
@@ -80,7 +80,8 @@ class LogcatPanelConfigTest {
 
   @Test
   fun restoreDeviceStateFromPreviousVersion_emulator() {
-    val state = """
+    val state =
+      """
       {
         'device': {
           'serialNumber': 'emulator-5554',
@@ -100,7 +101,8 @@ class LogcatPanelConfigTest {
         'filter': 'package:mine',
         'isSoftWrap': false
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
       .isEqualTo(Device.createEmulator("emulator-5554", false, "11", 30, "Pixel_4_API_30"))
@@ -108,7 +110,8 @@ class LogcatPanelConfigTest {
 
   @Test
   fun restoreDeviceStateFromPreviousVersion_intsAsString() {
-    val state = """
+    val state =
+      """
       {
         'device': {
           'deviceId': 'HT85F1A00630',
@@ -125,7 +128,8 @@ class LogcatPanelConfigTest {
         },
         'filter': 'tag:ActivityManager ',
         'isSoftWrap': false
-      }    """.trimIndent()
+      }    """
+        .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
       .isEqualTo(Device.createPhysical("HT85F1A00630", false, "11", 30, "Google", "Pixel 2"))
@@ -133,7 +137,8 @@ class LogcatPanelConfigTest {
 
   @Test
   fun deserialize_missingModel() {
-    val state = """{
+    val state =
+      """{
       "device": {
         "deviceId": "0A091FDD4002XX",
         "name": "Google Pixel 5",
@@ -148,12 +153,15 @@ class LogcatPanelConfigTest {
       },
       "filter": "name:\"My App\" package:mine",
       "isSoftWrap": false
-    }""".trimIndent()
+    }"""
+        .trimIndent()
 
     assertThat(LogcatPanelConfig.fromJson(state)?.device)
-      .isEqualTo(Device.createPhysical("0A091FDD4002XX", false, "12", 32, "Google", "Pixel 5").copy(model = ""))
+      .isEqualTo(
+        Device.createPhysical("0A091FDD4002XX", false, "12", 32, "Google", "Pixel 5")
+          .copy(model = "")
+      )
   }
-
 }
 
 private fun logcatPanelConfig(

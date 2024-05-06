@@ -16,12 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.AndroidXConstants
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL
-import com.android.SdkConstants.ATTR_ORIENTATION
-import com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
-import com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END
-import com.android.SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.google.common.collect.ImmutableList

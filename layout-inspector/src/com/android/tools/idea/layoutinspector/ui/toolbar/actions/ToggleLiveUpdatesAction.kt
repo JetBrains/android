@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_ME
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -33,9 +34,11 @@ import javax.swing.JComponent
 class ToggleLiveUpdatesAction(
   private val layoutInspector: LayoutInspector,
 ) :
-  ToggleAction({ "Live Updates" }, StudioIcons.LayoutInspector.LIVE_UPDATES),
+  ToggleAction({ "Live Updates" }, StudioIcons.LayoutInspector.Toolbar.LIVE_UPDATES),
   TooltipDescriptionProvider,
   TooltipLinkProvider {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     val currentClient = client(event)

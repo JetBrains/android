@@ -56,6 +56,7 @@ class LintModelSnapshotComparisonTest : SnapshotComparisonTest {
   @JvmField @Parameterized.Parameter var testProjectName: TestProjectDef? = null
 
   companion object {
+    @Suppress("unused")
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testProjects(): Collection<*> =

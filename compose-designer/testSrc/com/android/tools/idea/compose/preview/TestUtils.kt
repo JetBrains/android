@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.rendering.RenderLogger
@@ -34,9 +33,11 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.suspendCancellableCoroutine
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UMethod
+import kotlin.coroutines.resume
 
 /**
  * Relative paths to some useful files in the SimpleComposeApplication (
@@ -102,12 +103,15 @@ internal fun getRepresentationForFile(
 }
 
 /** Suspendable version of [DumbService.waitForSmartMode]. */
-suspend fun waitForSmartMode(project: Project, logger: Logger? = null) {
-  val dumbService = DumbService.getInstance(project)
-  logger?.let { if (dumbService.isDumb) it.info("waitForSmartMode: Waiting") }
-  delayUntilCondition(500) { !dumbService.isDumb }
-  logger?.info("waitForSmartMode: ${dumbService.isDumb}")
-}
+suspend fun waitForSmartMode(project: Project, logger: Logger? = null) =
+  suspendCancellableCoroutine<Unit> {
+    val dumbService = DumbService.getInstance(project)
+    dumbService.runWhenSmart {
+      logger?.info("waitForSmartMode: ${dumbService.isDumb}")
+      it.resume(Unit)
+    }
+    logger?.let { if (dumbService.isDumb) it.info("waitForSmartMode: Waiting") }
+  }
 
 internal data class DebugStatus(
   val status: ComposePreviewManager.Status,

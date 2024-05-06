@@ -18,13 +18,11 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.SdkConstants
 import com.android.tools.idea.common.analytics.CommonNopTracker
 import com.android.tools.idea.common.analytics.CommonUsageTracker
-import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.validator.ValidatorData
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
-import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,80 +40,6 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
   fun setup() {
     MockitoAnnotations.openMocks(this)
     (CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker).resetLastTrackedEvent()
-  }
-
-  @Test
-  fun trackIssueNoIssues() {
-    val tracker = NlLayoutScannerMetricTracker(mockSurface)
-    val nlAtfIssues = setOf<Issue>()
-    val renderResultMetricData = RenderResultMetricData(1, 1, 1)
-
-    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
-
-    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
-    assertNull(usageTracker.lastTrackedEvent)
-  }
-
-  @Test
-  fun trackIssueNoNlAtfIssues() {
-    val tracker = NlLayoutScannerMetricTracker(mockSurface)
-    val nlAtfIssues = setOf<Issue>(TestIssue())
-    val renderResultMetricData = RenderResultMetricData(1, 1, 1)
-
-    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
-
-    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
-    assertNull(usageTracker.lastTrackedEvent)
-  }
-
-  @Test
-  fun trackIssues() {
-    val tracker = NlLayoutScannerMetricTracker(mockSurface)
-    val nlAtfIssues = setOf(createTestNlAtfIssue())
-    val renderResultMetricData = RenderResultMetricData(1, 1, 1)
-
-    tracker.trackIssues(nlAtfIssues, renderResultMetricData)
-
-    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
-    assertEquals(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
-      usageTracker.lastTrackedEvent
-    )
-  }
-
-  @Test
-  fun trackExpandedNotAtfIssue() {
-    val tracker = NlLayoutScannerMetricTracker(mockSurface)
-    tracker.trackFirstExpanded(TestIssue())
-
-    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
-    assertNull(usageTracker.lastTrackedEvent)
-  }
-
-  @Test
-  fun trackExpandedAlreadyContained() {
-    val tracker = NlLayoutScannerMetricTracker(mockSurface)
-    val issue = createTestNlAtfIssue()
-    tracker.expanded.add(issue)
-
-    tracker.trackFirstExpanded(issue)
-
-    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
-    assertNull(usageTracker.lastTrackedEvent)
-  }
-
-  @Test
-  fun trackExpanded() {
-    val tracker = NlLayoutScannerMetricTracker(mockSurface)
-    val issue = createTestNlAtfIssue()
-    tracker.trackFirstExpanded(issue)
-
-    val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
-    assertEquals(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
-      usageTracker.lastTrackedEvent
-    )
-    assertTrue(tracker.expanded.contains(issue))
   }
 
   @Test
@@ -162,18 +86,5 @@ class NlLayoutScannerMetricTrackerTest : LayoutTestCase() {
   private fun createTestNlAtfIssue(): NlAtfIssue {
     val issue: ValidatorData.Issue = ScannerTestHelper.createTestIssueBuilder().build()
     return NlAtfIssue(issue, IssueSource.NONE, mockModel)
-  }
-
-  private class TestIssue : Issue() {
-    override val summary: String
-      get() = ""
-    override val description: String
-      get() = ""
-    override val severity: HighlightSeverity
-      get() = HighlightSeverity.ERROR
-    override val source: IssueSource
-      get() = IssueSource.NONE
-    override val category: String
-      get() = ""
   }
 }

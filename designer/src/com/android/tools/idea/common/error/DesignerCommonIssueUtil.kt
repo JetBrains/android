@@ -30,7 +30,7 @@ class SceneViewIssueNodeVisitor(private val sceneView: SceneView) : TreeVisitor 
       return TreeVisitor.Action.CONTINUE
     }
     val file = sceneView.sceneManager.model.virtualFile
-    if (node.issue.source.file == file) {
+    if (node.issue.source.files.contains(file)) {
       return TreeVisitor.Action.INTERRUPT
     }
     return TreeVisitor.Action.CONTINUE

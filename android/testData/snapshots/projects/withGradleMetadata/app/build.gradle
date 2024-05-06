@@ -6,4 +6,6 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2"
+    // Add this dependency to check sources fetching.
+    implementation "org.gradle.sample:library:1.1"
 }

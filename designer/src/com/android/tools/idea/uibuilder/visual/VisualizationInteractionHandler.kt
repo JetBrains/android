@@ -30,17 +30,18 @@ import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.fileEditor.FileEditorManager
-import org.intellij.lang.annotations.JdkConstants
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
+import org.intellij.lang.annotations.JdkConstants
 
 class VisualizationInteractionHandler(
   private val surface: DesignSurface<*>,
@@ -130,7 +131,7 @@ class VisualizationInteractionHandler(
   }
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
-    surface.zoom(type, mouseX, mouseY)
+    surface.zoomable.zoom(type, mouseX, mouseY)
   }
 
   override fun hoverWhenNoInteraction(
@@ -221,6 +222,8 @@ private class RemoveCustomModelAction(
 
   override fun actionPerformed(e: AnActionEvent) =
     provider.removeCustomConfigurationAttributes(model)
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = enabled

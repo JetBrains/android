@@ -17,7 +17,6 @@ package com.android.tools.idea.layoutinspector.metrics
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
@@ -27,7 +26,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
@@ -42,25 +40,31 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProce
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class LegacyInspectorMetricsTest {
 
-  private val scheduler = VirtualTimeScheduler()
   private val windowIdsRetrievedLock = CountDownLatch(1)
 
   private val windowIds = mutableListOf<String>()
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+  private val unused = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+  private val timeoutScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
+  private val debuggerScope = TestScope(StandardTestDispatcher(TestCoroutineScheduler()))
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = Mockito.mock(LegacyTreeLoader::class.java)
-    whenever(loader.getAllWindowIds(ArgumentMatchers.any())).thenAnswer {
+    whenever(loader.getAllWindowIds(Mockito.any())).thenAnswer {
       windowIdsRetrievedLock.countDown()
       windowIds
     }
@@ -73,7 +77,9 @@ class LegacyInspectorMetricsTest {
         inspector.notificationModel,
         ListenerCollection.createWithDirectExecutor(),
         client.stats,
-        scheduler
+        unused,
+        timeoutScope,
+        debuggerScope
       )
     client
   }
@@ -136,7 +142,7 @@ class LegacyInspectorMetricsTest {
     windowIdsRetrievedLock.await()
 
     // Launch monitor will set a banner
-    scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    timeoutScope.testScheduler.advanceUntilIdle()
     val notificationModel = inspectorRule.notificationModel
     assertThat(notificationModel.notifications.single().message)
       .isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))

@@ -1,0 +1,22 @@
+// A graph showing the hierarchy of application resource repositories
+digraph {
+  node [shape=box, margin=0.2];
+
+  subgraph cluster_instance_hierarchy {
+    graph [style="dashed, rounded", label="Instances hierarchy", margin="16pt"];
+
+    AarResourceRepository [shape=record, label="AarResourceRepository||"]
+    ModuleResourceRepository [shape=record, label="ModuleResourceRepository||"]
+    ResourceFolderRepository [shape=record, label="ResourceFolderRepository||"]
+
+    AppResourceRepository -> ProjectResourceRepository
+    AppResourceRepository -> SampleDataResourceRepository
+    AppResourceRepository -> AarResourceRepository
+    AppResourceRepository -> PredefinedSampleDataResourceRepository
+
+    ProjectResourceRepository -> ModuleResourceRepository
+
+    ModuleResourceRepository -> DynamicValueResourceRepository
+    ModuleResourceRepository -> ResourceFolderRepository
+  }
+}

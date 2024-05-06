@@ -17,10 +17,6 @@ package com.android.tools.idea.compose.pickers.preview.enumsupport
 
 import com.android.SdkConstants
 import com.android.tools.compose.COMPOSE_UI_TOOLING_PREVIEW_PACKAGE
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceDesktopConfig
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceFoldableConfig
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferencePhoneConfig
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferenceTabletConfig
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -30,6 +26,10 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.preview.config.ReferenceDesktopConfig
+import com.android.tools.preview.config.ReferenceFoldableConfig
+import com.android.tools.preview.config.ReferencePhoneConfig
+import com.android.tools.preview.config.ReferenceTabletConfig
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.EdtRule

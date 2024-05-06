@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
-import com.android.tools.idea.vitals.ui.icons.VitalsIcons
 import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.icons.AllIcons
@@ -34,52 +33,56 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
 import icons.StudioIcons
+import icons.StudioIllustrations
 import java.awt.Graphics
 import java.time.Clock
 import javax.swing.JPanel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class VitalsTabProvider : AppInsightsTabProvider {
-  private val loggedOutErrorStateComponent = loggedOutErrorStateComponent()
   override val displayName = VITALS_KEY.displayName
 
   override val icon = StudioIcons.Avd.DEVICE_PLAY_STORE
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
     tabPanel.setComponent(placeholderContent())
-    val configManager = project.service<VitalsConfigurationService>().manager
-    val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
-    AndroidCoroutineScope(tabPanel, AndroidDispatchers.uiThread).launch {
-      configManager.configuration.collect { appInsightsModel ->
-        when (appInsightsModel) {
-          AppInsightsModel.Unauthenticated -> {
-            tracker.logZeroState(
-              AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
-                .apply {
-                  emptyState =
-                    AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
-                      .NO_LOGIN
-                }
-                .build()
-            )
-            tabPanel.setComponent(loggedOutErrorStateComponent)
-          }
-          is AppInsightsModel.Authenticated -> {
-            tabPanel.setComponent(
-              VitalsTab(
-                appInsightsModel.controller,
-                project,
-                Clock.systemDefaultZone(),
-                AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+    AndroidCoroutineScope(tabPanel, AndroidDispatchers.diskIoThread).launch {
+      val configManager = project.service<VitalsConfigurationService>().manager
+      val tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+      withContext(AndroidDispatchers.uiThread) {
+        configManager.configuration.collect { appInsightsModel ->
+          when (appInsightsModel) {
+            AppInsightsModel.Unauthenticated -> {
+              tracker.logZeroState(
+                AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.newBuilder()
+                  .apply {
+                    emptyState =
+                      AppQualityInsightsUsageEvent.AppQualityInsightsZeroStateDetails.EmptyState
+                        .NO_LOGIN
+                  }
+                  .build()
               )
-            )
+              tabPanel.setComponent(loggedOutErrorStateComponent())
+            }
+            is AppInsightsModel.Authenticated -> {
+              tabPanel.setComponent(
+                VitalsTab(
+                  appInsightsModel.controller,
+                  project,
+                  Clock.systemDefaultZone(),
+                  AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+                )
+              )
+            }
+            AppInsightsModel.Uninitialized -> {}
           }
         }
       }
     }
   }
 
-  override fun isApplicable() = StudioFlags.PLAY_VITALS_ENABLED.get()
+  override fun isApplicable(): Boolean = StudioFlags.PLAY_VITALS_ENABLED.get()
 
   override fun getConfigurationManager(project: Project) =
     project.service<VitalsConfigurationService>().manager
@@ -113,7 +116,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
         }
         .apply {
           appendLine(
-            VitalsIcons.PLAY_CONSOLE_ICON,
+            StudioIllustrations.Common.PLAY_CONSOLE,
             "",
             SimpleTextAttributes.REGULAR_ATTRIBUTES,
             null

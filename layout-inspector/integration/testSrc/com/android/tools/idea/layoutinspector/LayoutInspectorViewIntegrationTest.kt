@@ -51,17 +51,24 @@ class LayoutInspectorViewIntegrationTest {
     system.installRepo(MavenRepo("tools/adt/idea/layout-inspector/view_project_deps.manifest"))
     system.runAdb { adb ->
       system.runEmulator { emulator ->
-        system.runStudio(project).use { studio ->
+        emulator.waitForBoot()
+        adb.waitForDevice(emulator)
+
+        system.runStudio(project) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
+
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
+
+          studio.waitForProjectInit()
+
           studio.executeAction("Run")
           val ideaLog = system.installation.ideaLog
           ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for " +
               "launched app: com\\.example\\.emptyapplication",
-            600,
+            300,
             TimeUnit.SECONDS
           )
           adb.runCommand(
@@ -70,7 +77,6 @@ class LayoutInspectorViewIntegrationTest {
             "put global debug_view_attributes 1",
             emulator = emulator
           )
-          emulator.waitForBoot()
           studio.executeAction("Android.RunLayoutInspector")
           ideaLog.waitForMatchingLine(
             ".*g:1 Model Updated for process: com.example.emptyapplication",

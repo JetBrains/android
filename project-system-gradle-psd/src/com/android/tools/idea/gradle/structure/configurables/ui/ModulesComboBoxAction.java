@@ -21,9 +21,10 @@ import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConf
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.android.tools.idea.gradle.util.GradleUtil;
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.ui.LabeledComboBoxAction;
 import com.android.utils.HtmlBuilder;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -49,6 +50,12 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
     PsModule selectedModule = myBasePerspective.getSelectedModule();
     presentation.setIcon(selectedModule != null ? selectedModule.getIcon() : ANDROID_MODULE);
     presentation.setText(selectedModule != null ? selectedModule.getName() : null);
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 
   @Override
@@ -88,7 +95,7 @@ public class ModulesComboBoxAction extends LabeledComboBoxAction {
       return module.getName();
     }
     else {
-      String parentPath = GradleUtil.getParentModulePath(gradlePath);
+      String parentPath = GradleProjectSystemUtil.getParentModulePath(gradlePath);
       return new HtmlBuilder()
         .openHtmlBody()
         .add(parentPath)

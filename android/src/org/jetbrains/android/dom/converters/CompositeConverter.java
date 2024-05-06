@@ -18,11 +18,12 @@ package org.jetbrains.android.dom.converters;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import net.jcip.annotations.NotThreadSafe;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Composite version of {@link ResolvingConverter}.
@@ -40,7 +41,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
 
   @Override
   @NotNull
-  public Collection<String> getVariants(@NotNull ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     List<String> variants = new ArrayList<>();
     for (ResolvingConverter<String> converter : myConverters) {
       variants.addAll(converter.getVariants(context));
@@ -49,7 +50,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
   }
 
   @Override
-  public String fromString(@Nullable String s, @NotNull ConvertContext context) {
+  public String fromString(@Nullable String s, ConvertContext context) {
     // Returning non-null value from this method means that the value is valid.
     // To ensure that, we check all the containing converters to make sure at least
     // one of those recognized passed value.
@@ -64,7 +65,7 @@ public class CompositeConverter extends ResolvingConverter<String> {
   }
 
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 

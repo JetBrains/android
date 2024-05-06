@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinSourceDependency
 import org.jetbrains.kotlin.idea.gradle.configuration.kotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinProjectArtifactDependencyResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinProjectModuleId
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 
@@ -94,14 +95,13 @@ internal class KotlinAndroidProjectArtifactDependencyResolver(
     mainSourceSet: String
   ): Set<IdeaKotlinSourceDependency> {
     val sourceSetMap = projectNode.getUserData(GradleProjectResolver.RESOLVED_SOURCE_SETS).orEmpty()
-    // IdeaKotlinProjectCoordinates.toString is buildId + projectPath
-    val id = dependency.coordinates.toString() + ":" + mainSourceSet
+    val sourceSetDataNode = sourceSetMap[
+      KotlinProjectModuleId(dependency.coordinates).plus(mainSourceSet).toString()
+    ]?.first ?: return emptySet()
 
-    val sourceSetDataNode = sourceSetMap[id]?.first ?: return emptySet()
-    val sourceSet = sourceSetMap[id]?.second ?: return emptySet()
     val sourceSets = sourceSetDataNode.kotlinSourceSetData?.sourceSetInfo?.dependsOn.orEmpty().mapNotNull { dependsOnId ->
       sourceSetMap[dependsOnId]?.second?.name
-    } + sourceSet.name
+    } + mainSourceSet
 
     return dependency.resolved(sourceSets)
   }

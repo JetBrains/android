@@ -18,6 +18,7 @@ package com.android.tools.screensharing;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+@SuppressWarnings("unused") // Called through JNI.
 public class ThrowableHelper {
   /**
    * Returns the class name and a backtrace of the stack of the given throwable as a string.

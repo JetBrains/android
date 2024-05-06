@@ -75,6 +75,12 @@ class TraceProcessorModelTest {
 
     val modelBuilder = TraceProcessorModel.Builder()
     modelBuilder.addProcessMetadata(processProtoBuilder.build())
+    // Set the thread running for the entire recording to simplify the verification of `TraceEventModel.cpuTimeUs`.
+    // The RUNNING state is implied as the start state, so it's not encoded here.
+    val schedProtoBuilder = TraceProcessor.SchedulingEventsResult.newBuilder().setNumCores(4)
+    schedProtoBuilder.addSchedulingEvent(1, 1, 0, 1000, 17000,
+                                         TraceProcessor.SchedulingEventsResult.SchedulingEvent.SchedulingState.SLEEPING)
+    modelBuilder.addSchedulingEvents(schedProtoBuilder.build())
     modelBuilder.addTraceEvents(traceProtoBuilder.build())
     val model = modelBuilder.build()
 
@@ -433,6 +439,45 @@ class TraceProcessorModelTest {
       },
       displayPhase
     ))
+  }
+
+  @Test
+  fun `running state in a target range`() {
+    // Each of the input triple list includes thread state, start time in microseconds, and end time in microseconds.
+    fun verify(startUs: Long, endUs: Long, scheduling: List<Triple<ThreadState, Long, Long>>, expectedUs: Long) =
+      assertThat(TraceProcessorModel.Builder.getRunningTimeUsInRange(
+        startUs, endUs,
+        scheduling.map {
+          SchedulingEventModel(state = it.first,
+                               startTimestampUs = it.second,
+                               endTimestampUs = it.third,
+                               // The following fields are irrelevant to this test.
+                               durationUs = 0L, cpuTimeUs = 0L, processId = 0, threadId = 0, core = 0)
+        })).isEqualTo(expectedUs)
+
+    val scheduling = listOf(
+      Triple(ThreadState.RUNNING_CAPTURED, 1L, 5L),
+      Triple(ThreadState.RUNNABLE_CAPTURED, 6L, 9L),
+      Triple(ThreadState.RUNNING, 11L, 15L),
+    )
+
+    verify(0, 1, scheduling, 0)
+    verify(0, 6, scheduling, 4)
+    verify(0, 10, scheduling, 4)
+    verify(0, 3, scheduling, 2)
+    verify(4, 10, scheduling, 1)
+    verify(4, 12, scheduling, 2)
+    verify(5, 6, scheduling, 0)
+    verify(5, 10, scheduling, 0)
+    verify(9, 10, scheduling, 0)
+    verify(9, 11, scheduling, 0)
+    verify(10, 11, scheduling, 0)
+    verify(11, 13, scheduling, 2)
+    verify(11, 20, scheduling, 4)
+    verify(14, 20, scheduling, 1)
+    verify(15, 20, scheduling, 0)
+    verify(16, 20, scheduling, 0)
+    verify(100, 110, scheduling, 0)
   }
 
   private fun TraceProcessor.ProcessMetadataResult.Builder.addProcess(id: Long, name: String)

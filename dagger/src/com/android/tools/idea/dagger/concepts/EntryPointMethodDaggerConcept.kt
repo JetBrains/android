@@ -19,9 +19,12 @@ import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerAnnotation
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
+import com.android.tools.idea.dagger.index.psiwrappers.hasAnnotation
+import com.android.tools.idea.dagger.index.readClassId
+import com.android.tools.idea.dagger.index.writeClassId
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.kotlin.hasAnnotation
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
@@ -32,6 +35,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
@@ -67,39 +71,38 @@ private object EntryPointMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodW
     if (wrapper.getIsConstructor() || wrapper.getParameters().any()) return
 
     val containingClass = wrapper.getContainingClass() ?: return
-    if (!containingClass.getIsAnnotatedWith(DaggerAnnotations.ENTRY_POINT)) return
+    if (!containingClass.getIsAnnotatedWith(DaggerAnnotation.ENTRY_POINT)) return
 
     // If the method doesn't have a defined return type, then we don't need to index it - an
     // entry point function is abstract so type inference can't be used to figure out the intended
     // type; any function without a specified return can't be an entry point function.
     val methodReturnTypeSimpleName = wrapper.getReturnType()?.getSimpleName() ?: return
 
-    val classFqName = containingClass.getFqName()
+    val classId = containingClass.getClassId()
     val methodSimpleName = wrapper.getSimpleName()
 
     indexEntries.addIndexValue(
       methodReturnTypeSimpleName,
-      EntryPointMethodIndexValue(classFqName, methodSimpleName)
+      EntryPointMethodIndexValue(classId, methodSimpleName)
     )
   }
 }
 
 @VisibleForTesting
-internal data class EntryPointMethodIndexValue(
-  val classFqName: String,
-  val methodSimpleName: String
-) : IndexValue() {
+internal data class EntryPointMethodIndexValue(val classId: ClassId, val methodSimpleName: String) :
+  IndexValue() {
   override val dataType = Reader.supportedType
 
   override fun save(output: DataOutput) {
-    output.writeString(classFqName)
+    output.writeClassId(classId)
     output.writeString(methodSimpleName)
   }
 
   object Reader : IndexValue.Reader {
     override val supportedType = DataType.ENTRY_POINT_METHOD
+
     override fun read(input: DataInput) =
-      EntryPointMethodIndexValue(input.readString(), input.readString())
+      EntryPointMethodIndexValue(input.readClassId(), input.readString())
   }
 
   companion object {
@@ -108,7 +111,7 @@ internal data class EntryPointMethodIndexValue(
         psiElement !is KtConstructor<*> &&
           !psiElement.hasBody() &&
           psiElement.valueParameters.isEmpty() &&
-          psiElement.containingClassOrObject?.hasAnnotation(DaggerAnnotations.ENTRY_POINT) == true
+          psiElement.containingClassOrObject?.hasAnnotation(DaggerAnnotation.ENTRY_POINT) == true
       ) {
         EntryPointMethodDaggerElement(psiElement)
       } else {
@@ -120,7 +123,7 @@ internal data class EntryPointMethodIndexValue(
         !psiElement.isConstructor &&
           psiElement.body == null &&
           !psiElement.hasParameters() &&
-          psiElement.containingClass?.hasAnnotation(DaggerAnnotations.ENTRY_POINT) == true
+          psiElement.containingClass?.hasAnnotation(DaggerAnnotation.ENTRY_POINT) == true
       ) {
         EntryPointMethodDaggerElement(psiElement)
       } else {
@@ -136,7 +139,8 @@ internal data class EntryPointMethodIndexValue(
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
-      JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
+      JavaPsiFacade.getInstance(project).findClass(classId.asFqNameString(), scope)
+        ?: return emptyList()
     return psiClass.methods.filter { it.name == methodSimpleName }
   }
 
@@ -149,6 +153,7 @@ internal data class EntryPointMethodDaggerElement(
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD

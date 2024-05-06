@@ -17,8 +17,8 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.devicemanager.CountDownLatchAssert;
-import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
+import com.android.tools.idea.concurrency.CountDownLatchAssert;
+import com.android.tools.idea.concurrency.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -27,7 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
@@ -47,7 +46,7 @@ public final class PhysicalDeviceChangeListenerTest {
     listener.deviceChanged(myDevice, IDevice.CHANGE_PROFILEABLE_CLIENT_LIST);
 
     // Assert
-    Mockito.verify(myModel, Mockito.never()).addOrSet(ArgumentMatchers.any());
+    Mockito.verify(myModel, Mockito.never()).addOrSet(Mockito.any());
   }
 
   @Test

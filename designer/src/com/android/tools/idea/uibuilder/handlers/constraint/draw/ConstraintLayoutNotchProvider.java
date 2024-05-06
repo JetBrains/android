@@ -20,9 +20,10 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.google.common.collect.ImmutableList;
-import java.util.ArrayList;
 import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 /**
  * Supply notches behavior to ConstraintLayout

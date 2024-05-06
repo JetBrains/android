@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_PLAY_STORE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.CHROMEOS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.PLAY_STORE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
+import static com.android.sdklib.SystemImageTags.ANDROID_TV_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG;
+import static com.android.sdklib.SystemImageTags.AUTOMOTIVE_TAG;
+import static com.android.sdklib.SystemImageTags.CHROMEOS_TAG;
+import static com.android.sdklib.SystemImageTags.DESKTOP_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_X86_TAG;
+import static com.android.sdklib.SystemImageTags.GOOGLE_TV_TAG;
+import static com.android.sdklib.SystemImageTags.PLAY_STORE_TAG;
+import static com.android.sdklib.SystemImageTags.WEAR_TAG;
 
 import com.android.annotations.NonNull;
 import com.android.repository.Revision;
@@ -34,6 +34,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.sdklib.repository.targets.PlatformTarget;
@@ -199,7 +200,7 @@ public final class SystemImageDescription {
       if (details instanceof DetailsTypes.AddonDetailsType) {
         tag = ((DetailsTypes.AddonDetailsType)details).getTag();
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
-        if (SystemImage.GOOGLE_APIS_X86_TAG.equals(tag)) {
+        if (SystemImageTags.GOOGLE_APIS_X86_TAG.equals(tag)) {
           abi = "x86";
         }
       }
@@ -209,7 +210,7 @@ public final class SystemImageDescription {
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
         abi = ((DetailsTypes.SysImgDetailsType)details).getAbi();
       }
-      myTag = tag != null ? tag : SystemImage.DEFAULT_TAG;
+      myTag = tag != null ? tag : SystemImageTags.DEFAULT_TAG;
       myVendor = vendor;
       myAbi = abi;
     }
@@ -259,12 +260,12 @@ public final class SystemImageDescription {
 
     @Override
     public boolean hasPlayStore() {
-      if (SystemImage.PLAY_STORE_TAG.equals(myTag)) {
+      if (SystemImageTags.PLAY_STORE_TAG.equals(getTag()) || AUTOMOTIVE_PLAY_STORE_TAG.equals(getTag())) {
         return true;
       }
       // A Wear system image has Play Store if it is
       // a recent API version and is NOT Wear-for-China.
-      if (SystemImage.WEAR_TAG.equals(getTag()) &&
+      if (SystemImageTags.WEAR_TAG.equals(getTag()) &&
           myAndroidVersion.getApiLevel() >= AndroidVersion.MIN_RECOMMENDED_WEAR_API &&
           !myRemotePackage.getPath().contains(WEAR_CN_DIRECTORY)) {
         return true;

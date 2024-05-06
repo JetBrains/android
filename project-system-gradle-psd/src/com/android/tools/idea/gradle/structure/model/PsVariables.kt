@@ -55,6 +55,11 @@ open class PsVariables (
     getContainer(parent)!!.findProperty(key).delete()
   }
 
+  override fun checkIfCanAddNew(key: String): String? =
+    if (key.indexOf(".") != -1) "Name contains dot"
+    else
+      super.checkIfCanAddNew(key)
+
   override fun <ValueT : Any> getAvailableVariablesFor(
     property: ModelPropertyContext<ValueT>
   ): List<Annotated<ParsedValue.Set.Parsed<ValueT>>> =

@@ -38,12 +38,18 @@ import java.util.concurrent.TimeUnit
  */
 object CaptureDataSeries {
   @JvmStatic
+  fun ofLegacyAllocationInfos(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
+    of({ getAllocationInfosForSession(client, session, it) },
+       { it.startTime }, { it.endTime },
+       { LegacyAllocationCaptureObject(client, session, it, tracker) },
+       { durUs, _, entry -> CaptureDurationData(durUs, false, false, entry, LegacyAllocationCaptureObject::class.java)})
+
+  @JvmStatic
   fun ofAllocationInfos(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =
     of({ getAllocationInfosForSession(client, session, it) },
        { it.startTime }, { it.endTime },
-       { if (it.legacy) LegacyAllocationCaptureObject(client, session, it, tracker)
-         else LiveAllocationCaptureObject(client, session, it.startTime, null, stage) },
-       { durUs, info, entry -> CaptureDurationData(durUs, !info.legacy, !info.legacy, entry)})
+       { LiveAllocationCaptureObject(client, session, it.startTime, null, stage) },
+       { durUs, _, entry -> CaptureDurationData(durUs, true, true, entry, LiveAllocationCaptureObject::class.java)})
 
   @JvmStatic
   fun ofHeapDumpSamples(client: ProfilerClient, session: Common.Session, tracker: FeatureTracker, stage: BaseMemoryProfilerStage) =

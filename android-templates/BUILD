@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.templates",
     srcs = ["src"],
     iml_files = ["intellij.android.templates.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -33,33 +34,22 @@ iml_module(
     name = "intellij.android.templates.tests",
     iml_files = ["intellij.android.templates.tests.iml"],
     split_test_targets = {
-        "TemplateTest": {
-            "tags": [
-                "cpu:3",
-                "no_test_mac",
-                "no_test_windows",  # b/199156040, timeouts seen
-            ],
-            "shard_count": 11,
-            "data": [
-                "//prebuilts/studio/sdk:cmake",
-                "//prebuilts/studio/sdk:ndk",
-                "//tools/data-binding:data_binding_runtime.zip",
-            ],
-            "test_filter": "com.android.tools.idea.templates.TemplateTest",
-        },
         "TemplateDiffTest": {
-            "shard_count": 1,
             "data": [
                 "//tools/adt/idea/android/testData",
+                "//prebuilts/studio/sdk:cmake",  # Needed for the C++ templates in TemplateDiffTest
+                "//prebuilts/studio/sdk:ndk",  # Needed for the C++ templates in TemplateDiffTest
+                "//tools/data-binding:data_binding_runtime.zip",  # Needed for some templates that use view binding in TemplateDiffTest
             ],
             "test_filter": "com.android.tools.idea.templates.diff.TemplateDiffTest",
+        },
+        "KotlinBomPlatformDependencyTest": {
+            "test_filter": "com.android.tools.idea.templates.KotlinBomPlatformDependencyTest",
         },
         "other": {
             "data": [
                 "//tools/adt/idea/android/testData",
             ],
-            # TODO(b/234749894) restore after fixing flakes
-            "tags": ["no_test_windows"],
         },
     },
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
@@ -118,6 +108,7 @@ maven_repository(
         "@maven//:androidx.activity.activity-compose_1.7.2",
         "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
         "@maven//:androidx.activity.activity-ktx_1.7.0",
+        "@maven//:androidx.activity.activity-ktx_1.8.0",
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
         "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
@@ -161,9 +152,9 @@ maven_repository(
         "@maven//:androidx.core.core-splashscreen_1.0.1",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
-        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",  # Needed for TemplateTest#testNewEmptyComposeForTVActivity and TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0",  # Needed for TemplateDiffTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta04",  # Necessary for Compose for TV.
+        "@maven//:androidx.fragment.fragment-ktx_1.5.6",  # Needed for TemplateDiffTest#testNewViewModelFragmentWithKotlin (viewModelFragmentRecipe.kt)
         "@maven//:androidx.games.games-activity_1.2.2",
         "@maven//:androidx.leanback.leanback_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
@@ -195,7 +186,9 @@ maven_repository(
         "@maven//:androidx.test.ext.junit_1.1.5",
         "@maven//:androidx.tv.tv-foundation_1.0.0-alpha07",
         "@maven//:androidx.tv.tv-material_1.0.0-alpha07",
-        "@maven//:androidx.wear.compose.compose-material_1.1.2",
+        "@maven//:androidx.wear.compose.compose-material_1.2.1",
+        "@maven//:androidx.wear.compose.compose-navigation_1.2.1",
+        "@maven//:androidx.wear.compose.compose-ui-tooling_1.2.1",
         "@maven//:androidx.wear.tiles.tiles-material_1.2.0-alpha05",
         "@maven//:androidx.wear.tiles.tiles_1.2.0-alpha05",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
@@ -211,6 +204,7 @@ maven_repository(
         "@maven//:com.google.android.horologist.horologist-compose-tools_0.4.8",
         "@maven//:com.google.android.horologist.horologist-tiles_0.4.8",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
+        "@maven//:com.google.android.material.material_1.10.0",
         "@maven//:com.google.android.material.material_1.5.0",
         "@maven//:com.google.android.material.material_1.9.0",
         "@maven//:com.google.android.support.wearable_2.9.0",
@@ -229,20 +223,25 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.20",  # Needed for KotlinBomPlatformDependencyTest
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",  # Needed for KotlinBomPlatformDependencyTest
         "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.22",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",

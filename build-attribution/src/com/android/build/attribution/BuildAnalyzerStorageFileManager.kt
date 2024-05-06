@@ -80,7 +80,7 @@ class BuildAnalyzerStorageFileManager(
    * @exception IOException
    */
   @Slow
-  fun getHistoricBuildResultByID(buildSessionID: String): BuildAnalysisResults {
+  fun getHistoricBuildResultByID(buildSessionID: String): HistoricBuildAnalysisResults {
     try {
       val stream = FileInputStream(getFileFromBuildID(buildSessionID))
       val message = BuildAnalysisResultsMessage.parseDelimitedFrom(stream)

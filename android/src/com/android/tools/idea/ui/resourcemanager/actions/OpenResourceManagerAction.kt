@@ -21,7 +21,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -30,22 +29,17 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 internal class OpenResourceManagerAction : DumbAwareAction() {
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
   override fun update(e: AnActionEvent) {
     val project = e.project
-    e.presentation.isEnabledAndVisible = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+    e.presentation.isEnabledAndVisible = project != null
+                                         && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
+                                         && ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) != null
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
-    val project = e.getData(CommonDataKeys.PROJECT)
-    if (project != null) {
-      showResourceExplorer(project)
-    }
-  }
-
-  private fun showResourceExplorer(project: Project) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)!!
-    toolWindow.show(null)
+    val project = e.getData(CommonDataKeys.PROJECT) ?: return
+    ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)?.show(null)
   }
 }

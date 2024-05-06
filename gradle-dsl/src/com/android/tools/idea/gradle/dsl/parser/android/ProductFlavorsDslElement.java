@@ -15,23 +15,31 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
+import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR;
+
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<ProductFlavorsDslElement> PRODUCT_FLAVORS =
-    new PropertiesElementDescription<>("productFlavors", ProductFlavorsDslElement.class, ProductFlavorsDslElement::new);
+    new PropertiesElementDescription<>("productFlavors",
+                                       ProductFlavorsDslElement.class,
+                                       ProductFlavorsDslElement::new,
+                                       ProductFlavorsDslElementSchema::new);
 
   @Override
   public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
-    return ProductFlavorDslElement.PRODUCT_FLAVOR;
+    return PRODUCT_FLAVOR;
   }
 
   @Override
@@ -52,5 +60,13 @@ public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollection
       }
     }
     return result;
+  }
+
+  public static final class ProductFlavorsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @Override
+    @Nullable
+    public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
+      return PRODUCT_FLAVOR;
+    }
   }
 }

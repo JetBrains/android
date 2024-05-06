@@ -22,12 +22,15 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.MavenRepositories
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility
+import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginCompatibility
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.nio.file.Files
 import com.android.ide.common.gradle.Version as GradleVersion
@@ -94,6 +97,40 @@ object AgpVersions {
   @Slow
   fun getAvailableVersions(): Set<AgpVersion> {
     return IdeGoogleMavenRepository.getAgpVersions().union(getDevelopmentLocalRepoVersions())
+  }
+
+  /**
+   * Returns the list of versions to show in the new project wizard for development versions of Android Studio.
+   *
+   * The returned set contains latest version from each series which is supported by Studio, in descending order.
+   *
+   * Should not be called on the UI thread as [getAvailableVersions] may hit the network and do file I/O to check for new versions.
+   */
+  @Slow
+  fun getNewProjectWizardVersions(): Set<AgpVersion> {
+    return getNewProjectWizardVersions(latestKnown = this.latestKnown, availableVersions = getAvailableVersions())
+  }
+
+  @VisibleForTesting
+  fun getNewProjectWizardVersions(latestKnown: AgpVersion, availableVersions: Set<AgpVersion>): Set<AgpVersion> {
+    val include = setOf(AndroidGradlePluginCompatibility.COMPATIBLE, AndroidGradlePluginCompatibility.DEPRECATED)
+    var minOfCurrentSeries = AgpVersion(Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE)
+    val recommended = mutableListOf<AgpVersion>()
+    availableVersions.sortedDescending().forEach { version ->
+      // Go from latest first, and include latest from each series that is compatible
+      if (version < minOfCurrentSeries &&
+          include.contains(computeAndroidGradlePluginCompatibility(version, latestKnown)) ) {
+        minOfCurrentSeries = if (version.isSnapshot) {
+          // Treat -dev as special case, so also include the latest release version from the current series, if present.
+          version
+        } else {
+          // Exclude all older versions from the current series
+          AgpVersion.parse(version.toString().substringBefore("-") + "-alpha01")
+        }
+        recommended.add(version)
+      }
+    }
+    return recommended.toSet()
   }
 
   @Slow

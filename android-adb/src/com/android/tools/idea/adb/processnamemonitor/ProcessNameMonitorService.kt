@@ -40,6 +40,8 @@ import kotlinx.coroutines.flow.Flow
 import java.nio.file.Path
 import java.nio.file.Paths
 
+private const val LOGCAT_PROTO_SUPPORT_SDK = 35
+
 /** A trivial [ProcessNameMonitor] that delegates to [ProcessNameMonitorImpl] */
 internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor, Disposable {
   private val delegate = let {
@@ -48,8 +50,11 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
     val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
     val adbLogger = AndroidAdbLogger(thisLogger())
     val adbAdapter = AdbAdapterImpl(AdbService.getInstance().getDebugBridge(project))
+    val pollingIntervalMs = StudioFlags.PROCESS_NAME_TRACKER_AGENT_INTERVAL_MS.get()
+    // If Logcat Proto format is supported and enabled, we don't need to use an agent.
+    val shouldUseAgentForSdk: (Int) -> Boolean = { sdk -> sdk < LOGCAT_PROTO_SUPPORT_SDK || !StudioFlags.LOGCAT_PROTOBUF_ENABLED.get() }
     val trackerAgentConfig = when (StudioFlags.PROCESS_NAME_TRACKER_AGENT_ENABLE.get()) {
-      true -> AgentProcessTrackerConfig(getAgentPath(), StudioFlags.PROCESS_NAME_TRACKER_AGENT_INTERVAL_MS.get())
+      true -> AgentProcessTrackerConfig(getAgentPath(), pollingIntervalMs, shouldUseAgentForSdk)
       false -> null
     }
     val config = ProcessNameMonitor.Config(StudioFlags.PROCESS_NAME_MONITOR_MAX_RETENTION.get(), trackerAgentConfig)
@@ -71,13 +76,12 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
   }
 
   private fun getAgentPath(): Path {
-    return when  {
-      !IdeInfo.getInstance().isAndroidStudio -> {
-        AndroidProfilerDownloader.getInstance().getHostDir("plugins/android/$AGENT_RESOURCE_PROD").toPath()
-      }
+    return when {
+      !IdeInfo.getInstance().isAndroidStudio -> AndroidProfilerDownloader.getInstance()
+        .getHostDir("plugins/android/$AGENT_RESOURCE_PROD").toPath()
+
       StudioPathManager.isRunningFromSources() -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
       else -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
     }
-
   }
 }

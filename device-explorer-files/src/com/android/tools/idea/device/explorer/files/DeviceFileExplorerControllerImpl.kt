@@ -15,13 +15,21 @@
  */
 package com.android.tools.idea.device.explorer.files
 
+import com.android.adblib.ConnectedDevice
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
+import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
+import com.android.tools.idea.device.explorer.common.DeviceExplorerTab
+import com.android.tools.idea.device.explorer.common.DeviceExplorerTabController
+import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystem
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbPathUtil
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
@@ -29,6 +37,8 @@ import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.device.explorer.files.ui.TreeUtil
 import com.android.tools.idea.device.explorer.files.ui.TreeUtil.UpdateChildrenOps
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
+import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.utils.FileUtils
 import com.google.common.base.Stopwatch
 import com.google.common.base.Strings.emptyToNull
@@ -57,14 +67,17 @@ import com.intellij.ui.UIBundle
 import com.intellij.util.Alarm
 import com.intellij.util.ArrayUtil
 import com.intellij.util.ExceptionUtil
+import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.ide.PooledThreadExecutor
 import java.awt.datatransfer.StringSelection
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -92,7 +105,7 @@ class DeviceFileExplorerControllerImpl(
   private val view: DeviceFileExplorerView,
   private val fileManager: DeviceExplorerFileManager,
   private val fileOpener: FileOpener
-) : Disposable, DeviceFileExplorerController {
+) : Disposable, DeviceExplorerTabController {
 
   private val scope = AndroidCoroutineScope(this, uiThread)
   var showLoadingNodeDelayMillis = 200
@@ -107,6 +120,12 @@ class DeviceFileExplorerControllerImpl(
   private val transferringNodesAlarms = Alarm()
   private val loadingChildrenAlarms = Alarm()
   private var longRunningOperationTracker: LongRunningOperationTracker? = null
+  private val edtExecutor = FutureCallbackExecutor(EdtExecutorService.getInstance())
+  private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
+  private var isPackageFilterActive = DeviceExplorerSettings.getInstance().isPackageFilterActive
+  var packageNamesProvider = ProjectApplicationIdsProvider.getInstance(project)
+    @TestOnly set
+  override var controllerListener: DeviceExplorerControllerListener? = null
 
   init {
     Disposer.register(project, this)
@@ -130,15 +149,16 @@ class DeviceFileExplorerControllerImpl(
     view.showNoDeviceScreen()
   }
 
-  private suspend fun setActiveDevice(device: DeviceFileSystem) {
+  @VisibleForTesting
+  fun setActiveDevice(device: DeviceFileSystem) {
     cancelOrMoveToBackgroundPendingOperations()
-    updateActiveDeviceState(device)
+    scope.launch { updateActiveDeviceState(device) }
   }
 
   /** Updates the view and tree model to reflect the given device and state. */
   private suspend fun updateActiveDeviceState(device: DeviceFileSystem) {
     try {
-      val root = device.rootDirectory()
+      val root = if (isPackageFilterActive && packageNamesProvider.getPackageNames().isNotEmpty()) device.dataDirectory() else device.rootDirectory()
       val model = DefaultTreeModel(DeviceFileEntryNode(root))
       this.model.setDevice(device, model, DefaultTreeSelectionModel())
     } catch (t: Throwable) {
@@ -160,6 +180,12 @@ class DeviceFileExplorerControllerImpl(
       } else {
         longRunningOperationTracker!!.cancel()
       }
+    }
+  }
+
+  private suspend fun resetActiveDevice() {
+    model.activeDevice?.let {
+      setActiveDevice(it)
     }
   }
 
@@ -239,23 +265,43 @@ class DeviceFileExplorerControllerImpl(
     }
   }
 
+  private fun newDeviceFileSystem(handle: DeviceHandle?, connectedDevice: ConnectedDevice?): AdbDeviceFileSystem?  =
+    if (handle != null && connectedDevice != null) AdbDeviceFileSystem(handle, connectedDevice, edtExecutor, dispatcher) else null
+
   fun hasActiveDevice(): Boolean {
     return model.activeDevice != null
   }
 
   override fun setup() {
-    view.setup()
+    view.setup(isPackageFilterActive)
+    project.messageBus.connect(this).subscribe(
+      PROJECT_APPLICATION_IDS_CHANGED_TOPIC,
+      ProjectApplicationIdsProvider.ProjectApplicationIdsListener {
+        view.enablePackageFilter(it.isNotEmpty())
+        scope.launch { resetActiveDevice() }
+      }
+    )
   }
 
-  override fun setActiveConnectedDevice(fileSystem: DeviceFileSystem?) {
+  override fun setActiveConnectedDevice(deviceHandle: DeviceHandle?) {
+    val fileSystem = newDeviceFileSystem(deviceHandle, deviceHandle?.state?.connectedDevice)
+
     if (fileSystem == null) {
       setNoActiveDevice()
     } else {
-      scope.launch { setActiveDevice(fileSystem) }
+      setActiveDevice(fileSystem)
     }
   }
 
   override fun getViewComponent(): JComponent = view.component
+
+  override fun getTabName(): String = DeviceExplorerTab.Files.name
+
+  override fun setPackageFilter(isActive: Boolean) {
+    isPackageFilterActive = isActive
+    view.setPackageFilterSelection(isActive)
+    scope.launch { resetActiveDevice() }
+  }
 
   @UiThread
   private inner class ViewListener : DeviceExplorerViewListener {
@@ -791,6 +837,10 @@ class DeviceFileExplorerControllerImpl(
       scope.launch { uploadVirtualFilesInvoked(treeNode, vfiles, DeviceExplorerEvent.Action.DROP) }
     }
 
+    override fun togglePackageFilterInvoked(isActive: Boolean) {
+      controllerListener?.packageFilterToggled(isActive)
+    }
+
     private suspend fun uploadVirtualFilesInvoked(
       treeNode: DeviceFileEntryNode,
       files: List<VirtualFile>,
@@ -1189,7 +1239,10 @@ class DeviceFileExplorerControllerImpl(
       loadingNodesAlarms.addRequest(showLoadingNode, showLoadingNodeDelayMillis)
       startLoadChildren(node)
       try {
-        val entries = node.entry.entries()
+        val shouldFilterEntries = node.entry.fullPath.matches(Regex("/data/data/")) &&
+                                  isPackageFilterActive &&
+                                  packageNamesProvider.getPackageNames().isNotEmpty()
+        val entries = if (shouldFilterEntries) node.entry.entries().filter { packageNamesProvider.getPackageNames().contains(it.name) } else node.entry.entries()
         if (treeModel != getTreeModel()) {
           // We switched to another device, ignore this callback
           return

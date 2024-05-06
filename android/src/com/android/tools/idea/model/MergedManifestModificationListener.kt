@@ -24,7 +24,7 @@ import com.android.tools.idea.projectsystem.isManifestFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
-import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.EditorFactory
@@ -164,7 +164,7 @@ class MergedManifestModificationListener(
   }
 
   /**
-   * Service responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
+   * [ProjectComponent] responsible for ensuring that a [Project] has a [MergedManifestModificationListener]
    * subscribed to listen for both VFS and Document changes once the initial project sync has completed.
    */
   private class SubscriptionStartupActivity : ProjectActivity {
@@ -173,15 +173,16 @@ class MergedManifestModificationListener(
     }
   }
 
-  private class SubscriptionService(private val project: Project): Disposable {
-    val subscriber = object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project)) {
+  private class SubscriptionService(private val project: Project) {
+    val subscriber = object : LazyFileListenerSubscriber<MergedManifestModificationListener>(MergedManifestModificationListener(project),
+                                                                                             project) {
       override fun subscribe() {
         // To receive all changes happening in the VFS. File modifications may
         // not be picked up immediately if such changes are not saved on the disk yet
-        VirtualFileManager.getInstance().addVirtualFileListener(listener, this@SubscriptionService)
+        VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)
 
         // To receive all changes to documents that are open in an editor
-        EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, this@SubscriptionService)
+        EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
 
         // To receive notifications when any Documents are saved or reloaded from disk
         project.messageBus.connect().subscribe(FileDocumentManagerListener.TOPIC, listener)
@@ -195,9 +196,6 @@ class MergedManifestModificationListener(
     }
 
     fun ensureSubscribed() = subscriber.ensureSubscribed()
-
-    override fun dispose() {
-    }
   }
 
   companion object {

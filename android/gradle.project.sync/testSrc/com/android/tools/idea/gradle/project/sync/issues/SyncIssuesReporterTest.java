@@ -32,7 +32,7 @@ import static com.android.builder.model.SyncIssue.TYPE_SDK_NOT_SET;
 import static com.android.builder.model.SyncIssue.TYPE_TARGET_SDK_VERSION_IN_MANIFEST;
 import static com.android.builder.model.SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD;
 import static com.android.builder.model.SyncIssue.TYPE_UNRESOLVED_DEPENDENCY;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.getGradleBuildFile;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.anyMap;

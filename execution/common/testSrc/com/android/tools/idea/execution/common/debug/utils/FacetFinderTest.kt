@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.execution.common.debug.utils
 
+import com.android.ddmlib.Client
+import com.android.ddmlib.ClientData
+import com.android.ddmlib.IDevice
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.isAndroidTestModule
@@ -26,6 +32,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
 import com.android.tools.idea.util.androidFacet
+import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.ExecutionException
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VfsUtil
@@ -33,21 +41,27 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import kotlin.test.assertFailsWith
 
 class FacetFinderTest {
+
+  private class FakeClientData(private val applicationId: String?, private val processName: String?) :
+    ClientData(Mockito.mock(Client::class.java).also { whenever(it.device).thenReturn(mock<IDevice>()) }, -1) {
+    override fun getPackageName(): String? = applicationId ?: processName?.removeSuffix(":") // See behaviour in overridden method
+    override fun getClientDescription(): String? = processName
+  }
 
   @get:Rule
   val projectRule = AndroidProjectRule
     .withAndroidModels(
       JavaModuleModelBuilder.rootModuleBuilder,
       AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(
-        //projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY }, // TODO(b/262868739): Avoid logging errors
-        applicationIdFor = { "todo_library_project_should_not_have_application_id" }, // TODO(b/262868739): Remove once project type library is set
+        projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
+        applicationIdFor = { "" },
         mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
         testApplicationId = { "libTestApplicationId" }
       )),
@@ -57,7 +71,7 @@ class FacetFinderTest {
         AndroidProjectBuilder(
           mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() }
         ).withAndroidModuleDependencyList {
-          mutableListOf(AndroidModuleDependency (":lib", "debug"))
+          listOf(AndroidModuleDependency(":lib", "debug"))
         }),
     )
 
@@ -214,65 +228,84 @@ class FacetFinderTest {
     writeManifestFileContents(libFacet.androidTestModule, libDebugAndroidTestManifest, sourceSetName = "androidTestDebug")
   }
 
-
   @Test
   fun testNotFound() {
-    val result = FacetFinder.findFacetForProcess(project, "shouldNotExist")
-    assertNull(result)
+    val failure = assertFailsWith<ExecutionException> {
+      FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = "applicationIdShouldNotExist", processName = "processNameShouldNotExist"))
+    }
+    assertThat(failure).hasMessage("Unable to find project context to attach debugger for process processNameShouldNotExist")
+  }
+
+  @Test
+  fun testNotFoundGlobalProcessOnOlderDevice() {
+    val failure = assertFailsWith<ExecutionException> {
+      FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "processNameShouldNotExist"))
+    }
+    assertThat(failure).hasMessage("Unable to find project context to attach debugger for process processNameShouldNotExist")
   }
 
   @Test
   fun testPackageName() {
-    val result = FacetFinder.findFacetForProcess(project, "applicationId")
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = "applicationId", processName = "overridden"))
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testLocalProcessFromAppModule() {
-    val result = FacetFinder.findFacetForProcess(project, "applicationId:localfromapp")
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = "applicationId", processName = "applicationId:localfromapp"))
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testLocalProcessFromLibModule() {
-    val result = FacetFinder.findFacetForProcess(project, "applicationId:localfromlib")
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = "applicationId", processName = "applicationId:localfromlib"))
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromAppModule() {
-    val result = FacetFinder.findFacetForProcess(project, "globalfromapp")
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromapp"))
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromAppAndroidTestModule() {
-    val result = FacetFinder.findFacetForProcess(project, "globalfromappandroidtest")
-    assertEquals(null, result) // TODO(b/262868739): Should be appFacet.androidTestModule
+    val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromappandroidtest"))
+    assertEquals(appFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("testApplicationId", result.applicationId)
   }
 
   @Test
-  @Ignore("Revisit after AS Hedgehog Beta 5 merge is done.")
   fun testGlobalProcessFromLibModule() {
-    val result = FacetFinder.findFacetForProcess(project, "globalfromlib")
-    assertEquals(libFacet.mainModule.androidFacet, result) // TODO(b/262868739): Currently brittle to module iteration order - should be appFacet.mainModule
+    val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromlib"))
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModuleAndroidTest() {
-    val result = FacetFinder.findFacetForProcess(project, "globalfromlibandroidtest")
-    assertEquals(null, result) // TODO(b/262868739): Should be libFacet.androidTestModule
+    val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromlibandroidtest"))
+    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("libTestApplicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModuleAndroidTestDebug() {
-    val result = FacetFinder.findFacetForProcess(project, "globalfromlibdebugandroidtest")
-    assertEquals(null, result) // TODO(b/262868739): Should be libFacet.androidTestModule
+    val result = FacetFinder.findFacetForProcess(project,
+                                                 FakeClientData(applicationId = null, processName = "globalfromlibdebugandroidtest"))
+    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("libTestApplicationId", result.applicationId)  // Might be imprecise?
   }
 
   @Test
   fun testTestPackageName() {
-    val result = FacetFinder.findFacetForProcess(project, "libTestApplicationId")
-    assertEquals(libFacet.androidTestModule!!.androidFacet, result)
+    val result = FacetFinder.findFacetForProcess(project,
+                                                 FakeClientData(applicationId = "libTestApplicationId", processName = "overridden"))
+    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("libTestApplicationId", result.applicationId)
   }
 }

@@ -18,35 +18,15 @@ package com.android.tools.res.ids
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
-import com.android.tools.idea.layoutlib.LayoutLibraryLoader
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.extensions.ExtensionPoint
-import com.intellij.openapi.extensions.Extensions
-import com.intellij.openapi.util.Disposer
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 
 
 class ResourceIdManagerBaseTest {
-  val disposable = Disposer.newDisposable()
-
-  @Before
-  fun setUp() {
-    MockApplication(disposable)
-    Extensions.getRootArea().registerExtensionPoint(LayoutLibraryLoader.LayoutLibraryProvider.EP_NAME.name, LayoutLibraryLoader.LayoutLibraryProvider::class.java.name, ExtensionPoint.Kind.INTERFACE)
-  }
-
-  @After
-  fun tearDown() {
-    Disposer.dispose(disposable)
-  }
-
   @Test
   fun testDynamicIds() {
     val idManager = StubbedResourceIdManager()

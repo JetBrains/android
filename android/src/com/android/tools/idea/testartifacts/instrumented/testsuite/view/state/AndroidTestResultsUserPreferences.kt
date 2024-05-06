@@ -18,8 +18,8 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view.state
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializerUtil
+import com.intellij.openapi.project.Project
 
 /**
  * Project-level service for storing user preferences for how test results are displayed in the Test Matrix.

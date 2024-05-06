@@ -28,8 +28,7 @@ fun DebugProcessImpl.invokeOnDebuggerManagerThread(f: () -> Unit) {
       override fun action() {
         try {
           future.complete(f())
-        }
-        catch (t: Throwable) {
+        } catch (t: Throwable) {
           future.completeExceptionally(t)
         }
       }

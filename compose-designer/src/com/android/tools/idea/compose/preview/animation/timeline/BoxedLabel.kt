@@ -56,6 +56,7 @@ class BoxedLabel(
         boxRect = Rectangle(0, 0, 0, 0)
       }
     }
+
   private var boxRect = Rectangle(0, 0, 0, 0)
 
   /** Paint a label with a box on background. */
@@ -151,7 +152,7 @@ class BoxedLabel(
     }
     // Value
     g.color = InspectorColors.BOXED_LABEL_VALUE_COLOR
-    g.drawString(value, xPos + extraColorOffset, point.y - boxedLabelOffset + textBoxHeight)
+    g.drawString(value ?: "", xPos + extraColorOffset, point.y - boxedLabelOffset + textBoxHeight)
     g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, prevAntiAliasHint)
   }
 }

@@ -94,12 +94,10 @@ class ManifestPanelContentTest : SnapshotComparisonTest {
 
       val mergedManifest = MergedManifestManager.getMergedManifestSupplier(appModule).get().get(2, TimeUnit.SECONDS)
 
-      lateinit var panel : ManifestPanel
-
       var detailsPaneContent: String? = null
       var manifestPaneContent: String? = null
       runInEdtAndWait {
-        panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
+        val panel = ManifestPanel(appModuleFacet, projectRule.testRootDisposable)
         panel.showManifest(mergedManifest, appModuleFacet.sourceProviders.mainManifestFile!!, false)
         detailsPaneContent = panel.detailsPane.text
         val model: TreeModel? = panel.tree.model

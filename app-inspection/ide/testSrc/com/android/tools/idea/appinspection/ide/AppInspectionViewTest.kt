@@ -29,8 +29,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerTarget
@@ -46,6 +46,7 @@ import com.android.tools.idea.appinspection.test.TEST_ARTIFACT
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
+import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -87,7 +88,7 @@ class TestAppInspectorTabProvider2 :
     INSPECTOR_ID_2,
     LibraryInspectorLaunchParams(
       TEST_JAR,
-      ArtifactCoordinate("groupId", "artifactId", "0.0.0", ArtifactCoordinate.Type.JAR)
+      mockMinimumArtifactCoordinate("groupId", "artifactId", "0.0.0")
     )
   )
 
@@ -138,7 +139,7 @@ class AppInspectionViewTest {
 
   @Test
   fun selectProcessInAppInspectionView_twoTabProvidersAddTwoTabs() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
       val tabsAdded = CompletableDeferred<Unit>()
@@ -173,7 +174,7 @@ class AppInspectionViewTest {
 
   @Test
   fun selectProcessInAppInspectionView_tabNotAddedForDisabledTabProvider() =
-    runBlocking {
+    runBlocking<Unit> {
       // Disable Inspector2 and only one tab should be added.
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
@@ -209,7 +210,7 @@ class AppInspectionViewTest {
 
   @Test
   fun disposeInspectorWhenSelectionChanges() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
       lateinit var tabs: List<AppInspectorTab>
@@ -267,7 +268,7 @@ class AppInspectionViewTest {
 
   @Test
   fun receivesInspectorDisposedEvent() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
         FakeTransportService.FAKE_DEVICE.toBuilder()
@@ -338,7 +339,7 @@ class AppInspectionViewTest {
 
   @Test
   fun inspectorTabsAreDisposed_whenUiIsRefreshed() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabDisposedDeferred = CompletableDeferred<Unit>()
       val offlineTabDisposedDeferred = CompletableDeferred<Unit>()
@@ -355,6 +356,7 @@ class AppInspectionViewTest {
               override val messengers: Iterable<AppInspectorMessenger> =
                 listOf(StubTestAppInspectorMessenger())
               override val component = JPanel()
+
               override fun dispose() {
                 tabDisposedDeferred.complete(Unit)
               }
@@ -368,6 +370,7 @@ class AppInspectionViewTest {
       val offlineTabProvider =
         object : AppInspectorTabProvider by StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
           override fun supportsOffline() = true
+
           override fun createTab(
             project: Project,
             ideServices: AppInspectionIdeServices,
@@ -378,6 +381,7 @@ class AppInspectionViewTest {
             return object : AppInspectorTab, Disposable {
               override val messengers = listOf(StubTestAppInspectorMessenger())
               override val component = JPanel()
+
               override fun dispose() {
                 offlineTabDisposedDeferred.complete(Unit)
               }
@@ -463,7 +467,7 @@ class AppInspectionViewTest {
 
   @Test
   fun inspectorCrashNotification() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
         FakeTransportService.FAKE_DEVICE.toBuilder()
@@ -532,6 +536,7 @@ class AppInspectionViewTest {
           assertThat(notificationData.content).contains("$INSPECTOR_ID has crashed")
           assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
 
+          setUpRelaunchingCommandHandler()
           launch(uiDispatcher) {
             // Make sure clicking the notification causes a new tab to get created
             notificationData.hyperlinkClicked()
@@ -546,7 +551,7 @@ class AppInspectionViewTest {
 
   @Test
   fun inspectorRestartNotificationShownOnLaunchError() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
       val fakeDevice =
@@ -619,15 +624,80 @@ class AppInspectionViewTest {
       assertThat(notificationData.content).startsWith("Could not launch inspector")
       assertThat(notificationData.severity).isEqualTo(AppInspectionIdeServices.Severity.ERROR)
 
-      // Restore the working command handler, which emulates relaunching with force == true
-      transportService.setCommandHandler(
-        Commands.Command.CommandType.APP_INSPECTION,
-        TestAppInspectorCommandHandler(timer)
-      )
-
+      setUpRelaunchingCommandHandler()
       launch(uiDispatcher) { notificationData.hyperlinkClicked() }
       tabsAdded.join()
     }
+
+  @Test
+  fun inspectorRestartEmptyPanelShownOnLaunchError() = runBlocking {
+    val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
+
+    val fakeDevice =
+      FakeTransportService.FAKE_DEVICE.toBuilder()
+        .setDeviceId(1)
+        .setModel("fakeModel")
+        .setManufacturer("fakeMan")
+        .setSerial("1")
+        .build()
+
+    val fakeProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(1).setDeviceId(1).build()
+
+    transportService.addDevice(fakeDevice)
+    transportService.addProcess(fakeDevice, fakeProcess)
+
+    // Overwrite the handler to simulate a launch error, e.g. an inspector was left over from a
+    // previous crash
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.APP_INSPECTION,
+      TestAppInspectorCommandHandler(
+        timer,
+        createInspectorResponse =
+          createCreateInspectorResponse(
+            AppInspection.AppInspectionResponse.Status.ERROR,
+            AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
+            "error"
+          )
+      )
+    )
+    lateinit var inspectionView: AppInspectionView
+    val tabsAdded = CompletableDeferred<Unit>()
+    launch(uiDispatcher) {
+      inspectionView =
+        AppInspectionView(
+          projectRule.project,
+          appInspectionServiceRule.apiServices,
+          ideServices,
+          { listOf(StubTestAppInspectorTabProvider(INSPECTOR_ID)) },
+          appInspectionServiceRule.scope,
+          uiDispatcher,
+          TestInspectorArtifactService()
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
+      Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
+
+      inspectionView.tabsChangedFlow.first {
+        assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
+        val tab = inspectionView.inspectorTabs[0]
+        val initialComponent = tab.waitForContent() as EmptyStatePanel
+        assertThat(initialComponent.reasonText)
+          .isEqualTo(
+            AppInspectionBundle.message("inspector.launch.error", tab.provider.displayName)
+          )
+        assertThat(initialComponent.actionData!!.text)
+          .isEqualTo(AppInspectionBundle.message("inspector.launch.restart"))
+
+        setUpRelaunchingCommandHandler()
+        launch(uiDispatcher) { initialComponent.actionData!!.callback() }
+        val restartedComponent = tab.componentUpdates.first()
+        assertThat(restartedComponent).isNotSameAs(initialComponent)
+        assertThat(restartedComponent).isInstanceOf(TestAppInspectorTabComponent::class.java)
+        tabsAdded.complete(Unit)
+      }
+    }
+    tabsAdded.join()
+  }
 
   @Test
   fun ifTabSupportsOfflineModeTabStaysOpenAfterProcessIsTerminated() = runBlocking {
@@ -733,6 +803,7 @@ class AppInspectionViewTest {
       Commands.Command.CommandType.APP_INSPECTION,
       object : CommandHandler(timer) {
         val handler = TestAppInspectorCommandHandler(timer)
+
         override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
           if (!command.appInspectionCommand.hasCreateInspectorCommand()) {
             handler.handleCommand(command, events)
@@ -755,7 +826,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToIncompatibleVersion_emptyMessageAdded() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
@@ -818,7 +889,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToAppProguarded_emptyMessageAdded() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
@@ -871,7 +942,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToServiceError() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       launch(uiDispatcher) {
@@ -927,7 +998,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsBecauseProcessNoLongerExists() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
 
@@ -976,7 +1047,7 @@ class AppInspectionViewTest {
 
   @Test
   fun launchInspectorFailsDueToMissingLibrary_emptyMessageAdded() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val tabsAdded = CompletableDeferred<Unit>()
       val provider = TestAppInspectorTabProvider2()
@@ -1086,21 +1157,20 @@ class AppInspectionViewTest {
 
   @Test
   fun launchLibraryInspectors() =
-    runBlocking {
+    runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val resolvedInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID) {
           override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, TEST_ARTIFACT)
         }
-      val unresolvableLibrary =
-        ArtifactCoordinate("unresolvable", "artifact", "1.0.0", ArtifactCoordinate.Type.JAR)
+      val unresolvableLibrary = mockMinimumArtifactCoordinate("unresolvable", "artifact", "1.0.0")
       val unresolvableInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
           override val inspectorLaunchParams =
             LibraryInspectorLaunchParams(TEST_JAR, unresolvableLibrary)
         }
       val incompatibleLibrary =
-        ArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE", ArtifactCoordinate.Type.JAR)
+        mockMinimumArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE")
       val incompatibleInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
           override val inspectorLaunchParams =
@@ -1130,7 +1200,7 @@ class AppInspectionViewTest {
             uiDispatcher,
             object : InspectorArtifactService {
               override suspend fun getOrResolveInspectorArtifact(
-                artifactCoordinate: ArtifactCoordinate,
+                artifactCoordinate: RunningArtifactCoordinate,
                 project: Project
               ): Path {
                 return if (artifactCoordinate.groupId == "unresolvable") {
@@ -1421,5 +1491,28 @@ class AppInspectionViewTest {
     transportService.addDevice(FakeTransportService.FAKE_DEVICE)
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
     timer.currentTimeNs += 1
+  }
+
+  /** Sets up a command handle to emulate relaunching successfully with force == true. */
+  private fun setUpRelaunchingCommandHandler() {
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.APP_INSPECTION,
+      TestAppInspectorCommandHandler(
+        timer,
+        createInspectorResponse = {
+          if (it.launchMetadata.force)
+            createCreateInspectorResponse(
+              AppInspection.AppInspectionResponse.Status.SUCCESS,
+              AppInspection.CreateInspectorResponse.Status.SUCCESS
+            )(it)
+          else
+            createCreateInspectorResponse(
+              AppInspection.AppInspectionResponse.Status.ERROR,
+              AppInspection.CreateInspectorResponse.Status.GENERIC_SERVICE_ERROR,
+              "error"
+            )(it)
+        }
+      )
+    )
   }
 }

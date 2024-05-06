@@ -24,6 +24,7 @@ import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.annotations.VisibleForTesting
 import java.util.PriorityQueue
 import java.util.function.Predicate
+import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.reflect.KMutableProperty1
 
@@ -134,19 +135,36 @@ open class CaptureNode(val data: CaptureNodeModel, var clockType: ClockType) : H
   /**
    * Iterate through all descendants of this node, apply a filter and then find the top k nodes by the given comparator.
    *
-   * @param k          number of results
-   * @param filter     keep only nodes that satisfies this filter
-   * @param comparator to compare nodes by
+   * Uses pre-computed name to nodes mapping entry to skip the name filtering if present.
+   *
+   * @param k            number of results
+   * @param nodeName     name of node to be analyzed
+   * @param filter       keep only nodes that satisfies this filter
+   * @param comparator   to compare nodes by
+   * @param nameToNodes  mapping of node names to a list of nodes with the matching name
    * @return up to top k nodes from all descendants, in descending order
    */
-  fun getTopKNodes(k: Int, filter: Predicate<CaptureNode>, comparator: Comparator<CaptureNode>): List<CaptureNode> {
-    // Put all matched nodes in a priority queue capped at size n, so the queue always contain the n longest running ones.
-    val candidates = PriorityQueue(k + 1, comparator)
-    descendantsStream.filter(filter).forEach { node ->
-      candidates.offer(node)
-      if (candidates.size > k) candidates.poll()
-    }
-    return candidates.sortedWith(comparator.reversed())
+  fun getTopKNodes(
+    k: Int,
+    nodeName: String,
+    comparator: Comparator<CaptureNode>,
+    nameToNodes: Map<String, List<CaptureNode>>
+  ): List<CaptureNode> {
+    val nameMatchedNodesStream =
+      // Try to get matched names from lookup table
+      if (nameToNodes.contains(nodeName))
+        nameToNodes[nodeName]!!.stream()
+      // Otherwise, compute the stream using a filter
+      else
+        descendantsStream
+          .parallel()
+          .filter { it.data.fullName == nodeName }
+
+    // Get the top K longest duration nodes with the matching name
+    return nameMatchedNodesStream
+      .sorted(comparator.reversed())
+      .limit(k.toLong())
+      .collect(Collectors.toList())
   }
 
   /**

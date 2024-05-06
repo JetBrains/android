@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.model.IdeCustomSourceDirectory
 import java.io.File
 import java.io.Serializable
 
-class IdeCustomSourceDirectoryImpl(
+data class IdeCustomSourceDirectoryImpl(
   override val sourceTypeName: String,
   private val myFolder: File?,
   private val path: String

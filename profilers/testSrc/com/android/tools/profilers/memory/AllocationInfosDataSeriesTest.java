@@ -74,7 +74,7 @@ public final class AllocationInfosDataSeriesTest {
                                                                                            info2).build());
 
     DataSeries<CaptureDurationData<? extends CaptureObject>> series =
-      CaptureDataSeries.ofAllocationInfos(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
+      CaptureDataSeries.ofLegacyAllocationInfos(new ProfilerClient(myGrpcChannel.getChannel()), ProfilersTestData.SESSION_DATA,
                                           myIdeProfilerServices.getFeatureTracker(), myStage);
     List<SeriesData<CaptureDurationData<? extends CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 

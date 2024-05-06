@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.openapi.util.text.StringUtil
+import java.util.HashSet
 
 class EditTextHandlerTest : LayoutTestCase() {
   fun testIncrementIdTextViewId() {

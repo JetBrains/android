@@ -41,19 +41,18 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.RuleChain
-import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
 import javax.swing.JTable
 import javax.swing.TransferHandler
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito
 
 @RunsInEdt
 class MotionLayoutAttributesViewTest {
@@ -67,7 +66,7 @@ class MotionLayoutAttributesViewTest {
     val actionManager = projectRule.mockService(ActionManager::class.java)
     Mockito.doAnswer { invocation -> SomeAction(invocation.getArgument(0)) }
       .whenever(actionManager)
-      .getAction(ArgumentMatchers.anyString())
+      .getAction(Mockito.anyString())
   }
 
   @Test

@@ -39,6 +39,7 @@ import kotlinx.coroutines.launch
 
 private const val MAIN_CARD = "main"
 private const val GET_STARTED = "get_started"
+private const val VITALS_WORKBENCH_NAME = "AQI_VITALS"
 
 class VitalsContentContainerPanel(
   projectController: AppInsightsProjectLevelController,
@@ -62,15 +63,25 @@ class VitalsContentContainerPanel(
           appendLine("No apps available", SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES, null)
           appendLine("")
           appendLine(
-            "You don't have permission to any Play Console apps.",
+            "Request that your app Admin provides you with the ",
             SimpleTextAttributes.GRAYED_ATTRIBUTES,
             null
           )
-          appendLine("To see data, ", SimpleTextAttributes.GRAYED_ATTRIBUTES, null)
           @Suppress("DialogTitleCapitalization")
-          appendText("request Play Console permission.", SimpleTextAttributes.LINK_ATTRIBUTES) {
-            BrowserUtil.browse("https://play.google.com/console/about/teamandusermanagement/")
+          appendLine(
+            "View App Quality Information (read-only)",
+            SimpleTextAttributes.LINK_ATTRIBUTES
+          ) {
+            BrowserUtil.browse(
+              "https://support.google.com/googleplay/android-developer/answer/9844686?hl=en#zippy=%2Cview-app-quality-information-read-only"
+            )
           }
+          @Suppress("DialogTitleCapitalization")
+          appendText(
+            " permission via the Play Console.",
+            SimpleTextAttributes.GRAYED_ATTRIBUTES,
+            null
+          )
         }
     val selectProjectTextPanel =
       object : JPanel() {
@@ -91,7 +102,8 @@ class VitalsContentContainerPanel(
         project,
         this,
         AppInsightsIssuesTableCellRenderer,
-        listOfNotNull(DistributionToolWindow.create(scope, projectController.state))
+        VITALS_WORKBENCH_NAME,
+        listOf(DistributionToolWindow.create(VITALS_WORKBENCH_NAME, scope, projectController.state))
       ) {
         VitalsIssueDetailsPanel(projectController, project, it, this, tracker)
       },

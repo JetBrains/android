@@ -211,11 +211,12 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
       // Companion App already installed, go to the next step
       goToNextStep()
     }
-    else if (companionAppId == PIXEL_COMPANION_APP_ID || companionAppId == OEM_COMPANION_FALLBACK_APP_ID) {
-      showUiInstallCompanionAppInstructions(phoneDevice, wearDevice)
-    }
     else {
-      showIncompatibleCompanionAppError(phoneDevice, wearDevice)
+      when (phoneDevice.supportsCompanionAppId(companionAppId)) {
+        CompanionSupport.INCOMPATIBLE_COMPANION_ID -> showIncompatibleCompanionAppError(phoneDevice, wearDevice)
+        CompanionSupport.INCOMPATIBLE_ABI -> showIncompatibleCompanionAppAbiError(phoneDevice, wearDevice)
+        CompanionSupport.SUPPORTED -> showUiInstallCompanionAppInstructions(phoneDevice, wearDevice)
+      }
     }
   }
 
@@ -223,6 +224,23 @@ class DevicesConnectionStep(model: WearDevicePairingModel,
     dispose()
     coroutineScope.launch(Dispatchers.IO) {
       val body = createWarningPanel(message("wear.assistant.device.connection.wear.os.wear3"))
+      body.add(
+        LinkLabel<Unit>("Retry", null) { _, _ ->
+          check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.
+          runningJob = coroutineScope.launch(Dispatchers.IO) {
+            companionAppStep(phoneDevice, wearDevice)
+          }
+        },
+        gridConstraint(x = 1, y = RELATIVE, anchor = LINE_START)
+      )
+      showUI(header = currentUiHeader, description = currentUiDescription, body = body)
+    }
+  }
+
+  private fun showIncompatibleCompanionAppAbiError(phoneDevice: IDevice, wearDevice: IDevice) {
+    dispose()
+    coroutineScope.launch(Dispatchers.IO) {
+      val body = createWarningPanel(message("wear.assistant.device.connection.wear.os.wear3.abi"))
       body.add(
         LinkLabel<Unit>("Retry", null) { _, _ ->
           check(runningJob?.isActive != true) // This is a manual retry. No job should be running at this point.

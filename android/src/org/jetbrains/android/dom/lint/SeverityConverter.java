@@ -20,24 +20,25 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
-import java.util.Collection;
-import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.List;
 
 public class SeverityConverter extends ResolvingConverter<Severity> {
   private static final List<Severity> ALL_VALUES = ImmutableList.copyOf(Severity.values());
 
   @NotNull
   @Override
-  public Collection<Severity> getVariants(@NotNull ConvertContext context) {
+  public Collection<Severity> getVariants(ConvertContext context) {
     return ALL_VALUES;
   }
 
   @Nullable
   @Override
-  public Severity fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public Severity fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s == null) {
       return null;
     }
@@ -52,7 +53,7 @@ public class SeverityConverter extends ResolvingConverter<Severity> {
 
   @Nullable
   @Override
-  public String toString(@Nullable Severity severity, @NotNull ConvertContext context) {
+  public String toString(@Nullable Severity severity, ConvertContext context) {
     if (severity == null) {
       return null;
     }

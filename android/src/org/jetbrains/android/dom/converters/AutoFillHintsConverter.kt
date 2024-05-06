@@ -29,8 +29,8 @@ import com.intellij.util.xml.ResolvingConverter
  * Converter that provides code completion for 'android:autofillHints' attribute.
  *
  * Completion elements are taken from available sources of autofill hint constants:
- *  * android.view.View
- *  * androidx.autofill.HintConstants (if added to the project)
+ * * android.view.View
+ * * androidx.autofill.HintConstants (if added to the project)
  */
 class AutoFillHintsConverter : ResolvingConverter<String>() {
 
@@ -40,14 +40,21 @@ class AutoFillHintsConverter : ResolvingConverter<String>() {
   }
 
   override fun fromString(s: String?, context: ConvertContext) = s
+
   override fun toString(t: String?, context: ConvertContext) = t
+
   override fun getVariants(context: ConvertContext): List<String> {
     val project = context.project
 
-    // Instead of saving this on a per module basis, since autoFillHints attribute can have any string value and we are completing the
-    // string constants, if any module has androidx.autofill.HintConstants, then any layout will be given all elements.
+    // Instead of saving this on a per module basis, since autoFillHints attribute can have any
+    // string value and we are completing the
+    // string constants, if any module has androidx.autofill.HintConstants, then any layout will be
+    // given all elements.
     return CachedValuesManager.getManager(project).getCachedValue(project) {
-      CachedValueProvider.Result(calculateAutoFillHints(project), ProjectRootModificationTracker.getInstance(project))
+      CachedValueProvider.Result(
+        calculateAutoFillHints(project),
+        ProjectRootModificationTracker.getInstance(project)
+      )
     }
   }
 
@@ -61,8 +68,7 @@ class AutoFillHintsConverter : ResolvingConverter<String>() {
         ?.filter { it.name.contains(AUTOFILL_HINT_PREFIX) }
         ?.mapNotNull { it.computeConstantValue() as? String } ?: return emptyList()
 
-    val hintConstantsClass =
-      psiFacade.findClass(ANDROIDX_HINTS_CONSTANTS_CLASS, allScope)
+    val hintConstantsClass = psiFacade.findClass(ANDROIDX_HINTS_CONSTANTS_CLASS, allScope)
     val hintConstantsClassConstants =
       hintConstantsClass
         ?.allFields

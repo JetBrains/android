@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Rule
 import org.junit.Test
@@ -48,7 +49,7 @@ class LanguageHighlightingTest {
 
       // 1. `override` keyword
       assertThat(analysisResults).contains(AnalysisResult(
-        HighlightSeverity.INFORMATION,
+        HighlightInfoType.SYMBOL_TYPE_SEVERITY,
         "override",
         /* description = */ null,
         /* toolId = */ null,

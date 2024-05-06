@@ -47,6 +47,7 @@ import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -68,7 +69,6 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -115,56 +115,6 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     assertEquals("menu-en-rUS", IdeResourcesUtil.getFolderConfiguration(file2).getFolderName(ResourceFolderType.MENU));
     assertEquals("layout-land", IdeResourcesUtil.getFolderConfiguration(file1.getVirtualFile()).getFolderName(ResourceFolderType.LAYOUT));
     assertEquals("menu-en-rUS", IdeResourcesUtil.getFolderConfiguration(file2.getVirtualFile()).getFolderName(ResourceFolderType.MENU));
-  }
-
-  public void testParseColor() {
-    Color c = IdeResourcesUtil.parseColor("#0f4");
-    assert c != null;
-    assertEquals(0xff00ff44, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#1237");
-    assert c != null;
-    assertEquals(0x11223377, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#123456");
-    assert c != null;
-    assertEquals(0xff123456, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#08123456");
-    assert c != null;
-    assertEquals(0x08123456, c.getRGB());
-
-    // Test that spaces are correctly trimmed
-    c = IdeResourcesUtil.parseColor("#0f4 ");
-    assert c != null;
-    assertEquals(0xff00ff44, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor(" #1237");
-    assert c != null;
-    assertEquals(0x11223377, c.getRGB());
-
-    c = IdeResourcesUtil.parseColor("#123456\n\n ");
-    assert c != null;
-    assertEquals(0xff123456, c.getRGB());
-
-    assertNull(IdeResourcesUtil.parseColor("#123 456"));
-  }
-
-  public void testColorToString() {
-    Color c = new Color(0x0fff0000, true);
-    assertEquals("#0FFF0000", IdeResourcesUtil.colorToString(c));
-
-    c = new Color(0x00ff00);
-    assertEquals("#00FF00", IdeResourcesUtil.colorToString(c));
-
-    c = new Color(0x00000000, true);
-    assertEquals("#00000000", IdeResourcesUtil.colorToString(c));
-
-    Color color = new Color(0x11, 0x22, 0x33, 0xf0);
-    assertEquals("#F0112233", IdeResourcesUtil.colorToString(color));
-
-    color = new Color(0xff, 0xff, 0xff, 0x00);
-    assertEquals("#00FFFFFF", IdeResourcesUtil.colorToString(color));
   }
 
   public void testDisabledStateListStates() {
@@ -237,7 +187,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, getProject(), myFacet);
+    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
     assertEquals(new ColorIcon(16, new Color(0xEEDDCC)), icon);
   }
 
@@ -249,7 +199,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, getProject(), myFacet);
+    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
     assertEquals(new ColorsIcon(16, new Color(0xEEDDCC), new Color(0x33123456, true)), icon);
   }
 
@@ -259,7 +209,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     ResourceReference reference = url.resolve(ResourceNamespace.TODO(), ResourceNamespace.Resolver.EMPTY_RESOLVER);
     ResourceResolver rr = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file).getResourceResolver();
     ResourceValue value = rr.getResolvedResource(reference);
-    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, getProject(), myFacet);
+    Icon icon = IdeResourcesUtil.resolveAsIcon(rr, value, myFacet);
     @SuppressWarnings("UndesirableClassUsage")
     BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
     icon.paintIcon(null, image.getGraphics(), 0, 0);
@@ -445,7 +395,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
   public void testFindResourceFields() {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
 
-    PsiField[] fields = IdeResourcesUtil.findResourceFields(myFacet, "string", "hello", false);
+    PsiField[] fields = IdeResourcesUtil.findResourceFields(myFacet, "string", "hello");
     assertEquals(1, fields.length);
     PsiField field = fields[0];
     assertEquals("hello", field.getName());
@@ -457,9 +407,9 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     myFixture.copyFileToProject("util/strings.xml", "res/values/strings.xml");
 
     PsiField[] fields = IdeResourcesUtil.findResourceFields(
-      myFacet, "string", ImmutableList.of("hello", "goodbye"), false);
+      myFacet, "string", ImmutableList.of("hello", "goodbye"));
 
-    Set<String> fieldNames = new HashSet<>();
+    Set<String> fieldNames = Sets.newHashSet();
     for (PsiField field : fields) {
       fieldNames.add(field.getName());
       assertEquals("p1.p2.R", field.getContainingClass().getContainingClass().getQualifiedName());
@@ -481,9 +431,9 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
 
     AndroidFacet facet = AndroidFacet.getInstance(libModule);
     assertThat(facet).isNotNull();
-    PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
+    PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello");
 
-    Set<String> packages = new HashSet<>();
+    Set<String> packages = Sets.newHashSet();
     for (PsiField field : fields) {
       assertEquals("lib_hello", field.getName());
       packages.add(StringUtil.getPackageName(field.getContainingClass().getContainingClass().getQualifiedName()));
@@ -507,7 +457,7 @@ public class IdeResourcesUtilTest extends AndroidTestCase {
     // The main module doesn't get a generated R class and inherit fields (lack of manifest)
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assertThat(facet).isNotNull();
-    PsiField[] mainFields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello", false /* onlyInOwnPackages */);
+    PsiField[] mainFields = IdeResourcesUtil.findResourceFields(facet, "string", "lib_hello"  /* onlyInOwnPackages */);
     assertEmpty(mainFields);
 
     // However, if the main module happens to get a handle on the lib's R class

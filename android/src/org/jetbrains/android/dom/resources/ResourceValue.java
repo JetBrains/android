@@ -24,8 +24,8 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.utils.DataBindingUtils;
 import com.android.utils.HashCodes;
+import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.util.PsiUtil;
 import java.util.Objects;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -251,7 +251,7 @@ public class ResourceValue {
     }
 
     if (!AndroidUtils.isIdentifier(name)) {
-      if (PsiUtil.isKeyword(name, LanguageLevel.JDK_1_5)) {
+      if (JavaLexer.isKeyword(name, LanguageLevel.JDK_1_5)) {
         return "Resource name cannot be a Java keyword (" + name + ")";
       }
 

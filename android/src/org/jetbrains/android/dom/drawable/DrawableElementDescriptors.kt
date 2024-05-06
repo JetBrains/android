@@ -37,22 +37,30 @@ object DrawableResourceNSDescriptor : XmlNSDescriptorImpl() {
     val manager = DomManager.getDomManager(doc.project)
 
     return CachedValuesManager.getManager(doc.project).getCachedValue(facet) {
-      val static = AndroidDrawableDomUtil.getPossibleRoots(facet).map {
-        object : AbstractDomChildrenDescriptor(manager) {
-          override fun getDefaultName() = it
-          override fun getDeclaration() = null
-        }
-      }.toTypedArray<XmlElementDescriptor>()
-      CachedValueProvider.Result.create(static, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project))
+      val static =
+        AndroidDrawableDomUtil.getPossibleRoots(facet)
+          .map {
+            object : AbstractDomChildrenDescriptor(manager) {
+              override fun getDefaultName() = it
+
+              override fun getDeclaration() = null
+            }
+          }
+          .toTypedArray<XmlElementDescriptor>()
+      CachedValueProvider.Result.create(
+        static,
+        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(manager.project)
+      )
     }
   }
 }
 
-
-// TODO: don't extend AndroidXmlTagDescriptor. Currently it extends AndroidXmlTagDescriptor for support inspection behavior.
-class CustomDrawableElementDescriptor(override val clazz: PsiClass?, delegate: XmlElementDescriptor) :
-  TagFromClassDescriptor,
-  AndroidXmlTagDescriptor(delegate) {
+// TODO: don't extend AndroidXmlTagDescriptor. Currently it extends AndroidXmlTagDescriptor for
+// support inspection behavior.
+class CustomDrawableElementDescriptor(
+  override val clazz: PsiClass?,
+  delegate: XmlElementDescriptor
+) : TagFromClassDescriptor, AndroidXmlTagDescriptor(delegate) {
   override val isContainer = false
 
   override fun getDeclaration() = clazz

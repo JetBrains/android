@@ -30,7 +30,6 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.nio.charset.StandardCharsets
 import java.time.Duration
 
 @RunWith(JUnit4::class)
@@ -54,10 +53,15 @@ class ImportUtilsTest {
 
   @Test
   fun importTestHistoryWithExecutionDuration() {
-    val view = importXmlFile("testHistoryWithExecutionDuration")
+    val view = requireNotNull(importXmlFile("testHistoryWithExecutionDuration"))
     assertTrue(Duration.ofSeconds(5)) {
       view.testExecutionDurationOverride == Duration.ofMillis(2934)
     }
+  }
+
+  @Test
+  fun importTestHistoryContainsInvalidChar() {
+    importXmlFile("testHistoryContainsInvalidChar", expectedToSuccess = false)
   }
 
   private fun assertTrue(timeout: Duration, conditionFunc: () -> Boolean) {
@@ -71,23 +75,26 @@ class ImportUtilsTest {
     assertThat(conditionFunc()).isTrue()
   }
 
-  private fun importXmlFile(fileName: String): AndroidTestSuiteView {
+  private fun importXmlFile(fileName: String, expectedToSuccess: Boolean = true): AndroidTestSuiteView? {
     lateinit var xmlFile: VirtualFile
     runWriteAction {
       val inputDir = temporaryDirectoryRule.createVirtualDir("inputDir")
       xmlFile = inputDir.createChildData(this, "${fileName}.xml")
       xmlFile.setBinaryContent(
-        Resources.toString(
-          Resources.getResource("com/android/tools/idea/testartifacts/instrumented/testsuite/export/${fileName}.xml"),
-          StandardCharsets.UTF_8).toByteArray())
+        Resources.toByteArray(
+          Resources.getResource("com/android/tools/idea/testartifacts/instrumented/testsuite/export/${fileName}.xml")))
     }
 
     lateinit var testSuiteView: AndroidTestSuiteView
     val succeeded = importAndroidTestMatrixResultXmlFile(projectRule.project, xmlFile) { env ->
       testSuiteView = requireNotNull(env.contentToReuse?.executionConsole as? AndroidTestSuiteView)
     }
-    assertThat(succeeded).isTrue()
-
-    return testSuiteView
+    return if (expectedToSuccess) {
+      assertThat(succeeded).isTrue()
+      testSuiteView
+    } else {
+      assertThat(succeeded).isFalse()
+      null
+    }
   }
 }

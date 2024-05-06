@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_BUTTON;
-import static com.android.SdkConstants.ATTR_BUTTON_TINT;
-import static com.android.SdkConstants.ATTR_CHECKED;
-import static com.android.SdkConstants.ATTR_CLICKABLE;
-import static com.android.SdkConstants.ATTR_DUPLICATE_PARENT_STATE;
-import static com.android.SdkConstants.ATTR_FOCUSABLE;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.PREFIX_ANDROID;
-
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class CheckBoxHandler extends TextViewHandler {
   @Override

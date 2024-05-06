@@ -32,8 +32,7 @@ class BrUtilTest {
   private val edtRule = EdtRule()
 
   // Project rule initialization must NOT happen on the EDT thread
-  @get:Rule
-  val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(edtRule)
+  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(edtRule)
 
   // Legal cast because project rule is initialized with onDisk
   private val fixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
@@ -53,6 +52,7 @@ class BrUtilTest {
     methodsAndFields.addAll(modelClass.fields)
     methodsAndFields.addAll(modelClass.methods)
 
-    assertThat(BrUtil.collectIds(methodsAndFields)).containsExactly("length", "size", "sum", "value", "count", "text", "enabled")
+    assertThat(BrUtil.collectIds(methodsAndFields))
+      .containsExactly("length", "size", "sum", "value", "count", "text", "enabled")
   }
 }

@@ -32,21 +32,26 @@ class ShowFileResourcesAction : AnAction("Show resources defined in file") {
     val virtualFile = psiFile.virtualFile
     val resFolder = virtualFile?.parent?.parent ?: return
     val facet = AndroidFacet.getInstance(psiFile) ?: return
-    val repository = ResourceFolderRegistry.getInstance(project).getCached(resFolder, facet.namespacing) ?: return
-    val definedInFile = repository.allResources.filter { it.getSourceAsVirtualFile() == virtualFile }
-    val textOutput = definedInFile.joinToString(
-      prefix = "Resources defined in ${virtualFile.path}\n\n",
-      separator = "\n",
-      transform = { "${it.referenceToSelf.resourceUrl} $it" }
-    )
+    val repository =
+      ResourceFolderRegistry.getInstance(project).getCached(resFolder, facet.namespacing) ?: return
+    val definedInFile =
+      repository.allResources.filter { it.getSourceAsVirtualFile() == virtualFile }
+    val textOutput =
+      definedInFile.joinToString(
+        prefix = "Resources defined in ${virtualFile.path}\n\n",
+        separator = "\n",
+        transform = { "${it.referenceToSelf.resourceUrl} $it" }
+      )
 
-    val scratchFile = ScratchRootType.getInstance().createScratchFile(
-      project,
-      "resources from ${psiFile.name}",
-      PlainTextLanguage.INSTANCE,
-      textOutput,
-      ScratchFileService.Option.create_new_always
-    ) ?: return
+    val scratchFile =
+      ScratchRootType.getInstance()
+        .createScratchFile(
+          project,
+          "resources from ${psiFile.name}",
+          PlainTextLanguage.INSTANCE,
+          textOutput,
+          ScratchFileService.Option.create_new_always
+        ) ?: return
     FileEditorManager.getInstance(project).openFile(scratchFile, true)
   }
 }

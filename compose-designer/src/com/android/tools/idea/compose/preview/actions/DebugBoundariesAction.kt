@@ -16,25 +16,23 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.ComposePreviewManagerEx
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 
 private const val SHOW = "Show"
 private const val HIDE = "Hide"
 
-/** Action that controls when to enable the debug boundaries mode mode. */
-internal class ShowDebugBoundaries : ToggleAction("${SHOW} Composable Bounds", null, null) {
+/** Action that controls when to enable the debug boundaries mode. */
+internal class ShowDebugBoundaries : ToggleAction("$SHOW Composable Bounds", null, null) {
 
   override fun isSelected(e: AnActionEvent): Boolean =
-    findComposePreviewManagersForContext(e.dataContext)
-      .filterIsInstance<ComposePreviewManagerEx>()
-      .any { it.showDebugBoundaries }
+    (findComposePreviewManagerForContext(e.dataContext) as? ComposePreviewManagerEx)
+      ?.showDebugBoundaries == true
 
   override fun setSelected(e: AnActionEvent, isSelected: Boolean) {
-    findComposePreviewManagersForContext(e.dataContext)
-      .filterIsInstance<ComposePreviewManagerEx>()
-      .forEach { it.showDebugBoundaries = isSelected }
+    (findComposePreviewManagerForContext(e.dataContext) as? ComposePreviewManagerEx)
+      ?.showDebugBoundaries = isSelected
   }
 
   override fun update(e: AnActionEvent) {
@@ -42,9 +40,9 @@ internal class ShowDebugBoundaries : ToggleAction("${SHOW} Composable Bounds", n
 
     e.presentation.text =
       if (isSelected(e)) {
-        "${HIDE} Composable Bounds"
+        "$HIDE Composable Bounds"
       } else {
-        "${SHOW} Composable Bounds"
+        "$SHOW Composable Bounds"
       }
   }
 

@@ -32,13 +32,13 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.awt.FlowLayout
 import javax.swing.Box
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /** Interface for converting some model input into a UI component. */
 interface ComponentProvider<T> {
@@ -46,7 +46,7 @@ interface ComponentProvider<T> {
 }
 
 /**
- * A basic provider which converts any data to its a label containing the data's `toString`
+ * A basic provider which converts any data to it's a label containing the data's `toString`
  * representation, useful as a default provider for simple cases.
  */
 class ToStringProvider<T> : ComponentProvider<T> {
@@ -59,25 +59,25 @@ class ClassNameProvider(
   private val scope: CoroutineScope,
   private val tracker: BackgroundTaskInspectorTracker
 ) : ComponentProvider<String> {
-  override fun convert(fqcn: String): JComponent {
-    return ActionLink(fqcn) {
+  override fun convert(data: String): JComponent {
+    return ActionLink(data) {
       scope.launch {
-        ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(fqcn))
+        ideServices.navigateTo(AppInspectionIdeServices.CodeLocation.forClass(data))
         tracker.trackJumpedToSource()
       }
     }
   }
 }
 
-/** Provides a component that represents a timestamp in a human readable format. */
+/** Provides a component that represents a timestamp in a human-readable format. */
 object TimeProvider : ComponentProvider<Long> {
-  override fun convert(timestamp: Long) = JBLabel(timestamp.toFormattedTimeString())
+  override fun convert(data: Long) = JBLabel(data.toFormattedTimeString())
 }
 
 /** Provides a component that represents a state text with icon. */
 object StateProvider : ComponentProvider<BackgroundTaskEntry> {
-  override fun convert(entry: BackgroundTaskEntry): JComponent {
-    return JBLabel(entry.status.capitalizedName()).apply { icon = entry.icon() }
+  override fun convert(data: BackgroundTaskEntry): JComponent {
+    return JBLabel(data.status.capitalizedName()).apply { icon = data.icon() }
   }
 }
 
@@ -90,8 +90,8 @@ class EnqueuedAtProvider(
   private val scope: CoroutineScope,
   private val tracker: BackgroundTaskInspectorTracker
 ) : ComponentProvider<CallStack> {
-  override fun convert(stack: CallStack): JComponent {
-    return if (stack.framesCount == 0) {
+  override fun convert(data: CallStack): JComponent {
+    return if (data.framesCount == 0) {
       JPanel(FlowLayout(FlowLayout.LEADING, 0, 0)).apply {
         add(JBLabel("Unavailable"))
         add(Box.createHorizontalStrut(5))
@@ -104,7 +104,7 @@ class EnqueuedAtProvider(
         add(icon)
       }
     } else {
-      val frame0 = stack.getFrames(0)
+      val frame0 = data.getFrames(0)
       ActionLink("${frame0.fileName} (${frame0.lineNumber})") {
         scope.launch {
           ideServices.navigateTo(
@@ -119,9 +119,9 @@ class EnqueuedAtProvider(
 
 /** Provides a component that displays a list of string values. */
 object StringListProvider : ComponentProvider<List<String>> {
-  override fun convert(strings: List<String>): JComponent {
-    return if (strings.isNotEmpty()) {
-      JPanel(VerticalFlowLayout(0, 0)).apply { strings.forEach { str -> add(JBLabel("\"$str\"")) } }
+  override fun convert(data: List<String>): JComponent {
+    return if (data.isNotEmpty()) {
+      JPanel(VerticalFlowLayout(0, 0)).apply { data.forEach { str -> add(JBLabel("\"$str\"")) } }
     } else {
       createEmptyContentLabel()
     }
@@ -151,11 +151,11 @@ class IdListProvider(
   private val currentWork: WorkInfo,
   private val selectWork: (WorkEntry) -> Unit
 ) : ComponentProvider<List<String>> {
-  override fun convert(ids: List<String>): JComponent {
+  override fun convert(data: List<String>): JComponent {
     val currId = currentWork.id
-    return if (ids.isNotEmpty()) {
+    return if (data.isNotEmpty()) {
       JPanel(VerticalFlowLayout(0, 0)).apply {
-        ids.forEach { id ->
+        data.forEach { id ->
           val entry = client.getEntry(id)
           if (entry != null) {
             val work = (entry as WorkEntry).getWorkInfo()
@@ -187,9 +187,9 @@ class IdListProvider(
 
 /** Provides a component that displays a list of constraint descriptions for some target worker. */
 object WorkConstraintProvider : ComponentProvider<Constraints> {
-  override fun convert(constraint: Constraints): JComponent {
+  override fun convert(data: Constraints): JComponent {
     val constraintDescs = mutableListOf<String>()
-    when (constraint.requiredNetworkType) {
+    when (data.requiredNetworkType) {
       Constraints.NetworkType.CONNECTED -> constraintDescs.add("Network must be connected")
       Constraints.NetworkType.UNMETERED -> constraintDescs.add("Network must be unmetered")
       Constraints.NetworkType.NOT_ROAMING -> constraintDescs.add("Network must not be roaming")
@@ -198,16 +198,16 @@ object WorkConstraintProvider : ComponentProvider<Constraints> {
       else -> {}
     }
 
-    if (constraint.requiresCharging) {
+    if (data.requiresCharging) {
       constraintDescs.add("Requires charging")
     }
-    if (constraint.requiresBatteryNotLow) {
+    if (data.requiresBatteryNotLow) {
       constraintDescs.add("Requires battery not low")
     }
-    if (constraint.requiresDeviceIdle) {
+    if (data.requiresDeviceIdle) {
       constraintDescs.add("Requires idle device")
     }
-    if (constraint.requiresStorageNotLow) {
+    if (data.requiresStorageNotLow) {
       constraintDescs.add("Requires storage not low")
     }
 
@@ -223,9 +223,9 @@ object WorkConstraintProvider : ComponentProvider<Constraints> {
 
 /** Provides a component that displays a list of constraint descriptions for some target worker. */
 object JobConstraintProvider : ComponentProvider<JobInfo> {
-  override fun convert(job: JobInfo): JComponent {
+  override fun convert(data: JobInfo): JComponent {
     val constraintDescs = mutableListOf<String>()
-    when (job.networkType) {
+    when (data.networkType) {
       JobInfo.NetworkType.NETWORK_TYPE_METERED -> constraintDescs.add("Network must be metered")
       JobInfo.NetworkType.NETWORK_TYPE_UNMETERED -> constraintDescs.add("Network must be unmetered")
       JobInfo.NetworkType.NETWORK_TYPE_NOT_ROAMING ->
@@ -233,16 +233,16 @@ object JobConstraintProvider : ComponentProvider<JobInfo> {
       else -> {}
     }
 
-    if (job.isRequireCharging) {
+    if (data.isRequireCharging) {
       constraintDescs.add("Requires charging")
     }
-    if (job.isRequireBatteryNotLow) {
+    if (data.isRequireBatteryNotLow) {
       constraintDescs.add("Requires battery not low")
     }
-    if (job.isRequireDeviceIdle) {
+    if (data.isRequireDeviceIdle) {
       constraintDescs.add("Requires idle device")
     }
-    if (job.isRequireStorageNotLow) {
+    if (data.isRequireStorageNotLow) {
       constraintDescs.add("Requires storage not low")
     }
 
@@ -258,12 +258,12 @@ object JobConstraintProvider : ComponentProvider<JobInfo> {
 
 /** Provides a component which displays all the key/value pairs in a worker's output data. */
 object OutputDataProvider : ComponentProvider<WorkInfo> {
-  override fun convert(workInfo: WorkInfo): JComponent {
-    val data = workInfo.data
-    return if (data.entriesList.isNotEmpty()) {
+  override fun convert(data: WorkInfo): JComponent {
+    val protoData = data.data
+    return if (protoData.entriesList.isNotEmpty()) {
       val panel =
         JPanel(VerticalFlowLayout(0, 0)).apply {
-          data.entriesList.forEach { pair ->
+          protoData.entriesList.forEach { pair ->
             val pairPanel = JPanel(HorizontalLayout(0))
             pairPanel.add(JLabel("${pair.key} = "))
             pairPanel.add(
@@ -276,12 +276,13 @@ object OutputDataProvider : ComponentProvider<WorkInfo> {
         }
       HideablePanel.Builder("Data", panel)
         .setPanelBorder(JBUI.Borders.empty())
-        .setContentBorder(JBUI.Borders.empty(0, 20, 0, 0))
+        .setContentBorder(JBUI.Borders.emptyLeft(20))
         .build()
     } else {
-      val state = workInfo.state
+      val state = data.state
       JBLabel().apply {
         if (state.isFinished()) {
+          @Suppress("DialogTitleCapitalization")
           text = BackgroundTaskInspectorBundle.message("table.data.null")
           foreground = BackgroundTaskInspectorColors.DATA_TEXT_NULL_COLOR
         } else {

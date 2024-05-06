@@ -27,21 +27,25 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory
 import com.intellij.psi.impl.file.PsiPackageImpl
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.LightVirtualFileBase
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import org.jetbrains.android.facet.AndroidFacet
 
 @Service
 class LayoutBindingPackageFactory(val project: Project) {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = project.getService(LayoutBindingPackageFactory::class.java)!!
+    fun getInstance(project: Project) =
+      project.getService(LayoutBindingPackageFactory::class.java)!!
   }
 
   private val layoutBindingPsiPackages = Maps.newConcurrentMap<String, PsiPackage>()
 
   private class FakeDirectory(file: File) : LightVirtualFileBase(file.absolutePath, null, -1) {
-    override fun getOutputStream(requestor: Any?, newModificationStamp: Long, newTimeStamp: Long) = throw NotImplementedError()
+    override fun getOutputStream(requestor: Any?, newModificationStamp: Long, newTimeStamp: Long) =
+      throw NotImplementedError()
+
     override fun getInputStream() = throw NotImplementedError()
+
     override fun contentsToByteArray() = ByteArray(0)
   }
 
@@ -57,22 +61,32 @@ class LayoutBindingPackageFactory(val project: Project) {
    */
   @Synchronized
   fun getOrCreatePsiPackage(facet: AndroidFacet, packageName: String): PsiPackage {
-    // AndroidFacet is Disposable; use it now instead of holding this instance in the closure indefinitely.
+    // AndroidFacet is Disposable; use it now instead of holding this instance in the closure
+    // indefinitely.
     val sourceProviderManager = SourceProviderManager.getInstance(facet)
     return layoutBindingPsiPackages.computeIfAbsent(packageName) {
       object : PsiPackageImpl(PsiManager.getInstance(project), packageName) {
         override fun isValid(): Boolean = true
+
         override fun getDirectories(scope: GlobalSearchScope): Array<PsiDirectory> {
-          // Hack alert: Since JDK9, IntelliJ APIs expect a package to be associated with a corresponding directory.
-          // However, for data binding classes, the folder *will* exist at some point but not until compilation time.
-          // It seems we can fake out the IntelliJ APIs for now with a pretend directory. If we don't do this, then
-          // when users upgrade past JDK9, all the "com.xyz.databinding" packages will look like they aren't resolving.
-          // It doesn't matter to us that this won't be the actual, final generated directory; it's just enough to fool
+          // Hack alert: Since JDK9, IntelliJ APIs expect a package to be associated with a
+          // corresponding directory.
+          // However, for data binding classes, the folder *will* exist at some point but not until
+          // compilation time.
+          // It seems we can fake out the IntelliJ APIs for now with a pretend directory. If we
+          // don't do this, then
+          // when users upgrade past JDK9, all the "com.xyz.databinding" packages will look like
+          // they aren't resolving.
+          // It doesn't matter to us that this won't be the actual, final generated directory; it's
+          // just enough to fool
           // the resolution system.
           // See also: https://issuetracker.google.com/180946610
-          val srcDir = sourceProviderManager.sources.javaDirectories.firstOrNull()?.toIoFile() ?: return emptyArray()
+          val srcDir =
+            sourceProviderManager.sources.javaDirectories.firstOrNull()?.toIoFile()
+              ?: return emptyArray()
           val databindingDir = FakeDirectory(File(srcDir, packageName.replace('.', '/')))
-          // The following line creates a PsiDirectory but doesn't actually create a directory on disk
+          // The following line creates a PsiDirectory but doesn't actually create a directory on
+          // disk
           return arrayOf(PsiDirectoryFactory.getInstance(project).createDirectory(databindingDir))
         }
       }

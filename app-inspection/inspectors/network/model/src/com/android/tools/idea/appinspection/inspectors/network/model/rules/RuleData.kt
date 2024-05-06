@@ -24,12 +24,12 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.xmlb.annotations.Transient
 import com.intellij.util.xmlb.annotations.XCollection
+import javax.swing.JTable
+import kotlin.properties.Delegates
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.InterceptRule
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
 import studio.network.inspection.NetworkInspectorProtocol.Transformation
-import javax.swing.JTable
-import kotlin.properties.Delegates
 
 class RuleData(
   // must be a public var for PersistentStateComponent to set it
@@ -65,6 +65,7 @@ class RuleData(
 
   class CriteriaData {
     @get:Transient var listener: (() -> Unit)? = null
+
     private fun <T> delegate(initialValue: T) =
       Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
 
@@ -82,12 +83,12 @@ class RuleData(
     fun toProto(): InterceptCriteria =
       InterceptCriteria.newBuilder()
         .apply {
-          protocol = this@CriteriaData.protocol.toProto()
+          protocol = this@CriteriaData.protocol.proto
           host = this@CriteriaData.host
           port = this@CriteriaData.port
           path = this@CriteriaData.path
           query = this@CriteriaData.query
-          method = this@CriteriaData.method.toProto()
+          method = this@CriteriaData.method.proto
         }
         .build()
 
@@ -104,6 +105,7 @@ class RuleData(
     private constructor() : this(null, null, null)
 
     @get:Transient var listener: (() -> Unit)? = null
+
     private fun <T> delegate(initialValue: T) =
       Delegates.observable(initialValue) { _, _, _ -> listener?.invoke() }
 
@@ -307,7 +309,7 @@ class RuleData(
               }
             }
           },
-          object : ColumnInfo<TransformationRuleData, String>("Replace with") {
+          object : ColumnInfo<TransformationRuleData, String>("Replace With") {
             override fun valueOf(item: TransformationRuleData): String {
               return when (item) {
                 is BodyReplacedRuleData -> item.body
@@ -357,6 +359,8 @@ class RuleData(
 fun matchingTextTypeFrom(isRegex: Boolean): Type = if (isRegex) Type.REGEX else Type.PLAIN
 
 private object MyRenderer : ColoredTableCellRenderer() {
+  private fun readResolve(): Any = MyRenderer
+
   override fun customizeCellRenderer(
     table: JTable,
     item: Any?,

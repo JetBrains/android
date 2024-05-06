@@ -54,7 +54,7 @@ class ProfileWithLowOverheadTest: ProfilersTestBase() {
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+started.*support\\s+level\\s+\\=PROFILEABLE\$", 480)
         verifyIdeaLog(".*StudioMonitorStage.*PROFILER\\:\\s+Enter\\s+StudioMonitorStage\$", 300)
 
-        studio.waitForComponentByClass("TooltipLayeredPane", "StreamingScrollbar")
+        studio.waitForComponentByClass("TooltipLayeredPane", "TimelineScrollbar")
 
         stopProfilingSession(studio)
       }

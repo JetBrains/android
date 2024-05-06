@@ -55,6 +55,7 @@ class TestNetworkInspectorServices(
   override val client: NetworkInspectorClient =
     object : NetworkInspectorClient {
       override suspend fun getStartTimeStampNs() = 0L
+
       override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
         Unit
     },

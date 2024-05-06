@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.module.recipes.pureLibrary
 
 import com.android.SdkConstants
 import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.SdkConstants.LIBS_FOLDER
 import com.android.tools.idea.npw.module.recipes.addKotlinDependencies
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.npw.module.recipes.pureLibrary.src.placeholderJava
@@ -41,7 +40,7 @@ fun RecipeExecutor.generatePureLibrary(
   addIncludeToSettings(moduleData.name)
 
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
-  save(buildGradle(isKts = useGradleKts, useVersionCatalog = useVersionCatalog), moduleOut.resolve(buildFile))
+  save(buildGradle(getJavaVersion(), isKts = useGradleKts, useVersionCatalog = useVersionCatalog), moduleOut.resolve(buildFile))
   applyPlugin("java-library", null)
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),
@@ -58,6 +57,4 @@ fun RecipeExecutor.generatePureLibrary(
     addKotlinDependencies(androidX = false, targetApi = moduleData.apis.targetApi.api)
     applyPlugin("org.jetbrains.kotlin.jvm", projectData.kotlinVersion)
   }
-
-  createDirectory(moduleOut.resolve(LIBS_FOLDER))
 }

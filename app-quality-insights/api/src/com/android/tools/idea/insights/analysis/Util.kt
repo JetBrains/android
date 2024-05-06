@@ -18,7 +18,6 @@ package com.android.tools.idea.insights.analysis
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiFile
 import java.util.concurrent.atomic.AtomicReference
 import org.jetbrains.plugins.groovy.intentions.style.inference.resolve
 import org.jetbrains.uast.UCallExpression
@@ -114,9 +113,3 @@ private fun findMatchingMethodCall(
     range
   )
 }
-
-val PsiFile.candidateFileNames: Set<String>
-  get() =
-    virtualFile.name.substringBeforeLast(".").let { baseName ->
-      setOf("$baseName.java", "$baseName.kt")
-    }

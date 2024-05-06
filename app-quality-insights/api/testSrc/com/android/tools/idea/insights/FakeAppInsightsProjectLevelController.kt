@@ -56,6 +56,10 @@ class FakeAppInsightsProjectLevelController(
 
   override fun selectConnection(value: Connection) {}
 
+  override fun nextEvent() {}
+
+  override fun previousEvent() {}
+
   override fun openIssue(issue: AppInsightsIssue) {}
 
   override fun closeIssue(issue: AppInsightsIssue) {}
@@ -63,5 +67,8 @@ class FakeAppInsightsProjectLevelController(
   override fun addNote(issue: AppInsightsIssue, message: String) {}
 
   override fun deleteNote(note: Note) {}
+
   override fun selectVisibilityType(value: VisibilityType) {}
+
+  override fun selectIssueVariant(variant: IssueVariant?) {}
 }

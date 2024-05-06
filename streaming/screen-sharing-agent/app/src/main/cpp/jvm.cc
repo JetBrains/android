@@ -146,7 +146,7 @@ string JObject::ToString() const {
   jmethodID method = clazz.GetDeclaredOrInheritedMethod("toString", "()Ljava/lang/String;");
   JString str = JString(jni, jni->CallObjectMethod(ref_, method));
   if (str.IsNull()) {
-    JObject exception = jni.GetAndClearException();
+    JThrowable exception = jni.GetAndClearException();
     if (exception.IsNull()) {
       Log::W("%s.toString returned null", clazz.GetName(jni).c_str());
     } else {
@@ -175,7 +175,7 @@ void JObject::IllegalGlobalReferenceUse() {
 jfieldID JClass::GetStaticFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto field = jni_env->GetStaticFieldID(ref(), name, signature);
   if (field == nullptr) {
-    Log::Fatal(FIELD_NOT_FOUND, "Unable to find the static %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(FIELD_NOT_FOUND, "Unable to find the static %s.%s field with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return field;
 }
@@ -183,7 +183,7 @@ jfieldID JClass::GetStaticFieldId(JNIEnv* jni_env, const char* name, const char*
 jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto field = jni_env->GetFieldID(ref(), name, signature);
   if (field == nullptr) {
-    Log::Fatal(FIELD_NOT_FOUND, "Unable to find the %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(FIELD_NOT_FOUND, "Unable to find the %s.%s field with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return field;
 }
@@ -191,7 +191,7 @@ jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signa
 jmethodID JClass::GetStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetStaticMethodID(ref(), name, signature);
   if (method == nullptr) {
-    Log::Fatal(METHOD_NOT_FOUND, "Unable to find the static %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(METHOD_NOT_FOUND, "Unable to find the static %s.%s method with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return method;
 }
@@ -199,7 +199,7 @@ jmethodID JClass::GetStaticMethod(JNIEnv* jni_env, const char* name, const char*
 jmethodID JClass::GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetMethodID(ref(), name, signature);
   if (method == nullptr) {
-    Log::Fatal(METHOD_NOT_FOUND, "Unable to find the %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(METHOD_NOT_FOUND, "Unable to find the %s.%s method with signature \"%s\"", GetName(jni_env).c_str(), name, signature);
   }
   return method;
 }
@@ -207,7 +207,7 @@ jmethodID JClass::GetMethod(JNIEnv* jni_env, const char* name, const char* signa
 jmethodID JClass::GetConstructor(JNIEnv* jni_env, const char* signature) const {
   auto constructor = jni_env->GetMethodID(ref(), "<init>", signature);
   if (constructor == nullptr) {
-    Log::Fatal(CONSTRUCTOR_NOT_FOUND, "Unable to find the %s constructor with signature %s", GetName(jni_env).c_str(), signature);
+    Log::Fatal(CONSTRUCTOR_NOT_FOUND, "Unable to find the %s constructor with signature \"%s\"", GetName(jni_env).c_str(), signature);
   }
   return constructor;
 }
@@ -225,7 +225,7 @@ jmethodID JClass::GetDeclaredOrInheritedMethod(JNIEnv* jni_env, const char* name
     }
     jni_env->ExceptionClear();
   }
-  Log::Fatal(METHOD_NOT_FOUND, "Unable to find the declared or inherited %s.%s method with signature %s",
+  Log::Fatal(METHOD_NOT_FOUND, "Unable to find the declared or inherited %s.%s method with signature \"%s\"",
              GetName(jni_env).c_str(), name, signature);
 }
 
@@ -284,11 +284,11 @@ JObject JClass::NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const {
   va_end(args);
   if (result.IsNull()) {
     Jni jni(jni_env);
-    JObject exception = jni.GetAndClearException();
+    JThrowable exception = jni.GetAndClearException();
     if (exception.IsNull()) {
-      Log::Fatal(NULL_POINTER, "%s constructor returned null", GetName(jni).c_str());
+      Log::Fatal(NULL_POINTER, "Unable to instantiate %s - constructor returned null", GetName(jni).c_str());
     } else {
-      Log::Fatal(JAVA_EXCEPTION, "%s in %s constructor", exception.GetClass().GetName(jni).c_str(), GetName(jni).c_str());
+      Log::Fatal(JAVA_EXCEPTION, "Unable to instantiate %s - %s", GetName(jni).c_str(), exception.Describe().c_str());
     }
   }
   return result;

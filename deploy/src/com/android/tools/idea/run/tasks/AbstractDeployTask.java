@@ -19,6 +19,7 @@ package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.AdbHelper;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.build.BaselineProfileDetails;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.AdbClient;
@@ -30,7 +31,8 @@ import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
-import com.android.tools.deployer.UIService;
+import com.android.tools.deployer.model.App;
+import com.android.tools.deployer.model.BaselineProfile;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
@@ -38,6 +40,7 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.DeploymentService;
+import com.android.tools.idea.run.IdeService;
 import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableMap;
@@ -52,6 +55,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,16 +78,17 @@ public abstract class AbstractDeployTask {
                     EnumSet.of(ChangeType.DEX, ChangeType.NATIVE_LIBRARY, ChangeType.RESOURCE));
   protected final boolean myRerunOnSwapFailure;
   protected final boolean myAlwaysInstallWithPm;
+  private final Computable<String> myInstallPathProvider;
   @NotNull private final Project myProject;
   @NotNull private final Collection<ApkInfo> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
-  private final Computable<String> myInstallPathProvider;
 
   public AbstractDeployTask(@NotNull Project project,
                             @NotNull Collection<ApkInfo> packages,
                             boolean rerunOnSwapFailure,
                             boolean alwaysInstallWithPm,
-                            Computable<String> installPathProvider) {
+                            Computable<String> installPathProvider
+  ) {
     myProject = project;
     myPackages = packages;
     myRerunOnSwapFailure = rerunOnSwapFailure;
@@ -119,10 +124,10 @@ public abstract class AbstractDeployTask {
     if (!StudioFlags.APPLY_CHANGES_KEEP_CONNECTION_ALIVE.get()) {
       adbInstallerMode = AdbInstaller.Mode.ONE_SHOT;
     }
-    Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode);
+    Installer installer = new AdbInstaller(myInstallPathProvider.get(), adb, metrics.getDeployMetrics(), logger, adbInstallerMode);
 
     DeploymentService service = DeploymentService.getInstance();
-    UIService ideService = myProject.getService(UIService.class);
+    IdeService ideService = new IdeService(myProject);
 
     EnumSet<ChangeType> optimisticInstallSupport = EnumSet.noneOf(ChangeType.class);
     if (!myAlwaysInstallWithPm) {
@@ -173,10 +178,6 @@ public abstract class AbstractDeployTask {
   abstract protected Deployer.Result perform(IDevice device, Deployer deployer, @NotNull ApkInfo apkInfo, @NotNull Canceller canceller)
     throws DeployerException;
 
-  private String getLocalInstaller() {
-    return myInstallPathProvider.compute();
-  }
-
   @NotNull
   protected Project getProject() {
     return myProject;
@@ -225,8 +226,18 @@ public abstract class AbstractDeployTask {
     return myPackages;
   }
 
-  protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
-    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).map(Path::toString).collect(Collectors.toList());
+  public static App getAppToInstall(@NotNull ApkInfo apkInfo) {
+    List<Path> paths = apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).collect(Collectors.toList());
+    List<BaselineProfile> baselineProfiles = convertBaseLinesProfiles(apkInfo.getBaselineProfiles());
+    return App.fromPaths(apkInfo.getApplicationId(),paths, baselineProfiles);
+  }
+
+  private static List<BaselineProfile> convertBaseLinesProfiles(List<BaselineProfileDetails> profiles) {
+    return profiles.stream().map(p -> new BaselineProfile(
+      p.getMinApi(),
+      p.getMaxApi(),
+      p.getBaselineProfiles().stream().map(File::toPath).collect(Collectors.toList()))
+    ).collect(Collectors.toList());
   }
 
   private static AndroidStudioEvent.Builder toStudioEvent(Deploy.AgentExceptionLog log) {

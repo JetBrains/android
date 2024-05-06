@@ -35,5 +35,4 @@ internal open class DeviceKeypressAction(
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
 }

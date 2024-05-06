@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.ide.common.rendering.api.Result
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -23,8 +24,10 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.testing.disposable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.rendering.RenderResult
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -160,5 +163,65 @@ class RenderQualityManagerTest {
 
     tool.targetQuality = 0.35f
     assertFalse(qualityManager.needsQualityChange(sceneManagerMock))
+  }
+
+  @Test
+  fun testCancelledExceptionTriggersQualityChange() = runBlocking {
+    tool.errorMargin = 0.2f
+    tool.currentQuality = 0.5f
+
+    tool.targetQuality = 0.75f
+    val renderCancelledResult = mock<RenderResult>()
+    val mockResult = mock<Result>()
+    whenever(mockResult.isSuccess).thenReturn(false)
+    whenever(mockResult.exception).thenReturn(CancellationException())
+    whenever(renderCancelledResult.renderResult).thenReturn(mockResult)
+    whenever(sceneManagerMock.renderResult).thenReturn(renderCancelledResult)
+    assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
+  }
+
+  @Test
+  fun testCancelledExceptionTriggersQualityChange_EvenForSameQuality() = runBlocking {
+    tool.errorMargin = 0.2f
+    tool.currentQuality = 0.5f
+
+    tool.targetQuality = 0.5f
+    val renderCancelledResult = mock<RenderResult>()
+    val mockResult = mock<Result>()
+    whenever(mockResult.isSuccess).thenReturn(false)
+    whenever(mockResult.exception).thenReturn(CancellationException())
+    whenever(renderCancelledResult.renderResult).thenReturn(mockResult)
+    whenever(sceneManagerMock.renderResult).thenReturn(renderCancelledResult)
+    assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
+  }
+
+  @Test
+  fun testErrorDoesNotTriggerQualityChange() = runBlocking {
+    tool.errorMargin = 0.2f
+    tool.currentQuality = 0.5f
+
+    tool.targetQuality = 0.75f
+    val renderCancelledResult = mock<RenderResult>()
+    val mockResult = mock<Result>()
+    whenever(mockResult.isSuccess).thenReturn(false)
+    whenever(mockResult.exception).thenReturn(IllegalStateException())
+    whenever(renderCancelledResult.renderResult).thenReturn(mockResult)
+    whenever(sceneManagerMock.renderResult).thenReturn(renderCancelledResult)
+    assertFalse(qualityManager.needsQualityChange(sceneManagerMock))
+  }
+
+  @Test
+  fun testPause() = runBlocking {
+    tool.errorMargin = 0.2f
+    tool.currentQuality = 0.5f
+
+    tool.targetQuality = 0.75f
+    assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
+
+    qualityManager.pause()
+    assertFalse(qualityManager.needsQualityChange(sceneManagerMock))
+
+    qualityManager.resume()
+    assertTrue(qualityManager.needsQualityChange(sceneManagerMock))
   }
 }

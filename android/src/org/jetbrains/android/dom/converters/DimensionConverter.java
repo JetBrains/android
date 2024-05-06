@@ -6,15 +6,11 @@ import com.google.common.primitives.Doubles;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
 
 public class DimensionConverter extends ResolvingConverter<String> implements AttributeValueDocumentationProvider {
   public static final DimensionConverter INSTANCE = new DimensionConverter();
@@ -34,7 +30,7 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @NotNull
   @Override
-  public Collection<String> getVariants(@NotNull ConvertContext context) {
+  public Collection<String> getVariants(ConvertContext context) {
     final XmlElement element = context.getXmlElement();
 
     if (element == null) {
@@ -60,11 +56,11 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @Nullable
   @Override
-  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
-    return fromString(s);
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
+    return doFromString(s);
   }
 
-  public static @NonNls @Nullable String fromString(@NonNls @Nullable String s) {
+  public @NonNls @Nullable String doFromString(@NonNls @Nullable String s) {
     final String unit = getUnitFromValue(s);
 
     if (unit == null || unit.isEmpty()) {
@@ -78,12 +74,12 @@ public class DimensionConverter extends ResolvingConverter<String> implements At
 
   @Nullable
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, ConvertContext context) {
     final String unit = getUnitFromValue(s);
     if (unit != null && !unit.isEmpty()) {
       if (unit.startsWith(",")) {

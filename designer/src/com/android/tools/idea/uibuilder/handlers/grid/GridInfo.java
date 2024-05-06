@@ -16,11 +16,12 @@
 package com.android.tools.idea.uibuilder.handlers.grid;
 
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.NlComponent;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.model.Insets;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-import java.awt.Dimension;
+
+import java.awt.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;

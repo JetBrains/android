@@ -19,18 +19,17 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -43,6 +42,7 @@ import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
@@ -60,7 +60,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.event.InputEvent;
@@ -93,7 +93,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public class Scene implements SelectionListener, Disposable {
 
   @SwingCoordinate
-  private static final int DRAG_THRESHOLD = JBUIScale.scale(10);
+  private static final int DRAG_THRESHOLD = JBUI.scale(10);
   private static final String PREFERENCE_KEY_PREFIX = "ScenePreference";
   private static final String SHOW_TOOLTIP_KEY = PREFERENCE_KEY_PREFIX + "ShowToolTip";
   private static Boolean SHOW_TOOLTIP_VALUE = null;
@@ -1207,7 +1207,7 @@ public class Scene implements SelectionListener, Disposable {
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
     AndroidFacet facet = model.getFacet();
 
-    return taskBuilder(renderService, facet, model.getConfiguration())
+    return RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, facet, model.getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build()
       .thenCompose(task -> {

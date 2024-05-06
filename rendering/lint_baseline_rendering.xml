@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `whenCompleteAsync` overload with an explicit Executor instead. See `go/do-not-freeze`."
+        errorLine1="      newFuture"
+        errorLine2="      ^">
+        <location
+            file="src/com/android/tools/rendering/RenderTask.java"
+            line="891"
+            column="7"/>
+    </issue>
+
+</issues>

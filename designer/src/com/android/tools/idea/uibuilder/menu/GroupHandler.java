@@ -20,7 +20,7 @@ import static com.android.SdkConstants.ATTR_ENABLED;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_VISIBLE;
 
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;

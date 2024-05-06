@@ -25,6 +25,7 @@ object StudioDefaultDeviceActionPresentation : DeviceAction.DefaultPresentation 
   override val createDeviceTemplateAction = Presentation("Create", StudioIcons.Common.ADD, true)
   override val activationAction = Presentation("Start", StudioIcons.Avd.RUN, true)
   override val coldBootAction = Presentation("Cold Boot", StudioIcons.Avd.RUN, true)
+  override val bootSnapshotAction = Presentation("Boot from Snapshot", StudioIcons.Avd.RUN, true)
   override val deactivationAction = Presentation("Stop", StudioIcons.Avd.STOP, true)
   override val editAction = Presentation("Edit", StudioIcons.Avd.EDIT, true)
   override val deleteAction = Presentation("Delete", StudioIcons.Common.DELETE, true)

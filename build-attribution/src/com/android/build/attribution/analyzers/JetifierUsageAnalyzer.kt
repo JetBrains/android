@@ -36,14 +36,12 @@ fun checkJetifierResultFile(buildRequestData: GradleBuildInvoker.Request.Request
 /** Minimal AGP version that supports running checkJetifier task. */
 private val minAGPVersion = AgpVersion.parse("7.1.0-beta01")
 
-class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostBuildProcessAnalyzer {
+class JetifierUsageAnalyzer(cachedCheckJetifierResultData: CheckJetifierResultData?) : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostBuildProcessAnalyzer {
   private var enableJetifierFlagState: Boolean? = null
   private var useAndroidXFlagState: Boolean? = null
   private var shouldAnalyzerRun: Boolean = false
-  private var checkJetifierResult: CheckJetifierResult? = null
   private var isCheckJetifierBuild: Boolean = false
-  private var lastCheckJetifierBuildTimestamp: Long? = null
-
+  var checkJetifierResultData: CheckJetifierResultData? = cachedCheckJetifierResultData
 
   override fun runPostBuildAnalysis(analyzersResult: BuildEventsAnalyzersProxy, studioProvidedInfo: StudioProvidedInfo) {
     shouldAnalyzerRun = shouldAnalyzerRun(studioProvidedInfo.agpVersion)
@@ -53,22 +51,24 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
 
     checkJetifierResultFile(studioProvidedInfo.buildRequestHolder.buildRequest.data).let {
       if (it.exists()) {
-        checkJetifierResult = CheckJetifierResult.load(it)
-        lastCheckJetifierBuildTimestamp = System.currentTimeMillis()
+        checkJetifierResultData = CheckJetifierResultData(
+          checkJetifierResult = CheckJetifierResult.load(it),
+          lastCheckJetifierBuildTimestamp = System.currentTimeMillis()
+        )
         isCheckJetifierBuild = true
       }
     }
   }
 
   override fun calculateResult(): JetifierUsageAnalyzerResult {
-    if (!shouldAnalyzerRun) return JetifierUsageAnalyzerResult(AnalyzerNotRun, lastCheckJetifierBuildTimestamp, false)
+    if (!shouldAnalyzerRun) return JetifierUsageAnalyzerResult(AnalyzerNotRun, checkJetifierResultData?.lastCheckJetifierBuildTimestamp, false)
     if (enableJetifierFlagState == true && useAndroidXFlagState == true) {
-      return checkJetifierResult?.let {
-        if (it.isEmpty()) JetifierUsageAnalyzerResult(JetifierCanBeRemoved, lastCheckJetifierBuildTimestamp, isCheckJetifierBuild)
-        else JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(it), lastCheckJetifierBuildTimestamp, isCheckJetifierBuild)
-      } ?: JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, lastCheckJetifierBuildTimestamp, false)
+      return checkJetifierResultData?.checkJetifierResult?.let {
+        if (it.isEmpty()) JetifierUsageAnalyzerResult(JetifierCanBeRemoved, checkJetifierResultData?.lastCheckJetifierBuildTimestamp, isCheckJetifierBuild)
+        else JetifierUsageAnalyzerResult(JetifierRequiredForLibraries(it), checkJetifierResultData?.lastCheckJetifierBuildTimestamp, isCheckJetifierBuild)
+      } ?: JetifierUsageAnalyzerResult(JetifierUsedCheckRequired, checkJetifierResultData?.lastCheckJetifierBuildTimestamp, false)
     }
-    return JetifierUsageAnalyzerResult(JetifierNotUsed, lastCheckJetifierBuildTimestamp, false)
+    return JetifierUsageAnalyzerResult(JetifierNotUsed, checkJetifierResultData?.lastCheckJetifierBuildTimestamp, false)
   }
 
   override fun cleanupTempState() {
@@ -84,6 +84,11 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
 private fun shouldAnalyzerRun(currentAgpVersion: AgpVersion?): Boolean {
   return StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get() && currentAgpVersion != null && currentAgpVersion >= minAGPVersion
 }
+
+data class CheckJetifierResultData(
+  val lastCheckJetifierBuildTimestamp: Long?,
+  val checkJetifierResult: CheckJetifierResult?
+)
 
 data class JetifierUsageAnalyzerResult(
   val projectStatus: JetifierUsageProjectStatus,

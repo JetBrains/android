@@ -15,14 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.scene.decorator;
 
-import static com.android.tools.compose.ComposeLibraryNamespaceKt.COMPOSE_VIEW_ADAPTER_FQN;
-
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
-import com.android.tools.idea.uibuilder.handlers.compose.decorator.ComposeViewAdapterDecorator;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutDecorator;
 import com.android.tools.idea.uibuilder.handlers.grid.draw.GridLayoutV7Decorator;
@@ -47,7 +44,6 @@ public class NlSceneDecoratorFactory extends SceneDecoratorFactory {
 
   static {
     try {
-      ourConstructorMap.put(COMPOSE_VIEW_ADAPTER_FQN, ComposeViewAdapterDecorator.class.getConstructor());
       ourConstructorMap.put(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.oldName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.newName(), ConstraintLayoutDecorator.class.getConstructor());
       ourConstructorMap.put(AndroidXConstants.CLASS_MOTION_LAYOUT.oldName(), MotionLayoutDecorator.class.getConstructor());

@@ -227,7 +227,7 @@ class SyncActionRunner private constructor(
           val sequentialAction = indexedActions.filter { !it.value.canRunInParallel }
           val executionResults =
             parallelActions.keys.zip(
-              @Suppress("UnstableApiUsage")
+              @Suppress("UNCHECKED_CAST", "UnstableApiUsage")
               controller.run(parallelActions.map { indexedActionToRun ->
                 BuildAction {
                   indexedActionToRun.value.run(it.toMeasuringController(syncCounters))

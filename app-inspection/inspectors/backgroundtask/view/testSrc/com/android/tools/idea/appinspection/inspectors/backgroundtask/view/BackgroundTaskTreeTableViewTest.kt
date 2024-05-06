@@ -51,6 +51,9 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.util.concurrency.EdtExecutorService
+import javax.swing.JScrollPane
+import javax.swing.JTree
+import javax.swing.tree.DefaultMutableTreeNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -62,9 +65,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JScrollPane
-import javax.swing.JTree
-import javax.swing.tree.DefaultMutableTreeNode
 
 class BackgroundTaskTreeTableViewTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
@@ -234,7 +234,7 @@ class BackgroundTaskTreeTableViewTest {
 
   @Test
   fun sortEntriesByClassName() =
-    runBlocking {
+    runBlocking<Unit> {
       client.sendWorkEvent {
         workAddedBuilder.apply {
           workBuilder.apply {

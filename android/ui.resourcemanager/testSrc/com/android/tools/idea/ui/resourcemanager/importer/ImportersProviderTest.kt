@@ -26,6 +26,8 @@ import kotlin.test.assertTrue
 
 @RunsInEdt
 class ImportersProviderTest {
+
+  @Suppress("unused") // Needed to initialize extension points
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 

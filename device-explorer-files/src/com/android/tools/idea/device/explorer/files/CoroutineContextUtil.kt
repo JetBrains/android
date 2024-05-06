@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.files
+package com.android.tools.idea.device.explorer.files;
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.openapi.application.ModalityState

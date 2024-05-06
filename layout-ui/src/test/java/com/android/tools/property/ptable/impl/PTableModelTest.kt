@@ -23,7 +23,7 @@ import com.android.tools.property.ptable.item.addModelListener
 import com.android.tools.property.ptable.item.createModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.ArgumentMatchers
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
@@ -52,22 +52,22 @@ class PTableModelTest {
     // expand and check that 2 more nodes have been added
     model.expand(2)
     assertThat(model.rowCount).isEqualTo(5)
-    verify(listener)?.tableChanged(ArgumentMatchers.any())
+    verify(listener)?.tableChanged(Mockito.any())
 
     // 2nd expand is a noop
     model.expand(2)
     assertThat(model.rowCount).isEqualTo(5)
-    verify(listener)?.tableChanged(ArgumentMatchers.any())
+    verify(listener)?.tableChanged(Mockito.any())
 
     // collapse and check that 2 nodes have been removed
     model.collapse(2)
     assertThat(model.rowCount).isEqualTo(3)
-    verify(listener, times(2))?.tableChanged(ArgumentMatchers.any())
+    verify(listener, times(2))?.tableChanged(Mockito.any())
 
     // 2nd collapse is a noop
     model.collapse(2)
     assertThat(model.rowCount).isEqualTo(3)
-    verify(listener, times(2))?.tableChanged(ArgumentMatchers.any())
+    verify(listener, times(2))?.tableChanged(Mockito.any())
   }
 
   @Test
@@ -84,12 +84,12 @@ class PTableModelTest {
     // toggle and check that 2 more nodes have been added
     model.toggle(2)
     assertThat(model.rowCount).isEqualTo(5)
-    verify(listener)?.tableChanged(ArgumentMatchers.any())
+    verify(listener)?.tableChanged(Mockito.any())
 
     // toggle and check that 2 nodes have been removed
     model.collapse(2)
     assertThat(model.rowCount).isEqualTo(3)
-    verify(listener, times(2))?.tableChanged(ArgumentMatchers.any())
+    verify(listener, times(2))?.tableChanged(Mockito.any())
   }
 
   @Test
@@ -160,7 +160,7 @@ class PTableModelTest {
     tableModel.updateTo(true, Item("item3"))
     assertThat(model.rowCount).isEqualTo(1)
     assertThat(model.getValueAt(0, 0).name).isEqualTo("item3")
-    verify(listener).tableChanged(ArgumentMatchers.any())
+    verify(listener).tableChanged(Mockito.any())
   }
 
   @Test
@@ -173,6 +173,6 @@ class PTableModelTest {
     assertThat(model.rowCount).isEqualTo(2)
     assertThat(model.getValueAt(0, 0).name).isEqualTo("item1")
     assertThat(model.getValueAt(1, 0).name).isEqualTo("item2")
-    verify(listener).tableChanged(ArgumentMatchers.any())
+    verify(listener).tableChanged(Mockito.any())
   }
 }

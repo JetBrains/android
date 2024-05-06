@@ -19,11 +19,13 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
@@ -103,20 +105,27 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      deviceFutures,
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
 
     // Verify commands sent to device.
 
-    // force-stop running app
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
+
     // check WatchFace API version.
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // Set WatchFace.
-    assertThat(receivedAmCommands[2]).isEqualTo(setWatchFace)
+    assertThat(receivedAmCommands[1]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(receivedAmCommands[3]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[2]).isEqualTo(showWatchFace)
   }
 
   @Test
@@ -169,7 +178,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Executor we test.
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      DeviceFutures.forDevices(listOf(device)),
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     val runContentDescriptor = getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
 
@@ -179,21 +196,20 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Verify commands sent to device.
 
-    // force-stop running app
-    assertThat(receivedAmCommands[0]).isEqualTo(forceStop)
+
     // check WatchFace API version.
-    assertThat(receivedAmCommands[1]).isEqualTo(checkVersion)
+    assertThat(receivedAmCommands[0]).isEqualTo(checkVersion)
     // Set debug app.
-    assertThat(receivedAmCommands[2]).isEqualTo(setDebugAppAm)
+    assertThat(receivedAmCommands[1]).isEqualTo(setDebugAppAm)
     // Set WatchFace.
-    assertThat(receivedAmCommands[3]).isEqualTo(setWatchFace)
+    assertThat(receivedAmCommands[2]).isEqualTo(setWatchFace)
     // Showing WatchFace.
-    assertThat(receivedAmCommands[4]).isEqualTo(showWatchFace)
+    assertThat(receivedAmCommands[3]).isEqualTo(showWatchFace)
     // Unset watch face
-    assertThat(receivedAmCommands[5]).isEqualTo(unsetWatchFace)
+    assertThat(receivedAmCommands[4]).isEqualTo(unsetWatchFace)
     // Clear debug app
-    assertThat(receivedAmCommands[6]).isEqualTo(clearDebugAppBroadcast)
-    assertThat(receivedAmCommands[7]).isEqualTo(clearDebugAppAm)
+    assertThat(receivedAmCommands[5]).isEqualTo(clearDebugAppBroadcast)
+    assertThat(receivedAmCommands[6]).isEqualTo(clearDebugAppAm)
   }
 
   @Test
@@ -225,13 +241,25 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Executor we test.
     val app = Mockito.mock(App::class.java)
-    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val activator = Mockito.mock(Activator::class.java)
+    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
+      .whenever(activator).activate(any(), any(), any(AppComponent.Mode::class.java), any(), any())
+
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      DeviceFutures.forDevices(listOf(device)),
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
+    val spyExecutor = Mockito.spy(executor)
+    Mockito.`when`(spyExecutor.getActivator(app)).thenReturn(activator)
 
     assertFailsWith<ExecutionException>("Error while launching watch face, message: $failedResponse") {
-      getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
+      getRunContentDescriptorForTests { spyExecutor.debug(EmptyProgressIndicator()) }
     }
   }
 
@@ -244,7 +272,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(ExecutionException("Exception on debug start"))
 
-    val processTerminatedLatch = CountDownLatch(4) // force-stop x2, unsetWatchFace, clearDebugAppAm
+    val processTerminatedLatch = CountDownLatch(3) // force-stop, unsetWatchFace, clearDebugAppAm
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
@@ -295,7 +323,15 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Executor we test.
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
-    val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val executor = AndroidWatchFaceConfigurationExecutor(
+      env,
+      DeviceFutures.forDevices(listOf(device)),
+      settings,
+      TestApplicationIdProvider(appId),
+      TestApksProvider(appId),
+      TestApplicationProjectContext(appId),
+      appInstaller
+    )
 
     // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
     // mocked DebuggerManagerEx to fail above.

@@ -59,7 +59,7 @@ final class CustomSkinDefinitionResolver {
     }
 
     if (customSkinDefinitionBackup == null) {
-      myCustomSkinDefinition = fileSystem.getPath(SkinUtils.NO_SKIN);
+      myCustomSkinDefinition = SkinUtils.noSkin(fileSystem);
       myCustomSkinDefinitionBackup = customSkinDefinition;
 
       return;

@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
@@ -16,6 +16,7 @@ import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
+import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger;
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
 import com.android.tools.idea.execution.common.stats.RunStats;
 import com.android.tools.idea.execution.common.stats.RunStatsService;
@@ -27,7 +28,6 @@ import com.android.tools.idea.run.editor.DeployTargetContext;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
-import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
@@ -56,7 +56,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatforms;
@@ -93,8 +92,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
   private final AndroidDebuggerContext myAndroidDebuggerContext = new AndroidDebuggerContext(AndroidJavaDebugger.ID);
   private final boolean myIsTestConfiguration;
 
-  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, boolean isTestConfiguration) {
-    super(new AndroidRunConfigurationModule(project, isTestConfiguration), factory);
+  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, String name, boolean isTestConfiguration) {
+    super(name, new AndroidRunConfigurationModule(project, isTestConfiguration), factory);
 
     myIsTestConfiguration = isTestConfiguration;
     myProfilerState = new ProfilerState();
@@ -106,6 +105,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     putUserData(DeployableToDevice.getKEY(), getDeployTargetContext().getCurrentDeployTargetProvider().canDeployToLocalDevice());
+  }
+
+  public AndroidRunConfigurationBase(Project project, ConfigurationFactory factory, boolean isTestConfiguration) {
+    this(project, factory, null, isTestConfiguration);
   }
 
   @Override
@@ -132,6 +135,10 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
    * We use a separate method for the collection so the compiler prevents us from accidentally throwing.
    */
   public List<ValidationError> validate(@Nullable Executor executor) {
+    return validate(executor, null);
+  }
+
+  public List<ValidationError> validate(@Nullable Executor executor, @Nullable Runnable quickFixCallback) {
     List<ValidationError> errors = new ArrayList<>();
     JavaRunConfigurationModule configurationModule = getConfigurationModule();
     try {
@@ -198,7 +205,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     AndroidProjectSystem projectSystem = getProjectSystem(getProject());
-    errors.addAll(projectSystem.validateRunConfiguration(this));
+    errors.addAll(projectSystem.validateRunConfiguration(this, quickFixCallback));
 
     errors.addAll(checkConfiguration(facet));
     AndroidDebuggerState androidDebuggerState = myAndroidDebuggerContext.getAndroidDebuggerState();
@@ -287,7 +294,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     DeviceFutures deviceFutures = deployTarget.getDevices(getProject());
 
     // Record stat if we launched a device.
-    stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> device instanceof LaunchableAndroidDevice));
+    stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> !device.isRunning()));
 
     if (deviceFutures.get().isEmpty()) {
       throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
@@ -305,12 +312,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
-    Optional<AndroidConfigurationExecutor> provided = AndroidConfigurationExecutor.Provider.EP_NAME.extensions()
-      .map(it -> it.createAndroidConfigurationExecutor(env))
-      .filter(Objects::nonNull)
-      .findFirst();
-    if (provided.isPresent()) {
-      return new AndroidConfigurationExecutorRunProfileState(provided.get());
+    for (AndroidConfigurationExecutor.Provider provider : AndroidConfigurationExecutor.Provider.EP_NAME.getIterable()) {
+      final AndroidConfigurationExecutor providedExecutor = provider.createAndroidConfigurationExecutor(env);
+      if (providedExecutor != null) {
+        return new AndroidConfigurationExecutorRunProfileState(providedExecutor);
+      }
     }
 
     AndroidConfigurationExecutor configurationExecutor = getExecutor(env, facet, deviceFutures);

@@ -42,4 +42,8 @@ class MockDeviceFileSystemService(val project: Project, edtExecutor: Executor, t
     devices.value -= device
     return removed
   }
+
+  override suspend fun getFileSystem(serialNumber: String): DeviceFileSystem? {
+    return devices.value.find { it.deviceSerialNumber == serialNumber }
+  }
 }

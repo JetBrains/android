@@ -81,7 +81,7 @@ public class LayoutEditorMemoryUseTest {
     guiTest.runWithBleak(
       () -> {
         design.dragComponentToSurface("Buttons", "Button");
-        assertThat(design.getIssuePanel().hasRenderError()).isFalse();
+        assertThat(design.getSurface().hasRenderErrors()).isFalse();
         guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE);
       }
     );

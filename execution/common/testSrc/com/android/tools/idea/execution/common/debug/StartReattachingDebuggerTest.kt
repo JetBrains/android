@@ -30,6 +30,8 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
+import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
@@ -56,11 +58,14 @@ class StartReattachingDebuggerTest {
   private val APP_ID = FakeAdbTestRule.CLIENT_PACKAGE_NAME
   private val MASTER_PROCESS_NAME = "com.master.test"
 
-  @get:Rule
-  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
-
-  @get:Rule
+  @get:Rule(order = 0)
   val projectRule = ProjectRule()
+
+  @get:Rule(order = 1)
+  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+
+  @get:Rule(order = 2)
+  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.server }
 
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
@@ -95,7 +100,7 @@ class StartReattachingDebuggerTest {
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
     val firstSession = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
-      APP_ID,
+      TestApplicationProjectContext(APP_ID,),
       masterProcessHandler,
       executionEnvironment,
       AndroidJavaDebugger(),
@@ -141,6 +146,8 @@ class StartReattachingDebuggerTest {
     val runContentManagerImplMock = Mockito.mock(RunContentManager::class.java)
 
     project.registerServiceInstance(RunContentManager::class.java, runContentManagerImplMock)
+    val projectSystem = TestProjectSystem(project)
+    projectSystem.useInTests()
 
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
 
@@ -149,7 +156,7 @@ class StartReattachingDebuggerTest {
 
     DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
-      APP_ID,
+      TestApplicationProjectContext(APP_ID),
       MASTER_PROCESS_NAME,
       executionEnvironment,
       AndroidJavaDebugger(),
@@ -185,6 +192,8 @@ class StartReattachingDebuggerTest {
 
     deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
+
+
       when (wholeCommand) {
         "force-stop $MASTER_PROCESS_NAME" -> latch.countDown()
         "force-stop $APP_ID" -> error("Should stop only master process")
@@ -193,7 +202,7 @@ class StartReattachingDebuggerTest {
 
     val sessionImpl = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
-      APP_ID,
+      TestApplicationProjectContext(APP_ID),
       MASTER_PROCESS_NAME,
       executionEnvironment,
       AndroidJavaDebugger(),

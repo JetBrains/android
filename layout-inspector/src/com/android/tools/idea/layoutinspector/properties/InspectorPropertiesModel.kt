@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.properties
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
-import com.android.tools.idea.layoutinspector.model.InspectorModelModificationListener
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
@@ -48,7 +48,7 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
       handleNewSelection(oldView, newView, selectionOrigin)
     }
   private val modificationListener =
-    InspectorModelModificationListener { oldWindow, newWindow, isStructuralChange ->
+    InspectorModel.ModificationListener { oldWindow, newWindow, isStructuralChange ->
       handleModelChange(oldWindow, newWindow, isStructuralChange)
     }
   private val connectionListener: (InspectorClient?) -> Unit = { handleConnectionChange(it) }
@@ -76,9 +76,9 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
     newInspector: LayoutInspector?
   ) {
     cleanUp(oldInspector)
-    newInspector?.inspectorModel?.selectionListeners?.add(selectionListener)
-    newInspector?.inspectorModel?.modificationListeners?.add(modificationListener)
-    newInspector?.inspectorModel?.connectionListeners?.add(connectionListener)
+    newInspector?.inspectorModel?.addSelectionListener(selectionListener)
+    newInspector?.inspectorModel?.addModificationListener(modificationListener)
+    newInspector?.inspectorModel?.addConnectionListener(connectionListener)
   }
 
   override fun deactivate() {
@@ -99,9 +99,9 @@ class InspectorPropertiesModel(parentDisposable: Disposable) :
   }
 
   private fun cleanUp(layoutInspector: LayoutInspector?) {
-    layoutInspector?.inspectorModel?.selectionListeners?.remove(selectionListener)
-    layoutInspector?.inspectorModel?.modificationListeners?.remove(modificationListener)
-    layoutInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
+    layoutInspector?.inspectorModel?.removeSelectionListener(selectionListener)
+    layoutInspector?.inspectorModel?.removeModificationListener(modificationListener)
+    layoutInspector?.inspectorModel?.removeConnectionListener(connectionListener)
   }
 
   @Suppress("UNUSED_PARAMETER")

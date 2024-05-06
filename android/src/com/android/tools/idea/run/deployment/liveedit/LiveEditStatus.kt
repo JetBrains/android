@@ -21,10 +21,10 @@ import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DEFAULT
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED
-import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED_WITH_MESSAGE
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.RECOVERABLE_ERROR
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESHING
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESH_NEEDED
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED_WITH_MESSAGE
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.UNRECOVERABLE_ERROR
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
@@ -174,6 +174,14 @@ open class LiveEditStatus(
       AnimatedIcon.Default.INSTANCE,
       message("le.status.in_progress.title"),
       message("le.status.in_progress.description"),
+      REFRESHING
+    )
+
+  object CopyingPsi :
+    LiveEditStatus(
+      AnimatedIcon.Default.INSTANCE,
+      message("le.status.pre_compiling.title"),
+      message("le.status.pre_compiling.description"),
       REFRESHING
     )
 

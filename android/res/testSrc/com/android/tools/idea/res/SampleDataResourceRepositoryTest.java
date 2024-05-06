@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static com.intellij.testFramework.UsefulTestCase.assertSize;
 import static org.junit.Assert.assertEquals;
@@ -31,6 +30,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.configurations.Configuration;
@@ -43,6 +43,7 @@ import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.res.LocalResourceRepository;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -55,7 +56,6 @@ import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -69,7 +69,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 /**
- * Test for {@link SampleDataResourceRepository}.
+ * Test for {@link SampleDataResourceRepository} and {@link SampleDataListener}.
  */
 @RunsInEdt
 @SuppressWarnings("DataFlowIssue")
@@ -102,12 +102,12 @@ public class SampleDataResourceRepositoryTest {
   }
 
   @NotNull
-  private static Collection<ResourceItem> getResources(@NotNull SampleDataResourceRepository repo) {
+  private static Collection<ResourceItem> getResources(@NotNull ResourceRepository repo) {
     return repo.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
   }
 
   @NotNull
-  private static List<ResourceItem> getResources(@NotNull SampleDataResourceRepository repo, @NotNull String resName) {
+  private static List<ResourceItem> getResources(@NotNull ResourceRepository repo, @NotNull String resName) {
     return repo.getResources(RES_AUTO, ResourceType.SAMPLE_DATA, resName);
   }
 
@@ -120,18 +120,6 @@ public class SampleDataResourceRepositoryTest {
                         "    android:layout_height=\"match_parent\" />";
 
     return myProjectRule.getFixture().addFileToProject("src/main/res/layout/layout.xml", layoutText);
-  }
-
-  @Test
-  public void testGetInstance() {
-    SampleDataResourceRepository repository = SampleDataResourceRepository.getInstance(myFacet);
-    // We should return a cached instance of the resource repository..
-    assertThat(SampleDataResourceRepository.getInstance(myFacet)).isSameAs(repository);
-
-    // ..until we refresh the layout or sync, at which point another call to
-    // getInstance() should give us a newly-constructed repository and not the disposed one.
-    SampleDataResourceRepository.SampleDataRepositoryManager.getInstance(myFacet).reset();
-    assertThat(SampleDataResourceRepository.getInstance(myFacet)).isNotSameAs(repository);
   }
 
   @Test
@@ -148,7 +136,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "Insert image here 3\n");
     myProjectRule.getFixture().addFileToProject("sampledata/root_image.png",
                                                 "Insert image here 3\n");
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
     assertEquals(3, getResources(repo).size());
     assertEquals(1, getResources(repo, "strings").size());
@@ -246,7 +234,7 @@ public class SampleDataResourceRepositoryTest {
 
   @Test
   public void testSampleDataFileInvalidation_addAndDeleteFile() throws IOException {
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
     assertTrue(getResources(repo).isEmpty());
 
     PsiFile strings = myProjectRule.getFixture().addFileToProject("sampledata/strings",
@@ -262,7 +250,7 @@ public class SampleDataResourceRepositoryTest {
 
   @Test
   public void testSampleDataFileInvalidation_deleteSampleDataDirectory() throws IOException {
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
 
     myProjectRule.getFixture().addFileToProject("sampledata/strings", "string1\n");
     VirtualFile sampleDir = toVirtualFile(myAppModuleSystem.getSampleDataDirectory());
@@ -274,7 +262,7 @@ public class SampleDataResourceRepositoryTest {
 
   @Test
   public void testSampleDataFileInvalidation_moveFiles() throws IOException {
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
 
     VirtualFile sampleDir = toVirtualFile(
       WriteAction.computeAndWait(() -> myAppModuleSystem.getOrCreateSampleDataDirectory())
@@ -293,7 +281,7 @@ public class SampleDataResourceRepositoryTest {
 
   @Test
   public void testSampleDataFileInvalidation_moveSampleDataDirectory() throws IOException {
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    ResourceRepository repo = StudioResourceRepositoryManager.getInstance(myFacet).getSampleDataResources();
 
     VirtualFile sampleDir = toVirtualFile(
       WriteAction.computeAndWait(() -> myAppModuleSystem.getOrCreateSampleDataDirectory())
@@ -335,7 +323,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "      \"name\": \"Name1\",\n" +
                                                 "      \"surname\": \"Surname1\"\n" +
                                                 "    },\n");
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, getResources(repo).size());
@@ -349,7 +337,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "Name1,Surname1\n" +
                                                 "Name2,Surname2\n" +
                                                 "Name3,Surname3,555-00000");
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(3, getResources(repo).size());
@@ -373,7 +361,7 @@ public class SampleDataResourceRepositoryTest {
         sampleDataFile.getVirtualFile().setBinaryContent(("new1\n" +
                                                           "new2\n" +
                                                           "new3\n" +
-                                                          "new4\n").getBytes(StandardCharsets.UTF_8));
+                                                          "new4\n").getBytes(Charsets.UTF_8));
         PsiDocumentManager.getInstance(myProjectRule.getProject()).commitAllDocuments();
       }
       catch (IOException e) {
@@ -394,7 +382,7 @@ public class SampleDataResourceRepositoryTest {
     PsiFile rootImagePsiFile = myProjectRule.getFixture().addFileToProject("sampledata/root_image.png", "\n");
 
 
-    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(myFacet);
+    LocalResourceRepository<VirtualFile> repository = StudioResourceRepositoryManager.getAppResources(myFacet);
     Collection<ResourceItem> items = repository.getResources(RES_AUTO, ResourceType.SAMPLE_DATA).values();
     assertSize(2, items);
     SampleDataResourceItem item =
@@ -429,9 +417,6 @@ public class SampleDataResourceRepositoryTest {
 
   @Test
   public void testResetWithNoRepo() {
-    @SuppressWarnings("unused") SampleDataResourceRepository.SampleDataRepositoryManager manager =
-      SampleDataResourceRepository.SampleDataRepositoryManager.getInstance(myFacet);
-
     StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches();
   }
 
@@ -447,7 +432,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "TransitiveName1,TransitiveSurname1\n" +
                                                 "TransitiveName2,TransitiveSurname2\n" +
                                                 "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone
     assertEquals(6, getResources(repo).size());
@@ -479,7 +464,7 @@ public class SampleDataResourceRepositoryTest {
                                                 "TransitiveName1,TransitiveSurname1\n" +
                                                 "TransitiveName2,TransitiveSurname2\n" +
                                                 "TransitiveName3,TransitiveSurname3,555-00000");
-    SampleDataResourceRepository repo = SampleDataResourceRepository.getInstance(myFacet);
+    SampleDataResourceRepository repo = new SampleDataResourceRepository(myFacet);
 
     PsiFile layout = addLayoutFile();
     // Three different items are expected, one for the users/name path, other for users/surname and a last one for users/phone

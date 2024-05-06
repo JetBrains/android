@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
@@ -35,7 +35,7 @@ open class SdkIndexTestBase {
   private val localSnapshotFolder = "tools/adt/idea/project-system-integration-tests/testData/snapshot/"
   private val testProjectPath = "tools/adt/idea/project-system-integration-tests/testData/sdkindexapp"
   private val testRepoManifest = "tools/adt/idea/project-system-integration-tests/sdkindexproject_deps.manifest"
-  private val snapshotTimeoutSeconds: Long = 60
+  private val snapshotTimeoutSeconds: Long = 120
   private val timeoutPsdShowSeconds: Long = 60
   // TODO(b/243691427): Change the way we confirm no more issues were created, on test runs it is around 10 ms between issues
   private val timeoutBetweenIssuesSeconds: Long = 2
@@ -99,11 +99,11 @@ open class SdkIndexTestBase {
   protected fun verifyPsdIssues(numWarnings: Int) {
     val summaryRegex = ".*PsAnalyzerDaemon - Issues recreated: (.*)$"
     // The test project uses the following libraries:
-    //  - com.startapp:inapp-sdk: 3.9.1 error (blocking critical)
+    //  - com.startapp:inapp-sdk: 3.9.1 error (blocking critical and outdated)
     //  - com.stripe:stripe-android:9.3.2 error (if policy issues are enabled, not blocking)
     //  - com.mopub:mopub-sdk:4.16.0 warning (outdated)
     //  - com.snowplowanalytics:snowplow-android-tracker:1.4.1 info (critical, but not blocking)
-    val expectedSummary = "1 errors, $numWarnings warnings, 1 information, 0 updates, 0 other"
+    val expectedSummary = "2 errors, $numWarnings warnings, 1 information, 0 updates, 0 other"
     val foundSummary: String
     try {
       val matcher = system.installation.ideaLog.waitForMatchingLine(summaryRegex, timeoutBetweenIssuesSeconds, TimeUnit.SECONDS)

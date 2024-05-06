@@ -60,8 +60,7 @@ android {
         //main.resources.srcDir 'src'
         //instrumentTest.java.srcDir 'tests/src'
     }
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }

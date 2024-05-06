@@ -37,7 +37,7 @@ internal data class EmulatorFoldingAction(val posture: PostureDescriptor) : Abst
     val emulatorView = getEmulatorView(event) ?: return
     if (posture != emulatorView.currentPosture) {
       val emulator = emulatorView.emulator
-      val type = if (emulator.emulatorConfig.isFoldable) PhysicalType.HINGE_ANGLE0 else PhysicalType.ROLLABLE0
+      val type = if (posture.valueType == PostureDescriptor.ValueType.HINGE_ANGLE) PhysicalType.HINGE_ANGLE0 else PhysicalType.ROLLABLE0
       val physicalModelValue = PhysicalModelValue.newBuilder()
         .setTarget(type)
         .setValue(ParameterValue.newBuilder().addData(getPostureValue(posture, emulator.emulatorConfig.postures).toFloat()))

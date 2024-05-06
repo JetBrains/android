@@ -25,12 +25,12 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
-import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -38,16 +38,27 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.function.Consumer
 
 /**
  * Test [ProjectSystemSyncManager] that allows to manually change the [isSyncInProgress()] value
  */
-private class TestSyncManager(val project: Project) : ProjectSystemSyncManager {
+private class TestSyncManager(project: Project): ProjectSystemSyncManager {
   var testIsSyncInProgress: Boolean = false
-  var testLastSyncResult: SyncResult = SyncResult.UNKNOWN
+
+  // No sync has happened yet in the test.
+  var testLastSyncResult: SyncResult? = null
+
+  init {
+    project.messageBus.connect(project).apply {
+      subscribe(PROJECT_SYSTEM_SYNC_TOPIC, SyncResultListener { result ->
+        disconnect()
+        testLastSyncResult = result
+      })
+    }
+  }
 
   override fun syncProject(reason: ProjectSystemSyncManager.SyncReason): ListenableFuture<SyncResult> {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -59,7 +70,7 @@ private class TestSyncManager(val project: Project) : ProjectSystemSyncManager {
     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
   }
 
-  override fun getLastSyncResult(): SyncResult = testLastSyncResult
+  override fun getLastSyncResult(): SyncResult = testLastSyncResult ?: SyncResult.UNKNOWN
 }
 
 @RunWith(JUnit4::class)
@@ -94,14 +105,14 @@ class SyncUtilTest {
   @Test
   fun waitForSmartAndSyncedWhenSmartAndSynced() {
     val callCount = AtomicInteger(0)
-    project.runWhenSmartAndSynced(callback = Consumer { callCount.incrementAndGet() })
+    project.runWhenSmartAndSynced(callback = { callCount.incrementAndGet() })
     assertThat(callCount.get()).isEqualTo(1)
   }
 
   @Test
-  fun waitForSmartAndSyncedWhenDumbAndSynced() = runBlocking {
+  fun waitForSmartAndSyncedWhenDumbAndSynced() {
     val latch = CountDownLatch(1)
-    DumbServiceImpl.getInstance(project).runInDumbMode {
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
       project.runWhenSmartAndSynced(callback = { latch.countDown() })
       assertThat(latch.count).isEqualTo(1)
       emulateSync(SyncResult.SUCCESS)
@@ -115,7 +126,8 @@ class SyncUtilTest {
     val callCount = AtomicInteger(0)
     val syncManager = TestSyncManager(project)
     syncManager.testIsSyncInProgress = true
-    project.runWhenSmartAndSynced(callback = Consumer { callCount.incrementAndGet() },
+
+    project.runWhenSmartAndSynced(callback = { callCount.incrementAndGet() },
                                   syncManager = syncManager)
     assertThat(callCount.get()).isEqualTo(0)
     syncManager.testIsSyncInProgress = false
@@ -124,14 +136,18 @@ class SyncUtilTest {
   }
 
   @Test
-  fun waitForSmartAndSyncedWhenDumbAndNotSynced() = runBlocking {
+  fun waitForSmartAndSyncedWhenDumbAndNotSynced() {
     val callCount = AtomicInteger(0)
     val syncManager = TestSyncManager(project)
     syncManager.testIsSyncInProgress = true
 
-    DumbServiceImpl.getInstance(project).runInDumbMode {
+    val semaphore = Semaphore(0)
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
       project.runWhenSmartAndSynced(
-        callback = { callCount.incrementAndGet() },
+        callback = {
+          callCount.incrementAndGet()
+          semaphore.release()
+        },
         syncManager = syncManager)
       assertThat(callCount.get()).isEqualTo(0)
       syncManager.testIsSyncInProgress = false
@@ -140,11 +156,12 @@ class SyncUtilTest {
       assertThat(callCount.get()).isEqualTo(0)
     }
 
-    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    semaphore.acquire()
     assertThat(callCount.get()).isEqualTo(1)
 
-    // Once the callback has been called, new syncs or dumb mode changes won't call the method
+    // Once the callback has been called, new syncs or dumb mode changes won't call the method.
     emulateSync(SyncResult.SUCCESS)
+    assertFalse("runWhenSmartAndSynced callback was called unexpectedly", semaphore.tryAcquire(5, TimeUnit.SECONDS))
     assertThat(callCount.get()).isEqualTo(1)
   }
 
@@ -153,12 +170,12 @@ class SyncUtilTest {
     val callCount = AtomicInteger(0)
     val syncManager = TestSyncManager(project)
 
-    // The next callback won't execute immediately but it will be scheduled to run on the EDT later
+    // The next callback won't execute immediately, but it will be scheduled to run on the EDT later.
     val latch = CountDownLatch(1)
     val startThreadLatch = CountDownLatch(1)
     executeOnPooledThread {
       project.runWhenSmartAndSyncedOnEdt(
-        callback = Consumer {
+        callback = {
           assertThat(ApplicationManager.getApplication().isDispatchThread).isTrue()
           latch.await(1, TimeUnit.SECONDS)
           callCount.incrementAndGet()
@@ -166,17 +183,21 @@ class SyncUtilTest {
         syncManager = syncManager)
       startThreadLatch.countDown()
     }
-    // Wait for the thread to start
+    // Wait for the thread to start, no calls are yet called as the sync state is UNKNOWN.
     startThreadLatch.await(1, TimeUnit.SECONDS)
     assertThat(callCount.get()).isEqualTo(0)
     latch.countDown()
+
+    // We need to emulate sync because in production all the listeners (for example [ProjectLightResourceClassService])
+    // will trigger sync indirectly through methods like dropPsiCaches().
+    emulateSync(SyncResult.SUCCESS)
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(callCount.get()).isEqualTo(1)
 
     val latch2 = CountDownLatch(1)
     executeOnPooledThread {
       project.runWhenSmartAndSynced(
-        callback = Consumer {
+        callback = {
           assertThat(ApplicationManager.getApplication().isDispatchThread).isFalse()
           callCount.incrementAndGet()
           latch2.countDown()
@@ -192,12 +213,17 @@ class SyncUtilTest {
     val callCount = AtomicInteger(0)
     val syncManager = TestSyncManager(project)
 
-    assertThat(DumbService.isDumb(project)).isFalse() // Not in dumb mode so callbacks should be immediately called
+
+    assertThat(DumbService.isDumb(project)).isFalse() // In Smart mode so callbacks should be immediately called.
     project.runWhenSmartAndSynced(
-      callback = Consumer {
+      callback = {
         callCount.incrementAndGet()
       },
       syncManager = syncManager)
+
+    // We need to emulate sync because in production all the listeners (for example [ProjectLightResourceClassService])
+    // will trigger sync indirectly through methods like dropPsiCaches().
+    emulateSync(SyncResult.SKIPPED)
     assertThat(callCount.get()).isEqualTo(1)
 
     val disposedDisposable = Disposer.newDisposable()
@@ -205,7 +231,7 @@ class SyncUtilTest {
     assertThat(Disposer.isDisposed(disposedDisposable)).isTrue()
     project.runWhenSmartAndSynced(
       parentDisposable = disposedDisposable,
-      callback = Consumer {
+      callback = {
         callCount.incrementAndGet()
       },
       syncManager = syncManager)

@@ -28,8 +28,7 @@ import org.junit.Test
 import javax.swing.JCheckBox
 
 class ComposeDebuggerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private fun getClassFilterPatterns(): List<String> =
     DebuggerClassFilterProvider.EP_NAME.extensionList.flatMap { it.filters }.map { it.pattern }
@@ -55,7 +54,9 @@ class ComposeDebuggerTest {
 
     val element = serialize(settingsManager.state!!)
     settings.filterComposeRuntimeClasses = true
-    settingsManager.loadState(element!!.deserialize(XDebuggerSettingManagerImpl.SettingsState::class.java))
+    settingsManager.loadState(
+      element!!.deserialize(XDebuggerSettingManagerImpl.SettingsState::class.java)
+    )
     assert(!settings.filterComposeRuntimeClasses)
   }
 

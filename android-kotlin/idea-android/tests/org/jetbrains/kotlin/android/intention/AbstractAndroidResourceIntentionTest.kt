@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 
 abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
@@ -34,7 +35,7 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
 
         myFixture.testDataPath = testDataPath
 
-        val config = JsonParser().parse(FileUtil.loadFile(configFile, true)) as JsonObject
+        val config = JsonParser.parseString(FileUtil.loadFile(configFile, true)) as JsonObject
 
         val intentionClass = if (config.has("intentionClass")) config.getString("intentionClass") else null
         val intentionText = if (config.has("intentionText")) config.getString("intentionText") else null
@@ -83,17 +84,27 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
 
         FileDocumentManager.getInstance().saveAllDocuments()
 
-        myFixture.checkResultByFile("/expected/main.kt")
-        assertResourcesEqual(testDataPath + "/expected/res")
+        val expected = getExpectedDirectoryName()
+        myFixture.checkResultByFile("/${expected}/main.kt")
+        assertResourcesEqual("${testDataPath}/${expected}/res")
     }
 
-    fun assertResourcesEqual(expectedPath: String) {
+    private fun getExpectedDirectoryName(): String {
+        val baseExpectedDirectory = "expected"
+        val suffix = if (KotlinPluginModeProvider.isK2Mode()) "k2" else "k1"
+
+        return if (File("${myFixture.testDataPath}/${baseExpectedDirectory}.${suffix}").isDirectory) {
+            "${baseExpectedDirectory}.${suffix}"
+        } else {
+            baseExpectedDirectory
+        }
+    }
+
+    private fun assertResourcesEqual(expectedPath: String) {
         PlatformTestUtil.assertDirectoriesEqual(LocalFileSystem.getInstance().findFileByPath(expectedPath)!!, getResourceDirectory()!!)
     }
 
-    fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
-
-    fun getTargetElement() = myFixture.file.findElementAt(myFixture.caretOffset)?.parent
+    private fun getResourceDirectory() = LocalFileSystem.getInstance().findFileByPath(myFixture.tempDirPath + "/res")
 
   // Originally from jsonUtils.kt
   private fun JsonObject.getString(name: String): String {

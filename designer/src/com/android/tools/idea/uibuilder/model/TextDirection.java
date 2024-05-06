@@ -15,20 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.model;
 
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_END;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_END;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_PARENT_START;
-import static com.android.SdkConstants.ATTR_LAYOUT_ALIGN_START;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
-import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF;
-import static com.android.SdkConstants.ATTR_LAYOUT_TO_START_OF;
-
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
 import com.android.resources.LayoutDirection;
 import com.android.tools.configurations.Configuration;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.*;
 
 /**
  * RTL state for the designer editor. It provides helper methods to manage the RTL attributes.

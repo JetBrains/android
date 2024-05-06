@@ -21,11 +21,13 @@ import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
+
 
 /**
  * Action to import devices from a given file
@@ -46,8 +48,8 @@ public class ImportDevicesAction extends DeviceUiAction {
     String homePath = System.getProperty("user.home");
     File parentPath = homePath == null ? new File("/") : new File(homePath);
     VirtualFile parent = LocalFileSystem.getInstance().findFileByIoFile(parentPath);
-    VirtualFile[] toSelect = parent != null ? new VirtualFile[]{parent} : VirtualFile.EMPTY_ARRAY;
-    VirtualFile[] files = FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(null, toSelect);
+    VirtualFile[] files =
+      FileChooserFactory.getInstance().createFileChooser(descriptor, myProvider.getProject(), null).choose(parent, null);
     List<Device> importedDevices = new ArrayList<>();
     for (VirtualFile vf : files) {
       importedDevices.addAll(DeviceManagerConnection.getDevicesFromFile(VfsUtilCore.virtualToIoFile(vf)));

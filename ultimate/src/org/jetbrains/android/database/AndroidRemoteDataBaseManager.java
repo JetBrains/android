@@ -1,23 +1,18 @@
 package org.jetbrains.android.database;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.xmlb.annotations.MapAnnotation;
 import com.intellij.util.xmlb.annotations.Tag;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.*;
 
 @State(name = "AndroidRemoteDataBaseManager", storages = @Storage("androidRemoteDatabases.xml"))
 public class AndroidRemoteDataBaseManager implements PersistentStateComponent<AndroidRemoteDataBaseManager.State> {
@@ -40,7 +35,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
         databaseName.length() == 0) {
       return "";
     }
-    return PathManager.getSystemPath() + File.separator + "android" +
+    return AndroidUtils.getAndroidSystemDirectoryOsPath() +
            File.separator + "databases" +
            File.separator + deviceId +
            File.separator + packageName +
@@ -178,7 +173,7 @@ public class AndroidRemoteDataBaseManager implements PersistentStateComponent<An
 
   @Tag("db-info")
   public static class MyDatabaseInfo {
-    public String fingerprint = "";
+    public long modificationTime = 0;
     public final Set<String> referringProjects = new HashSet<>();
   }
 }

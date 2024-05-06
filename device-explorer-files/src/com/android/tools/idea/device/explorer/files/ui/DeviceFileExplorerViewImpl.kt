@@ -27,9 +27,11 @@ import com.android.tools.idea.device.explorer.files.ui.menu.item.MenuContext
 import com.android.tools.idea.device.explorer.files.ui.menu.item.NewDirectoryMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.NewFileMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.OpenMenuItem
+import com.android.tools.idea.device.explorer.files.ui.menu.item.PackageFilterMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.SaveAsMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.SynchronizeNodesMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.UploadFilesMenuItem
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.dnd.FileCopyPasteUtil
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -78,6 +80,7 @@ class DeviceFileExplorerViewImpl(
   private var treePopupMenu: ComponentPopupMenu? = null
   private var treeLoadingCount = 0
   private var fileExplorerActionListener = DeviceFileExplorerActionListenerImpl()
+  private val packageFilterMenuItem = PackageFilterMenuItem(fileExplorerActionListener)
 
   init {
     model.addListener(ModelListener())
@@ -106,8 +109,9 @@ class DeviceFileExplorerViewImpl(
     progressListeners.remove(listener)
   }
 
-  override fun setup() {
+  override fun setup(packageFilterActive: Boolean) {
     setupPanel()
+    packageFilterMenuItem.isActionSelected = packageFilterActive
   }
 
   override fun reportError(message: String, t: Throwable) {
@@ -164,6 +168,14 @@ class DeviceFileExplorerViewImpl(
 
   override fun stopProgress() {
     panel.progressPanel.stop()
+  }
+
+  override fun setPackageFilterSelection(isSelected: Boolean) {
+    packageFilterMenuItem.isActionSelected = isSelected
+  }
+
+  override fun enablePackageFilter(shouldEnable: Boolean) {
+    packageFilterMenuItem.shouldBeEnabled = shouldEnable
   }
 
   @TestOnly
@@ -295,6 +307,7 @@ class DeviceFileExplorerViewImpl(
       add(UploadFilesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
       add(DeleteNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
       add(SynchronizeNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+      if (StudioFlags.DEVICE_EXPLORER_PROCESSES_PACKAGE_FILTER.get()) add(packageFilterMenuItem.action)
     }
     val actionToolbar = actionManager.createActionToolbar("Device File Explorer Toolbar", actionGroup, true)
     actionToolbar.targetComponent = panel.tree
@@ -404,5 +417,8 @@ class DeviceFileExplorerViewImpl(
       listeners.forEach(Consumer { it.uploadFilesInvoked(node) })
     }
 
+    override fun setPackageFilter(isActive: Boolean) {
+      listeners.forEach(Consumer { it.togglePackageFilterInvoked(isActive) })
+    }
   }
 }

@@ -16,16 +16,15 @@
 package com.android.tools.idea.common.actions
 
 import com.android.sdklib.devices.Device
-import com.android.tools.configurations.Configuration
+import com.android.tools.idea.actions.CONFIGURATIONS
+import com.android.tools.idea.actions.DeviceChangeListener
+import com.android.tools.idea.actions.DeviceMenuAction
+import com.android.tools.idea.actions.SetDeviceAction
 import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.configurations.DeviceChangeListener
-import com.android.tools.idea.configurations.DeviceMenuAction
-import com.android.tools.idea.configurations.SetDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ApplicationRule
 import org.intellij.lang.annotations.Language
@@ -49,7 +48,8 @@ class NextDeviceActionTest {
     val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val config = configManager.getConfiguration(file.virtualFile)
 
-    val setDeviceActions = getSetDeviceActions(config)
+    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val setDeviceActions = getSetDeviceActions(dataContext)
 
     val firstDevice = setDeviceActions.first().device
     config.setDevice(firstDevice, false)
@@ -81,7 +81,8 @@ class PreviousDeviceActionTest {
     val configManager = ConfigurationManager.getOrCreateInstance(projectRule.fixture.module)
     val config = configManager.getConfiguration(file.virtualFile)
 
-    val setDeviceActions = getSetDeviceActions(config)
+    val dataContext = DataContext { if (CONFIGURATIONS.`is`(it)) listOf(config) else null }
+    val setDeviceActions = getSetDeviceActions(dataContext)
 
     val lastDevice = setDeviceActions.last().device
     config.setDevice(lastDevice, false)
@@ -97,19 +98,17 @@ class PreviousDeviceActionTest {
   }
 }
 
-private fun getSetDeviceActions(config: Configuration): List<SetDeviceAction> {
+private fun getSetDeviceActions(dataContext: DataContext): List<SetDeviceAction> {
   val menuAction =
     DeviceMenuAction(
-        { config },
         object : DeviceChangeListener {
           override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
-        }
+        },
       )
-      .apply { updateActions(DataContext.EMPTY_CONTEXT) }
+      .apply { updateActions(dataContext) }
 
-  val actionManager = ActionManager.getInstance()
   return menuAction
-    .getChildren(actionManager)
+    .getChildren(null)
     .map { if (it is ActionGroup) it.getChildren(null) else arrayOf(it) }
     .flatMap { it.toList() }
     .filterIsInstance<SetDeviceAction>()

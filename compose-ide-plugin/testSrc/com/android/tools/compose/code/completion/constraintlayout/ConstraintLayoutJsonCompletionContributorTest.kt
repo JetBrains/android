@@ -28,10 +28,10 @@ import org.junit.Rule
 import org.junit.Test
 
 internal class ConstraintLayoutJsonCompletionContributorTest {
-  // TODO(b/207030860): Change test class to 'LightPlatformCodeInsightFixture4TestCase' once/if we remove the Compose requirement
+  // TODO(b/207030860): Change test class to 'LightPlatformCodeInsightFixture4TestCase' once/if we
+  // remove the Compose requirement
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -42,7 +42,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeConstraintSetFields() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -56,7 +57,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val items = myFixture.lookupElementStrings!!
     assertThat(items).hasSize(2)
     assertThat((items[0])).isEqualTo("id2")
@@ -65,7 +68,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeExtendsValue() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -76,14 +80,17 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     assertThat(myFixture.lookupElementStrings!!).hasSize(1)
     assertThat(myFixture.lookupElementStrings!![0]).isEqualTo("start")
   }
 
   @Test
   fun completeConstraintBlockFields() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -94,7 +101,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val lookupElements = myFixture.lookupElementStrings!!
     assertThat(lookupElements).hasSize(19)
     assertThat(lookupElements).containsNoDuplicates()
@@ -106,7 +115,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeDimensionBehaviors() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -116,7 +126,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(4)
@@ -125,7 +137,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeVisibilityModes() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -135,7 +148,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(3)
@@ -144,7 +159,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeConstraintIdsInArray() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -156,7 +172,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(3)
@@ -165,7 +183,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeConstraintIdsInSpecialAnchors() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -177,7 +196,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val lookupElements = myFixture.lookupElementStrings!!
 
     assertThat(lookupElements).hasSize(3)
@@ -186,7 +207,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeAnchorsInConstraintArray() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -196,12 +218,15 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val lookupElements1 = myFixture.lookupElementStrings!!
     assertThat(lookupElements1).hasSize(4)
     assertThat(lookupElements1).containsExactly("end", "left", "right", "start")
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -211,7 +236,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     val lookupElements2 = myFixture.lookupElementStrings!!
     assertThat(lookupElements2).hasSize(3)
     assertThat(lookupElements2).containsExactly("top", "bottom", "baseline")
@@ -219,7 +246,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun constraintAnchorHandlerResult() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -229,7 +257,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     myFixture.checkResult(
       // language=JSON5
       """
@@ -242,13 +272,15 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
   @Test
   fun completionHandlerResult() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -259,9 +291,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     myFixture.checkResult(
-      //language=JSON5
+      // language=JSON5
       """{
   ConstraintSets: {
     start: {
@@ -273,9 +307,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
       }
     }
   }
-}""")
+}"""
+    )
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -283,7 +319,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     myFixture.checkResult(
       // language=JSON5
       """{
@@ -292,12 +330,14 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
       Extends: '$caret',
     }
   }
-}""")
+}"""
+    )
   }
 
   @Test
   fun completeTransitionFields() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -306,7 +346,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     val lookupElements = myFixture.lookupElementStrings!!
     assertThat(lookupElements).containsExactly("to", "KeyFrames", "pathMotionArc", "onSwipe")
@@ -314,7 +356,8 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
 
   @Test
   fun completeTransitionFromAndTo() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           a: {},
@@ -329,10 +372,13 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     assertThat(myFixture.lookupElementStrings!!).containsExactly("a", "b", "c", "d")
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           e: {},
@@ -347,13 +393,16 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     assertThat(myFixture.lookupElementStrings!!).containsExactly("e", "f", "g", "h")
   }
 
   @Test
   fun completeClearField() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           a: {},
@@ -365,14 +414,17 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           },
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     // The repeated clear is to autocomplete with all options populated
     assertThat(myFixture.lookupElementStrings!!).containsExactly("clear", "clear")
   }
 
   @Test
   fun completeClearOptions() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           a: {},
@@ -384,10 +436,14 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           },
         }
       }
-    """.trimIndent())
-    assertThat(myFixture.lookupElementStrings!!).containsExactly("constraints", "dimensions", "transforms")
+    """
+        .trimIndent()
+    )
+    assertThat(myFixture.lookupElementStrings!!)
+      .containsExactly("constraints", "dimensions", "transforms")
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           a: {},
@@ -399,14 +455,17 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           },
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     // 'constraints' options is already populated
     assertThat(myFixture.lookupElementStrings!!).containsExactly("dimensions", "transforms")
   }
 
   @Test
   fun completeOnSwipeFieldsAndValues() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -417,10 +476,13 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     assertThat(myFixture.lookupElementStrings!!).containsExactly("side", "direction", "mode")
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -430,8 +492,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -441,9 +506,12 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -453,8 +521,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -464,9 +535,12 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -476,8 +550,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -487,9 +564,12 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         ConstraintSets: {
           start: {
@@ -511,13 +591,16 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     assertThat(myFixture.lookupElementStrings!!).containsExactly("parent", "a", "b", "c", "d", "e")
   }
 
   @Test
   fun completeKeyFramesFields() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -527,13 +610,17 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    assertThat(myFixture.lookupElementStrings!!).containsExactly("KeyAttributes", "KeyPositions", "KeyCycles")
+    """
+        .trimIndent()
+    )
+    assertThat(myFixture.lookupElementStrings!!)
+      .containsExactly("KeyAttributes", "KeyPositions", "KeyCycles")
   }
 
   @Test
   fun completeKeyAttributesFields() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -545,28 +632,32 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    assertThat(myFixture.lookupElementStrings!!).containsExactly(
-      "target",
-      "frames",
-      "transitionEasing",
-      "curveFit",
-      // Attributes specific:
-      "alpha",
-      "scaleX",
-      "scaleY",
-      "rotationX",
-      "rotationY",
-      "rotationZ",
-      "translationX",
-      "translationY",
-      "translationZ",
+    """
+        .trimIndent()
     )
+    assertThat(myFixture.lookupElementStrings!!)
+      .containsExactly(
+        "target",
+        "frames",
+        "transitionEasing",
+        "curveFit",
+        // Attributes specific:
+        "alpha",
+        "scaleX",
+        "scaleY",
+        "rotationX",
+        "rotationY",
+        "rotationZ",
+        "translationX",
+        "translationY",
+        "translationZ",
+      )
   }
 
   @Test
   fun completeKeyPositionsFields() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -578,25 +669,29 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    assertThat(myFixture.lookupElementStrings!!).containsExactly(
-      "target",
-      "frames",
-      "transitionEasing",
-      "curveFit",
-      // Position specific:
-      "percentX",
-      "percentY",
-      "percentWidth",
-      "percentHeight",
-      "pathMotionArc",
-      "type"
+    """
+        .trimIndent()
     )
+    assertThat(myFixture.lookupElementStrings!!)
+      .containsExactly(
+        "target",
+        "frames",
+        "transitionEasing",
+        "curveFit",
+        // Position specific:
+        "percentX",
+        "percentY",
+        "percentWidth",
+        "percentHeight",
+        "pathMotionArc",
+        "type"
+      )
   }
 
   @Test
   fun completeKeyCyclesFields() {
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -608,33 +703,37 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    assertThat(myFixture.lookupElementStrings!!).containsExactly(
-      "target",
-      "frames",
-      "transitionEasing",
-      "curveFit",
-      // Cycles specific:
-      "period",
-      "offset",
-      "phase",
-      // Shared with KeyAttributes:
-      "alpha",
-      "scaleX",
-      "scaleY",
-      "rotationX",
-      "rotationY",
-      "rotationZ",
-      "translationX",
-      "translationY",
-      "translationZ",
+    """
+        .trimIndent()
     )
+    assertThat(myFixture.lookupElementStrings!!)
+      .containsExactly(
+        "target",
+        "frames",
+        "transitionEasing",
+        "curveFit",
+        // Cycles specific:
+        "period",
+        "offset",
+        "phase",
+        // Shared with KeyAttributes:
+        "alpha",
+        "scaleX",
+        "scaleY",
+        "rotationX",
+        "rotationY",
+        "rotationZ",
+        "translationX",
+        "translationY",
+        "translationZ",
+      )
   }
 
   @Test
   fun completeKeyFrameChildPropertyWithAtLeastOneElement() {
     // `frames` with empty array
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -647,8 +746,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -661,10 +763,13 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // No `frames` property
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -676,8 +781,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -689,10 +797,13 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // Completing `frames` for first time
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -704,8 +815,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -717,13 +831,17 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @Test
   fun completeKeyFrameChildPropertyWithArray() {
-    // A completed number based property should be initialized with an array matching the same number of items as the `frames` property
-    myFixture.completeJson5Text("""
+    // A completed number based property should be initialized with an array matching the same
+    // number of items as the `frames` property
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -736,8 +854,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -750,10 +871,14 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    // Completed parameter should match `frames` size array regardless of the size of other parameters
-    myFixture.completeJson5Text("""
+    // Completed parameter should match `frames` size array regardless of the size of other
+    // parameters
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -767,8 +892,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -782,10 +910,13 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // Text based properties should not be initialized with an array
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -798,8 +929,11 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
-    myFixture.checkResult("""
+    """
+        .trimIndent()
+    )
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -812,13 +946,16 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @Test
   fun completionIsCaseSensitive() {
     // Using wrong casing
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -826,9 +963,12 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     // Not changes in result
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -836,10 +976,13 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // With correct casing
-    myFixture.completeJson5Text("""
+    myFixture.completeJson5Text(
+      """
       {
         Transitions: {
           default: {
@@ -847,9 +990,12 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
     // Expression completed properly
-    myFixture.checkResult("""
+    myFixture.checkResult(
+      """
       {
         Transitions: {
           default: {
@@ -859,7 +1005,9 @@ internal class ConstraintLayoutJsonCompletionContributorTest {
           }
         }
       }
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 }
 

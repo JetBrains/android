@@ -16,13 +16,13 @@
 package com.android.tools.idea.logcat.messages
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.editor.asTextRange
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.refactoring.suggested.range
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -36,18 +36,17 @@ private val red = TextAttributes().apply { foregroundColor = Color.red }
 private val blueKey = TextAttributesKey.createTextAttributesKey("blue")
 private val redKey = TextAttributesKey.createTextAttributesKey("red")
 
-/**
- * Tests for [DocumentAppender]
- */
+/** Tests for [DocumentAppender] */
 @RunsInEdt
 class DocumentAppenderTest {
   private val projectRule = ProjectRule()
 
-  @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, EdtRule())
 
   private val document: DocumentEx = DocumentImpl("", true)
-  private val markupModel by lazy { DocumentMarkupModel.forDocument(document, projectRule.project, false) }
+  private val markupModel by lazy {
+    DocumentMarkupModel.forDocument(document, projectRule.project, false)
+  }
 
   @Test
   fun appendToDocument_appendsText() {
@@ -56,107 +55,155 @@ class DocumentAppenderTest {
 
     documentAppender.appendToDocument(TextAccumulator().apply { accumulate("Added Text") })
 
-    assertThat(document.text).isEqualTo("""
+    assertThat(document.text)
+      .isEqualTo(
+        """
       Start
       Added Text
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
   fun appendToDocument_cyclicBuffer() {
     val documentAppender = documentAppender(document, 30)
-    document.setText("""
+    document.setText(
+      """
       Added Line 1
       Added Line 2
 
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("""
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate(
+          """
       Added Line 3
       Added Line 4
 
-    """.trimIndent())
-    })
+    """
+            .trimIndent()
+        )
+      }
+    )
   }
 
   @Test
   fun appendToDocument_cyclicBuffer_trimsNothing() {
     val documentAppender = documentAppender(document, 30)
-    document.setText("""
+    document.setText(
+      """
       Added Line 1
       Added Line 2
 
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("""
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate(
+          """
       Added Line 3
 
-    """.trimIndent())
-    })
+    """
+            .trimIndent()
+        )
+      }
+    )
 
-    assertThat(document.text).isEqualTo("""
+    assertThat(document.text)
+      .isEqualTo(
+        """
       Added Line 1
       Added Line 2
       Added Line 3
 
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
   fun appendToDocument_cyclicBuffer_appendLongText() {
     val documentAppender = documentAppender(document, 30)
-    document.setText("""
+    document.setText(
+      """
       Added Line 1
       Added Line 2
 
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // Cut line is in the middle of the first line
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("""
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate(
+          """
       Added Line 3
       Added Line 4
       Added Line 5
 
-    """.trimIndent())
-    })
+    """
+            .trimIndent()
+        )
+      }
+    )
 
-    assertThat(document.text).isEqualTo("""
+    assertThat(document.text)
+      .isEqualTo(
+        """
       Added Line 3
       Added Line 4
       Added Line 5
 
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
   fun appendToDocument_cyclicBuffer_appendVeryLongText() {
     val documentAppender = documentAppender(document, 30)
-    document.setText("""
+    document.setText(
+      """
       Added Line 1
       Added Line 2
 
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // Cut line is in the middle of the second line
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("""
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate(
+          """
       Added Line 3
       Added Line 4
       Added Line 5
       Added Line 6
 
-    """.trimIndent())
-    })
+    """
+            .trimIndent()
+        )
+      }
+    )
 
-    assertThat(document.text).isEqualTo("""
+    assertThat(document.text)
+      .isEqualTo(
+        """
       Added Line 4
       Added Line 5
       Added Line 6
 
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
@@ -164,16 +211,16 @@ class DocumentAppenderTest {
     val documentAppender = documentAppender(document)
     document.setText("Start\n")
 
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("No color\n")
-      accumulate("Red\n", textAttributes = red)
-      accumulate("Blue\n", textAttributes = blue)
-    })
-
-    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesRange)).containsExactly(
-      getRangeForText("Red\n", red),
-      getRangeForText("Blue\n", blue)
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate("No color\n")
+        accumulate("Red\n", textAttributes = red)
+        accumulate("Blue\n", textAttributes = blue)
+      }
     )
+
+    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesRange))
+      .containsExactly(getRangeForText("Red\n", red), getRangeForText("Blue\n", blue))
   }
 
   @Test
@@ -181,16 +228,19 @@ class DocumentAppenderTest {
     // This size will truncate in the beginning of the second line
     val documentAppender = documentAppender(document, 8)
 
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("abcd\n", textAttributes = blue)
-      accumulate("efgh\n", textAttributes = red)
-      accumulate("ijkl\n", textAttributes = blue)
-    })
-
-    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesRange)).containsExactly(
-      getRangeForText("efgh\n", red),
-      getRangeForText("ijkl\n", blue),
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate("abcd\n", textAttributes = blue)
+        accumulate("efgh\n", textAttributes = red)
+        accumulate("ijkl\n", textAttributes = blue)
+      }
     )
+
+    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesRange))
+      .containsExactly(
+        getRangeForText("efgh\n", red),
+        getRangeForText("ijkl\n", blue),
+      )
   }
 
   @Test
@@ -198,16 +248,16 @@ class DocumentAppenderTest {
     val documentAppender = documentAppender(document)
     document.setText("Start\n")
 
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("No color\n")
-      accumulate("Red\n", textAttributesKey = redKey)
-      accumulate("Blue\n", textAttributesKey = blueKey)
-    })
-
-    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesKeyRange)).containsExactly(
-      getRangeForText("Red\n", redKey),
-      getRangeForText("Blue\n", blueKey)
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate("No color\n")
+        accumulate("Red\n", textAttributesKey = redKey)
+        accumulate("Blue\n", textAttributesKey = blueKey)
+      }
     )
+
+    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesKeyRange))
+      .containsExactly(getRangeForText("Red\n", redKey), getRangeForText("Blue\n", blueKey))
   }
 
   @Test
@@ -215,16 +265,19 @@ class DocumentAppenderTest {
     // This size will truncate in the beginning of the second line
     val documentAppender = documentAppender(document, 8)
 
-    documentAppender.appendToDocument(TextAccumulator().apply {
-      accumulate("abcd\n", textAttributesKey = blueKey)
-      accumulate("efgh\n", textAttributesKey = redKey)
-      accumulate("ijkl\n", textAttributesKey = blueKey)
-    })
-
-    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesKeyRange)).containsExactly(
-      getRangeForText("efgh\n", redKey),
-      getRangeForText("ijkl\n", blueKey),
+    documentAppender.appendToDocument(
+      TextAccumulator().apply {
+        accumulate("abcd\n", textAttributesKey = blueKey)
+        accumulate("efgh\n", textAttributesKey = redKey)
+        accumulate("ijkl\n", textAttributesKey = blueKey)
+      }
     )
+
+    assertThat(markupModel.allHighlighters.map(RangeHighlighter::toTextAttributesKeyRange))
+      .containsExactly(
+        getRangeForText("efgh\n", redKey),
+        getRangeForText("ijkl\n", blueKey),
+      )
   }
 
   private fun <T> getRangeForText(text: String, data: T): TextAccumulator.Range<T>? {
@@ -235,12 +288,14 @@ class DocumentAppenderTest {
     return TextAccumulator.Range(start, start + text.length, data)
   }
 
-  private fun documentAppender(document: DocumentEx = this.document, maxDocumentSize: Int = Int.MAX_VALUE) = DocumentAppender(
-    projectRule.project, document, maxDocumentSize)
+  private fun documentAppender(
+    document: DocumentEx = this.document,
+    maxDocumentSize: Int = Int.MAX_VALUE
+  ) = DocumentAppender(projectRule.project, document, maxDocumentSize)
 }
 
 private fun RangeHighlighter.toTextAttributesRange() =
-  TextAccumulator.Range(asTextRange!!.startOffset, asTextRange!!.endOffset, getTextAttributes(null)!!)
+  TextAccumulator.Range(range!!.startOffset, range!!.endOffset, getTextAttributes(null)!!)
 
 private fun RangeHighlighter.toTextAttributesKeyRange() =
-  TextAccumulator.Range(asTextRange!!.startOffset, asTextRange!!.endOffset, textAttributesKey!!)
+  TextAccumulator.Range(range!!.startOffset, range!!.endOffset, textAttributesKey!!)

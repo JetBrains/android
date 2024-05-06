@@ -58,9 +58,9 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 class RecommendedUpgradeReminder(
   project: Project
-) : TimeBasedReminder(project, "recommended.upgrade", TimeUnit.DAYS.toMillis(1)) {
+) : TimeBasedReminder(project, "recommended.upgrade", TimeUnit.DAYS.toMillis(1), AGP_UPGRADE_NOTIFICATION_GROUP_ID, AGP_UPGRADE_DEFAULT_NOTIFICATION_TYPE, AGP_UPGRADE_NOTIFICATION_SHOULD_LOG) {
   var doNotAskForVersion: String?
-    get() =  PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
+    get() = PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.do.not.ask.for.version", value)
 
   @Slow

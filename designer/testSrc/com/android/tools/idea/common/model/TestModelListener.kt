@@ -15,17 +15,13 @@
  */
 package com.android.tools.idea.common.model
 
-class TestModelListener: ModelListener {
+class TestModelListener : ModelListener {
   private val callLog = StringBuilder()
 
-  /**
-   * Returns a string logging all the calls that have been made since the last [clear] call.
-   */
+  /** Returns a string logging all the calls that have been made since the last [clear] call. */
   fun callLogToString(): String = callLog.toString()
 
-  /**
-   * Clears the call log.
-   */
+  /** Clears the call log. */
   fun clear() = callLog.clear()
 
   override fun modelDerivedDataChanged(model: NlModel) {

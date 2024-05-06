@@ -47,7 +47,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.EDT
-import org.assertj.core.api.Assertions.assertThatCode
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
@@ -369,9 +368,9 @@ class ScreenshotViewerTest {
   fun testScreenshotViewerWithoutFramingOptionsDoesNotAttemptToSelectFrameOption() {
     val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     ScreenshotViewer.PersistentState.getInstance(projectRule.project).frameScreenshot = true
-    assertThatCode {
-      createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor(), framingOptions = listOf())
-    }.doesNotThrowAnyException()
+
+    // test that no exceptions are thrown
+    createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor(), framingOptions = listOf())
   }
 
   private fun createImage(width: Int, height: Int): BufferedImage {

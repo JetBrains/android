@@ -17,7 +17,7 @@ package com.android.tools.idea.whatsnew.assistant
 
 import com.android.repository.Revision
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.assistant.AssistSidePanel
 import com.android.tools.idea.assistant.AssistantBundleCreator
 import com.android.tools.idea.assistant.AssistantGetBundleTask
@@ -30,7 +30,6 @@ import junit.framework.TestCase
 import org.apache.http.concurrent.FutureCallback
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import org.mockito.stubbing.Answer
@@ -52,17 +51,17 @@ class WhatsNewSidePanelTest : AndroidTestCase() {
     mockUrlProvider = mock(WhatsNewURLProvider::class.java)
 
     val serverFile = File(myFixture.testDataPath).resolve("whatsnewassistant/server-3.3.0.xml")
-    whenever(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(URL("file:" + serverFile.path))
+    whenever(mockUrlProvider.getWebConfig(Mockito.anyString())).thenReturn(URL("file:" + serverFile.path))
 
     val resourceFile = File(myFixture.testDataPath).resolve("whatsnewassistant/defaultresource-3.3.0.xml")
-    whenever(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
+    whenever(mockUrlProvider.getResourceFileAsStream(Mockito.any(), Mockito.anyString()))
       .thenAnswer(Answer<InputStream> {
         URL("file:" + resourceFile.path).openStream()
       })
 
     val tmpDir = TestUtils.createTempDirDeletedOnExit()
     val localPath = tmpDir.resolve("local-3.3.0.xml")
-    whenever(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath)
+    whenever(mockUrlProvider.getLocalConfig(Mockito.anyString())).thenReturn(localPath)
   }
 
   /**

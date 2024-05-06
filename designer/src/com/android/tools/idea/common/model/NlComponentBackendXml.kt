@@ -39,7 +39,7 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
   private lateinit var myTagPointer: SmartPsiElementPointer<XmlTag>
 
   companion object {
-    const val DEBUG = false
+    val DEBUG = false
 
     @TestOnly
     fun getForTest(project: Project, xmlTag: XmlTag) = NlComponentBackendXml(project, xmlTag)
@@ -179,7 +179,11 @@ open class NlComponentBackendXml private constructor(private val myProject: Proj
       return
     }
 
-    ReformatUtil.reformatAndRearrange(myProject, xmlTag)
+    try {
+      ReformatUtil.reformatAndRearrange(myProject, xmlTag)
+    } catch (e: AssertionError) {
+      LOGGER.warn("Failed to reformat ${getTagName()}.", e)
+    }
   }
 
   override fun isValid(): Boolean {

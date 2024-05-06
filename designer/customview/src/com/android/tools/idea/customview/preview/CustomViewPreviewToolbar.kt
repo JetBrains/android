@@ -41,7 +41,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
     }
   }
 
-  private class CustomViewSelector :
+  private class CustomViewSelector() :
     DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
@@ -54,6 +54,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
         e.presentation.setText(previewEditor.currentView, false)
       }
     }
+
     override fun displayTextInToolbar() = true
   }
 
@@ -109,6 +110,5 @@ private fun findPreviewEditorsForContext(context: DataContext): List<CustomViewP
     ?.getAllEditors(file)
     ?.filterIsInstance<SeamlessTextEditorWithPreview<out FileEditor>>()
     ?.mapNotNull { it.preview.getCustomViewPreviewManager() }
-    ?.distinct()
-    ?: emptyList()
+    ?.distinct() ?: emptyList()
 }

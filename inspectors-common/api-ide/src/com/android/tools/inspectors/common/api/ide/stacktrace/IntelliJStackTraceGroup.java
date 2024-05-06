@@ -68,7 +68,7 @@ public class IntelliJStackTraceGroup implements StackTraceGroup {
       public void valueChanged(ListSelectionEvent e) {
         // Ignore when a view had its selection cleared, since that shouldn't affect other views
         // in the group (and may have even been externally caused by another one)
-        if (((JList<?>)e.getSource()).getSelectedIndex() < 0) {
+        if (((JList)e.getSource()).getSelectedIndex() < 0) {
           return;
         }
 

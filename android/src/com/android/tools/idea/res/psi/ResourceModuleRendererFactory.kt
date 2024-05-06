@@ -22,10 +22,8 @@ import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.util.TextWithIcon
 
-/**
- * Finds the module name and icon for [ResourceNavigationItem] to be used in Goto symbol action.
- */
-class ResourceModuleRendererFactory: ModuleRendererFactory() {
+/** Finds the module name and icon for [ResourceNavigationItem] to be used in Goto symbol action. */
+class ResourceModuleRendererFactory : ModuleRendererFactory() {
   override fun handles(element: Any?): Boolean = element is ResourceNavigationItem
 
   override fun getModuleTextWithIcon(element: Any?): TextWithIcon? {
@@ -34,12 +32,12 @@ class ResourceModuleRendererFactory: ModuleRendererFactory() {
     val fileIndex = ProjectFileIndex.getInstance(resourceNavigationItem.project)
     val inTestSource = fileIndex.isInTestSourceContent(virtualFile)
     val module = fileIndex.getModuleForFile(virtualFile) ?: return null
-    val icon = if (inTestSource) {
-      AllIcons.Nodes.TestSourceFolder
-    }
-    else {
-      ModuleType.get(module).icon
-    }
+    val icon =
+      if (inTestSource) {
+        AllIcons.Nodes.TestSourceFolder
+      } else {
+        ModuleType.get(module).icon
+      }
     return TextWithIcon(module.name, icon)
   }
 }

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint;
 
-import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneInteraction;
 import com.android.tools.idea.common.surface.SceneView;
 import org.intellij.lang.annotations.JdkConstants;

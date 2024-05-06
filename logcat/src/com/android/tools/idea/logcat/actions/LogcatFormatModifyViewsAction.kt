@@ -26,9 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 
-/**
- * An action that opens the [LogcatFormatDialog]
- */
+/** An action that opens the [LogcatFormatDialog] */
 internal class LogcatFormatModifyViewsAction(
   private val project: Project,
   private val logcatPresenter: LogcatPresenter,
@@ -38,17 +36,22 @@ internal class LogcatFormatModifyViewsAction(
     val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
     val defaultFormatting = androidLogcatFormattingOptions.defaultFormatting
     val initialFormatting = logcatPresenter.formattingOptions.getStyle() ?: defaultFormatting
-    LogcatFormatDialog(project, initialFormatting, defaultFormatting) { standardOptions, compactOptions, defaultStyle ->
-      LogcatToolWindowFactory.logcatPresenters.forEach {
-        when (it.formattingOptions.getStyle()) {
-          STANDARD -> it.formattingOptions = standardOptions
-          COMPACT -> it.formattingOptions = compactOptions
-          else -> {}
+    LogcatFormatDialog(project, initialFormatting, defaultFormatting) {
+        standardOptions,
+        compactOptions,
+        defaultStyle ->
+        LogcatToolWindowFactory.logcatPresenters.forEach {
+          when (it.formattingOptions.getStyle()) {
+            STANDARD -> it.formattingOptions = standardOptions
+            COMPACT -> it.formattingOptions = compactOptions
+            else -> {}
+          }
         }
+        androidLogcatFormattingOptions.standardFormattingOptions = standardOptions
+        androidLogcatFormattingOptions.compactFormattingOptions = compactOptions
+        androidLogcatFormattingOptions.defaultFormatting = defaultStyle
       }
-      androidLogcatFormattingOptions.standardFormattingOptions = standardOptions
-      androidLogcatFormattingOptions.compactFormattingOptions = compactOptions
-      androidLogcatFormattingOptions.defaultFormatting = defaultStyle
-    }.dialogWrapper.show()
+      .dialogWrapper
+      .show()
   }
 }

@@ -1,9 +1,10 @@
-// Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.util.GradleDslModel;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.ide.plugins.DynamicPluginListener;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
@@ -18,17 +19,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.annotations.Unmodifiable;
 
 @ApiStatus.Experimental
-public final class GradleBlockModelMap {
+public class GradleBlockModelMap {
 
   @SuppressWarnings("rawtypes")
-  private final Map<Class<? extends GradleDslModel>, Map<Class<? extends GradleDslModel>, BlockModelBuilder<?, ?>>>
+  private Map<Class<? extends GradleDslModel>, Map<Class<? extends GradleDslModel>, BlockModelBuilder<?, ?>>>
     blockMapCache = new ConcurrentHashMap<>();
 
   @SuppressWarnings("rawtypes")
-  private Map<Class<? extends GradlePropertiesDslElement>, Map<String, PropertiesElementDescription>> elementMapCache =
+  private Map<Class<? extends GradlePropertiesDslElement>, ImmutableMap<String, PropertiesElementDescription>> elementMapCache =
     new ConcurrentHashMap<>();
 
   GradleBlockModelMap() {
@@ -67,16 +67,19 @@ public final class GradleBlockModelMap {
 
   }
 
-  public @NotNull @Unmodifiable Map<String, PropertiesElementDescription> getOrCreateElementMap(Class<? extends GradlePropertiesDslElement> parentType) {
+  @NotNull
+  public ImmutableMap<String, PropertiesElementDescription> getOrCreateElementMap(Class<? extends GradlePropertiesDslElement> parentType) {
     return elementMapCache.computeIfAbsent(parentType, GradleBlockModelMap::calculateElements);
   }
 
-  private @NotNull Map<Class<? extends GradleDslModel>, BlockModelBuilder<?, ?>> getOrCreateBlockMap(Class<? extends GradleDslModel> parentType) {
+  @NotNull
+  private Map<Class<? extends GradleDslModel>, BlockModelBuilder<?, ?>> getOrCreateBlockMap(Class<? extends GradleDslModel> parentType) {
     return blockMapCache.computeIfAbsent(parentType,
                                          GradleBlockModelMap::calculateBlocks);
   }
 
-  public @NotNull <T extends GradleDslModel> Set<Class<? extends GradleDslModel>> childrenOf(Class<T> parentType) {
+  @NotNull
+  public <T extends GradleDslModel> Set<Class<? extends GradleDslModel>> childrenOf(Class<T> parentType) {
     Map<Class<? extends GradleDslModel>, BlockModelBuilder<?, ?>> modelsMap = getOrCreateBlockMap(parentType);
     return Collections.unmodifiableSet(modelsMap.keySet());
   }
@@ -88,7 +91,7 @@ public final class GradleBlockModelMap {
   }
 
   @SuppressWarnings("rawtypes")
-  public static Map<String, PropertiesElementDescription> getElementMap(Class<? extends GradlePropertiesDslElement> parentType) {
+  public static ImmutableMap<String, PropertiesElementDescription> getElementMap(Class<? extends GradlePropertiesDslElement> parentType) {
     return ApplicationManager.getApplication().getService(GradleBlockModelMap.class).getOrCreateElementMap(parentType);
   }
 
@@ -102,13 +105,17 @@ public final class GradleBlockModelMap {
     return ApplicationManager.getApplication().getService(GradleBlockModelMap.class);
   }
 
-  private static Map<String, PropertiesElementDescription> calculateElements(Class<? extends GradlePropertiesDslElement> pt) {
-    Map<String, PropertiesElementDescription> builder = new HashMap<>();
+  private static ImmutableMap<String, PropertiesElementDescription> calculateElements(Class<? extends GradlePropertiesDslElement> pt) {
+    ImmutableMap.Builder<String, PropertiesElementDescription> builder =
+      ImmutableMap.builder();
     BlockModelProvider.EP.forEachExtensionSafe(p -> {
-      Map<String, PropertiesElementDescription<?>> elementsMap = p.elementsMap();
-      builder.putAll(elementsMap);
+      Map<String, PropertiesElementDescription<?>> elementsMap =
+        p.elementsMap();
+      if (elementsMap != null) {
+        builder.putAll(elementsMap);
+      }
     });
-    return Collections.unmodifiableMap(builder);
+    return builder.build();
   }
 
   @SuppressWarnings("unchecked")

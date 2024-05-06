@@ -27,9 +27,18 @@ import com.intellij.psi.PsiElement
 class LintInspectionExtensionsFactory : InspectionExtensionsFactory() {
   override fun createGlobalInspectionContextExtension(): GlobalInspectionContextExtension<*> =
     LintGlobalInspectionContext()
+
   override fun createRefManagerExtension(refManager: RefManager): RefManagerExtension<*>? = null
+
   override fun createHTMLComposerExtension(composer: HTMLComposer): HTMLComposerExtension<*>? = null
+
   override fun isToCheckMember(element: PsiElement, id: String): Boolean = true
+
   override fun getSuppressedInspectionIdsIn(element: PsiElement): String? = null
-  override fun isProjectConfiguredToRunInspections(project: Project, online: Boolean, rerunAction: Runnable): Boolean = true
+
+  override fun isProjectConfiguredToRunInspections(
+    project: Project,
+    online: Boolean,
+    rerunAction: Runnable
+  ): Boolean = true
 }

@@ -30,7 +30,7 @@ class AndroidGradleClassJarProvider : ClassJarProvider {
   override fun getModuleExternalLibraries(module: Module): List<File> {
     val gradleModule = GradleAndroidModel.get(module)
                        ?: return getExternalLibraries(module).map(VfsUtilCore::virtualToIoFile)
-    return gradleModule.selectedMainRuntimeDependencies.libraries.flatMap { library ->
+    return gradleModule.mainArtifact.runtimeClasspath.libraries.flatMap { library ->
       when (library) {
         is IdeAndroidLibrary -> library.runtimeJarFiles
         is IdeJavaLibrary -> listOf(library.artifact)

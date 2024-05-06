@@ -16,10 +16,10 @@
 package com.android.tools.idea.lang.aidl
 
 import com.intellij.codeInsight.highlighting.BraceMatchingUtil
-import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import org.intellij.lang.annotations.Language
 
-class AidlPairedBraceMatcherTest : LightJavaCodeInsightFixtureTestCase() {
+class AidlPairedBraceMatcherTest : BasePlatformTestCase() {
   @Language("AIDL")
   private val source =
     """

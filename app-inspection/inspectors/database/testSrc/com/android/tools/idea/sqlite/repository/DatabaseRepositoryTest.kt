@@ -39,10 +39,10 @@ import com.android.tools.idea.testing.runDispatching
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
+import java.util.concurrent.Executor
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.util.concurrent.Executor
 
 class DatabaseRepositoryTest : LightPlatformTestCase() {
 

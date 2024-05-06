@@ -44,5 +44,7 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module, test]",
         "//tools/adt/idea/observable:intellij.android.observable[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )

@@ -20,9 +20,10 @@ import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.Disposable;
 import com.intellij.util.EventDispatcher;
-import java.util.EventListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.EventListener;
 
 public class DeviceContext {
   private final EventDispatcher<DeviceSelectionListener> myEventDispatcher =

@@ -1,6 +1,12 @@
 <component name="libraryTable">
   <library name="truth-java8-extension" type="repository">
-    <properties include-transitive-deps="false" maven-id="com.google.truth.extensions:truth-java8-extension:0.42" />
+    <properties include-transitive-deps="false" maven-id="com.google.truth.extensions:truth-java8-extension:0.42">
+      <verification>
+        <artifact url="file://$MAVEN_REPOSITORY$/com/google/truth/extensions/truth-java8-extension/0.42/truth-java8-extension-0.42.jar">
+          <sha256sum>1877c1b701e17129f4efd71f5af36ca8ff5b1a071dd6d964391187dfd71c9078</sha256sum>
+        </artifact>
+      </verification>
+    </properties>
     <CLASSES>
       <root url="jar://$MAVEN_REPOSITORY$/com/google/truth/extensions/truth-java8-extension/0.42/truth-java8-extension-0.42.jar!/" />
     </CLASSES>

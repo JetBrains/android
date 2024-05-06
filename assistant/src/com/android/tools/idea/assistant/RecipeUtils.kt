@@ -27,9 +27,11 @@ import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.xml.sax.Attributes
 import org.xml.sax.helpers.DefaultHandler
@@ -99,7 +101,7 @@ object RecipeUtils {
     val key = Pair(recipe, project)
     if (!recipeMetadataCache.containsKey(key)) {
       val cache = ImmutableList.builder<RecipeMetadata>()
-      for (module in AssistActionStateManager.getAndroidModules(project)) {
+      for (module in getAndroidModules(project)) {
         cache.add(getRecipeMetadata(recipe, module))
       }
       recipeMetadataCache[key] = cache.build()
@@ -134,7 +136,7 @@ object RecipeUtils {
 
   private fun parseManifestForPermissions(f: File, metadata: RecipeMetadata) =
     try {
-      val factory = SAXParserFactory.newDefaultInstance()
+      val factory = SAXParserFactory.newInstance()
       val saxParser = factory.newSAXParser()
       saxParser.parse(
         f,
@@ -167,4 +169,10 @@ object RecipeUtils {
       // but log a warning so developers can see if they make a mistake when creating their service.
       log.warn("Failed to read permissions from AndroidManifest.xml", e)
     }
+
+  private fun getAndroidModules(project: Project) =
+    ModuleManager.getInstance(project)
+      .modules
+      .filter { module -> AndroidFacet.getInstance(module) != null }
+      .toList()
 }

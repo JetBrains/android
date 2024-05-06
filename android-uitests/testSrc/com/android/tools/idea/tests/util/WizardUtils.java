@@ -100,6 +100,33 @@ public final class WizardUtils {
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
   }
 
+  public static void createNewProject(@NotNull GuiTestRule guiTest,
+                                      @NotNull String template,
+                                      @NotNull String appName,
+                                      @NotNull String appPackageName,
+                                      int minSdkApi,
+                                      @NotNull Language language,
+                                      @Nullable BuildConfigurationLanguageForNewProject buildConfigurationLanguage) {
+    guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity(template)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .enterName(appName)
+      .enterPackageName(appPackageName)
+      .selectMinimumSdkApi(minSdkApi)
+      .setSourceLanguage(language)
+      .selectBuildConfigurationLanguage(buildConfigurationLanguage)
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(240))
+      .getProjectView()
+      .selectAndroidPane()
+      .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
+  }
+
   public static void createNewProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
     System.out.println("\nCreating new project: " + templateName + " in: " + tabName.toString());
 
@@ -155,7 +182,7 @@ public final class WizardUtils {
       .setSourceLanguage(language)
       .wizard()
       .clickNext()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)

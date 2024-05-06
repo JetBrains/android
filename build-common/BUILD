@@ -8,12 +8,9 @@ iml_module(
     jvm_target = "8",
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
-    test_resources = ["testResources"],
-    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     exports = [
-        "//tools/adt/idea/android/lib:android-sdk-tools-jps",
         "//tools/base/common:studio.android.sdktools.common",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib",
         "//tools/base/device_validator:studio.android.sdktools.dvlib",
@@ -25,7 +22,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
-        "//tools/adt/idea/android/lib:android-sdk-tools-jps",
         "//tools/base/common:studio.android.sdktools.common[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
         "//tools/base/device_validator:studio.android.sdktools.dvlib[module]",

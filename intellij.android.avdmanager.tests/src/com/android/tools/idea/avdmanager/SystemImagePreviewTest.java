@@ -151,7 +151,7 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     JLabel iconLabel = imagePreview.getReleaseIcon();
     assertTrue("No icon fetched for non-preview API", iconLabel != null && iconLabel.getIcon() != null);
     String iconUrl = iconLabel.getIcon().toString();
-    assertTrue("Wrong icon fetched for non-preview API (iconUrl="+iconUrl+")", iconUrl.contains("Marshmallow.png"));
+    assertTrue("Wrong icon fetched for non-preview API", iconUrl.contains("Marshmallow.png"));
 
     imagePreview.setImage(mPreviewImageDescr);
     iconLabel = imagePreview.getReleaseIcon();

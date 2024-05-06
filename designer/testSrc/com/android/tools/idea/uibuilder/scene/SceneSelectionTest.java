@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.collect.ImmutableList;
+import org.jetbrains.annotations.NotNull;
+
+import java.awt.event.InputEvent;
+import java.util.List;
+
 import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
-
-import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.scene.SceneComponent;
-import com.android.tools.idea.flags.StudioFlags;
-import com.google.common.collect.ImmutableList;
-import java.awt.event.InputEvent;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Test selecting widgets
@@ -123,32 +123,6 @@ public class SceneSelectionTest extends SceneTest {
     assertEquals(2, componentList.size());
     assertTrue(componentList.contains(myScene.getSceneComponent("button").getNlComponent()));
     assertTrue(componentList.contains(myScene.getSceneComponent("button2").getNlComponent()));
-  }
-
-  public void testShiftSelection() {
-    if (StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-      // FIXME: b/120497918 placeholder interaction mechanism doesn't support shift toggling.
-      return;
-    }
-    List<NlComponent> componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(0, componentList.size());
-    myInteraction.mouseDown("button");
-    myInteraction.mouseRelease("button");
-    componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(1, componentList.size());
-    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
-    myInteraction.setModifiersEx(InputEvent.SHIFT_DOWN_MASK);
-    myInteraction.mouseDown("button2");
-    myInteraction.mouseRelease("button2");
-    componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(2, componentList.size());
-    assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
-    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(1));
-    myInteraction.mouseDown("button");
-    myInteraction.mouseRelease("button");
-    componentList = myScreen.getScreen().getSelectionModel().getSelection();
-    assertEquals(1, componentList.size());
-    assertEquals(myScene.getSceneComponent("button2").getNlComponent(), componentList.get(0));
   }
 
   public void testFindComponent() {

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.common;
 
 import static com.android.builder.model.AndroidProject.MODEL_LEVEL_3_VARIANT_OUTPUT_POST_BUILD;
+import static com.android.builder.model.AndroidProject.PROPERTY_AVOID_TASK_REGISTRATION;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY;
 import static com.android.builder.model.AndroidProject.PROPERTY_BUILD_MODEL_ONLY_ADVANCED;
@@ -27,6 +28,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProje
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.android.tools.idea.gradle.util.GradleInvocationParams.addAndroidStudioPluginVersion;
+import static com.intellij.util.ArrayUtil.toStringArray;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
@@ -39,7 +41,6 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.util.ArrayUtilRt;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -98,6 +99,7 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
 
     args.add(createProjectProperty("idea.gradle.do.not.build.tasks", GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST));
+    args.add(createProjectProperty(PROPERTY_AVOID_TASK_REGISTRATION, GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST));
     if (myIdeInfo.isAndroidStudio()) {
       // This property customizes GradleProjectBuilder, with "omit_all_tasks" the builder will skip task realization and return
       // GradleProject model with empty task list. The task list in GradleProject is not used by IDE and thus should always be omitted.
@@ -116,7 +118,7 @@ public class CommandLineArgs {
     boolean isTestingMode = GuiTestingService.isInTestingMode();
     if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
-      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, ArrayUtilRt.toStringArray(args));
+      application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
     } else {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }

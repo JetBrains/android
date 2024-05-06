@@ -16,6 +16,9 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.wearpairing.WearPairingSettings"/>
+
+    <notificationGroup id="Wear Pairing"
+                       displayType="BALLOON" />
   </extensions>
   <extensions defaultExtensionNs="com.android">
     <androidStartupActivity implementation="com.android.tools.idea.wearpairing.WearPairingManager$WearPairingManagerStartupActivity" />

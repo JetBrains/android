@@ -23,7 +23,9 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 interface DaggerIndexFieldWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the field. Eg: "someFieldName" */
   fun getSimpleName(): String
+
   fun getType(): DaggerIndexTypeWrapper?
+
   fun getContainingClass(): DaggerIndexClassWrapper?
 }
 

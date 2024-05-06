@@ -18,35 +18,25 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_FQ_NAME
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
-import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.annotations.getContainingUMethodAnnotatedWith
 import com.android.tools.idea.annotations.getUAnnotations
 import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
-import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
-import com.android.tools.idea.kotlin.getQualifiedName
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.android.tools.idea.preview.PreviewNode
+import com.android.tools.idea.preview.findPreviewDefaultValues
+import com.android.tools.idea.preview.qualifiedName
+import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.PreviewNode
+import com.android.tools.preview.previewAnnotationToPreviewElement
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiLiteralExpression
-import com.intellij.psi.impl.compiled.ClsClassImpl
-import com.intellij.psi.impl.compiled.ClsMethodImpl
 import com.intellij.util.containers.sequenceOfNotNull
-import com.intellij.util.text.nullize
-import org.jetbrains.kotlin.asJava.classes.KtLightClass
-import org.jetbrains.kotlin.asJava.elements.KtLightMethod
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
-import org.jetbrains.uast.UClass
-import org.jetbrains.uast.UClassLiteralExpression
-import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.UParameter
 import org.jetbrains.uast.tryResolve
 
 /**
@@ -77,18 +67,12 @@ private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
   } == true
 }
 
-/** Returns true if the [KtAnnotationEntry] is a `@Preview` annotation. */
-internal fun KtAnnotationEntry.isPreviewAnnotation() =
-  ReadAction.compute<Boolean, Throwable> {
-    // getQualifiedName is fairly expensive, so we check first that short name matches before
-    // calling it.
-    shortName?.identifier == COMPOSE_PREVIEW_ANNOTATION_NAME &&
-      COMPOSE_PREVIEW_ANNOTATION_FQN == getQualifiedName()
-  }
-
 /** Returns true if the [UAnnotation] is a `@Preview` annotation. */
 internal fun UAnnotation.isPreviewAnnotation() =
-  ReadAction.compute<Boolean, Throwable> { COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName }
+  ReadAction.compute<Boolean, Throwable> {
+    COMPOSE_PREVIEW_ANNOTATION_NAME == qualifiedName?.substringAfterLast(".") &&
+      COMPOSE_PREVIEW_ANNOTATION_FQN == qualifiedName
+  }
 
 /**
  * Returns true if the [UMethod] is annotated with a @Preview annotation, taking in consideration
@@ -285,11 +269,15 @@ internal fun UAnnotation.toPreviewElement(
   parentAnnotationInfo: String? = null
 ) = runReadAction {
   if (this.isPreviewAnnotation()) {
+    val defaultValues = this.findPreviewDefaultValues()
+    val attributesProvider = UastAnnotationAttributesProvider(this, defaultValues)
+    val previewElementDefinitionPsi = rootAnnotation.toSmartPsiPointer()
     uMethod?.let {
       previewAnnotationToPreviewElement(
-        this,
-        it,
-        rootAnnotation,
+        attributesProvider,
+        UastAnnotatedMethod(it),
+        previewElementDefinitionPsi,
+        ::StudioParametrizedComposePreviewElementTemplate,
         overrideGroupName,
         parentAnnotationInfo
       )
@@ -306,184 +294,3 @@ internal fun UAnnotation.getContainingComposableUMethod() =
 
 /** Returns true when the UMethod is not null, and it is annotated with @Composable */
 private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
-
-internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
-  when (val resolvedImplementation = this.resolve()) {
-    is ClsClassImpl ->
-      resolvedImplementation.methods
-        .map { psiMethod ->
-          Pair(
-            psiMethod.name,
-            (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize()
-          )
-        }
-        .toMap()
-    is KtLightClass ->
-      resolvedImplementation.methods
-        .map { psiMethod ->
-          Pair(
-            psiMethod.name,
-            (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize()
-          )
-        }
-        .toMap()
-    else -> mapOf()
-  }
-
-private fun UAnnotation.findClassNameValue(name: String) =
-  (findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
-
-/**
- * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the
- * values.
- */
-private fun attributesToConfiguration(
-  node: UAnnotation,
-  defaultValues: Map<String, String?>
-): PreviewConfiguration {
-  val apiLevel = node.getIntAttribute(PARAMETER_API_LEVEL, defaultValues)
-  val theme = node.getStringAttribute(PARAMETER_THEME, defaultValues)
-  // Both width and height have to support old ("width") and new ("widthDp") conventions
-  val width =
-    node.getIntAttribute(PARAMETER_WIDTH, defaultValues)
-      ?: node.getIntAttribute(PARAMETER_WIDTH_DP, defaultValues)
-  val height =
-    node.getIntAttribute(PARAMETER_HEIGHT, defaultValues)
-      ?: node.getIntAttribute(PARAMETER_HEIGHT_DP, defaultValues)
-  val fontScale = node.getFloatAttribute(PARAMETER_FONT_SCALE, defaultValues)
-  val uiMode = node.getIntAttribute(PARAMETER_UI_MODE, defaultValues)
-  val device = node.getStringAttribute(PARAMETER_DEVICE, defaultValues)
-  val locale = node.getStringAttribute(PARAMETER_LOCALE, defaultValues)
-  val wallpaper = node.getIntAttribute(PARAMETER_WALLPAPER, defaultValues)
-
-  return PreviewConfiguration.cleanAndGet(
-    apiLevel,
-    theme,
-    width,
-    height,
-    locale,
-    fontScale,
-    uiMode,
-    device,
-    wallpaper,
-  )
-}
-
-private val UMethod.qualifiedName: String
-  get() = "${(this.uastParent as UClass).qualifiedName}.${this.name}"
-
-/** Converts the given [previewAnnotation] to a [ComposePreviewElement]. */
-private fun previewAnnotationToPreviewElement(
-  previewAnnotation: UAnnotation,
-  annotatedMethod: UMethod,
-  rootAnnotation: UAnnotation,
-  overrideGroupName: String? = null,
-  parentAnnotationInfo: String? = null
-): ComposePreviewElement? {
-  fun getPreviewName(nameParameter: String?) =
-    when {
-      nameParameter != null -> "${annotatedMethod.name} - $nameParameter"
-      parentAnnotationInfo != null -> "${annotatedMethod.name} - $parentAnnotationInfo"
-      else -> annotatedMethod.name
-    }
-
-  val composableMethod = annotatedMethod.qualifiedName
-  val previewName = getPreviewName(previewAnnotation.getDeclaredAttributeValue(PARAMETER_NAME))
-  val defaultValues = previewAnnotation.findPreviewDefaultValues()
-
-  val groupName = overrideGroupName ?: previewAnnotation.getDeclaredAttributeValue(PARAMETER_GROUP)
-  val showDecorations =
-    previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_DECORATION, defaultValues)
-      ?: (previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI, defaultValues)) ?: false
-  val showBackground =
-    previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_BACKGROUND, defaultValues) ?: false
-  // We don't use the library's default value for BackgroundColor and instead use a value defined
-  // here, see PreviewElement#toPreviewXml.
-  val backgroundColor = previewAnnotation.getDeclaredAttributeValue<Any>(PARAMETER_BACKGROUND_COLOR)
-  val backgroundColorString =
-    when (backgroundColor) {
-      is Int -> backgroundColor.toString(16)
-      is Long -> backgroundColor.toString(16)
-      else -> null
-    }?.let { "#$it" }
-
-  // If the same composable functions is found multiple times, only keep the first one. This usually
-  // will happen during
-  // copy & paste and both the compiler and Studio will flag it as an error.
-  val displaySettings =
-    PreviewDisplaySettings(
-      previewName,
-      groupName,
-      showDecorations,
-      showBackground,
-      backgroundColorString
-    )
-
-  val parameters = getPreviewParameters(annotatedMethod.uastParameters)
-  val basePreviewElement =
-    SingleComposePreviewElementInstance(
-      composableMethod,
-      displaySettings,
-      rootAnnotation.toSmartPsiPointer(),
-      annotatedMethod.uastBody.toSmartPsiPointer(),
-      attributesToConfiguration(previewAnnotation, defaultValues)
-    )
-  return if (!parameters.isEmpty()) {
-    ParametrizedComposePreviewElementTemplate(basePreviewElement, parameters)
-  } else {
-    basePreviewElement
-  }
-}
-
-/**
- * Returns a list of [PreviewParameter] for the given [Collection<UParameter>]. If the parameters
- * are annotated with `PreviewParameter`, then they will be returned as part of the collection.
- */
-public fun getPreviewParameters(parameters: Collection<UParameter>): Collection<PreviewParameter> =
-  parameters.mapIndexedNotNull { index, parameter ->
-    val annotation =
-      parameter.uAnnotations.firstOrNull {
-        COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN == it.qualifiedName
-      }
-        ?: return@mapIndexedNotNull null
-    val providerClassFqn =
-      (annotation.findClassNameValue("provider")) ?: return@mapIndexedNotNull null
-    val limit = annotation.getAttributeValue("limit") ?: Int.MAX_VALUE
-    PreviewParameter(parameter.name, index, providerClassFqn, limit)
-  }
-
-private inline fun <reified T> UExpression.getValueOfType(): T? {
-  val value = this.evaluate() as? T
-  // Cast to literal as fallback. Needed for example for MultiPreview imported from a binary file
-  return value ?: (this.sourcePsi as? PsiLiteralExpression)?.value as? T
-}
-
-private inline fun <reified T> UAnnotation.getDeclaredAttributeValue(attributeName: String): T? {
-  val expression = this.findDeclaredAttributeValue(attributeName)
-  return expression?.getValueOfType() as T?
-}
-
-private inline fun <reified T> UAnnotation.getAttributeValue(attributeName: String): T? {
-  val expression = this.findAttributeValue(attributeName)
-  return expression?.getValueOfType()
-}
-
-private fun UAnnotation.getBooleanAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toBoolean()
-
-private fun UAnnotation.getIntAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toInt()
-
-private fun UAnnotation.getFloatAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toFloat()
-
-private fun UAnnotation.getStringAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue<String>(attributeName)?.nullize() ?: defaultValues[attributeName]

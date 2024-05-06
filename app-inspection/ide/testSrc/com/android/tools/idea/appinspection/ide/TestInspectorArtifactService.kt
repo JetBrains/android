@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.appinspection.ide
 
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 
 class TestInspectorArtifactService : InspectorArtifactService {
   override suspend fun getOrResolveInspectorArtifact(
-    artifactCoordinate: ArtifactCoordinate,
+    artifactCoordinate: RunningArtifactCoordinate,
     project: Project
   ): Path {
     return TEST_JAR_PATH

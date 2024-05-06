@@ -19,28 +19,37 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
-import com.android.tools.lint.checks.GradleDetector
+import com.android.tools.lint.detector.api.LintFix
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
-class LaunchTargetSdkVersionAssistantFix :
+private const val minSdkUpgradeAsstVersion = 26
+private const val maxSdkUpgradeAsstVersion = 33
+
+class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
   DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
+
+  private val sdkUpgradeAssistantHasSupport =
+    fix?.let {
+      val tsdkv = LintFix.getInt(it, "currentTargetSdkVersion", -1)
+      tsdkv in minSdkUpgradeAsstVersion..maxSdkUpgradeAsstVersion
+    } == true
 
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
     contextType: AndroidQuickfixContexts.ContextType
-  ): Boolean = IdeInfo.getInstance().isAndroidStudio
+  ): Boolean = IdeInfo.getInstance().isAndroidStudio && sdkUpgradeAssistantHasSupport
 
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
     context: AndroidQuickfixContexts.Context
   ) {
-    GradleDetector.Companion.stopFlaggingTargetSdkEdits()
+    stopFlaggingTargetSdkEditsForSession(startElement.project)
     OpenAssistSidePanelAction()
       .openWindow("DeveloperServices.TargetSDKVersionUpgradeAssistant", startElement.project)
   }

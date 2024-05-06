@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.diagnostics.report
 
+import com.android.tools.analytics.crash.CrashReport
+import com.android.tools.idea.diagnostics.crash.StudioExceptionReport
 import com.google.gson.stream.JsonWriter
+import org.apache.http.entity.mime.MultipartEntityBuilder
 
 abstract class HeapReport
 @JvmOverloads

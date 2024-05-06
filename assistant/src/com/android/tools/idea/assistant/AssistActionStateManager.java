@@ -17,12 +17,8 @@ package com.android.tools.idea.assistant;
 
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.view.StatefulButtonMessage;
-import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.util.List;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,17 +63,5 @@ public abstract class AssistActionStateManager {
    */
   public void refreshDependencyState(@NotNull Project project) {
     project.getMessageBus().syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC).stateUpdated();
-  }
-
-
-  /**
-   * Refresh the currently visible TutorialCard and set the view to the desired step within the view.
-   */
-  public void refreshTutorialCardView(@NotNull Project project, int stepNumberToStartAt) {
-    project.getMessageBus().syncPublisher(TutorialCardRefreshNotifier.TUTORIAL_CARD_TOPIC).stateUpdated(stepNumberToStartAt);
-  }
-
-  public static List<Module> getAndroidModules(@NotNull Project project) {
-    return ProjectFacetManager.getInstance(project).getModulesWithFacet(AndroidFacet.ID);
   }
 }

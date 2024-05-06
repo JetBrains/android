@@ -100,6 +100,15 @@ message ErrorReport {
 
   // The OS version on which an event in this error report occurred on.
   OsVersion os_version = 7;
+
+  // The app version on which an event in this error report occurred on.
+  AppVersion app_version = 8;
+
+  // Version control system information from
+  // BUNDLE-METADATA/version-control-info.textproto or
+  // META-INF/version-control-info.textproto of the app bundle or APK,
+  // respectively.
+  string vcs_information = 9;
 }
 
 // A group of related ErrorReports received for an app.
@@ -421,6 +430,9 @@ message GetErrorCountMetricSetRequest {
 //
 // **Supported aggregation periods:**
 //
+//  * [HOURLY][google.play.developer.reporting.{$api_version}.AggregationPeriod.HOURLY]:
+//    metrics are aggregated in hourly intervals. The default and only
+//    supported timezone is `UTC`.
 //  * [DAILY][google.play.developer.reporting.v1beta1.AggregationPeriod.DAILY]:
 //    metrics are aggregated in calendar date intervals. The default and only
 //    supported timezone is `America/Los_Angeles`.

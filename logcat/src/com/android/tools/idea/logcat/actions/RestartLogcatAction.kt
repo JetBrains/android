@@ -36,10 +36,13 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-/**
- * An action that restarts Logcat on the connected device.
- */
-internal class RestartLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.restart.action.text"), null, AllIcons.Actions.Restart) {
+/** An action that restarts Logcat on the connected device. */
+internal class RestartLogcatAction :
+  DumbAwareAction(
+    LogcatBundle.message("logcat.restart.action.text"),
+    null,
+    AllIcons.Actions.Restart
+  ) {
 
   override fun update(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return

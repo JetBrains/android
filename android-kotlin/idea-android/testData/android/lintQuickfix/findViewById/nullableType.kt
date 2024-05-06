@@ -1,5 +1,6 @@
-// INTENTION_TEXT: Convert cast to findViewById with type parameter
-// INSPECTION_CLASS: org.jetbrains.kotlin.android.inspection.TypeParameterFindViewByIdInspection
+// INTENTION_TEXT: Convert cast to findViewById<TextView>(...)
+// K1_INSPECTION_CLASS: org.jetbrains.kotlin.android.inspection.K1TypeParameterFindViewByIdInspection
+// K2_INSPECTION_CLASS: org.jetbrains.kotlin.android.inspection.K2TypeParameterFindViewByIdInspection
 
 import android.app.Activity
 import android.os.Bundle

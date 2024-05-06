@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea;
 
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 

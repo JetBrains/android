@@ -1,4 +1,18 @@
-// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2011 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.actions;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -9,10 +23,10 @@ import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.execution.common.debug.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
-import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.execution.RunManager;
@@ -205,7 +219,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(@NotNull MouseEvent event) {
+      protected boolean onDoubleClick(MouseEvent event) {
         if (isOKActionEnabled()) {
           doOKAction();
           return true;
@@ -426,7 +440,6 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         if (debugBridge != null && isDdmsCorrupted(debugBridge)) {
           ApplicationManager.getApplication().invokeLater(() -> {
             Messages.showErrorDialog(myContentPanel, AndroidBundle.message("ddms.corrupted.error"));
-            AndroidProcessChooserDialog.this.close(1);
           });
           return;
         }

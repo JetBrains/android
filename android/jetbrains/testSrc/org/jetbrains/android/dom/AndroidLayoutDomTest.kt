@@ -846,7 +846,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val file = copyFileToProject("commonPrefixIdea63531.xml")
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.complete(CompletionType.BASIC)
-    myFixture.checkResultByFile("$myTestFolder/commonPrefixIdea63531_after.xml")
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "commonPrefixIdea63531_after.xml")
   }
 
   fun testHighlighting() {
@@ -955,7 +955,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   fun testCustomTagCompletion0() {
     val labelViewJava = copyFileToProject("LabelView.java", "src/p1/p2/LabelView.java")
 
-    val lf1 = myFixture.copyFileToProject("$myTestFolder/ctn0.xml", "res/layout/layout1.xml")
+    val lf1 = myFixture.copyFileToProject(myTestFolder + '/'.toString() + "ctn0.xml", "res/layout/layout1.xml")
     myFixture.configureFromExistingVirtualFile(lf1)
     myFixture.complete(CompletionType.BASIC)
     var variants = myFixture.lookupElementStrings
@@ -965,7 +965,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     assertThat(psiLabelViewFile).isInstanceOf(PsiJavaFile::class.java)
     myFixture.renameElement((psiLabelViewFile as PsiJavaFile).classes[0], "LabelView1")
 
-    val lf2 = myFixture.copyFileToProject("$myTestFolder/ctn0.xml", "res/layout/layout2.xml")
+    val lf2 = myFixture.copyFileToProject(myTestFolder + '/'.toString() + "ctn0.xml", "res/layout/layout2.xml")
     myFixture.configureFromExistingVirtualFile(lf2)
     myFixture.complete(CompletionType.BASIC)
     variants = myFixture.lookupElementStrings
@@ -981,7 +981,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
       }
     }
 
-    val lf3 = myFixture.copyFileToProject("$myTestFolder/ctn0.xml", "res/layout/layout3.xml")
+    val lf3 = myFixture.copyFileToProject(myTestFolder + '/'.toString() + "ctn0.xml", "res/layout/layout3.xml")
     myFixture.configureFromExistingVirtualFile(lf3)
     myFixture.complete(CompletionType.BASIC)
     variants = myFixture.lookupElementStrings
@@ -1002,7 +1002,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.complete(CompletionType.BASIC)
     myFixture.type("p1\n")
-    myFixture.checkResultByFile("$myTestFolder/ctn2_after.xml")
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "ctn2_after.xml")
   }
 
   fun testCustomTagCompletion3() {
@@ -1021,7 +1021,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.complete(CompletionType.BASIC)
     myFixture.type("p1\n")
-    myFixture.checkResultByFile("$myTestFolder/ctn5_after.xml")
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "ctn5_after.xml")
   }
 
   fun testCustomTagCompletion6() {
@@ -1114,7 +1114,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(file)
     myFixture.complete(CompletionType.BASIC)
     myFixture.type('\n')
-    myFixture.checkResultByFile("$myTestFolder/tn1_after.xml")
+    myFixture.checkResultByFile(myTestFolder + '/'.toString() + "tn1_after.xml")
   }
 
   fun testFlagCompletion() {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.preview.property
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
@@ -25,24 +26,29 @@ import com.android.tools.idea.compose.pickers.common.editingsupport.IntegerStric
 import com.android.tools.idea.compose.pickers.preview.editingsupport.DeviceSpecDimValidator
 import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
 import com.android.tools.idea.compose.pickers.preview.tracking.PickerTrackerHelper
-import com.android.tools.idea.compose.pickers.preview.utils.findByIdOrName
-import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
-import com.android.tools.idea.compose.pickers.preview.utils.toDeviceConfig
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_CHIN_SIZE
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DENSITY
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DIM_UNIT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_HEIGHT
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_IS_ROUND
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_ORIENTATION
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_WIDTH
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_SHAPE
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_UNIT
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_DP
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.kotlin.enumValueOfOrNull
+import com.android.tools.preview.config.DeviceConfig
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.MutableDeviceConfig
+import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.PARAMETER_HARDWARE_CHIN_SIZE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DENSITY
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DIM_UNIT
+import com.android.tools.preview.config.PARAMETER_HARDWARE_HEIGHT
+import com.android.tools.preview.config.PARAMETER_HARDWARE_IS_ROUND
+import com.android.tools.preview.config.PARAMETER_HARDWARE_ORIENTATION
+import com.android.tools.preview.config.PARAMETER_HARDWARE_WIDTH
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_DPI
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_SHAPE
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_UNIT
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_WIDTH_DP
+import com.android.tools.preview.config.Shape
+import com.android.tools.preview.config.findByIdOrName
+import com.android.tools.preview.config.getDefaultPreviewDevice
+import com.android.tools.preview.config.toDeviceConfig
+import com.android.tools.preview.config.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -119,8 +125,7 @@ internal class DeviceParameterPropertyItem(
         newUnit?.let {
           config.dimUnit = newUnit
           newUnit.trackableValue
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_DENSITY,
@@ -132,8 +137,7 @@ internal class DeviceParameterPropertyItem(
         newDpi?.let {
           config.dpi = newDpi
           PickerTrackerHelper.densityBucketOfDeviceConfig(config)
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_ORIENTATION,
@@ -144,8 +148,7 @@ internal class DeviceParameterPropertyItem(
         newOrientation?.let {
           config.orientation = newOrientation
           newOrientation.trackableValue
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_IS_ROUND,
@@ -158,8 +161,7 @@ internal class DeviceParameterPropertyItem(
           config.shape = if (it) Shape.Round else Shape.Normal
           PreviewPickerValue
             .UNKNOWN_PREVIEW_PICKER_VALUE // TODO(b/205184728): Update tracking values
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       },
       DevicePropertyItem(
         name = PARAMETER_HARDWARE_CHIN_SIZE,
@@ -174,8 +176,7 @@ internal class DeviceParameterPropertyItem(
           }
           config.chinSize = newChinSize
           PreviewPickerValue.UNSUPPORTED_OR_OPEN_ENDED
-        }
-          ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
+        } ?: PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       }
     )
 
@@ -196,7 +197,7 @@ internal class DeviceParameterPropertyItem(
     val resolvedDeviceConfig =
       DeviceConfig.toDeviceConfigOrNull(currentValue, availableDevices)
         ?: availableDevices.findByIdOrName(currentValue, log)?.toDeviceConfig()
-          ?: defaultDeviceValues
+        ?: defaultDeviceValues
 
     lastValueToDevice = Pair(currentValue, resolvedDeviceConfig)
     return resolvedDeviceConfig.toMutableConfig()
@@ -223,4 +224,18 @@ internal class DeviceParameterPropertyItem(
         }
       }
   }
+
+  private val DimUnit.trackableValue: PreviewPickerValue
+    get() =
+      when (this) {
+        DimUnit.dp -> PreviewPickerValue.UNIT_DP
+        DimUnit.px -> PreviewPickerValue.UNIT_PIXELS
+      }
+
+  private val Orientation.trackableValue: PreviewPickerValue
+    get() =
+      when (this) {
+        Orientation.portrait -> PreviewPickerValue.ORIENTATION_PORTRAIT
+        Orientation.landscape -> PreviewPickerValue.ORIENTATION_LANDSCAPE
+      }
 }

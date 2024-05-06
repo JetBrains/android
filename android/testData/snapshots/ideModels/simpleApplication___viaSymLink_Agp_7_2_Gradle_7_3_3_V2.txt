@@ -221,7 +221,6 @@ MODULE                        : project_sm_src.app
         UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
-        EnableVcsInfo                 : false
     - basicVariant:               : debug
         applicationId                 : google.simpleapplication
         testApplicationId             : google.simpleapplication.test
@@ -689,10 +688,6 @@ MODULE                        : project_sm_src.app
                     ApkFromBundleTaskOutputListingFile      : <ROOT>_sm_src/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
                 GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>_sm_src/app/build/generated/res/resValues/debug [-]
-                ModelSyncFile
-                    Type                          : BASIC
-                    TaskName                      : createDebugVariantModel
-                    File                          : <ROOT>_sm_src/app/build/intermediates/variant_model/debug/out [-]
             AndroidTestArtifact
                 Name                          : ANDROID_TEST
                 CompileTaskName               : compileDebugAndroidTestSources

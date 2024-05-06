@@ -20,6 +20,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -34,7 +35,9 @@ private const val ROTATION_FRAMES = 20L
 private const val ROTATION_TIMEOUT = 10_000L
 
 class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
-  AnAction(StudioIcons.LayoutInspector.MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
+  AnAction(StudioIcons.LayoutInspector.Toolbar.MODE_3D),
+  TooltipLinkProvider,
+  TooltipDescriptionProvider {
   @VisibleForTesting var executorFactory = { Executors.newSingleThreadScheduledExecutor() }
   @VisibleForTesting var getCurrentTimeMillis = { System.currentTimeMillis() }
 
@@ -80,6 +83,8 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
     }
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     val model = renderModelProvider()
@@ -87,8 +92,8 @@ class Toggle3dAction(private val renderModelProvider: () -> RenderModel) :
     val client = inspector?.currentClient
     val inspectorModel = inspector?.inspectorModel
     event.presentation.icon =
-      if (model.isRotated) StudioIcons.LayoutInspector.RESET_VIEW
-      else StudioIcons.LayoutInspector.MODE_3D
+      if (model.isRotated) StudioIcons.LayoutInspector.Toolbar.RESET_VIEW
+      else StudioIcons.LayoutInspector.Toolbar.MODE_3D
     if (
       model.overlay == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&

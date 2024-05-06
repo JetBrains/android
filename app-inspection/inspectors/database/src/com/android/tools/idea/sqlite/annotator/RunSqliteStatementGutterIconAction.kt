@@ -69,8 +69,7 @@ class RunSqliteStatementGutterIconAction(
         .getInjectedPsiFiles(element)
         .orEmpty()
         .firstOrNull { it.first.language == AndroidSqlLanguage.INSTANCE }
-        ?.first
-        ?: return
+        ?.first ?: return
 
     if (openDatabases.size == 1) {
       runSqliteStatement(openDatabases.first(), injectedPsiFile)

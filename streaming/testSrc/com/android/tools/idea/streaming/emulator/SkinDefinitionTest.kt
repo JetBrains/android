@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.io.readImage
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.avdmanager.SkinLayoutDefinition
 import com.android.tools.idea.streaming.emulator.FakeEmulator.Companion.getRootSkinFolder
@@ -224,7 +224,7 @@ class SkinDefinitionTest {
     )
     val skinProblems = mutableListOf<String>()
     val dir = getRootSkinFolder()
-    Files.list(dir).use { stream ->
+    Files.walk(dir, 2).use { stream ->
       stream.forEach { skinFolder ->
         if (Files.isDirectory(skinFolder) && !oldStyleSkins.contains(skinFolder.fileName.toString()) &&
             Files.exists(skinFolder.resolve("layout"))) {

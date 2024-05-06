@@ -12,11 +12,10 @@ android {
         versionCode 1
         versionName "1.0"
     }
-// TODO(b/292491619): Uncomment language settings when R class visibility issues are fixed.
-//    compileOptions {
-//        sourceCompatibility = JavaVersion.VERSION_11
-//        targetCompatibility = JavaVersion.VERSION_11
-//    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
     buildTypes {
         release {
             minifyEnabled false

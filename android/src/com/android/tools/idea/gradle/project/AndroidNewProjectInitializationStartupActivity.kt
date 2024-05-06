@@ -46,7 +46,6 @@ class AndroidNewProjectInitializationStartupActivity : ProjectActivity {
       project.removeUserData(INITIALIZER_KEY)
     }
   }
-
   companion object {
     fun setProjectInitializer(project: Project, initializer: () -> Unit) {
       assert(project.getUserData(INITIALIZER_KEY) == null)

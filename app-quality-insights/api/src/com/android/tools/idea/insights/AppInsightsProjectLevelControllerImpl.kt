@@ -19,7 +19,6 @@ import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.analysis.Confidence
 import com.android.tools.idea.insights.analysis.CrashFrame
 import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
-import com.android.tools.idea.insights.analysis.candidateFileNames
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.android.tools.idea.insights.client.AppInsightsCache
@@ -40,13 +39,14 @@ import com.android.tools.idea.insights.events.PersistSettingsAdapter
 import com.android.tools.idea.insights.events.ResetSnapshot
 import com.android.tools.idea.insights.events.RestoreFilterFromSettings
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
+import com.android.tools.idea.insights.events.SelectedEventChanged
 import com.android.tools.idea.insights.events.SelectedIssueChanged
+import com.android.tools.idea.insights.events.SelectedIssueVariantChanged
 import com.android.tools.idea.insights.events.SignalChanged
 import com.android.tools.idea.insights.events.VersionsChanged
 import com.android.tools.idea.insights.events.VisibilityChanged
 import com.android.tools.idea.insights.events.actions.ActionContext
 import com.android.tools.idea.insights.events.actions.ActionDispatcher
-import com.android.tools.idea.insights.events.actions.AppInsightsActionQueue
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.insights.persistence.InsightsFilterSettings
 import com.google.common.collect.HashMultimap
@@ -96,7 +96,6 @@ class AppInsightsProjectLevelControllerImpl(
   private val tracker: AppInsightsTracker,
   private val clock: Clock,
   private val project: Project,
-  queue: AppInsightsActionQueue,
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   private val defaultFilters: Filters,
   cache: AppInsightsCache
@@ -111,7 +110,6 @@ class AppInsightsProjectLevelControllerImpl(
       dispatcherScope,
       clock,
       appInsightsClient,
-      queue,
       defaultFilters,
       cache,
       ::doEmit,
@@ -161,6 +159,8 @@ class AppInsightsProjectLevelControllerImpl(
           LoadingState.Loading,
           LoadingState.Ready(null),
           LoadingState.Ready(null),
+          LoadingState.Ready(null),
+          LoadingState.Ready(null),
           Permission.NONE,
           ConnectionMode.ONLINE
         ),
@@ -176,7 +176,7 @@ class AppInsightsProjectLevelControllerImpl(
         )
         .fold(initialState) { (currentState, lastGoodState), event ->
           LOG.debug("Got event $event for $project.")
-          val (newState, action) = event.transition(currentState, tracker)
+          val (newState, action) = event.transition(currentState, tracker, key)
           if (currentState.issues != newState.issues) {
             updateIssueIndex(computeIssuesPerFilename(newState.issues.map { it.value }))
           }
@@ -194,11 +194,7 @@ class AppInsightsProjectLevelControllerImpl(
                 else lastGoodState
             )
             .also { (currentState, lastGoodState) ->
-              if (currentState.mode == ConnectionMode.OFFLINE && action.supportsOfflineQueueing) {
-                queue.offer(action)
-              } else {
-                actionDispatcher.dispatch(ActionContext(action, currentState, lastGoodState))
-              }
+              actionDispatcher.dispatch(ActionContext(action, currentState, lastGoodState))
             }
         }
         .map { it.currentState }
@@ -232,6 +228,14 @@ class AppInsightsProjectLevelControllerImpl(
     emit(ActiveConnectionChanged(value))
   }
 
+  override fun nextEvent() {
+    emit(SelectedEventChanged(EventMovement.NEXT))
+  }
+
+  override fun previousEvent() {
+    emit(SelectedEventChanged(EventMovement.PREVIOUS))
+  }
+
   override fun toggleFailureType(value: FailureType) {
     emit(FatalityToggleChanged(value))
   }
@@ -258,6 +262,10 @@ class AppInsightsProjectLevelControllerImpl(
 
   override fun selectVisibilityType(value: VisibilityType) {
     emit(VisibilityChanged(value))
+  }
+
+  override fun selectIssueVariant(variant: IssueVariant?) {
+    emit(SelectedIssueVariantChanged(variant))
   }
 
   override fun selectTimeInterval(value: TimeIntervalFilter) {
@@ -336,7 +344,7 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   private fun issuesForFile(file: PsiFile): List<IssueInFrame> =
-    file.candidateFileNames.flatMap { issuesPerFilename.get(it) }
+    issuesPerFilename.get(file.virtualFile.name).toList()
 
   private fun logIssues(issues: List<IssueInFrame>, file: PsiFile) {
     if (issues.isEmpty()) return

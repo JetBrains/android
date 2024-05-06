@@ -19,6 +19,7 @@ import com.android.tools.adtui.workbench.DetachedToolWindowManager;
 import com.android.tools.adtui.workbench.WorkBenchManager;
 import com.intellij.ide.actions.RestoreDefaultLayoutAction;
 import com.intellij.idea.ActionsBundle;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAware;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Restores the layout of tool windows.
  */
-public final class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
+public class RestoreDefaultWindowLayoutAction extends AnAction implements DumbAware {
   private final RestoreDefaultLayoutAction myDelegate;
 
   public RestoreDefaultWindowLayoutAction() {
@@ -49,6 +50,12 @@ public final class RestoreDefaultWindowLayoutAction extends AnAction implements 
     }
     DetachedToolWindowManager floatingToolWindowManager = DetachedToolWindowManager.getInstance(project);
     floatingToolWindowManager.restoreDefaultLayout();
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override

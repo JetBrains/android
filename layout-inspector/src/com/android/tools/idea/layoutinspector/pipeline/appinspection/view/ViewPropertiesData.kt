@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.colorToString
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.properties.ViewNodeAndResourceLookup
@@ -26,7 +27,6 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Property
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.PropertyGroup
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Resource
-import com.android.tools.idea.res.colorToString
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
@@ -195,8 +195,8 @@ class ViewPropertiesDataGenerator(
       Property.Type.ANIM -> SOME_UNKNOWN_ANIM_VALUE
       Property.Type.ANIMATOR -> SOME_UNKNOWN_ANIMATOR_VALUE
       Property.Type.DRAWABLE -> SOME_UNKNOWN_DRAWABLE_VALUE
-      Property.Type.INTERPOLATOR -> valueFromInterpolatorClass(className)
-          ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
+      Property.Type.INTERPOLATOR ->
+        valueFromInterpolatorClass(className) ?: SOME_UNKNOWN_INTERPOLATOR_VALUE
       else -> null
     }
   }

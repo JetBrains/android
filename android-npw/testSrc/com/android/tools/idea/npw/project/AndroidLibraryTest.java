@@ -20,6 +20,7 @@ import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.requestSyncAndWait;
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext.NEW_MODULE;
 
@@ -42,7 +43,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -83,7 +83,7 @@ public class AndroidLibraryTest {
 
       // Rename the lib file name, by updating 'settings.gradle' and renaming the file itself.
       try {
-        Files.append(System.lineSeparator() + "project(':lib').buildFileName = 'mylibrary.gradle'", settingsGradle, StandardCharsets.UTF_8);
+        Files.append(System.lineSeparator() + "project(':lib').buildFileName = 'mylibrary.gradle'", settingsGradle, UTF_8);
       }
       catch (IOException e) {
         throw new RuntimeException(e);

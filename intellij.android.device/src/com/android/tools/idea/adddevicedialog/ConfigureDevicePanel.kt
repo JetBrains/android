@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,46 +15,56 @@
  */
 package com.android.tools.idea.adddevicedialog
 
-import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.JBTabbedPane
-import java.awt.Component
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.collections.immutable.ImmutableCollection
+import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.ui.component.TabData
+import org.jetbrains.jewel.ui.component.TabStrip
+import org.jetbrains.jewel.ui.component.Text
 
-internal class ConfigureDevicePanel internal constructor() : JBPanel<ConfigureDevicePanel>(null) {
-  internal val deviceAndApiPanel: DeviceAndApiPanel
-
-  init {
-    val configureDeviceLabel = JBLabel("Configure device")
-    val addDeviceToDeviceManagerLabel = JBLabel("Add a device to the device manager")
-    deviceAndApiPanel = DeviceAndApiPanel()
-    val tabbedPane = initTabbedPane()
-
-    layout = groupLayout(this) {
-      horizontalGroup {
-        parallelGroup {
-          component(configureDeviceLabel)
-          component(addDeviceToDeviceManagerLabel)
-          component(tabbedPane)
-        }
-      }
-
-      verticalGroup {
-        sequentialGroup {
-          component(configureDeviceLabel)
-          component(addDeviceToDeviceManagerLabel)
-          component(tabbedPane)
-        }
-      }
+@Composable
+internal fun ConfigureDevicePanel(
+  device: VirtualDevice,
+  images: ImmutableCollection<SystemImage>,
+  onDeviceChange: (VirtualDevice) -> Unit
+) {
+  @OptIn(ExperimentalJewelApi::class)
+  SwingBridgeTheme {
+    Column {
+      Text("Configure device")
+      Text("Add a device to device manager")
+      Tabs(device, images, onDeviceChange)
     }
   }
+}
 
-  private fun initTabbedPane(): Component {
-    val tabbedPane = JBTabbedPane()
+@Composable
+private fun Tabs(
+  device: VirtualDevice,
+  images: ImmutableCollection<SystemImage>,
+  onDeviceChange: (VirtualDevice) -> Unit
+) {
+  var selectedTab by remember { mutableStateOf(Tab.DEVICE_AND_API) }
 
-    tabbedPane.addTab("Device and API", deviceAndApiPanel)
-    tabbedPane.addTab("Additional settings", AdditionalSettingsPanel())
+  TabStrip(
+    Tab.values().map { tab ->
+      TabData.Default(selectedTab == tab, tab.text, onClick = { selectedTab = tab })
+    }
+  )
 
-    return tabbedPane
+  when (selectedTab) {
+    Tab.DEVICE_AND_API -> DeviceAndApiPanel(device, images, onDeviceChange)
+    Tab.ADDITIONAL_SETTINGS -> AdditionalSettingsPanel()
   }
+}
+
+private enum class Tab(val text: String) {
+  DEVICE_AND_API("Device and API"),
+  ADDITIONAL_SETTINGS("Additional settings")
 }

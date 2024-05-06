@@ -19,12 +19,13 @@ import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.model.IdeArtifactDependency
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.collect.Ordering
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -77,10 +78,10 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       val ordering = Ordering.natural<Version>().nullsFirst<Version>()
 
       ModuleManager.getInstance(project).modules.mapNotNull { module -> GradleAndroidModel.get(module) }.forEach { model ->
-        val dependencies = model.selectedMainCompileDependencies
+        val dependencies = model.mainArtifact.compileClasspath
 
-        kotlinVersion = ordering.max(kotlinVersion, dependencies.javaLibraries.findVersion("org.jetbrains.kotlin", "kotlin-stdlib"))
-        ktxVersion = ordering.max(ktxVersion, dependencies.androidLibraries.findVersion("androidx.core", "core-ktx"))
+        kotlinVersion = ordering.max(kotlinVersion, dependencies.libraries.findVersion("org.jetbrains.kotlin", "kotlin-stdlib"))
+        ktxVersion = ordering.max(ktxVersion, dependencies.libraries.findVersion("androidx.core", "core-ktx"))
       }
 
       val kotlinSupport = KotlinSupport.newBuilder()
@@ -91,7 +92,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
 
     val event = AndroidStudioEvent.newBuilder()
     val syncStats = GradleSyncStats.newBuilder()
-    val buildFileTypes = GradleUtil.projectBuildFilesTypes(project)
+    val buildFileTypes = GradleProjectSystemUtil.projectBuildFilesTypes(project)
 
     // Setup the sync stats
     syncStats.totalTimeMs = when {
@@ -115,18 +116,24 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     }
     syncStats.updateAdditionalData()
 
+    val gradleVersion = when(kind) {
+      AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED -> GradleVersions.getInstance().getGradleVersion(project)?.version ?: ""
+      else -> null
+    }
     runReadAction {
-      val lastKnownVersion = GradleUtil.getLastKnownAndroidGradlePluginVersion(project)
+      val lastKnownVersion =
+        GradleProjectSystemUtil.getLastKnownAndroidGradlePluginVersion(project)
       if (lastKnownVersion != null) syncStats.lastKnownAndroidGradlePluginVersion = lastKnownVersion
-      val lastSuccessfulVersion = GradleUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
+      val lastSuccessfulVersion =
+        GradleProjectSystemUtil.getLastSuccessfulAndroidGradlePluginVersion(project)
       if (lastSuccessfulVersion != null) syncStats.androidGradlePluginVersion = lastSuccessfulVersion
 
       // Set up the Android studio event
       event.category = AndroidStudioEvent.EventCategory.GRADLE_SYNC
       event.kind = kind
 
+      gradleVersion?.let { event.gradleVersion = it }
       if (kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {
-        event.gradleVersion = GradleVersions.getInstance().getGradleVersion(project)?.version ?: ""
         event.setKotlinSupport(generateKotlinSupport())
       }
       event.withProjectId(project)
@@ -137,10 +144,10 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
   }
 }
 
-private fun Collection<IdeArtifactDependency<*>>.findVersion(group: String, name: String): Version? {
-  val library = firstOrNull { library -> library.target.component?.let { it.group == group && it.name == name } ?: false } ?: return null
-  return library.target.component?.version
-}
+private fun Collection<IdeLibrary>.findVersion(group: String, name: String): Version? =
+  filterIsInstance<IdeArtifactLibrary>()
+    .firstOrNull { library -> library.component?.let { it.group == group && it.name == name } ?: false }
+    ?.component?.version
 
 private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project: Project, rootProjectPath: @SystemIndependent String) {
   if (!StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
@@ -153,7 +160,8 @@ private fun GradleSyncStats.Builder.updateUserRequestedParallelSyncMode(project:
     false -> GradleSyncStats.UserRequestedExecution.USER_REQUESTED_SEQUENTIAL
   }
 
-  val projectData = ExternalSystemApiUtil.findProjectNode(project, GradleUtil.GRADLE_SYSTEM_ID, rootProjectPath)
+  val projectData = ExternalSystemApiUtil.findProjectNode(project,
+                                                          GradleProjectSystemUtil.GRADLE_SYSTEM_ID, rootProjectPath)
   val executionReport = projectData?.let { ExternalSystemApiUtil.find(projectData, AndroidProjectKeys.SYNC_EXECUTION_REPORT) }?.data
   if (executionReport != null) {
     studioRequestedSyncType = when (executionReport.parallelFetchForV2ModelsEnabled) {

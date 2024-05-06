@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.editor;
 
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfigurationModule;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
@@ -126,7 +127,9 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
     }
 
     myAndroidProfilersPanel = new AndroidProfilersPanel(project, config.getProfilerState());
-    myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
+    if(!StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+      myTabbedPane.add("Profiling", myAndroidProfilersPanel.getComponent());
+    }
 
     myConfigurationSpecificEditor = configurationSpecificEditorFactory.apply(myModuleSelector);
     Disposer.register(this, myConfigurationSpecificEditor);
@@ -138,7 +141,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
 
     myShowLogcatCheckBox.setVisible(showLogcatCheckbox);
 
-    checkValidationResults(config.validate(null));
+    checkValidationResults(config.validate(null, this::fireEditorStateChanged));
   }
 
   /**
@@ -228,7 +231,7 @@ public class AndroidRunConfigurationEditor<T extends AndroidRunConfigurationBase
   public void actionPerformed(ActionEvent e) {
     if (e.getSource() == myModulesComboBox) {
       if (myConfigurationSpecificEditor instanceof ApplicationRunParameters) {
-        ((ApplicationRunParameters<?>)myConfigurationSpecificEditor).onModuleChanged();
+        ((ApplicationRunParameters)myConfigurationSpecificEditor).onModuleChanged();
       }
     }
   }

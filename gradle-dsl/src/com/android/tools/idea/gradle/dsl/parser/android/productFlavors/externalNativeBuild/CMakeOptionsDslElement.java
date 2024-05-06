@@ -15,16 +15,36 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild;
 
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
 
 public final class CMakeOptionsDslElement extends AbstractBuildOptionsDslElement {
   public static final PropertiesElementDescription<CMakeOptionsDslElement> CMAKE_OPTIONS =
-    new PropertiesElementDescription<>("cmake", CMakeOptionsDslElement.class, CMakeOptionsDslElement::new);
+    new PropertiesElementDescription<>("cmake",
+                                       CMakeOptionsDslElement.class,
+                                       CMakeOptionsDslElement::new,
+                                       CMakeOptionsDslElementSchema::new);
 
   public CMakeOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  public static final class CMakeOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.CmakeFlags";
+    }
   }
 }

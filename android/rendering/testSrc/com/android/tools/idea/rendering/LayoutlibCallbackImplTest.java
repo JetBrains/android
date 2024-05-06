@@ -44,6 +44,7 @@ import com.android.tools.rendering.ModuleRenderContext;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ModuleClassLoaderManagerKt;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
@@ -60,16 +61,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import kotlin.Unit;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
-import org.jetbrains.android.uipreview.ModuleRenderContexts;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
-import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
   private DownloadableFontCacheService myFontCacheServiceMock;
@@ -84,7 +83,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       mock.getArgument(0, Runnable.class).run();
       return null;
     }).when(myFontCacheServiceMock).refresh(any(), any());
-    when(myFontCacheServiceMock.download(ArgumentMatchers.any(FontFamily.class))).thenAnswer(mock -> {
+    when(myFontCacheServiceMock.download(Mockito.any(FontFamily.class))).thenAnswer(mock -> {
       FontDetail fontDetail = mock.getArgument(0, FontFamily.class).getFonts().get(0);
       File fileMock = mock(File.class);
       when(fileMock.exists()).thenReturn(true);
@@ -139,11 +138,11 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
         LayoutlibCallbackImpl layoutlibCallback =
-          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
         ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
           ResourceNamespace.ANDROID, ResourceType.LAYOUT, "main", psiFile.getVirtualFile().getCanonicalPath()
         ));
@@ -180,11 +179,11 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
         LayoutlibCallbackImpl layoutlibCallback =
-          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
 
         assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
 
@@ -209,11 +208,11 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
         RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
         LayoutlibCallbackImpl layoutlibCallback =
-          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+          new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
         layoutlibCallback.setProjectFonts(myProjectFonts);
 
         assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontFile.getPath()));
@@ -263,7 +262,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
                      "</manifest>";
     File manifest = new File(aarDir, SdkConstants.FN_ANDROID_MANIFEST_XML);
     try (FileOutputStream out = new FileOutputStream(manifest)) {
-      out.write(content.getBytes(StandardCharsets.UTF_8));
+      out.write(content.getBytes(Charsets.UTF_8));
     }
   }
 }

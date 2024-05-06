@@ -16,18 +16,18 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_FILTERING_SUPPORTED
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_MACROBENCHMARK
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.createModule
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.generateBuildVariants
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.getTargetModelProductFlavors
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileBenchmarksJava
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileBenchmarksKt
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileGeneratorJava
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileGeneratorKt
+import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfiguration
+import com.android.tools.idea.run.configuration.AndroidBaselineProfileRunConfigurationType
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -37,8 +37,6 @@ import com.intellij.execution.RunManager
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.idea.gradleTooling.capitalize
-import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType
-import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import java.io.File
 
 const val GMD_DEVICE = "Pixel 6"
@@ -48,29 +46,32 @@ const val GENERATOR_CLASS_NAME = "BaselineProfileGenerator"
 const val MACROBENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val BENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val RUN_CONFIGURATION_NAME = "Generate Baseline Profile"
-const val PROFILE_INSTALLER_MIN_REV = "1.3.0-beta01"
-const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.0-beta01"
-const val MACROBENCHMARK_MIN_REV = "1.2.0-beta01"
+const val PROFILE_INSTALLER_MIN_REV = "1.3.1"
+const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.2"
+const val MACROBENCHMARK_MIN_REV = "1.2.2"
 
 fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: Boolean,
-  useVersionCatalog: Boolean,
-  agpVersion: AgpVersion,
+  useVersionCatalog: Boolean = true
 ) {
-  val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
-  val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
-  val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
+
+  // For agp 8.3.0-alpha10 and above, the target application id is passed as instrumentation runner argument.
+  // This is because TestVariant#testedApks was introduced in that version.
+  val useInstrumentationArgumentForAppId = targetModuleGradleModel.agpVersion >= AgpVersion.parse("8.3.0-alpha10")
+  val targetApplicationId = chooseReleaseTargetApplicationId(
+      basicVariants = targetModuleGradleModel.androidProject.basicVariants,
+      defaultValue = targetModuleGradleModel.applicationId
+    )
 
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
   val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API, GMD_SYSTEM_IMAGE_SOURCE) else null
 
   val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
-  val variants = generateBuildVariants(flavors, "release")
 
   createModule(
     newModule = newModule,
@@ -82,7 +83,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
       useGradleKts = useGradleKts,
       targetModule = targetModule,
       useGmd = gmdSpec,
-      useVersionCatalog = useVersionCatalog
+      useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
     ),
     customizeModule = {
       applyPlugin("androidx.baselineprofile", BASELINE_PROFILES_PLUGIN_MIN_REV)
@@ -90,7 +91,8 @@ fun RecipeExecutor.generateBaselineProfilesModule(
       createTestClasses(
         targetModule = targetModule,
         newModule = newModule,
-        targetApplicationId = targetApplicationId
+        targetApplicationId = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
     }
   )
@@ -99,7 +101,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   // Only do the actions for the default executor, not when just finding references.
   if (this !is FindReferencesRecipeExecutor) {
-    setupRunConfigurations(variants, targetModule, agpVersion)
+    setupRunConfigurations(targetModule)
   }
 }
 
@@ -131,6 +133,7 @@ fun RecipeExecutor.createTestClasses(
   targetModule: Module,
   newModule: ModuleTemplateData,
   targetApplicationId: String,
+  useInstrumentationArgumentForAppId: Boolean
 ) {
   val language = newModule.projectTemplateData.language
   val pluginTaskName = baselineProfileTaskName("release")
@@ -144,6 +147,7 @@ fun RecipeExecutor.createTestClasses(
         className = GENERATOR_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
       // Create Macrobenchmark tests
       val benchmarksContent = baselineProfileBenchmarksKt(
@@ -151,6 +155,7 @@ fun RecipeExecutor.createTestClasses(
         className = MACROBENCHMARKS_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
 
       generatorContent to benchmarksContent
@@ -164,6 +169,7 @@ fun RecipeExecutor.createTestClasses(
         className = GENERATOR_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
       // Create Macrobenchmark tests
       val benchmarksContent = baselineProfileBenchmarksJava(
@@ -171,6 +177,7 @@ fun RecipeExecutor.createTestClasses(
         className = MACROBENCHMARKS_CLASS_NAME,
         packageName = newModule.packageName,
         targetPackageName = targetApplicationId,
+        useInstrumentationArgumentForAppId = useInstrumentationArgumentForAppId
       )
 
       generatorContent to benchmarksContent
@@ -192,44 +199,26 @@ fun RecipeExecutor.createTestClasses(
  */
 @VisibleForTesting
 fun setupRunConfigurations(
-  variants: List<String>,
   targetModule: Module,
-  agpVersion: AgpVersion,
   runManager: RunManager = RunManager.getInstance(targetModule.project)
 ) {
   val project = targetModule.project
 
-  val gradleConfigFactory = GradleExternalTaskConfigurationType.getInstance().factory
+  val configFactory = AndroidBaselineProfileRunConfigurationType.getInstance().factory
 
-  variants
-    .ifEmpty { listOf(null) } // If there's no variant, we add one placeholder, so that we create at least one run configuration
-    .forEachIndexed { index, variantName ->
-      var runName = RUN_CONFIGURATION_NAME
-      if (variants.size > 1) {
-        runName += " [$variantName]"
-      }
-
-      val runConfig = GradleRunConfiguration(project, gradleConfigFactory, runName).also {
-        it.rawCommandLine = runConfigurationGradleTask(
-          moduleName = targetModule.getModuleNameForGradleTask(),
-          flavorName = variantName,
-          filterArgument = runConfigurationFilterArgument(agpVersion),
-        )
-        it.settings.externalProjectPath = project.basePath
-      }
-
-      val runConfigSettings = runManager.createConfiguration(runConfig, gradleConfigFactory)
-      // Persists in .idea folder
-      runConfigSettings.storeInDotIdeaFolder()
-      runManager.addConfiguration(runConfigSettings)
-
-      // Select first run configuration
-      if (index == 0) {
-        runManager.selectedConfiguration = runConfigSettings
-      }
-    }
+  val runConfigForSelected = AndroidBaselineProfileRunConfiguration(
+    project = project,
+    factory = configFactory,
+    name = "$RUN_CONFIGURATION_NAME for ${targetModule.getModuleNameForGradleTask()}"
+  ).also {
+    it.setModule(targetModule)
+  }
+  val runConfigSettingsForSelected = runManager.createConfiguration(runConfigForSelected, configFactory)
+  // Persists in .idea folder
+  runConfigSettingsForSelected.storeInDotIdeaFolder()
+  runManager.addConfiguration(runConfigSettingsForSelected)
+  runManager.selectedConfiguration = runConfigSettingsForSelected
 }
-
 
 @VisibleForTesting
 fun Module.getModuleNameForGradleTask(): String {
@@ -257,14 +246,13 @@ fun runConfigurationGradleTask(
   }
 }
 
-/**
- * This parameter allows filtering only Baseline Profile generators as part of the run configuration (Gradle task).
- * If not added, the task would fail, because Macrobenchmarks by default can't run on an emulator (GMD).
- * Baseline profiles Gradle plugin adds this filtering parameter automatically from AGP 8.2.0, so we need to prevent adding it from then
- */
 @VisibleForTesting
-fun runConfigurationFilterArgument(agpVersion: AgpVersion): String? =
-  if (agpVersion >= BP_PLUGIN_FILTERING_SUPPORTED) null else FILTER_ARG_BASELINE_PROFILE
+fun chooseReleaseTargetApplicationId(basicVariants: Collection<IdeBasicVariant>, defaultValue: String) =
+  basicVariants
+    .sortedBy { it.name }
+    .firstOrNull { it.name.endsWith("Release") || it.name == "release" }
+    ?.applicationId
+  ?: defaultValue
 
 @VisibleForTesting
 fun baselineProfileTaskName(variantName: String?): String =

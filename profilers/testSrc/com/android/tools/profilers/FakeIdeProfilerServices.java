@@ -26,9 +26,9 @@ import com.android.tools.profilers.cpu.TracePreProcessor;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.AtraceConfiguration;
-import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
 import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
@@ -47,9 +47,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public class FakeIdeProfilerServices implements IdeProfilerServices {
 
@@ -63,13 +63,18 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public static final String FAKE_PERFETTO_NAME = "Perfetto";
 
+  public static final String FAKE_NATIVE_ALLOCATIONS_NAME = "Native Allocations";
+
   public static final String FAKE_SYMBOL_DIR = "/fake/sym/dir/";
 
   public static final ProfilingConfiguration ART_SAMPLED_CONFIG = new ArtSampledConfiguration(FAKE_ART_SAMPLED_NAME);
   public static final ProfilingConfiguration ART_INSTRUMENTED_CONFIG = new ArtInstrumentedConfiguration(FAKE_ART_INSTRUMENTED_NAME);
   public static final ProfilingConfiguration SIMPLEPERF_CONFIG = new SimpleperfConfiguration(FAKE_SIMPLEPERF_NAME);
+  public static final ProfilingConfiguration
+    PERFETTO_NATIVE_ALLOCATIONS_CONFIG = new PerfettoNativeAllocationsConfiguration(FAKE_NATIVE_ALLOCATIONS_NAME);
   public static final ProfilingConfiguration ATRACE_CONFIG = new AtraceConfiguration(FAKE_ATRACE_NAME);
-  public static final ProfilingConfiguration PERFETTO_CONFIG = new PerfettoConfiguration(FAKE_PERFETTO_NAME, false);
+  public static final ProfilingConfiguration
+    PERFETTO_SYSTEM_TRACE_CONFIG = new PerfettoSystemTraceConfiguration(FAKE_PERFETTO_NAME, false);
 
   private final FeatureTracker myFakeFeatureTracker = new FakeFeatureTracker();
   private final CodeNavigator myFakeNavigationService = new CodeNavigator(
@@ -360,7 +365,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       config = new SimpleperfConfiguration(name);
     }
     else if (type == TraceType.PERFETTO) {
-      config = new PerfettoConfiguration(name, getFeatureConfig().isTraceboxEnabled());
+      config = new PerfettoSystemTraceConfiguration(name, getFeatureConfig().isTraceboxEnabled());
     }
     else if (type == TraceType.ATRACE) {
       config = new AtraceConfiguration(name);
@@ -377,9 +382,21 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  public List<ProfilingConfiguration> getTaskCpuProfilerConfigs(int apiLevel) {
+    if (apiLevel >= AndroidVersion.VersionCodes.P) {
+      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_NATIVE_ALLOCATIONS_CONFIG,
+                              PERFETTO_SYSTEM_TRACE_CONFIG);
+    }
+    else {
+      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_NATIVE_ALLOCATIONS_CONFIG,
+                              ATRACE_CONFIG);
+    }
+  }
+
+  @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs(int apiLevel) {
     if (apiLevel >= AndroidVersion.VersionCodes.P) {
-      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_CONFIG);
+      return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, PERFETTO_SYSTEM_TRACE_CONFIG);
     }
     else {
       return ImmutableList.of(ART_SAMPLED_CONFIG, ART_INSTRUMENTED_CONFIG, SIMPLEPERF_CONFIG, ATRACE_CONFIG);
@@ -392,7 +409,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public int getNativeMemorySamplingRateForCurrentConfig() {
+  public int getNativeAllocationsMemorySamplingRate() {
     return 0;
   }
 
@@ -414,7 +431,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode, @NotNull JComponent component) { }
+  public void buildAndLaunchAction(boolean profileableMode) { }
 
   @Nullable
   public Notification getNotification() {

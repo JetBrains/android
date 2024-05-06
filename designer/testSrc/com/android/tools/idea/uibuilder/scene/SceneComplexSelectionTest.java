@@ -15,14 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import com.android.tools.idea.common.fixtures.ModelBuilder;
+import com.android.tools.idea.common.model.NlComponent;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
 import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
-
-import com.android.tools.idea.common.fixtures.ModelBuilder;
-import com.android.tools.idea.common.model.NlComponent;
-import java.util.List;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Test selecting widgets in nested hierarchy

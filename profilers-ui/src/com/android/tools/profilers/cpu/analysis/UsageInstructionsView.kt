@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.common.usageInstructionsText
-import com.intellij.openapi.client.ClientSystemInfo
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JLabel
@@ -37,10 +37,8 @@ class UsageInstructionsView: JPanel(BorderLayout()) {
 
   companion object {
     const val USAGE_INSTRUCTIONS_TITLE = "<b>Usage Instructions</b>"
-    private val CONTROL_KEY_TEXT
-      get() = if (ClientSystemInfo.isMac()) "Command &#8984" else "Ctrl &#8963"
-    private val USAGE_INSTRUCTIONS_TEXT
-      get() = """
+    private val CONTROL_KEY_TEXT = if (SystemInfo.isMac) "Command &#8984" else "Ctrl &#8963"
+    private val USAGE_INSTRUCTIONS_TEXT = """
       <html>
         <h3>Navigation</h3>
         <p>You can use the mini-map at the top left of recordings to navigate to a section of the recording.</p>

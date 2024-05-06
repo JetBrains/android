@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 
 /** Contains general information that is required to launch an inspector on device. */
 sealed class AppInspectorLaunchParams {
@@ -36,5 +36,5 @@ class LibraryInspectorLaunchParams(
    * Information about the library this inspector is targeting, including the minimum version this
    * inspector is compatible with.
    */
-  val minVersionLibraryCoordinate: ArtifactCoordinate
+  val minVersionLibraryCoordinate: MinimumArtifactCoordinate
 ) : AppInspectorLaunchParams()

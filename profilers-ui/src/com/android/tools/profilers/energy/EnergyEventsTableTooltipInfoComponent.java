@@ -24,7 +24,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Energy;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -41,11 +41,11 @@ public class EnergyEventsTableTooltipInfoComponent extends AnimatedComponent {
   private final FontMetrics ITALIC_FONT_METRICS =
     UIUtilities.getFontMetrics(this, mDefaultFontMetrics.getFont().deriveFont(Font.ITALIC));
 
-  private final int VERTICAL_MARGIN_PX = JBUIScale.scale(8);
+  private final int VERTICAL_MARGIN_PX = JBUI.scale(8);
   private final int VERTICAL_PADDING_PX = VERTICAL_MARGIN_PX;
-  private final int BOTTOM_RIGHT_EXTRA_MARGIN_PX = JBUIScale.scale(4);
-  private final int HORIZONTAL_PADDING_PX = JBUIScale.scale(10);
-  private final int MIN_TOOLTIP_WIDTH = JBUIScale.scale(112);
+  private final int BOTTOM_RIGHT_EXTRA_MARGIN_PX = JBUI.scale(4);
+  private final int HORIZONTAL_PADDING_PX = JBUI.scale(10);
+  private final int MIN_TOOLTIP_WIDTH = JBUI.scale(112);
 
   private final EnergyEventsTableTooltipInfoModel myModel;
 

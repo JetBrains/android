@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.model;
 
+import com.android.sdklib.AndroidCoordinate;
 import org.jetbrains.annotations.NotNull;
 
 public class DnDTransferComponent {

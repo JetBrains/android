@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.common;
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 
 /**
  * A possible match position

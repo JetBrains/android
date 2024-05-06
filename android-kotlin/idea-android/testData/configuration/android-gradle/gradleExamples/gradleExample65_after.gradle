@@ -21,7 +21,6 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     compile 'com.example.android.multiproject:util:1.0'
     releaseCompile 'com.google.guava:guava:11.0.2'
 }
@@ -29,6 +28,9 @@ dependencies {
 android {
     compileSdkVersion 15
     buildToolsVersion "17.0"
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 group = 'com.example.android.multiproject'

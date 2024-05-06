@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsProject;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
-import com.intellij.openapi.util.NlsContexts;
 import com.intellij.ui.components.JBList;
 import java.awt.Component;
 import java.util.function.Consumer;
@@ -40,7 +39,7 @@ public class ChooseModuleDialog extends DialogWrapper {
   private JPanel myPanel;
   private JBList myModuleList;
 
-  public ChooseModuleDialog(@NotNull PsProject project, @NotNull Consumer<PsModule> onOkTask, @NotNull @NlsContexts.DialogTitle String title) {
+  public ChooseModuleDialog(@NotNull PsProject project, @NotNull Consumer<PsModule> onOkTask, @NotNull String title) {
     super(project.getIdeProject());
     myOnOkTask = onOkTask;
     init();

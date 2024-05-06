@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.mockStatic
-import com.android.testutils.TestUtils
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
@@ -40,7 +40,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   }
 
   fun `test Given no selection and suggested JDKs When create component Then no JDK path is selected and dropdown items are not empty`() {
-    val itemValidJdk = LabelAndFileForLocation("valid", TestUtils.getEmbeddedJdk17Path())
+    val itemValidJdk = LabelAndFileForLocation("valid", EmbeddedDistributionPaths.getInstance().embeddedJdkPath)
     val itemInvalidJdk = LabelAndFileForLocation("invalid", Path("/invalid/jdk/path"))
     val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk, itemInvalidJdk), null, "")
     assertEmpty(jdkComboBox.selectedJdkPath)
@@ -69,7 +69,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   }
 
   fun `test Given comboBox When select valid or invalid JDK path Then foreground change accordingly`() {
-    val itemValidJdk = LabelAndFileForLocation("valid", TestUtils.getEmbeddedJdk17Path())
+    val itemValidJdk = LabelAndFileForLocation("valid", EmbeddedDistributionPaths.getInstance().embeddedJdkPath)
     val itemInvalidJdk = LabelAndFileForLocation("invalid", Path("/invalid/jdk/path"))
     val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk, itemInvalidJdk), null, "")
     val jdkEditor = jdkComboBox.editor.editorComponent
@@ -96,7 +96,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   }
 
   fun `test Given comboBox Then was configured with expected settings`() {
-    val itemValidJdk = LabelAndFileForLocation("valid", TestUtils.getEmbeddedJdk17Path())
+    val itemValidJdk = LabelAndFileForLocation("valid", EmbeddedDistributionPaths.getInstance().embeddedJdkPath)
     val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk), null, "")
     val jdkExtendableText = jdkComboBox.editor.editorComponent as ExtendableTextField
     assertEquals(1, jdkExtendableText.extensions.size)

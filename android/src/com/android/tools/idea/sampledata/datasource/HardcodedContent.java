@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.sampledata.datasource;
 
+import com.google.common.base.Charsets;
+
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 public class HardcodedContent implements Function<OutputStream, Exception> {
@@ -30,7 +31,7 @@ public class HardcodedContent implements Function<OutputStream, Exception> {
   @Override
   public Exception apply(OutputStream stream) {
     try {
-      stream.write(myContent.getBytes(StandardCharsets.UTF_8));
+      stream.write(myContent.getBytes(Charsets.UTF_8));
     }
     catch (IOException e) {
       return e;

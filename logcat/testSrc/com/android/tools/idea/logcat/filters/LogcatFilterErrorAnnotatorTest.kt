@@ -33,15 +33,19 @@ import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * Tests for [LogcatFilterErrorAnnotator]
- */
+/** Tests for [LogcatFilterErrorAnnotator] */
 @RunsInEdt
 class LogcatFilterErrorAnnotatorTest {
   private val projectRule = ProjectRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, LogcatFilterLanguageRule(), EdtRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
+  val rule =
+    RuleChain(
+      projectRule,
+      LogcatFilterLanguageRule(),
+      EdtRule(),
+      FlagRule(StudioFlags.LOGCAT_IS_FILTER)
+    )
 
   private val annotator = LogcatFilterErrorAnnotator()
 
@@ -51,10 +55,11 @@ class LogcatFilterErrorAnnotatorTest {
 
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
 
-    assertThat(annotations.map(Annotation::toAnnotationInfo)).containsExactly(
-      AnnotationInfo(6, 9, "Invalid log level: foo", ERROR),
-      AnnotationInfo(27, 30, "Invalid log level: bar", ERROR),
-    )
+    assertThat(annotations.map(Annotation::toAnnotationInfo))
+      .containsExactly(
+        AnnotationInfo(6, 9, "Invalid log level: foo", ERROR),
+        AnnotationInfo(27, 30, "Invalid log level: bar", ERROR),
+      )
   }
 
   @Test
@@ -63,10 +68,11 @@ class LogcatFilterErrorAnnotatorTest {
 
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
 
-    assertThat(annotations.map(Annotation::toAnnotationInfo)).containsExactly(
-      AnnotationInfo(4, 5, "Invalid duration: 2", ERROR),
-      AnnotationInfo(17, 20, "Invalid duration: 20M", ERROR),
-    )
+    assertThat(annotations.map(Annotation::toAnnotationInfo))
+      .containsExactly(
+        AnnotationInfo(4, 5, "Invalid duration: 2", ERROR),
+        AnnotationInfo(17, 20, "Invalid duration: 20M", ERROR),
+      )
   }
 
   @Test
@@ -76,15 +82,23 @@ class LogcatFilterErrorAnnotatorTest {
 
     val annotations = CodeInsightTestUtil.testAnnotator(annotator, *psi.children)
 
-    assertThat(annotations.map(Annotation::toAnnotationInfo)).containsExactly(
-      AnnotationInfo(38, 41, "Invalid qualifier: foo", ERROR),
-    )
+    assertThat(annotations.map(Annotation::toAnnotationInfo))
+      .containsExactly(
+        AnnotationInfo(38, 41, "Invalid qualifier: foo", ERROR),
+      )
   }
 
   private fun parse(text: String): PsiElement =
-    PsiFileFactory.getInstance(projectRule.project).createFileFromText("temp.lcf", LogcatFilterFileType, text)
+    PsiFileFactory.getInstance(projectRule.project)
+      .createFileFromText("temp.lcf", LogcatFilterFileType, text)
 }
 
-private data class AnnotationInfo(val startOffset: Int, val endOffset: Int, val message: String, val severity: HighlightSeverity)
+private data class AnnotationInfo(
+  val startOffset: Int,
+  val endOffset: Int,
+  val message: String,
+  val severity: HighlightSeverity
+)
 
-private fun Annotation.toAnnotationInfo() = AnnotationInfo(startOffset, endOffset, message, severity)
+private fun Annotation.toAnnotationInfo() =
+  AnnotationInfo(startOffset, endOffset, message, severity)

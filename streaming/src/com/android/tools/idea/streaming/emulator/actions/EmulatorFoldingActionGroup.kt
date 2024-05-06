@@ -59,7 +59,7 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
     }
     val emulatorView = getEmulatorView(event) ?: return emptyArray()
     val postures = emulatorView.emulator.emulatorConfig.postures
-    if (postures.isEmpty()) {
+    if (postures.isEmpty() || emulatorView.displayMode?.hasPostures == false) {
       return emptyArray()
     }
     val children = mutableListOf<AnAction>()
@@ -76,14 +76,16 @@ internal class EmulatorFoldingActionGroup : DefaultActionGroup(), DumbAware {
   }
 
   override fun update(event: AnActionEvent) {
-    // Enablement and visibility is determined by EmulatorShowVirtualSensorsAction.
-    ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID).update(event)
-    val emulatorView = getEmulatorView(event) ?: return
+    val emulatorView = getEmulatorView(event)
+    val enabled = getEmulatorConfig(event)?.postures?.isNotEmpty() == true &&
+                  emulatorView != null && emulatorView.displayMode?.hasPostures != false
     val presentation = event.presentation
-    val currentPosture = emulatorView.currentPosture
-    if (currentPosture != null) {
-      presentation.icon = currentPosture.icon
-      presentation.text = "${templatePresentation.text} (currently ${currentPosture.displayName})"
+    presentation.isEnabledAndVisible = enabled
+    if (enabled) {
+      emulatorView?.currentPosture?.let { posture ->
+        presentation.icon = posture.icon
+        presentation.text = "${templatePresentation.text} (currently ${posture.displayName})"
+      }
     }
   }
 

@@ -50,7 +50,7 @@ class ResourcesCompatTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.AS
         "Landroidx/core/content/res/ResourcesCompat\$FontCallback;Landroid/os/Handler;ZZ)Landroid/graphics/Typeface;") {
       return LoadFontVisitor(mv)
     }
-    return mv
+    return mv;
   }
 
   private class LoadFontVisitor(delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, delegate) {

@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:Suppress("ReplacePutWithAssignment")
-
 package com.android.tools.profilers.memory.adapters
 
 import com.android.tools.adtui.model.Range
@@ -33,11 +31,7 @@ import com.android.tools.profilers.analytics.FeatureTracker
 import com.android.tools.profilers.analytics.trackLoading
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryProfiler.Companion.saveHeapDumpToFile
-import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.ALLOCATIONS
-import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.LABEL
-import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.NATIVE_SIZE
-import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.RETAINED_SIZE
-import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.SHALLOW_SIZE
+import com.android.tools.profilers.memory.adapters.CaptureObject.ClassifierAttribute.*
 import com.android.tools.profilers.memory.adapters.CaptureObject.InstanceAttribute
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
@@ -53,6 +47,8 @@ import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Loading
 import gnu.trove.TObjectProcedure
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import java.io.OutputStream
+import java.util.HashMap
+import java.util.HashSet
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.stream.Collectors
@@ -118,7 +114,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
   @VisibleForTesting
   fun load(buffer: InMemoryBuffer) {
     val nativeRegistryPostProcessor = NativeRegistryPostProcessor()
-    val snapshot = Snapshot.createSnapshot(buffer, proguardMap ?: ProguardMap(), listOf(nativeRegistryPostProcessor))
+    val snapshot = Snapshot.createSnapshot(buffer!!, proguardMap ?: ProguardMap(), listOf(nativeRegistryPostProcessor))
     snapshot.computeRetainedSizes()
     hasNativeAllocations = nativeRegistryPostProcessor.hasNativeAllocations
     hasLoaded = true

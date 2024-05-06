@@ -17,17 +17,14 @@ package com.android.tools.idea.uibuilder.scout.test;
 
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
-import com.android.tools.idea.uibuilder.scout.ConstraintSetGenerator;
 import com.android.tools.idea.uibuilder.scout.RectangleGenerator;
+import com.android.tools.idea.uibuilder.scout.ConstraintSetGenerator;
 import com.android.tools.idea.uibuilder.scout.ScoutWidget;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+
 import java.util.ArrayList;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.WindowConstants;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Test interface to display a widget space randomly generated widgets and their

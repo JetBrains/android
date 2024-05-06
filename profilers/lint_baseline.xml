@@ -1,212 +1,257 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.2.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      myThreads.put(threadId, String.format(&quot;Thread id: %1$d&quot;, threadId));"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/art/ArtTraceHandler.java"
-            line="72"/>
+            line="72"
+            column="31"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        LOGGER.warn(String.format(&quot;Parsing of capture %d was not properly cancelled.&quot;, id));"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
-            line="149"/>
+            line="146"
+            column="21"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        File trace = FileUtil.createTempFile(String.format(&quot;cpu_trace_%d&quot;, info.getTraceId()), &quot;.trace&quot;, true);"
+        errorLine2="                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
-            line="184"/>
+            line="207"
+            column="46"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="          return String.format(&quot;%d:%s&quot;, job.getJobId(), job.getServiceName());"
+        errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/EnergyDuration.java"
-            line="167"/>
+            line="167"
+            column="18"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      return String.format(OBJECT_NAME_FORMATTER, myReferencedObject.getValueText(), myObjectTag);"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/memory/adapters/JniReferenceInstanceObject.java"
-            line="292"/>
+            line="292"
+            column="14"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      super(() -> String.format(&quot;Click to see next %d...&quot;,"
+        errorLine2="                  ^">
         <location
             file="src/com/android/tools/profilers/memory/LazyMemoryObjectTreeNode.java"
-            line="166"/>
+            line="166"
+            column="19"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="            displayString += String.format(&quot; - %s&quot;, data.getState().toString().toLowerCase());"
+        errorLine2="                                                                               ~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
-            line="98"/>
+            line="98"
+            column="80"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
+        errorLine1="              displayString += String.format(&quot; - %s&quot;, nextEvent.getView().getState().toString().toLowerCase());"
+        errorLine2="                                                                                                ~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
-            line="116"/>
+            line="116"
+            column="97"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        getLogger().error(String.format(&quot;Encountered unknown tag (%d) when attempting to parse perfetto capture.&quot;, tag));"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="110"/>
+            line="110"
+            column="27"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="                                  String.format(&quot;tracing_mark_write: trace_event_clock_sync: parent_ts=%.6f&quot;,"
+        errorLine2="                                  ^">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="257"/>
+            line="257"
+            column="35"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      return String.format(&quot;sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=%s ==> next_comm=%s next_pid=%d next_prio=%d&quot;,"
+        errorLine2="             ^">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="299"/>
+            line="299"
+            column="14"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      return String.format(&quot;sched_cpu_hotplug: cpu %d %s error=%d&quot;, sched.getAffectedCpu(), sched.getStatus() == 0 ? &quot;offline&quot; : &quot;online&quot;,"
+        errorLine2="             ^">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="305"/>
+            line="305"
+            column="14"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      return String.format(&quot;sched_blocked_reason: pid=%d iowait=%d caller=%s&quot;, sched.getPid(), sched.getIoWait(), sched.getCaller());"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="310"/>
+            line="310"
+            column="14"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      return String"
+        errorLine2="             ^">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="314"/>
+            line="314"
+            column="14"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      return String"
+        errorLine2="             ^">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="320"/>
+            line="320"
+            column="14"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      String timeSeconds = String.format(&quot;%.6f&quot;, nanosToSeconds(timestampNs));"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="380"/>
+            line="380"
+            column="28"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        tgid = String.format(&quot;%5d&quot;, myTidToTgid.get(pid));"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="383"/>
+            line="383"
+            column="16"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      return String.format(&quot;%s-%d     (%s) [%3d] d..3 %s: &quot;, name, pid, tgid, cpu, timeSeconds);"
+        errorLine2="             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/systemtrace/PerfettoProducer.java"
-            line="385"/>
+            line="385"
+            column="14"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="        String.format(&quot;%s%ctrace-%d&quot;, FileUtil.getTempDirectory(), File.separatorChar, System.currentTimeMillis()), &quot;.trace&quot;, true);"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="77"/>
+            line="77"
+            column="9"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="    File file = FileUtil.createTempFile(String.format(&quot;cpu_trace_%d&quot;, System.currentTimeMillis()), &quot;.trace&quot;, true);"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
-            line="144"/>
+            line="144"
+            column="41"/>
     </issue>
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
+        errorLine1="      getLog().warn(String.format(&quot;Warning: No samples read for thread %s (%d)&quot;, myThreads.get(threadId), threadId));"
+        errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfTraceParser.java"
-            line="373"/>
+            line="388"
+            column="21"/>
     </issue>
 
     <issue
         id="SimpleDateFormat"
-        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
+        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates."
+        errorLine1="    DateFormat timeFormat = new SimpleDateFormat(&quot;hh:mm a&quot;);"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoModel.java"
-            line="100"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/profilers/memory/adapters/instancefilters/ActivityFragmentLeakInstanceFilter.kt"
-            line="66"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/profilers/memory/adapters/instancefilters/ActivityFragmentLeakInstanceFilter.kt"
-            line="70"/>
-    </issue>
-
-    <issue
-        id="AvoidByLazy"
-        message="Avoid `by lazy` for simple lazy initialization">
-        <location
-            file="src/com/android/tools/profilers/cpu/analysis/AndroidFrameTimelineAnalysisModel.kt"
-            line="37"/>
+            line="100"
+            column="29"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
+        message="This method should only be accessed from tests or within package private scope"
+        errorLine1="    super(profilers.getIdeServices().getPoolExecutor());"
+        errorLine2="    ~~~~~">
         <location
             file="src/com/android/tools/profilers/energy/EnergyUsage.java"
-            line="34"/>
+            line="34"
+            column="5"/>
     </issue>
 
 </issues>

@@ -22,6 +22,8 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.intellij.execution.process.AnsiEscapeDecoder
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
@@ -65,9 +67,6 @@ class AndroidProcessHandler @JvmOverloads constructor(
     private var LOG = Logger.getInstance(AndroidProcessHandler::class.java)
   }
 
-  init {
-    putCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY, this)
-  }
 
   /**
    * Logcat messages from all target devices are redirected to [notifyTextAvailable]. When all target processes terminate on
@@ -85,15 +84,18 @@ class AndroidProcessHandler @JvmOverloads constructor(
       }
     })
 
+  init {
+    addProcessListener(object : ProcessAdapter() {
+      override fun startNotified(event: ProcessEvent) {
+        myMonitorManager.start()
+      }
+    })
+  }
+
   override fun notifyTextAvailable(text: String, outputType: Key<*>) {
     ansiEscapeDecoder.escapeText(text, outputType) { processedText, attributes ->
       super.notifyTextAvailable(processedText, attributes)
     }
-  }
-
-  override fun startNotify() {
-    super.startNotify()
-    myMonitorManager.start()
   }
 
   /**
@@ -132,7 +134,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
    * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
    */
   @AnyThread
-  override fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
+  override fun isAssociated(device: IDevice): Boolean = myMonitorManager.isAssociated(device)
 
   /**
    * Returns jdwp client of a target application running on a given device, or null if the device is not monitored by

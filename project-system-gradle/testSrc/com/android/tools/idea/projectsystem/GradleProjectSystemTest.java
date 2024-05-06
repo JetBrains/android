@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.Info;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
@@ -38,7 +38,7 @@ public class GradleProjectSystemTest extends PlatformTestCase {
     ideComponents.mockProjectService(GradleDependencyManager.class);
     ideComponents.mockProjectService(GradleBuildInvoker.class);
 
-    GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
+    Info gradleProjectInfo = ideComponents.mockProjectService(Info.class);
     when(gradleProjectInfo.isBuildWithGradle()).thenReturn(true);
   }
 

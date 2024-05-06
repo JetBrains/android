@@ -23,6 +23,7 @@ import com.intellij.util.ui.update.Update
 /** Simple render [Update]s scheduling interface. */
 interface RenderingQueue {
   fun queue(update: Update)
+
   fun deactivate() {}
 }
 

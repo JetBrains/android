@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
-import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION;
+import static com.android.AndroidXConstants.CLASS_MOTION_LAYOUT;
 import static com.android.SdkConstants.SHERPA_URI;
 
 import com.android.tools.idea.common.model.AttributesTransaction;

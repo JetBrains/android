@@ -104,7 +104,7 @@ public class LineChartModel extends AspectModel<LineChartModel.Aspect> implement
         double max = myFirstUpdate
                      ? entry.getValue()
                      : Updater.lerp(range.getMax(), entry.getValue(), Updater.DEFAULT_LERP_FRACTION, elapsedNs,
-                                    (float)(entry.getValue() * Updater.DEFAULT_LERP_THRESHOLD_PERCENTAGE));
+                                    (float)(entry.getValue() * Updater.DEFAULT_LERP_THRESHOLD_RATIO));
         range.setMax(max);
         changed = true;
       }

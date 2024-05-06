@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.BUTTON;
-
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.BUTTON;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 
 /**
  * Test complex baseline connection interactions

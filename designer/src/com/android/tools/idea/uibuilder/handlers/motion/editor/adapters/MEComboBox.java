@@ -16,6 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
 import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.components.JBScrollPane;
+import java.awt.Component;
 import javax.swing.ComboBoxEditor;
 import javax.swing.JComponent;
 

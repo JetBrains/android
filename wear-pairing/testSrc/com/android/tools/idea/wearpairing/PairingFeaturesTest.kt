@@ -25,7 +25,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.doAnswer
@@ -102,6 +101,6 @@ private fun createDeviceWithShellCommandResult(result: String): IDevice {
     outputReceiver.addOutput(data, 0, data.size)
     null
   }.whenever(device).executeShellCommand(anyString(),
-                                       ArgumentMatchers.any())
+                                       Mockito.any())
   return device
 }

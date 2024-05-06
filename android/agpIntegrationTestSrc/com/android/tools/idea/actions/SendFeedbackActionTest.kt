@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.gradle.project.sync.idea.issues.createNewGradleJvmProjectJdk
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.JdkUtils.createNewGradleJvmProjectJdk
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -39,9 +39,7 @@ class SendFeedbackActionTest: AndroidGradleTestCase() {
     assertThat(jdk).isNotNull()
     assertThat(description).contains("Gradle JDK: ${jdk.versionString}")
     assertThat(description).doesNotContain("Gradle JDK: (default)")
-    if (jdk is Disposable) {
-      Disposer.dispose(jdk)
-    }
+    Disposer.dispose(jdk as Disposable)
   }
 
   /**

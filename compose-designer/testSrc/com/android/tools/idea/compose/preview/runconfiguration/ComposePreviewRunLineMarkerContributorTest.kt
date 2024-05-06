@@ -89,7 +89,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should be created since the function is a valid preview.
-    assertNotNull(contributor.getInfo(functionIdentifier))
+    assertNotNull(contributor.getSlowInfo(functionIdentifier))
   }
 
   fun testGetInfoWhenEssentialsModeIsEnabled() {
@@ -113,7 +113,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // Although the function is a valid preview, a run line marker should not be created, because
     // Essentials Mode is enabled
-    assertNull(contributor.getInfo(functionIdentifier))
+    assertNull(contributor.getSlowInfo(functionIdentifier))
   }
 
   fun testGetInfoLibraryModule() {
@@ -137,7 +137,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should not be created since the function is located in a library module.
-    assertNull(contributor.getInfo(functionIdentifier))
+    assertNull(contributor.getSlowInfo(functionIdentifier))
   }
 
   fun testGetInfoMultipreview() {
@@ -162,7 +162,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should be created since the function is a valid preview.
-    assertNotNull(contributor.getInfo(functionIdentifier))
+    assertNotNull(contributor.getSlowInfo(functionIdentifier))
   }
 
   fun testGetInfoEmptyMultipreview() {
@@ -187,7 +187,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // a run line marker should not be created since the annotation class is not annotated with
     // Preview.
-    assertNull(contributor.getInfo(functionIdentifier))
+    assertNull(contributor.getSlowInfo(functionIdentifier))
   }
 
   fun testGetInfoInvalidComposePreview() {
@@ -220,10 +220,10 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
     val notPreview = file.findFunctionIdentifier("NotAPreview")
     // a run line marker should not be created since the function is not a valid preview.
-    assertNull(contributor.getInfo(notPreview))
+    assertNull(contributor.getSlowInfo(notPreview))
 
     val nestedPreview = file.findFunctionIdentifier("NestedPreview")
     // a run line marker should not be created since the function is not a valid preview.
-    assertNull(contributor.getInfo(nestedPreview))
+    assertNull(contributor.getSlowInfo(nestedPreview))
   }
 }

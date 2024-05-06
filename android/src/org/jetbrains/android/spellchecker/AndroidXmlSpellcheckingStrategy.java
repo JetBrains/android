@@ -63,7 +63,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
 
   private final Tokenizer<XmlAttributeValue> myAttributeValueRenamingTokenizer = new Tokenizer<XmlAttributeValue>() {
     @Override
-    public void tokenize(@NotNull XmlAttributeValue element, @NotNull TokenConsumer consumer) {
+    public void tokenize(@NotNull XmlAttributeValue element, TokenConsumer consumer) {
       consumer.consumeToken(element, true, TextSplitter.getInstance());
     }
   };
@@ -244,7 +244,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     }
 
     @Override
-    public void tokenize(@NotNull XmlAttributeValue element, @NotNull TokenConsumer consumer) {
+    public void tokenize(@NotNull XmlAttributeValue element, TokenConsumer consumer) {
       AndroidResourceReferenceBase reference = findResourceReference(element);
 
       if (reference != null) {

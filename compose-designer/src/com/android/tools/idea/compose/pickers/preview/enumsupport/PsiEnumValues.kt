@@ -172,9 +172,12 @@ internal enum class Device(
  */
 internal enum class FontScale(scaleValue: Float, visibleName: String) : EnumValue {
   DEFAULT(1f, "Default (100%)"),
-  SMALL(0.85f, "Small (85%)"),
-  LARGE(1.15f, "Large (115%)"),
-  LARGEST(1.30f, "Largest (130%)");
+  P85(0.85f, "85%"),
+  P115(1.15f, "115%"),
+  P130(1.30f, "130%"),
+  P150(1.50f, "150%"),
+  P180(1.80f, "180%"),
+  P200(2f, "200%");
 
   override val value: String = "%.2f".format(scaleValue)
 

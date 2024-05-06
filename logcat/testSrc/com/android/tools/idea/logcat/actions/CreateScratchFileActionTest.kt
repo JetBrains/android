@@ -35,19 +35,19 @@ import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
 
-/**
- * Tests for [CreateScratchFileAction]
- */
+/** Tests for [CreateScratchFileAction] */
 @RunsInEdt
 class CreateScratchFileActionTest {
   private val projectRule = ProjectRule()
   private val logcatEditorRule = LogcatEditorRule(projectRule)
 
-  @get:Rule
-  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
+  @get:Rule val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
-  private val project get() = projectRule.project
-  private val editor get() = logcatEditorRule.editor
+  private val project
+    get() = projectRule.project
+
+  private val editor
+    get() = logcatEditorRule.editor
 
   @Test
   fun update_noMetadata_notVisible() {
@@ -63,7 +63,9 @@ class CreateScratchFileActionTest {
   @Test
   fun update_withJson() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(message = """A message with json { "name": "foo" } and some trailing text"""))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(message = """A message with json { "name": "foo" } and some trailing text""")
+    )
     val action = CreateScratchFileAction()
 
     action.update(event)
@@ -76,7 +78,11 @@ class CreateScratchFileActionTest {
   @Test
   fun update_withXml() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(message = """A message with xml <top attr="foo"> <sub/> </top> and some trailing text"""))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(
+        message = """A message with xml <top attr="foo"> <sub/> </top> and some trailing text"""
+      )
+    )
     val action = CreateScratchFileAction()
 
     action.update(event)
@@ -89,9 +95,12 @@ class CreateScratchFileActionTest {
   @Test
   fun findEmbeddedData_json() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(message = """A message with json { "name": "foo" } and some trailing text"""))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(message = """A message with json { "name": "foo" } and some trailing text""")
+    )
 
-    val (text, language) = event.findEmbeddedData() ?: fail("Expect to find embedded data but none found")
+    val (text, language) =
+      event.findEmbeddedData() ?: fail("Expect to find embedded data but none found")
 
     assertThat(text).isEqualTo("""{ "name": "foo" }""")
     assertThat(language).isSameAs(JsonLanguage.INSTANCE)
@@ -100,19 +109,25 @@ class CreateScratchFileActionTest {
   @Test
   fun findEmbeddedData_xml() {
     val event = testActionEvent(editor)
-    logcatEditorRule.putLogcatMessages(logcatMessage(message = """A message with xml <top attr="foo"> <sub/> </top> and some trailing text"""))
+    logcatEditorRule.putLogcatMessages(
+      logcatMessage(
+        message = """A message with xml <top attr="foo"> <sub/> </top> and some trailing text"""
+      )
+    )
 
-    val (text, language) = event.findEmbeddedData() ?: fail("Expect to find embedded data but none found")
+    val (text, language) =
+      event.findEmbeddedData() ?: fail("Expect to find embedded data but none found")
 
     assertThat(text).isEqualTo("""<top attr="foo"> <sub/> </top>""")
     assertThat(language).isSameAs(XMLLanguage.INSTANCE)
   }
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {
-    return TestActionEvent.createTestEvent(MapDataContext().apply {
-      put(PROJECT, project)
-      put(EDITOR, editor)
-    })
+    return TestActionEvent.createTestEvent(
+      MapDataContext().apply {
+        put(PROJECT, project)
+        put(EDITOR, editor)
+      }
+    )
   }
-
 }

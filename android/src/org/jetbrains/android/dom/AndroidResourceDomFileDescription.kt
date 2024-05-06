@@ -22,12 +22,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.psi.xml.XmlFile
 import com.intellij.util.xml.DomElement
 import com.intellij.util.xml.DomFileDescription
-import org.jetbrains.annotations.NonNls
 import java.util.EnumSet
+import org.jetbrains.annotations.NonNls
 
-/**
- * Common supertype for [DomFileDescription]s of Android resource files.
- */
+/** Common supertype for [DomFileDescription]s of Android resource files. */
 sealed class AndroidResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   rootTagName: String,
@@ -67,13 +65,15 @@ sealed class AndroidResourceDomFileDescription<T : DomElement>(
 }
 
 /**
- * Common supertype for all DOM descriptions which are uniquely identified by the root tag name and the [ResourceFolderType].
+ * Common supertype for all DOM descriptions which are uniquely identified by the root tag name and
+ * the [ResourceFolderType].
  *
- * IntelliJ uses the root tag name to quickly find potential matches and only later falls back to descriptions that accept other root
- * tag names.
+ * IntelliJ uses the root tag name to quickly find potential matches and only later falls back to
+ * descriptions that accept other root tag names.
  *
- * Note that although [com.intellij.util.xml.DomManager] will not call [isMyFile] on a file with a wrong root tag name, we ourselves
- * sometimes do it, e.g. in [org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder.getContextSpecificSettings].
+ * Note that although [com.intellij.util.xml.DomManager] will not call [isMyFile] on a file with a
+ * wrong root tag name, we ourselves sometimes do it, e.g. in
+ * [org.jetbrains.android.formatter.AndroidXmlFormattingModelBuilder.getContextSpecificSettings].
  */
 abstract class SingleRootResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
@@ -88,12 +88,15 @@ abstract class SingleRootResourceDomFileDescription<T : DomElement>(
   ) : this(rootElementClass, rootTagName, EnumSet.of<ResourceFolderType>(resourceFolderType))
 
   final override fun acceptsOtherRootTagNames() = false
-  final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module) && myRootTagName == file.rootTag?.name
+
+  final override fun isMyFile(file: XmlFile, module: Module?) =
+    super.isMyFile(file, module) && myRootTagName == file.rootTag?.name
 }
 
 /**
- * Base class for creating [DomFileDescription] classes describing Android XML resources with a fixed number of
- * possible root tags. Subclasses should provide no-arguments constructor and call "super" with required parameter values there.
+ * Base class for creating [DomFileDescription] classes describing Android XML resources with a
+ * fixed number of possible root tags. Subclasses should provide no-arguments constructor and call
+ * "super" with required parameter values there.
  */
 abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
@@ -114,12 +117,12 @@ abstract class MultipleKnownRootsResourceDomFileDescription<T : DomElement>(
   ) : this(rootElementClass, resourceFolderType, java.util.Set.of(*tagNames))
 
   final override fun acceptsOtherRootTagNames() = true
-  final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module) && tagNames.contains(file.rootTag?.name)
+
+  final override fun isMyFile(file: XmlFile, module: Module?) =
+    super.isMyFile(file, module) && tagNames.contains(file.rootTag?.name)
 }
 
-/**
- * Base class for DOM descriptions that apply to all files in a given [ResourceFolderType].
- */
+/** Base class for DOM descriptions that apply to all files in a given [ResourceFolderType]. */
 abstract class ResourceFolderTypeDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
   resourceFolderTypes: ResourceFolderType,
@@ -127,11 +130,13 @@ abstract class ResourceFolderTypeDomFileDescription<T : DomElement>(
 ) : AndroidResourceDomFileDescription<T>(rootElementClass, defaultTagName, resourceFolderTypes) {
 
   final override fun acceptsOtherRootTagNames() = true
+
   final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module)
 }
 
 /**
- * Base class for DOM descriptions which need to apply custom logic to determine if they are applicable to the given resource file.
+ * Base class for DOM descriptions which need to apply custom logic to determine if they are
+ * applicable to the given resource file.
  */
 abstract class CustomLogicResourceDomFileDescription<T : DomElement>(
   rootElementClass: Class<T>,
@@ -146,10 +151,13 @@ abstract class CustomLogicResourceDomFileDescription<T : DomElement>(
   ) : this(rootElementClass, EnumSet.of(resourceFolderType), exampleTagName)
 
   final override fun acceptsOtherRootTagNames() = true
-  final override fun isMyFile(file: XmlFile, module: Module?) = super.isMyFile(file, module) && checkFile(file, module)
+
+  final override fun isMyFile(file: XmlFile, module: Module?) =
+    super.isMyFile(file, module) && checkFile(file, module)
 
   /**
-   * Custom logic for checking if a file in one of the recognized [ResourceFolderType]s is covered by this description.
+   * Custom logic for checking if a file in one of the recognized [ResourceFolderType]s is covered
+   * by this description.
    */
   abstract fun checkFile(file: XmlFile, module: Module?): Boolean
 }

@@ -16,7 +16,11 @@
 package com.android.tools.idea.res;
 
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncUtil;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -24,6 +28,7 @@ import com.intellij.openapi.project.DumbModeTask;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -44,10 +49,22 @@ public class AndroidProjectRootListener implements Disposable.Default {
   }
 
   private AndroidProjectRootListener(@NotNull Project project) {
-    project.getMessageBus().connect(this).subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
+    MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
+
+    messageBusConnection.subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(@NotNull ModuleRootEvent event) {
         moduleRootsOrDependenciesChanged(project);
+      }
+    });
+
+    messageBusConnection.subscribe(ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC, new SyncResultListener() {
+      @Override
+      public void syncEnded(@NotNull SyncResult result) {
+        // This event is called on the EDT. Calling `moduleRootsOrDependenciesChanged` directly ends up executing the DumbModeTask
+        // synchronously, which has leads to failures due to the state we're in from higher up the stack. Executing this on the EDT later
+        // avoids that situation.
+        ApplicationManager.getApplication().invokeLater(() -> moduleRootsOrDependenciesChanged(project));
       }
     });
   }
@@ -58,7 +75,9 @@ public class AndroidProjectRootListener implements Disposable.Default {
    * @param project the project whose module roots changed
    */
   private static void moduleRootsOrDependenciesChanged(@NotNull Project project) {
-    new MyDumbModeTask(project).queue(project);
+    if (!project.isDisposed()) {
+      new MyDumbModeTask(project).queue(project);
+    }
   }
 
   /**

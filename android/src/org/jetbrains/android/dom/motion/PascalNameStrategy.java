@@ -19,6 +19,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.codeStyle.NameUtil;
 import com.intellij.util.Function;
 import com.intellij.util.xml.DomNameStrategy;
+
 import java.util.Arrays;
 
 public class PascalNameStrategy extends DomNameStrategy {

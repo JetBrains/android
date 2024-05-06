@@ -432,10 +432,10 @@ private object IOUtils {
    */
   fun isValidDestinationFilePath(path: Path?): Boolean =
     path != null &&
-    !path.isDirectory() &&
-    path.parent != null &&
-    path.parent.isDirectory() &&
-    path.parent.exists()
+      !path.isDirectory() &&
+      path.parent != null &&
+      path.parent.isDirectory() &&
+      path.parent.exists()
 
   fun endsWithSeparatorChar(path: String) = path.trimEnd().endsWith(File.separatorChar)
 

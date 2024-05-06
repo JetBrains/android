@@ -22,7 +22,8 @@ import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
-import com.android.tools.profilers.cpu.config.PerfettoConfiguration
+import com.android.tools.profilers.cpu.config.PerfettoNativeAllocationsConfiguration
+import com.android.tools.profilers.cpu.config.PerfettoSystemTraceConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
@@ -103,8 +104,8 @@ class CpuProfilerConfigConverterTest {
 
     StudioFlags.PROFILER_TRACEBOX.override(true);
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.M)
-    assertThat(profilingConfiguration).isInstanceOf(PerfettoConfiguration::class.java)
-    assertThat((profilingConfiguration as PerfettoConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.M)
   }
@@ -120,8 +121,8 @@ class CpuProfilerConfigConverterTest {
 
     StudioFlags.PROFILER_TRACEBOX.override(false);
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
-    assertThat(profilingConfiguration).isInstanceOf(PerfettoConfiguration::class.java)
-    assertThat((profilingConfiguration as PerfettoConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.P)
   }
@@ -137,8 +138,8 @@ class CpuProfilerConfigConverterTest {
 
     StudioFlags.PROFILER_TRACEBOX.override(true);
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.O)
-    assertThat(profilingConfiguration).isInstanceOf(PerfettoConfiguration::class.java)
-    assertThat((profilingConfiguration as PerfettoConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.M)
   }
@@ -188,8 +189,8 @@ class CpuProfilerConfigConverterTest {
 
     StudioFlags.PROFILER_TRACEBOX.override(true);
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.Q)
-    assertThat(profilingConfiguration).isInstanceOf(PerfettoConfiguration::class.java)
-    assertThat((profilingConfiguration as PerfettoConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.M)
   }
@@ -205,8 +206,8 @@ class CpuProfilerConfigConverterTest {
 
     StudioFlags.PROFILER_TRACEBOX.override(false);
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.Q)
-    assertThat(profilingConfiguration).isInstanceOf(PerfettoConfiguration::class.java)
-    assertThat((profilingConfiguration as PerfettoConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.P)
   }
@@ -238,8 +239,8 @@ class CpuProfilerConfigConverterTest {
 
     StudioFlags.PROFILER_TRACEBOX.override(false);
     val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.P)
-    assertThat(profilingConfiguration).isInstanceOf(PerfettoConfiguration::class.java)
-    assertThat((profilingConfiguration as PerfettoConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration).isInstanceOf(PerfettoSystemTraceConfiguration::class.java)
+    assertThat((profilingConfiguration as PerfettoSystemTraceConfiguration).name).isEqualTo(config.name)
     assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(AndroidVersion.VersionCodes.P)
   }
@@ -260,6 +261,34 @@ class CpuProfilerConfigConverterTest {
     assertThat(profilingConfiguration.profilingSamplingIntervalUs).isEqualTo(1234)
     assertThat(profilingConfiguration.profilingBufferSizeInMb).isEqualTo(5678)
     assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(0)
+  }
+
+  @Test
+  fun toProfilingConfigurationPerfettoNativeAllocations() {
+    val config = CpuProfilerConfig().apply {
+      name = "MyConfiguration"
+      technology = CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS
+      samplingRateBytes = 1234
+    }
+
+    val profilingConfiguration = CpuProfilerConfigConverter.toProfilingConfiguration(config, AndroidVersion.VersionCodes.N)
+    assertThat(profilingConfiguration).isInstanceOf(PerfettoNativeAllocationsConfiguration::class.java)
+    assertThat((profilingConfiguration as PerfettoNativeAllocationsConfiguration).name).isEqualTo(config.name)
+    assertThat(profilingConfiguration.traceType).isEqualTo(TraceType.PERFETTO)
+    assertThat(profilingConfiguration.memorySamplingIntervalBytes).isEqualTo(1234)
+    assertThat(profilingConfiguration.requiredDeviceLevel).isEqualTo(29)
+  }
+
+  @Test
+  fun toCpuProfilerConfigPerfettoNativeAllocations() {
+    val configuration = PerfettoNativeAllocationsConfiguration("MyConfiguration").apply {
+      memorySamplingIntervalBytes = 1234
+    }
+
+    val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
+    assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)
+    assertThat(cpuProfilerConfig.technology).isEqualTo(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS)
+    assertThat(cpuProfilerConfig.samplingRateBytes).isEqualTo(1234)
   }
 
   @Test
@@ -314,8 +343,8 @@ class CpuProfilerConfigConverterTest {
   }
 
   @Test
-  fun toCpuProfilerConfigPerfetto() {
-    val configuration = PerfettoConfiguration("MyConfiguration", false)
+  fun toCpuProfilerConfigPerfettoSystemTrace() {
+    val configuration = PerfettoSystemTraceConfiguration("MyConfiguration", false)
 
     val cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(configuration)
     assertThat(cpuProfilerConfig.name).isEqualTo(configuration.name)

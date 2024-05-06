@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.stdui;
 
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -54,7 +54,7 @@ class CommonButtonUI extends BasicButtonUI {
     Border border = b.getBorder();
     if (border == null || border instanceof UIResource) {
       // TODO: This is only for 16x16 icon buttons
-      b.setBorder(BorderFactory.createEmptyBorder(JBUIScale.scale(4), JBUIScale.scale(4), JBUIScale.scale(4), JBUIScale.scale(4)));
+      b.setBorder(BorderFactory.createEmptyBorder(JBUI.scale(4), JBUI.scale(4), JBUI.scale(4), JBUI.scale(4)));
     }
   }
 

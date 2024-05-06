@@ -16,6 +16,7 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
@@ -28,18 +29,15 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 data class DeleteNoteRequested(val id: NoteId) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     check(!isCreatingNoteInProgress()) {
       "Deleting on \"creating in progress\" note is not allowed."
     }
 
     return StateTransition(
-      newState =
-        state.copy(
-          issues = state.issues.incrementPendingRequests(id.issueId),
-          currentNotes = state.currentNotes.markDeletePending(id)
-        ),
+      newState = state.copy(currentNotes = state.currentNotes.markDeletePending(id)),
       action = Action.DeleteNote(id)
     )
   }
@@ -62,12 +60,12 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
   ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     return StateTransition(
       newState =
         state.copy(
-          issues = state.issues.decrementPendingRequests(id.issueId),
           currentNotes = state.currentNotes.revertMarkDeletePending(id),
           permission = state.permission.updatePermissionIfApplicable(cause),
         ),
@@ -92,7 +90,8 @@ data class RollbackDeleteNoteRequest(val id: NoteId, val cause: LoadingState.Fai
 data class NoteDeleted(val id: NoteId) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     state.connections.selected?.appId?.let { appId ->
       tracker.logNotesAction(
@@ -109,8 +108,7 @@ data class NoteDeleted(val id: NoteId) : ChangeEvent {
     return StateTransition(
       newState =
         state.copy(
-          issues =
-            state.issues.decrementPendingRequests(id.issueId).decrementNotesCount(id.issueId),
+          issues = state.issues.decrementNotesCount(id.issueId),
           currentNotes =
             if (state.selectedIssue?.id == id.issueId) state.currentNotes.delete(id)
             else state.currentNotes

@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.appinspection.ide
 
-import com.android.testutils.TestUtils
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.test.testutils.TestUtils
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory
+import com.android.tools.idea.appinspection.inspector.ide.resolver.BlockingArtifactResolver
+import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -44,8 +46,10 @@ class InspectorArtifactServiceTest {
       val artifactResolverFactory =
         object : ArtifactResolverFactory {
           override fun getArtifactResolver(project: Project): ArtifactResolver {
-            return object : ArtifactResolver {
-              override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
+            return object : BlockingArtifactResolver() {
+              override fun resolveArtifactBlocking(
+                artifactCoordinate: RunningArtifactCoordinate
+              ): Path {
                 return libraryPath
               }
             }
@@ -55,11 +59,9 @@ class InspectorArtifactServiceTest {
 
       val resolvedArtifactPath =
         artifactService.getOrResolveInspectorArtifact(
-          ArtifactCoordinate(
-            "androidx.work",
-            "work-runtime",
-            "2.5.0-beta01",
-            ArtifactCoordinate.Type.AAR
+          RunningArtifactCoordinate(
+            mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"),
+            "2.5.0-beta01"
           ),
           androidProjectRule.project
         )

@@ -18,26 +18,21 @@ package org.jetbrains.android.dom.converters;
 import static com.android.SdkConstants.MANIFEST_PLACEHOLDER_PREFIX;
 
 import com.android.tools.idea.model.ManifestPlaceholderResolver;
+import com.google.common.collect.*;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.impl.FakePsiElement;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ArrayUtilRt;
-import com.intellij.util.xml.ConvertContext;
-import com.intellij.util.xml.Converter;
-import com.intellij.util.xml.CustomReferenceConverter;
-import com.intellij.util.xml.GenericDomValue;
-import com.intellij.util.xml.ResolvingConverter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.intellij.util.xml.*;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@link CustomReferenceConverter} used to resolve
@@ -69,7 +64,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @NotNull
   @Override
-  public Collection<?> getVariants(@NotNull ConvertContext context) {
+  public Collection<?> getVariants(ConvertContext context) {
     if (myConverterDelegate instanceof ResolvingConverter) {
       return ((ResolvingConverter)myConverterDelegate).getVariants(context);
     }
@@ -78,7 +73,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
   }
 
   @Override
-  public String getErrorMessage(@Nullable String s, @NotNull ConvertContext context) {
+  public String getErrorMessage(@Nullable String s, ConvertContext context) {
     if (context.getModule() != null && s != null && s.contains(MANIFEST_PLACEHOLDER_PREFIX)) {
       ManifestPlaceholderResolver resolver = new ManifestPlaceholderResolver(context.getModule());
       s = resolver.resolve(s);
@@ -89,7 +84,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @Nullable
   @Override
-  public Object fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public Object fromString(@Nullable @NonNls String s, ConvertContext context) {
     if (s != null && s.contains("${")) {
       // This string still contains placeholders
       return new PlaceholderValue(s);
@@ -100,7 +95,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
 
   @Nullable
   @Override
-  public String toString(@Nullable Object o, @NotNull ConvertContext context) {
+  public String toString(@Nullable Object o, ConvertContext context) {
     if (o instanceof PlaceholderValue) {
       return ((PlaceholderValue)o).myValueWithPlaceholders;
     }
@@ -164,7 +159,7 @@ public class ManifestPlaceholderConverter extends ResolvingConverter implements 
     ManifestPlaceholderResolver resolver = new ManifestPlaceholderResolver(context.getModule());
     Collection<String> placeholders = resolver.getPlaceholders().keySet();
 
-    String[] placeholdersArray = ArrayUtilRt.toStringArray(placeholders);
+    String[] placeholdersArray = ArrayUtil.toStringArray(placeholders);
     ArrayList<PsiReference> result = new ArrayList<>();
     Matcher matcher = PLACEHOLDER_PATTERN.matcher(stringValue);
     while (matcher.find()) {

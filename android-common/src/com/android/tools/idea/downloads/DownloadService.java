@@ -17,6 +17,7 @@ package com.android.tools.idea.downloads;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -33,7 +34,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +55,7 @@ public abstract class DownloadService {
   private final Object myLock;
 
   @GuardedBy("myLock")
-  private final List<Runnable> mySuccesses = new LinkedList<>();
+  private final List<Runnable> mySuccesses = Lists.newLinkedList();
   @GuardedBy("myLock")
   private final List<Runnable> myFailures = new ArrayList<>();
   @GuardedBy("myLock")

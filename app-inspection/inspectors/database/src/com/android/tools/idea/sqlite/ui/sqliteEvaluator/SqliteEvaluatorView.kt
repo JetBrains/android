@@ -33,8 +33,11 @@ interface SqliteEvaluatorView {
   /** The JComponent containing the view's UI. */
   val component: JComponent
   val tableView: TableView
+
   fun addListener(listener: Listener)
+
   fun removeListener(listener: Listener)
+
   fun showSqliteStatement(sqliteStatement: String)
 
   fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?)

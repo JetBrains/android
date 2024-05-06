@@ -28,6 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.Gray;
@@ -35,7 +36,7 @@ import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -57,8 +58,8 @@ import org.w3c.dom.Node;
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
  */
-public class GutterIconFactory {
-  private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
+class GutterIconFactory {
+  private static final Logger LOG = Logger.getInstance(GutterIconFactory.class);
   private static final int RENDERING_SCALING_FACTOR = 10;
 
   /**
@@ -71,10 +72,10 @@ public class GutterIconFactory {
    * that the XML file does not contain any unresolved references (otherwise, this method returns null).
    */
   @Nullable
-  public static Icon createIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, int maxWidth, int maxHeight, @NotNull AndroidFacet facet) {
+  public static Icon createIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, @NotNull AndroidFacet facet, int maxWidth, int maxHeight) {
     String path = file.getPath();
     if (path.endsWith(DOT_XML)) {
-      return createXmlIcon(file, resolver, maxWidth, maxHeight, facet);
+      return createXmlIcon(file, resolver, facet, maxWidth, maxHeight);
     }
 
     return createBitmapIcon(file, maxWidth, maxHeight);
@@ -96,8 +97,9 @@ public class GutterIconFactory {
   }
 
   @Nullable
-  private static Icon createXmlIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver, int maxWidth, int maxHeight,
-                                    @NotNull AndroidFacet facet) {
+  private static Icon createXmlIcon(@NotNull VirtualFile file, @Nullable RenderResources resolver,
+                                    @NotNull AndroidFacet facet,
+                                    int maxWidth, int maxHeight) {
     try {
       String xml = getXmlContent(file);
       Image image;
@@ -130,16 +132,18 @@ public class GutterIconFactory {
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
         try {
           CompletableFuture<BufferedImage> imageFuture = renderer.renderDrawable(xml, size);
-          // TODO(http://b/143455172, http://b/295049594): We add a timeout to ensure this will not cause a deadlock. This is used
-          //  for rendering icons for the gutter or for the autocompletion, both cases having sometimes resulted in the UI thread
-          //  being stuck. This timeout should be removed once a proper fix has been implemented.
-          //  We do not use the timeout in unit test to avoid non deterministic tests.
-          //  On production, if the request times out, it will cause the icon on the gutter or the autocomplete popup not to show
-          //  which is an acceptable fallback until this is correctly fixed.
+          // TODO(http://b/143455172): Remove the timeout by removing usages of this method on the UI thread. For now we just ensure
+          //  we do not block indefinitely on the UI thread. We also do not use the timeout in unit test to avoid non deterministic tests.
+          //  On production, if the request times out, it will cause the icon on the gutter not to show which is an acceptable fallback
+          //  until this is correctly fixed.
           //  250ms should be enough time for inflating and rendering and is used a upper boundary.
-          image = !ApplicationManager.getApplication().isUnitTestMode() ?
+          //
+          // When running in the background thread, we wait for the future to complete indefinitely. If this call happens within a
+          // non-blocking read action, awaitWithCheckCanceled will allow write actions to cancel the wait. This avoids this thread
+          // holding the lock and causing dead-locks.
+          image = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode() ?
                   imageFuture.get(250, TimeUnit.MILLISECONDS) :
-                  imageFuture.get();
+                  ProgressIndicatorUtils.awaitWithCheckCanceled(imageFuture);
         } catch (Throwable e) {
           // If an invalid drawable is passed, renderDrawable might throw an exception. We can not fully control the input passed to this
           // rendering call since the user might be referencing an invalid drawable so we are just less verbose about it. The user will
@@ -235,7 +239,7 @@ public class GutterIconFactory {
           Graphics g = bg.getGraphics();
           g.setColor(Gray.TRANSPARENT);
           g.fillRect(0, 0, bg.getWidth(), bg.getHeight());
-          StartupUiUtil.drawImage(g, image, 0, 0, null);
+          UIUtil.drawImage(g, image, 0, 0, null);
           g.dispose();
           image = bg;
         }

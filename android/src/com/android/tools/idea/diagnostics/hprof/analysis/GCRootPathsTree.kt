@@ -27,13 +27,14 @@ import gnu.trove.TIntArrayList
 import gnu.trove.TIntHashSet
 import gnu.trove.TIntObjectHashMap
 import java.util.ArrayDeque
+import java.util.HashMap
 
 class GCRootPathsTree(
   private val context: AnalysisContext,
   private val treeDisplayOptions: AnalysisConfig.TreeDisplayOptions,
   allObjectsOfClass: ClassDefinition?
 ) {
-  private val topNode = RootNode(context.classStore)
+  val topNode = RootNode(context.classStore)
   private var countOfIgnoredObjects = 0
 
   private val objectSizeStrategy = ObjectSizeCalculationStrategy.getBestStrategyForClass(allObjectsOfClass)
@@ -186,6 +187,8 @@ class GCRootPathsTree(
     var pathsCount = 0
     var pathsSize = 0
     var totalSizeInDwords = 0
+    val totalSizeInBytes
+      get() = totalSizeInDwords.toLong() * 4
     val instances = TIntHashSet(1)
 
     override fun addEdge(objectId: Int,
@@ -316,8 +319,8 @@ class GCRootPathsTree(
           val rootReasonString = rootReasonGetter(rootObjectId)
           val rootPercent = (100.0 * rootNode.pathsCount / totalInstanceCount).toInt()
 
-          appendLine("Root ${index + 1}:")
-          printReportLine(this::appendLine,
+          appendln("Root ${index + 1}:")
+          printReportLine(this::appendln,
                           rootNode.pathsCount,
                           rootPercent,
                           rootNode.pathsSize,
@@ -329,7 +332,7 @@ class GCRootPathsTree(
                           "",
                           "ROOT: $rootReasonString")
 
-          TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, this::appendLine).use { buffer ->
+          TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, this::appendln).use { buffer ->
             // Iterate over the hot path
             val stack = ArrayDeque<StackEntry>()
             stack.push(StackEntry(null, rootEdge, rootNode, "", ""))
@@ -357,10 +360,10 @@ class GCRootPathsTree(
                   .entries
                   .sortedWith { a, b ->
                     if (a.value.pathsSize != b.value.pathsSize)
-                    // Descending
+                      // Descending
                       b.value.pathsSize.compareTo(a.value.pathsSize)
                     else
-                    // To have a deterministic report, sort by field# if the size is the same
+                      // To have a deterministic report, sort by field# if the size is the same
                       a.key.refIndex.compareTo(b.key.refIndex)
                   }
                   .filterIndexed { index, e ->

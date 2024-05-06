@@ -42,7 +42,7 @@ interface PsIssue {
   val description: String?
   val quickFixes: List<PsQuickFix>
 
-  enum class Severity(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
+  enum class Severity constructor(val text: String, val pluralText: String, val icon: Icon, val color: Color, val priority: Int) {
     ERROR("Error", "Errors", BalloonError, RED, 0),
     WARNING("Warning", "Warnings", BalloonWarning, warningColor, 1),
     INFO("Information", "Information", BalloonInformation, GRAY, 3),

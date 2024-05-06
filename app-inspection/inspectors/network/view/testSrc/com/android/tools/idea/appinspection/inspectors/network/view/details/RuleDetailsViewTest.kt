@@ -29,12 +29,13 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetwork
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
 import com.android.tools.idea.appinspection.inspectors.network.view.TestNetworkInspectorUsageTracker
+import com.android.tools.idea.appinspection.inspectors.network.view.utils.findComponentWithUniqueName
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -50,6 +51,12 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.table.TableView
 import com.intellij.util.containers.getIfSingle
+import java.awt.Component
+import java.awt.event.FocusEvent
+import javax.swing.JCheckBox
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JTextField
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -60,12 +67,6 @@ import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCriteria
 import studio.network.inspection.NetworkInspectorProtocol.MatchingText.Type
-import java.awt.Component
-import java.awt.event.FocusEvent
-import javax.swing.JCheckBox
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.JTextField
 
 @RunsInEdt
 class RuleDetailsViewTest {
@@ -135,7 +136,7 @@ class RuleDetailsViewTest {
         services,
         FakeNetworkInspectorDataSource(),
         scope,
-        object : HttpDataModel {
+        object : ConnectionDataModel {
           override fun getData(timeCurrentRangeUs: Range) = listOf<HttpData>()
         }
       )
@@ -338,7 +339,7 @@ class RuleDetailsViewTest {
     val methodComponent =
       findComponentWithUniqueName(ruleDetailsView, "methodComboBox") as CommonComboBox<*, *>
     assertThat(methodComponent.getModel().text).isEqualTo("GET")
-    methodComponent.setSelectedIndex(1)
+    methodComponent.setSelectedIndex(2)
 
     assertThat(rule.criteria.host).isEqualTo(url)
     assertThat(inspectorView.rulesView.table.getValueAt(0, 2))
@@ -422,7 +423,9 @@ class RuleDetailsViewTest {
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       // Switches between add and replace mode
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
@@ -480,7 +483,9 @@ class RuleDetailsViewTest {
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
     val replaceValueText = "replaceValue"
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.editHeaderPanel
       assertThat(dialog.newAddedNameLabel.isVisibleToRoot(dialog.rootPane)).isFalse()
@@ -539,7 +544,9 @@ class RuleDetailsViewTest {
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
     val newAddedNameText = "newAddedName"
     val newAddedValueText = "newAddedValue"
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.newAddedNameLabel.text = newAddedNameText
       dialog.newAddedValueLabel.text = newAddedValueText
@@ -556,7 +563,9 @@ class RuleDetailsViewTest {
     val findValueText = "findValue"
     val replaceNameText = "replaceName"
     val replaceValueText = "replaceValue"
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.newHeaderPanel)
@@ -582,7 +591,9 @@ class RuleDetailsViewTest {
         .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_HEADER)
     }
 
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       // Check existing rule data.
       assertThat(dialog.tabs.selectedComponent).isEqualTo(dialog.editHeaderPanel)
@@ -662,7 +673,9 @@ class RuleDetailsViewTest {
     val headerTable = findComponentWithUniqueName(ruleDetailsView, "headerRules") as TableView<*>
 
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.editHeaderPanel
 
@@ -703,7 +716,9 @@ class RuleDetailsViewTest {
     assertThat(headerTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(headerTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as HeaderRuleDialog
       dialog.tabs.selectedComponent = dialog.newHeaderPanel
       // Assert that OK button is disabled since the default value is empty
@@ -734,7 +749,9 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       // Switches between add and replace mode
 
@@ -783,7 +800,9 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       dialog.replaceEntireBodyCheckBox.isSelected = false
       assertThat(dialog.findTextArea.isEnabled).isTrue()
@@ -833,7 +852,9 @@ class RuleDetailsViewTest {
     assertThat(bodyTable.rowCount).isEqualTo(0)
 
     val addAction = findAction(bodyTable.parent.parent.parent, "Add")
-    createModalDialogAndInteractWithIt({ addAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      addAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       dialog.replaceEntireBodyCheckBox.isSelected = true
       dialog.replaceTextArea.text = "Test"
@@ -846,7 +867,9 @@ class RuleDetailsViewTest {
         .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.REPLACE_BODY)
     }
     val editAction = findAction(bodyTable.parent.parent.parent, "Edit")
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       assertThat(dialog.replaceEntireBodyCheckBox.isSelected).isTrue()
       assertThat(dialog.replaceTextArea.text).isEqualTo("Test")
@@ -861,7 +884,9 @@ class RuleDetailsViewTest {
       assertThat(it.ruleDetailUpdated.component)
         .isEqualTo(NetworkInspectorEvent.RuleUpdatedEvent.Component.FIND_REPLACE_BODY)
     }
-    createModalDialogAndInteractWithIt({ editAction.actionPerformed(TestActionEvent.createTestEvent()) }) {
+    createModalDialogAndInteractWithIt({
+      editAction.actionPerformed(TestActionEvent.createTestEvent())
+    }) {
       val dialog = it as BodyRuleDialog
       assertThat(dialog.findTextArea.text).isEqualTo("Find")
       assertThat(dialog.replaceTextArea.text).isEqualTo("Test")
@@ -1173,6 +1198,30 @@ class RuleDetailsViewTest {
     client.verifyLatestCommand {
       assertThat(it.interceptRuleUpdated.rule.transformationList.size).isEqualTo(0)
     }
+  }
+
+  @Test
+  fun methodComboContainsAllMethods() {
+    addNewRule()
+    val combo =
+      findComponentWithUniqueName(detailsPanel.ruleDetailsView, "methodComboBox")
+        as CommonComboBox<*, *>
+
+    val items = (0 until combo.getModel().size).map { combo.getModel().getElementAt(it).toString() }
+    assertThat(items)
+      .containsExactly(
+        "ANY",
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH",
+        "HEAD",
+        "TRACE",
+        "CONNECT",
+        "OPTIONS"
+      )
+      .inOrder()
   }
 
   private fun addNewRule(): RuleData {

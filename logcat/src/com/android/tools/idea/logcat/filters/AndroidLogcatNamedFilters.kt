@@ -22,11 +22,10 @@ import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * A [PersistentStateComponent] that stores named filters.
- */
+/** A [PersistentStateComponent] that stores named filters. */
 @State(name = "AndroidLogcatNamedFilters", storages = [Storage("androidLogcatNamedFilters.xml")])
-internal class AndroidLogcatNamedFilters @VisibleForTesting constructor() : PersistentStateComponent<AndroidLogcatNamedFilters> {
+internal class AndroidLogcatNamedFilters @VisibleForTesting constructor() :
+  PersistentStateComponent<AndroidLogcatNamedFilters> {
   var namedFilters = mutableMapOf<String, String>()
 
   override fun getState(): AndroidLogcatNamedFilters = this
@@ -36,6 +35,7 @@ internal class AndroidLogcatNamedFilters @VisibleForTesting constructor() : Pers
   }
 
   companion object {
-    fun getInstance(): AndroidLogcatNamedFilters = ApplicationManager.getApplication().getService(AndroidLogcatNamedFilters::class.java)
+    fun getInstance(): AndroidLogcatNamedFilters =
+      ApplicationManager.getApplication().getService(AndroidLogcatNamedFilters::class.java)
   }
 }

@@ -23,20 +23,23 @@ import static com.android.tools.idea.testing.TestProjectPaths.MANIFEST_CONFLICT_
 import com.android.manifmerger.MergingReport;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.rendering.StudioHtmlLinkManager;
+import com.android.tools.idea.projectsystem.AndroidProjectSystem;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.rendering.HtmlLinkManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ManifestConflictTest extends AndroidGradleTestCase {
 
-  private HtmlLinkManager myHtmlLinkManager = new StudioHtmlLinkManager();
+  private final ManifestPanel.HtmlLinkManager myHtmlLinkManager = new ManifestPanel.HtmlLinkManager();
+
   private static final Pattern LINK_PATTERN = Pattern.compile("\\<a.*? href=\"(.*?)\".*?\\>", Pattern.CASE_INSENSITIVE);
 
   public void testResolveAttributeConflict() throws Exception {
@@ -82,7 +85,7 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
 
   private void clickLink(String errorHtml, int i) {
     List<String> link = grabHTMLLinks(errorHtml);
-    myHtmlLinkManager.handleUrl(link.get(i), myAndroidFacet.getModule(), null, false, HtmlLinkManager.NOOP_SURFACE);
+    myHtmlLinkManager.handleUrl(link.get(i), myAndroidFacet.getModule(), null);
   }
 
   public static List<String> grabHTMLLinks(String html) {
@@ -100,12 +103,16 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   private String[] getErrorHtml(Module module) throws Exception {
+    Project project = module.getProject();
+    AndroidProjectSystem projectSystem = ProjectSystemUtil.getProjectSystem(project);
+    ManifestPanelToken<AndroidProjectSystem> token = Arrays.stream(ManifestPanelToken.EP_NAME.getExtensions(project))
+      .filter(it -> it.isApplicable(projectSystem)).findFirst().orElse(null);
     MergedManifestSnapshot manifest = MergedManifestManager.getMergedManifest(module).get();
     ImmutableList<MergingReport.Record> records = manifest.getLoggingRecords();
     String[] errors = new String[records.size()];
     for (int c = 0; c < records.size(); c++) {
       MergingReport.Record record = records.get(c);
-      errors[c] = ManifestPanel.getErrorHtml(myAndroidFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, null, true);
+      errors[c] = ManifestPanel.getErrorHtml(myAndroidFacet, record.getMessage(), record.getSourceLocation(), myHtmlLinkManager, token, null, true);
     }
     return errors;
   }

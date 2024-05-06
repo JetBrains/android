@@ -3,5 +3,8 @@
     <option name="" path="ActionManager" hit="" />
     <option name="google" path="ActionManager" hit="Google Login" />
     <option name="login" path="ActionManager" hit="Google Login" />
+    <option name="google" path="ActionManager" hit="Google Login V2" />
+    <option name="login" path="ActionManager" hit="Google Login V2" />
+    <option name="v2" path="ActionManager" hit="Google Login V2" />
   </configurable>
 </options>

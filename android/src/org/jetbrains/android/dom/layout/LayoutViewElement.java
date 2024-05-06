@@ -19,10 +19,11 @@ package org.jetbrains.android.dom.layout;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.GenericAttributeValue;
-import java.util.List;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
+
+import java.util.List;
 
 @DefinesXml
 public interface LayoutViewElement extends LayoutElement {

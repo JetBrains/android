@@ -19,11 +19,16 @@ import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.DragAndDropList;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.event.DelegateMouseEventHandler;
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
+import com.android.tools.adtui.model.axis.AxisComponentModel;
+import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.adtui.ui.HideablePanel;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
+import com.android.tools.profilers.Stage;
+import com.android.tools.profilers.StudioProfilers;
 import com.intellij.util.ui.JBUI;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
@@ -32,6 +37,8 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
@@ -39,19 +46,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Creates a view containing a {@link HideablePanel} composed by a {@link CpuListScrollPane} displaying a list of threads and their
  * corresponding {@link com.android.tools.adtui.chart.statechart.StateChart} whose data are the thread state changes.
  */
 final class CpuThreadsView {
-
   @NotNull
   private final HideablePanel myPanel;
-
-  @NotNull
-  private final CpuProfilerStage myStage;
-
   @NotNull
   private final DragAndDropList<CpuThreadsModel.RangedCpuThread> myThreads;
 
@@ -59,16 +62,37 @@ final class CpuThreadsView {
   @SuppressWarnings("FieldCanBeLocal")
   @NotNull
   private final AspectObserver myObserver;
-
   private int myLastHoveredRow = -1;
+  @NotNull private final CpuThreadsModel myThreadStates;
+  @NotNull private final UpdatableManager myUpdatableManager;
+  @NotNull private final StudioProfilers myStudioProfilers;
+  @NotNull private final AxisComponentModel myTimeAxisGuide;
+  @NotNull private final Supplier<Integer> myGetSelectedThread;
+  @NotNull private final Consumer<Integer> mySetSelectedThread;
+  @NotNull private final AspectModel<CpuProfilerAspect> myAspect;
+  private final Stage myStage;
 
-  public CpuThreadsView(@NotNull CpuProfilerStage stage) {
+  public CpuThreadsView(final CpuThreadsModel threadStates,
+                        final UpdatableManager updatableManager,
+                        final StudioProfilers studioProfilers,
+                        final AxisComponentModel timeAxisGuide,
+                        final Supplier<Integer> getSelectedThread,
+                        final Consumer<Integer> setSelectedThread,
+                        final AspectModel<CpuProfilerAspect> aspect,
+                        final Stage stage) {
+    myThreadStates = threadStates;
+    myUpdatableManager = updatableManager;
+    myStudioProfilers = studioProfilers;
+    myTimeAxisGuide = timeAxisGuide;
+    myGetSelectedThread = getSelectedThread;
+    mySetSelectedThread = setSelectedThread;
+    myAspect = aspect;
     myStage = stage;
-    myThreads = new DragAndDropList<>(stage.getThreadStates());
+    myThreads = new DragAndDropList<>(myThreadStates);
     myPanel = createHideablePanel();
     setupListeners();
     myThreads.setBorder(null);
-    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myStage.getUpdatableManager()));
+    myThreads.setCellRenderer(new ThreadCellRenderer(myThreads, myUpdatableManager));
     myThreads.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
     // TODO(b/62447834): Make a decision on how we want to handle thread selection.
     myThreads.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -81,11 +105,18 @@ final class CpuThreadsView {
                              .installMotionListenerOn(myThreads);
 
     myPanel.addStateChangedListener((actionEvent) ->
-                                      myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()
+                                      myStudioProfilers.getIdeServices().getFeatureTracker().trackToggleCpuThreadsHideablePanel()
     );
     myObserver = new AspectObserver();
-    stage.getAspect().addDependency(myObserver)
-         .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
+    myAspect.addDependency(myObserver)
+      .onChange(CpuProfilerAspect.SELECTED_THREADS, this::updateThreadSelection);
+  }
+
+  @VisibleForTesting
+  public CpuThreadsView(@NotNull CpuProfilerStage stage) {
+    this(stage.getThreadStates(), stage.getUpdatableManager(),
+         stage.getStudioProfilers(), stage.getTimeAxisGuide(),
+         stage::getSelectedThread, stage::setSelectedThread, stage.getAspect(), stage);
   }
 
   @NotNull
@@ -96,7 +127,7 @@ final class CpuThreadsView {
   @NotNull
   private HideablePanel createHideablePanel() {
     // Add AxisComponent only to scrollable section of threads list.
-    AxisComponent axisComponent = new AxisComponent(myStage.getTimeAxisGuide(), AxisComponent.AxisOrientation.BOTTOM, true);
+    AxisComponent axisComponent = new AxisComponent(myTimeAxisGuide, AxisComponent.AxisOrientation.BOTTOM, true);
     axisComponent.setShowAxisLine(false);
     axisComponent.setShowLabels(false);
     axisComponent.setHideTickAtMin(true);
@@ -143,19 +174,19 @@ final class CpuThreadsView {
   }
 
   private void setupListeners() {
-    CpuThreadsModel model = myStage.getThreadStates();
+    CpuThreadsModel model = myThreadStates;
 
     myThreads.addListSelectionListener((e) -> {
       int selectedIndex = myThreads.getSelectedIndex();
       if (selectedIndex >= 0) {
         CpuThreadsModel.RangedCpuThread thread = model.getElementAt(selectedIndex);
-        if (myStage.getSelectedThread() != thread.getThreadId()) {
-          myStage.setSelectedThread(thread.getThreadId());
-          myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackSelectThread();
+        if (myGetSelectedThread.get() != thread.getThreadId()) {
+          mySetSelectedThread.accept(thread.getThreadId());
+          myStudioProfilers.getIdeServices().getFeatureTracker().trackSelectThread();
         }
       }
       else {
-        myStage.setSelectedThread(CpuThreadsModel.NO_THREAD);
+        mySetSelectedThread.accept(CpuThreadsModel.NO_THREAD);
       }
     });
 
@@ -168,7 +199,8 @@ final class CpuThreadsView {
       }
     });
 
-    MouseAdapter adapter = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuThreadsTooltip(myStage.getTimeline())) {
+    MouseAdapter adapter = new ProfilerTooltipMouseAdapter(myStage,
+                                                           () -> new CpuThreadsTooltip(myStudioProfilers.getTimeline())) {
       @Override
       public void mouseMoved(MouseEvent e) {
         super.mouseMoved(e);
@@ -218,7 +250,7 @@ final class CpuThreadsView {
    * Selects a thread in the list whose ID matches the one set in the model.
    */
   private void updateThreadSelection() {
-    if (myStage.getSelectedThread() == CpuThreadsModel.NO_THREAD) {
+    if (myGetSelectedThread.get() == CpuThreadsModel.NO_THREAD) {
       myThreads.clearSelection();
       return;
     }
@@ -226,7 +258,7 @@ final class CpuThreadsView {
     // Select the thread which has its tree displayed in capture panel in the threads list
     for (int i = 0; i < myThreads.getModel().getSize(); i++) {
       CpuThreadsModel.RangedCpuThread thread = myThreads.getModel().getElementAt(i);
-      if (myStage.getSelectedThread() == thread.getThreadId()) {
+      if (myGetSelectedThread.get() == thread.getThreadId()) {
         myThreads.setSelectedIndex(i);
         break;
       }

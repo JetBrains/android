@@ -21,12 +21,12 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.configuration.Configurable
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.PsiResourceItem
-import com.android.tools.idea.res.ResourceFolderRepository
-import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.res.LocalResourceRepository
 import com.android.tools.res.LocalResourceRepository.EmptyRepository
 import com.android.tools.res.MultiResourceRepository
+import com.android.tools.idea.res.PsiResourceItem
+import com.android.tools.idea.res.ResourceFolderRepository
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlin.coroutines.resume
@@ -85,7 +85,7 @@ interface StringResourceRepository {
      * finish.
      */
     @JvmStatic
-    fun create(repository: LocalResourceRepository): StringResourceRepository =
+    fun create(repository: LocalResourceRepository<VirtualFile>): StringResourceRepository =
         StringResourceRepositoryImpl(repository)
   }
 }
@@ -94,13 +94,13 @@ interface StringResourceRepository {
  * Implementation class of [StringResourceRepository] interface based on [VirtualFile],
  * [ResourceFolderRepository], and [LocalResourceRepository].
  */
-private class StringResourceRepositoryImpl(repository: LocalResourceRepository) :
+private class StringResourceRepositoryImpl(repository: LocalResourceRepository<VirtualFile>) :
     StringResourceRepository {
   private val resourceDirectoryRepositoryMap: Map<VirtualFile, ResourceFolderRepository>
-  private val dynamicResourceRepository: LocalResourceRepository
+  private val dynamicResourceRepository: LocalResourceRepository<VirtualFile>
 
   init {
-    val repositories: List<LocalResourceRepository> =
+    val repositories: List<LocalResourceRepository<VirtualFile>> =
         when (repository) {
           is MultiResourceRepository -> repository.localResources
           else -> listOf(repository)
@@ -108,7 +108,7 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository) 
     val repositoryMap: MutableMap<VirtualFile, ResourceFolderRepository> =
         LinkedHashMap(repositories.size)
 
-    var dynamicRepository: LocalResourceRepository? = null
+    var dynamicRepository: LocalResourceRepository<VirtualFile>? = null
 
     // Convert resource items to PsiResourceItem to know their locations in files.
     for (localRepository in repositories) {
@@ -179,7 +179,7 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository) 
   }
 
   /** Returns the [LocalResourceRepository] for `this` [StringResourceKey]. */
-  private fun StringResourceKey.getRepository(): LocalResourceRepository =
+  private fun StringResourceKey.getRepository(): LocalResourceRepository<VirtualFile> =
       if (directory == null) dynamicResourceRepository
       else requireNotNull(resourceDirectoryRepositoryMap[directory])
 

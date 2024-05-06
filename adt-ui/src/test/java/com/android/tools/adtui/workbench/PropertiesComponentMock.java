@@ -32,12 +32,6 @@ public class PropertiesComponentMock extends PropertiesComponent {
   }
 
   @Override
-  public boolean updateValue(@NotNull String name, boolean newValue) {
-    String s = Boolean.toString(newValue);
-    return s != myProperties.setProperty(name, s);
-  }
-
-  @Override
   public void unsetValue(@NotNull String name) {
     myProperties.remove(name);
   }
@@ -134,5 +128,11 @@ public class PropertiesComponentMock extends PropertiesComponent {
   @Override
   public void setList(@NotNull String name, @Nullable Collection<String> values) {
     setValues(name, values != null ? values.toArray(ArrayUtilRt.EMPTY_STRING_ARRAY) : null);
+  }
+
+  @Override
+  public boolean updateValue(@NotNull @NonNls String name, boolean newValue) {
+    var val = String.valueOf(newValue);
+    return !val.equals(myProperties.setProperty(name, val));
   }
 }

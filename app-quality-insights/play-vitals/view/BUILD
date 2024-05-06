@@ -5,7 +5,6 @@ iml_module(
     name = "intellij.android.app-quality-insights.play-vitals.view",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-vitals.view.iml"],
-    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -18,6 +17,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
     ],
 )
 
@@ -44,5 +44,6 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui.tests[module, test]",
     ],
 )

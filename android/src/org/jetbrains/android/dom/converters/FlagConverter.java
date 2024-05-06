@@ -2,21 +2,17 @@
 package org.jetbrains.android.dom.converters;
 
 import com.intellij.psi.PsiElement;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.GenericDomValue;
 import com.intellij.util.xml.ResolvingConverter;
 import com.intellij.util.xml.converters.DelimitedListConverter;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.text.MessageFormat;
+import java.util.*;
 
 public class FlagConverter extends DelimitedListConverter<String> {
   private final Set<String> myValues = new HashSet<>();
@@ -30,7 +26,7 @@ public class FlagConverter extends DelimitedListConverter<String> {
 
   @NotNull
   @Override
-  public Collection<? extends List<String>> getVariants(@NotNull ConvertContext context) {
+  public Collection<? extends List<String>> getVariants(ConvertContext context) {
     if (additionalConverter == null) {
       return super.getVariants(context);
     }
@@ -43,7 +39,7 @@ public class FlagConverter extends DelimitedListConverter<String> {
   }
 
   @Override
-  protected String convertString(final @Nullable String s, final @NotNull ConvertContext context) {
+  protected String convertString(final @Nullable String s, final ConvertContext context) {
     if (s == null || myValues.contains(s)) return s;
     return additionalConverter != null ? additionalConverter.fromString(s, context) : null;
   }
@@ -54,14 +50,14 @@ public class FlagConverter extends DelimitedListConverter<String> {
   }
 
   @Override
-  protected Object[] getReferenceVariants(final @NotNull ConvertContext context, final GenericDomValue<? extends List<String>> value) {
+  protected Object[] getReferenceVariants(final ConvertContext context, final GenericDomValue<? extends List<String>> value) {
     List<String> variants = new ArrayList<>(myValues);
     filterVariants(variants, value);
-    return ArrayUtilRt.toStringArray(variants);
+    return ArrayUtil.toStringArray(variants);
   }
 
   @Override
-  protected PsiElement resolveReference(@Nullable final String s, final @NotNull ConvertContext context) {
+  protected PsiElement resolveReference(@Nullable final String s, final ConvertContext context) {
     return s == null ? null : context.getReferenceXmlElement();
   }
 

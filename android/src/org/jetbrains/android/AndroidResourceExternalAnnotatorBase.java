@@ -114,7 +114,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
         Color color = element.getColor();
 
         gutterIconRenderer = ReadAction
-          .nonBlocking(() -> buildInlineColorRenderer(element, color, resolver, configuration))
+          .nonBlocking(() -> buildInlineColorRenderer(element, color, resolver, facet))
           .executeSynchronously();
       }
       if (gutterIconRenderer != null) {
@@ -127,8 +127,8 @@ public abstract class AndroidResourceExternalAnnotatorBase
   private static @NotNull ColorRenderer buildInlineColorRenderer(FileAnnotationInfo.AnnotatableElement element,
                                                                  Color color,
                                                                  ResourceResolver resolver,
-                                                                 Configuration configuration) {
-    return new ColorRenderer(element.getPsiElement(), color, resolver, null, true, configuration);
+                                                                 AndroidFacet facet) {
+    return new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, resolver, null, true, facet);
   }
 
   @Nullable
@@ -172,7 +172,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
         renderableValueResourceType == ResourceType.MACRO) {
 
       return ReadAction
-        .nonBlocking(() -> getColorGutterIconRenderer(resolver, renderableValue, facet, element, configuration))
+        .nonBlocking(() -> getColorGutterIconRenderer(resolver, renderableValue, facet, element))
         .executeSynchronously();
     }
     else if (renderableValueResourceType == ResourceType.DRAWABLE || renderableValueResourceType == ResourceType.MIPMAP) {
@@ -192,7 +192,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     VirtualFile resourceFile = AndroidAnnotatorUtil.resolveDrawableFile(resourceValue, resourceResolver, facet);
     if (resourceFile != null) {
       // Updating the GutterIconCache in the background thread to include the icon.
-      GutterIconCache.getInstance().getIcon(resourceFile, resourceResolver, facet);
+      GutterIconCache.getInstance(facet.getModule().getProject()).getIcon(resourceFile, resourceResolver, facet);
     }
     return new com.android.tools.idea.rendering.GutterIconRenderer(element, resourceResolver, facet, resourceFile, configuration);
   }
@@ -201,8 +201,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
   private static GutterIconRenderer getColorGutterIconRenderer(@NotNull ResourceResolver resourceResolver,
                                                                @NotNull ResourceValue resourceValue,
                                                                @NotNull AndroidFacet facet,
-                                                               @NotNull PsiElement element,
-                                                               @NotNull Configuration configuration) {
+                                                               @NotNull PsiElement element) {
     Color color = IdeResourcesUtil.resolveColor(resourceResolver, resourceValue, facet.getModule().getProject());
     if (color == null) {
       return null;
@@ -211,7 +210,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For java and kotlin files, it opens color resource picker only and set R.color.[resource_name] or android.R.color.[resource_name].
     // For xml files, it opens custom color palette and color resource picker. (which shows as 2 tabs)
     boolean withCustomColorPalette = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
-    return new ColorRenderer(element, color, resourceResolver, resourceValue, withCustomColorPalette, configuration);
+    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, resourceValue, withCustomColorPalette, facet);
   }
 
   @Override

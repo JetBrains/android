@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.visual.visuallint
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
-import com.android.tools.idea.rendering.MemoryUseMeasurement
+import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
@@ -47,7 +47,7 @@ import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-private const val NUMBER_OF_SAMPLES = 40
+internal const val NUMBER_OF_SAMPLES = 5
 
 val visualLintingBenchmark = Benchmark.Builder("Visual Linting Benchmark")
   .setProject("Design Tools")
@@ -86,13 +86,15 @@ class PerfgateVisualLintTest {
     projectRule.load("projects/visualLintApplication")
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
-    val visualLintIssueProvider = VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
     val nlModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, dashboardLayout)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
-    visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
-                                                              MemoryUseMeasurement(Metric("phone_background_linting_memory_use")))) {
+    visualLintingBenchmark.measureOperation(
+      measures = listOf(ElapsedTimeMeasurement(Metric("phone_background_linting_time")),
+                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("phone_background_linting_memory_use"))),
+      samplesCount = NUMBER_OF_SAMPLES) {
       VisualLintService.getInstance(projectRule.project)
         .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(nlModel), emptyMap(), visualLintExecutorService)
       // Wait for visual lint tasks to complete
@@ -105,14 +107,16 @@ class PerfgateVisualLintTest {
     projectRule.load("projects/visualLintApplication")
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
-    val visualLintIssueProvider = VisualLintIssueProvider(projectRule.fixture.testRootDisposable)
+    val visualLintIssueProvider = ViewVisualLintIssueProvider(projectRule.fixture.testRootDisposable)
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
     val wearModel = SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, null, facet, wearLayout, wearConfiguration)
     val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
-    visualLintingBenchmark.measureOperation(measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
-                                                              MemoryUseMeasurement(Metric("wear_background_linting_memory_use")))) {
+    visualLintingBenchmark.measureOperation(
+      measures = listOf(ElapsedTimeMeasurement(Metric("wear_background_linting_time")),
+                        HeapSnapshotMemoryUseMeasurement("android:designTools", null, Metric("wear_background_linting_memory_use"))),
+      samplesCount = NUMBER_OF_SAMPLES) {
       VisualLintService.getInstance(projectRule.project)
         .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, visualLintIssueProvider, listOf(wearModel), emptyMap(), visualLintExecutorService)
       // Wait for visual lint tasks to complete

@@ -25,18 +25,19 @@ import javax.swing.JCheckBox
 import javax.swing.JLabel
 import kotlin.test.fail
 
-/**
- * Convenient extension functions used by tests
- */
+/** Convenient extension functions used by tests */
 internal fun DialogWrapper.getCheckBox(text: String): JCheckBox = getTextComponent(text) { it.text }
 
 internal fun DialogWrapper.getLabel(text: String): JLabel = getTextComponent(text) { it.text }
 
 internal fun DialogWrapper.getButton(text: String): JButton = getTextComponent(text) { it.text }
 
-private inline fun <reified T> DialogWrapper.getTextComponent(text: String, getText: (T) -> String): T =
-  TreeWalker(rootPane).descendants().filterIsInstance<T>()
-    .firstOrNull { getText(it) == text } ?: fail("${T::class.simpleName} '$text' not found")
+private inline fun <reified T> DialogWrapper.getTextComponent(
+  text: String,
+  getText: (T) -> String
+): T =
+  TreeWalker(rootPane).descendants().filterIsInstance<T>().firstOrNull { getText(it) == text }
+    ?: fail("${T::class.simpleName} '$text' not found")
 
 internal inline fun <reified T> DialogWrapper.findComponentWithLabel(text: String): T {
   val components = TreeWalker(rootPane).descendants().toList()
@@ -47,7 +48,9 @@ internal inline fun <reified T> DialogWrapper.findComponentWithLabel(text: Strin
   val component = components[labelIndex + 1]
 
   return component as? T
-         ?: fail("Component with label '$text' is a ${component::class.simpleName} but was expecting a ${T::class.simpleName}")
+    ?: fail(
+      "Component with label '$text' is a ${component::class.simpleName} but was expecting a ${T::class.simpleName}"
+    )
 }
 
 internal fun UsageTrackerRule.logcatEvents(): List<LogcatUsageEvent> =

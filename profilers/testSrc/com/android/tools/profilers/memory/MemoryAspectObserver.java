@@ -15,11 +15,11 @@
  */
 package com.android.tools.profilers.memory;
 
-import static org.junit.Assert.assertEquals;
-
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import org.jetbrains.annotations.NotNull;
+
+import static org.junit.Assert.assertEquals;
 
 public class MemoryAspectObserver extends AspectObserver {
   protected int myAllocationAspectCount;

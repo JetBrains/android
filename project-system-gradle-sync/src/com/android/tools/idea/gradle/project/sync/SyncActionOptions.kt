@@ -57,7 +57,6 @@ class NativeVariantsSyncActionOptions(
 
 class AdditionalClassifierArtifactsActionOptions(
   val cachedLibraries: Collection<String>,
-  val downloadAndroidxUISamplesSources: Boolean
 ) : Serializable
 
 data class GradleSyncStudioFlags(
@@ -74,6 +73,6 @@ data class GradleSyncStudioFlags(
   val studioFlagSkipRuntimeClasspathForLibraries: Boolean,
   val studioFlagSupportFutureAgpVersions: Boolean,
   val studioFlagUseNewDependencyGraphModel: Boolean,
-  val studioFlagFetchKotlinModelsInParallel: Boolean,
+  val studioFlagFetchKotlinModelsInParallel: Boolean
 ) : Serializable
 

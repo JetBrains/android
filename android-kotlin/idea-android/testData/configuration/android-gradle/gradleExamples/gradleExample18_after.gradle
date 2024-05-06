@@ -18,7 +18,6 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     compile 'com.android.support:support-v4:13.0.0'
     debugCompile 'com.android.support:support-v13:13.0.0'
 
@@ -62,5 +61,8 @@ android {
     aaptOptions {
         noCompress 'txt'
         ignoreAssetsPattern "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 }

@@ -16,128 +16,120 @@
 
 package com.android.tools.idea.sdk;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.welcome.config.FirstRunWizardMode;
-import com.android.tools.idea.welcome.install.AndroidSdkKt;
-import com.android.tools.idea.welcome.install.FirstRunWizardDefaults;
-import com.android.tools.idea.welcome.wizard.deprecated.ConsolidatedProgressStep;
-import com.android.tools.idea.welcome.wizard.deprecated.InstallComponentsPath;
-import com.android.tools.idea.wizard.WizardConstants;
-import com.android.tools.idea.wizard.dynamic.DynamicWizard;
-import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
-import com.android.tools.idea.wizard.dynamic.SingleStepPath;
 import com.android.tools.sdk.SdkPaths.ValidationResult;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdkType;
-import com.intellij.openapi.projectRoots.SdkTypeId;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.roots.ui.configuration.JdkComboBox;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.ui.*;
-import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBLabel;
+import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.util.Collections;
-import java.util.function.Consumer;
 
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 public class SelectSdkDialog extends DialogWrapper {
   private JPanel myPanel;
-  private JdkComboBox myJdkChooser;
+  private TextFieldWithBrowseButton myJdkTextFieldWithButton;
   private TextFieldWithBrowseButton mySdkTextFieldWithButton;
   private JBLabel mySelectSdkDescriptionLabel;
+  private HyperlinkLabel mySdkHyperlinkLabel;
   private JBLabel mySelectSdkLabel;
   private JBLabel mySelectJdkDescriptionLabel;
+  private HyperlinkLabel myJdkHyperlinkLabel;
   private JBLabel mySelectJdkLabel;
   private JBLabel mySpacer;
 
   private String myJdkHome = "";
   private String mySdkHome = "";
-  private ProjectSdksModel mySdkModel;
-  private final Project myProject;
 
   /**
    * Displays SDK selection dialog.
    *
-   * @param project current project to determine a JDK if known, null otherwise
+   * @param jdkPath path to JDK if known, null otherwise
    * @param sdkPath path to Android SDK if known, null otherwise
    */
-  public SelectSdkDialog(@Nullable Project project, @Nullable String sdkPath) {
+  public SelectSdkDialog(@Nullable String jdkPath, @Nullable String sdkPath) {
     super(false);
 
     init();
 
-    myProject = project;
-
     setTitle("Select SDKs");
 
-    mySelectJdkLabel.setLabelFor(myJdkChooser);
+    if (jdkPath != null) {
+      String err = validateJdkPath(jdkPath);
+      if (err != null) {
+        jdkPath = null;
+      }
+    }
+
+    if (sdkPath != null) {
+      String err = validateAndroidSdkPath(sdkPath);
+      if (err != null) {
+        sdkPath = null;
+      }
+    }
+
+    mySelectJdkLabel.setLabelFor(myJdkTextFieldWithButton.getTextField());
 
     mySelectSdkDescriptionLabel.setText("Please provide the path to the Android SDK.");
+    mySdkHyperlinkLabel.setHyperlinkTarget("http://d.android.com/sdk");
+    mySdkHyperlinkLabel.setHyperlinkText("If you do not have the Android SDK, you can obtain it from ", "d.android.com/sdk", ".");
 
     mySelectJdkDescriptionLabel.setText("Please provide the path to a Java Development Kit (JDK) installation.");
+    myJdkHyperlinkLabel.setHyperlinkTarget("http://www.oracle.com/technetwork/java/javase/downloads/index.html");
+    myJdkHyperlinkLabel.setHyperlinkText("If you do not have a JDK installed, you can obtain one ", "here", ".");
 
-    if (myProject != null && ProjectRootManager.getInstance(myProject).getProjectSdk() == null && sdkPath == null) {
+    if (jdkPath == null && sdkPath == null) {
       mySpacer.setVisible(true);
     }
-    else if (myProject != null && ProjectRootManager.getInstance(myProject).getProjectSdk() == null) {
+    else if (jdkPath == null) {
       mySpacer.setVisible(false);
       mySelectSdkDescriptionLabel.setVisible(false);
+      mySdkHyperlinkLabel.setVisible(false);
       mySelectSdkLabel.setVisible(false);
       mySdkTextFieldWithButton.setVisible(false);
     }
     else {
       mySpacer.setVisible(false);
       mySelectJdkDescriptionLabel.setVisible(false);
+      myJdkHyperlinkLabel.setVisible(false);
       mySelectJdkLabel.setVisible(false);
-      myJdkChooser.setVisible(false);
+      myJdkTextFieldWithButton.setVisible(false);
     }
 
+    myJdkTextFieldWithButton.setTextFieldPreferredWidth(50);
     mySdkTextFieldWithButton.setTextFieldPreferredWidth(50);
+
+    if (jdkPath != null) {
+      myJdkTextFieldWithButton.setText(jdkPath);
+    }
 
     if (sdkPath != null) {
       mySdkTextFieldWithButton.setText(sdkPath);
     }
 
-    @Nullable String finalSdkPath = sdkPath;
-    mySdkTextFieldWithButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        createDownloadingComponentsStepDialog(finalSdkPath, s -> {
-          mySdkTextFieldWithButton.setText(s.getAbsolutePath());
-          validate();
-        });
-      }
-    });
+    FileChooserDescriptor descriptor = JavaSdk.getInstance().getHomeChooserDescriptor();
+    BrowseFolderListener listener = new BrowseFolderListener("Select JDK Home", myJdkTextFieldWithButton, descriptor, jdkPath);
+    myJdkTextFieldWithButton.addActionListener(listener);
+
+    descriptor = AndroidSdkType.getInstance().getHomeChooserDescriptor();
+    listener = new BrowseFolderListener("Select Android SDK Home", mySdkTextFieldWithButton, descriptor, sdkPath);
+    mySdkTextFieldWithButton.addActionListener(listener);
   }
 
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
     return myPanel;
-  }
-
-  private void createUIComponents() {
-    Condition<SdkTypeId> sdkTypeFilter = sdkType -> sdkType instanceof JavaSdkType;
-    mySdkModel = new ProjectSdksModel();
-    mySdkModel.reset(null);
-
-    myJdkChooser = new JdkComboBox(null, mySdkModel, sdkTypeFilter, null, null, null, null);
   }
 
   @Override
@@ -148,14 +140,24 @@ public class SelectSdkDialog extends DialogWrapper {
   @Nullable
   @Override
   protected ValidationInfo doValidate() {
-    String androidHome = mySdkTextFieldWithButton.getText().trim();
-    String sdkError = validateAndroidSdkPath(androidHome);
-    if (mySdkTextFieldWithButton.isVisible() && sdkError != null) {
-      return new ValidationInfo(sdkError, mySdkTextFieldWithButton.getTextField());
+    String jdkHome = myJdkTextFieldWithButton.getText().trim();
+    String jdkError = validateJdkPath(jdkHome);
+    if (jdkError != null) {
+      return new ValidationInfo(jdkError, myJdkTextFieldWithButton.getTextField());
     }
 
-    if (myJdkChooser.isVisible()&& myJdkChooser.getSelectedJdk() == null) {
-      return new ValidationInfo("Choose JDK", myJdkChooser);
+    String androidHome = mySdkTextFieldWithButton.getText().trim();
+    String sdkError = validateAndroidSdkPath(androidHome);
+    if (sdkError != null) {
+      return new ValidationInfo(sdkError, mySdkTextFieldWithButton.getTextField());
+    }
+    return null;
+  }
+
+  @Nullable
+  private static String validateJdkPath(@Nullable String path) {
+    if (isEmpty(path) || !JavaSdk.getInstance().isValidSdkHome(path)) {
+      return "Invalid JDK path.";
     }
     return null;
   }
@@ -178,24 +180,9 @@ public class SelectSdkDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    myJdkHome = myJdkChooser.getSelectedJdk() == null ? null : myJdkChooser.getSelectedJdk().getHomePath();
+    myJdkHome = myJdkTextFieldWithButton.getText();
     mySdkHome = mySdkTextFieldWithButton.getText();
-    try {
-      mySdkModel.apply(null, true);
-    }
-    catch (ConfigurationException e) {
-      Notification notification = new Notification("Android", "Error while saving JDK: " + e.getMessageHtml(), NotificationType.ERROR);
-      notification.canShowFor(myProject);
-      Notifications.Bus.notify(notification);
-    }
-    WriteAction.run(() -> ProjectRootManager.getInstance(myProject).setProjectSdk(myJdkChooser.getSelectedJdk()));
     super.doOKAction();
-  }
-
-  @Override
-  protected void dispose() {
-    mySdkModel.disposeUIResources();
-    super.dispose();
   }
 
   @NotNull
@@ -208,82 +195,27 @@ public class SelectSdkDialog extends DialogWrapper {
     return mySdkHome;
   }
 
-  public static void createDownloadingComponentsStepDialog(String sdkPath, Consumer<File> onFinish) {
-    DynamicWizard wizard = new DynamicWizard(null, null, "SDK Setup") {
-      @Override
-      public void init() {
-        DownloadingComponentsStep progressStep = new DownloadingComponentsStep(myHost.getDisposable(), myHost);
+  private static class BrowseFolderListener extends ComponentWithBrowseButton.BrowseFolderActionListener<JTextField> {
+    private final String myDefaultPath;
 
-        File location;
-        if (isEmpty(sdkPath)) {
-          location = FirstRunWizardDefaults.getInitialSdkLocation(FirstRunWizardMode.MISSING_SDK);
-        }
-        else {
-          location = new File(sdkPath);
-        }
-
-        InstallComponentsPath path =
-          new InstallComponentsPath(FirstRunWizardMode.MISSING_SDK, location, progressStep, false);
-
-        progressStep.setInstallComponentsPath(path);
-
-        addPath(path);
-        addPath(new SingleStepPath(progressStep));
-        super.init();
-      }
-
-      @Override
-      public void performFinishingActions() {
-        File sdkLocation = IdeSdks.getInstance().getAndroidSdkPath();
-
-        if (sdkLocation == null) {
-          return;
-        }
-
-        String stateSdkLocationPath = myState.get(WizardConstants.KEY_SDK_INSTALL_LOCATION);
-        assert stateSdkLocationPath != null;
-
-        File stateSdkLocation = new File(stateSdkLocationPath);
-
-        if (!FileUtil.filesEqual(sdkLocation, stateSdkLocation)) {
-          AndroidSdkKt.setAndroidSdkLocation(stateSdkLocation);
-          sdkLocation = stateSdkLocation;
-        }
-
-        // Pick up changes done by the wizard.
-        onFinish.accept(sdkLocation);
-      }
-
-      @NotNull
-      @Override
-      protected String getProgressTitle() {
-        return "Setting up SDK...";
-      }
-
-      @Override
-      protected String getWizardActionDescription() {
-        return "Setting up SDK...";
-      }
-    };
-    wizard.init();
-    wizard.show();
-  }
-
-  private static final class DownloadingComponentsStep extends ConsolidatedProgressStep {
-    private InstallComponentsPath myInstallComponentsPath;
-
-    private DownloadingComponentsStep(@NotNull Disposable disposable, @NotNull DynamicWizardHost host) {
-      super(disposable, host);
+    public BrowseFolderListener(@Nullable String title,
+                                ComponentWithBrowseButton<JTextField> textField,
+                                FileChooserDescriptor fileChooserDescriptor,
+                                @Nullable String defaultPath) {
+      super(title, null, textField, null, fileChooserDescriptor, TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT);
+      myDefaultPath = defaultPath;
     }
 
-    private void setInstallComponentsPath(InstallComponentsPath installComponentsPath) {
-      setPaths(Collections.singletonList(installComponentsPath));
-      myInstallComponentsPath = installComponentsPath;
-    }
-
+    @Nullable
     @Override
-    public boolean isStepVisible() {
-      return myInstallComponentsPath.shouldDownloadingComponentsStepBeShown();
+    protected VirtualFile getInitialFile() {
+      String dir = super.getComponentText();
+      if (!dir.isEmpty()) {
+        return super.getInitialFile();
+      }
+
+      LocalFileSystem fileSystem = LocalFileSystem.getInstance();
+      return fileSystem.findFileByPath(toSystemIndependentName(myDefaultPath == null ? PathManager.getHomePath() : myDefaultPath));
     }
   }
 }

@@ -18,8 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.adblib.serialNumber
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.tools.idea.device.explorer.DeviceExplorerService
-import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorer
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.deviceprovisioner.deviceHandle
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -54,11 +53,7 @@ internal class OpenDeviceExplorerAction :
         else DeviceManagerEvent.EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION
       )
 
-      when {
-        StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get() ->
-          DeviceExplorerService.openAndShowDevice(project, serialNumber)
-        else -> DeviceExplorer.openAndShowDevice(project, serialNumber)
-      }
+      DeviceExplorerService.openAndShowDevice(project, serialNumber)
     }
   }
 }

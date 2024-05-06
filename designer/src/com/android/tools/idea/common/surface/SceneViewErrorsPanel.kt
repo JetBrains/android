@@ -15,43 +15,78 @@
  */
 package com.android.tools.idea.common.surface
 
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils
 import com.intellij.ui.Gray
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import java.awt.BorderLayout
+import java.awt.Font
 import javax.swing.JPanel
 import javax.swing.border.LineBorder
 
-private const val ERROR_LABEL_CONTENT = "<html>Render problem</html>"
+private const val ERROR_LABEL_CONTENT = "Render problem"
+private val TRANSLUCENT_BACKGROUND_COLOR = Gray._220.withAlpha(200)
+private val DEFAULT_BORDER = LineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR, 1)
 
-/**
- *        ______________________________
- *  10px |                             |
- *       |_____________________________|
- *       |     |                 |     |
- *       |     |                 |     |
- *       |10 px|  panelContent   |10 px|
- *       |     |                 |     |
- *       |     |                 |     |
- *        ______________________________
- *  10px |                             |
- *       |_____________________________|
- */
-class SceneViewErrorsPanel(private val isPanelVisible: () -> Boolean = { true }) :
-  JPanel(TabularLayout("10px,*,10px", "10px,*,10px")) {
+/** Shows a Panel with an error message */
+class SceneViewErrorsPanel(val styleProvider: () -> Style = { Style.SOLID }) :
+  JPanel(BorderLayout()) {
 
-  private val label = JBLabel(ERROR_LABEL_CONTENT).apply { foreground = Gray._119 }
+  /** The style applied to the panel */
+  enum class Style {
+    /** The panel is not visible */
+    HIDDEN,
+    /** The panel is showing and is opaque */
+    SOLID,
+    /** The panel is showing and is translucent */
+    TRANSLUCENT
+  }
+
   private val size = JBUI.size(150, 35)
+  private val label =
+    JBLabel(ERROR_LABEL_CONTENT).apply {
+      foreground = Gray._119
+      minimumSize = size
+      border = JBUI.Borders.empty(10)
+    }
+  private val boldFont = UIUtil.getLabelFont().deriveFont(Font.BOLD)
+  private var lastStyle: Style? = null
 
   init {
-    add(label, TabularLayout.Constraint(1, 1))
-    border = LineBorder(AdtUiUtils.DEFAULT_BORDER_COLOR, 1)
+    add(label, BorderLayout.CENTER)
+    updateStyles()
   }
 
   override fun getPreferredSize() = size
 
   override fun getMinimumSize() = size
 
-  override fun isVisible() = isPanelVisible()
+  /** Updates the look and feel of the panel with the style and returns the current set style. */
+  private fun updateStyles(): Style {
+    val newStyle = styleProvider()
+    if (newStyle != lastStyle) {
+      when (newStyle) {
+        Style.SOLID -> {
+          label.foreground = Gray._119
+          border = DEFAULT_BORDER
+          label.font = UIUtil.getLabelFont()
+          background = UIUtil.getPanelBackground()
+        }
+        Style.TRANSLUCENT -> {
+          label.foreground = Gray._15
+          border = JBUI.Borders.empty()
+          label.font = boldFont
+          background = TRANSLUCENT_BACKGROUND_COLOR
+        }
+        Style.HIDDEN -> {}
+      }
+      lastStyle = newStyle
+    }
+    return newStyle
+  }
+
+  override fun isVisible(): Boolean {
+    return updateStyles() != Style.HIDDEN
+  }
 }

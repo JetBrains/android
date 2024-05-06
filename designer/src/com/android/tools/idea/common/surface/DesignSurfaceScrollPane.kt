@@ -33,6 +33,7 @@ class DesignSurfaceScrollPane private constructor() : JBScrollPane(0) {
   private class MyScrollBar(@JdkConstants.AdjustableOrientation orientation: Int) :
     JBScrollBar(orientation), IdeGlassPane.TopComponent {
     private var myPersistentUI: ScrollBarUI? = null
+
     override fun canBePreprocessed(e: MouseEvent): Boolean {
       return canBePreprocessed(e, this)
     }
@@ -44,6 +45,7 @@ class DesignSurfaceScrollPane private constructor() : JBScrollPane(0) {
     }
 
     override fun getUnitIncrement(direction: Int): Int = 20
+
     override fun getBlockIncrement(direction: Int): Int = 1
 
     init {
@@ -52,6 +54,7 @@ class DesignSurfaceScrollPane private constructor() : JBScrollPane(0) {
   }
 
   override fun createVerticalScrollBar(): JScrollBar = MyScrollBar(Adjustable.VERTICAL)
+
   override fun createHorizontalScrollBar(): JScrollBar = MyScrollBar(Adjustable.HORIZONTAL)
 
   init {

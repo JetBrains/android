@@ -15,25 +15,21 @@
  */
 package com.android.tools.idea.compose.gradle.datasource
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
+import com.android.tools.idea.compose.UiCheckModeFilter
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
+import com.android.tools.idea.compose.gradle.renderer.renderPreviewElementForResult
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
-import com.android.tools.idea.compose.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
-import com.android.tools.idea.compose.preview.ParametrizedComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.PreviewElementTemplateInstanceProvider
-import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.TestComposePreviewView
-import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
-import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
@@ -42,7 +38,13 @@ import com.android.tools.idea.testing.withKotlin
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
+import com.android.tools.preview.ParametrizedComposePreviewElementInstance
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.RenderService
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -113,18 +115,15 @@ class ParametrizedPreviewTest {
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
         ProjectRootManager.getInstance(project).contentRoots[0]
-      )
-        ?: throw RuntimeException("Cannot find relative file")
+      ) ?: throw RuntimeException("Cannot find relative file")
 
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestWithProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestWithProvider" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(3, elements.count())
 
       elements.forEach {
@@ -132,21 +131,18 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
 
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestWithProviderInExpression" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestWithProviderInExpression" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(3, elements.count())
 
       elements.forEach {
@@ -154,8 +150,7 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
@@ -163,13 +158,11 @@ class ParametrizedPreviewTest {
     // Test LoremIpsum default provider
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestLorem" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestLorem" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(1, elements.count())
 
       elements.forEach {
@@ -177,8 +170,7 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
@@ -186,13 +178,11 @@ class ParametrizedPreviewTest {
     // Test handling provider that throws an exception
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestFailingProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestFailingProvider" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(1, elements.count())
 
       elements.forEach {
@@ -201,7 +191,7 @@ class ParametrizedPreviewTest {
         // pointing to the fake method used to handle failures to load the PreviewParameterProvider.
         assertEquals(
           "google.simpleapplication.FailingProvider.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD",
-          it.composableMethodFqn
+          it.methodFqn
         )
         assertTrue(it is SingleComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
@@ -211,14 +201,12 @@ class ParametrizedPreviewTest {
     // Test handling provider with 11 values
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestLargeProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestLargeProvider" }
           )
-          .previewElements()
-          .toList()
+          .resolve()
+
       assertEquals(11, elements.count())
 
       assertEquals(
@@ -231,8 +219,7 @@ class ParametrizedPreviewTest {
           renderPreviewElementForResult(projectRule.androidFacet(":app"), it)
             .get()
             ?.renderResult
-            ?.isSuccess
-            ?: false
+            ?.isSuccess ?: false
         )
       }
     }
@@ -240,13 +227,11 @@ class ParametrizedPreviewTest {
     // Test handling provider with no values
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestEmptyProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestEmptyProvider" }
           )
-          .previewElements()
+          .resolve()
           .toList()
 
       // The error preview is shown.
@@ -260,7 +245,7 @@ class ParametrizedPreviewTest {
         // we'll try to render a composable with an empty sequence defined in ParametrizedPreviews
         assertEquals(
           "google.simpleapplication.ParametrizedPreviewsKt.TestEmptyProvider",
-          it.composableMethodFqn
+          it.methodFqn
         )
         assertTrue(it is ParametrizedComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
@@ -276,25 +261,19 @@ class ParametrizedPreviewTest {
       VfsUtil.findRelativeFile(
         SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
         ProjectRootManager.getInstance(project).contentRoots[0]
-      )
-        ?: throw RuntimeException("Cannot find relative file")
+      ) ?: throw RuntimeException("Cannot find relative file")
     val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
 
     val elements =
-      PreviewElementTemplateInstanceProvider(
-          StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestWithProvider" }
-          )
+      StaticPreviewProvider(
+          AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            .filter { it.displaySettings.name == "TestWithProvider" }
         )
-        .previewElements()
+        .resolve()
     assertEquals(3, elements.count())
 
-    val navigationHandler = ComposePreviewNavigationHandler()
     val mainSurface =
-      NlDesignSurface.builder(project, projectRule.fixture.testRootDisposable)
-        .setNavigationHandler(navigationHandler)
-        .build()
+      NlDesignSurface.builder(project, projectRule.fixture.testRootDisposable).build()
 
     val composeView = TestComposePreviewView(mainSurface)
     val preview =
@@ -304,16 +283,20 @@ class ParametrizedPreviewTest {
     Disposer.register(projectRule.fixture.testRootDisposable, preview)
     preview.onActivate()
 
+    preview.waitForAnyPendingRefresh()
     val uiCheckElement = elements.first() as ParametrizedComposePreviewElementInstance
-    preview.setMode(PreviewMode.UiCheck(uiCheckElement))
-    delayUntilCondition(250) { preview.isUiCheckPreview }
+    run {
+      var refreshCompleted = false
+      composeView.refreshCompletedListeners.add { refreshCompleted = true }
+      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
+      delayUntilCondition(250) { refreshCompleted }
+    }
 
-    assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(
-      preview.uiCheckFilterFlow.value
-    )
+    assertInstanceOf<UiCheckModeFilter.Enabled>(preview.uiCheckFilterFlow.value)
 
-    assertEquals(1, preview.availableGroupsFlow.value.size)
-    assertEquals("Screen sizes", preview.availableGroupsFlow.value.first().displayName)
+    assertThat(preview.availableGroupsFlow.value.map { it.displayName })
+      .containsExactly("Screen sizes", "Font scales", "Light/Dark")
+      .inOrder()
     preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
       "Failed waiting to start UI check mode",
       5.seconds
@@ -322,7 +305,7 @@ class ParametrizedPreviewTest {
         it
           .filterIsInstance<ParametrizedComposePreviewElementInstance>()
           .map {
-            "${it.composableMethodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
+            "${it.methodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
           }
           .joinToString("\n")
 
@@ -333,10 +316,21 @@ class ParametrizedPreviewTest {
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
           google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
+          google.simpleapplication.ParametrizedPreviewsKt.TestWithProvider provider=google.simpleapplication.TestProvider index=0 max=2
         """
           .trimIndent()
     }
   }
+
+  private suspend fun PreviewElementProvider<ComposePreviewElement>.resolve() =
+    this.previewElements().flatMap { it.resolve() }.toList()
 
   private fun getEnumerationNumberFromPreviewName(elements: List<ComposePreviewElementInstance>) =
     elements.map { it.displaySettings.name.removeSuffix(")").substringAfterLast(' ') }

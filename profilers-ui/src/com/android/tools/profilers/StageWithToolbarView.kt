@@ -30,8 +30,8 @@ import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.stacktrace.LoadingPanel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.client.ClientSystemInfo
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBEmptyBorder
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -348,8 +348,7 @@ class StageWithToolbarView(private val studioProfilers: StudioProfilers,
     const val DETACH_LIVE = "Detach live"
     const val ZOOM_IN = "Zoom in"
     const val ZOOM_OUT = "Zoom out"
-    private val SHORTCUT_MODIFIER_MASK_NUMBER
-      get() = if (ClientSystemInfo.isMac()) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
+    private val SHORTCUT_MODIFIER_MASK_NUMBER = if (SystemInfo.isMac) InputEvent.META_DOWN_MASK else InputEvent.CTRL_DOWN_MASK
     private const val LOADING_VIEW_CARD = "LoadingViewCard"
     private const val STAGE_VIEW_CARD = "StageViewCard"
   }

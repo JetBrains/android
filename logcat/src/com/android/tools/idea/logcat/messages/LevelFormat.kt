@@ -17,19 +17,20 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.message.LogLevel
 
-/**
- * Provides formatting for the log level.
- */
+/** Provides formatting for the log level. */
 internal data class LevelFormat(val enabled: Boolean = true) {
-  // LevelFormat is different from the other formats because it contains text with 2 different color attributes.
-  // Because of this, the semantics of format() is different. Instead of returning a string, it actually accumulates the text itself.
+  // LevelFormat is different from the other formats because it contains text with 2 different color
+  // attributes.
+  // Because of this, the semantics of format() is different. Instead of returning a string, it
+  // actually accumulates the text itself.
   // Arguable, all formatters should also do this but that's for another time.
   // TODO(aalbert): Consider changing other formatters too
   fun format(logLevel: LogLevel, textAccumulator: TextAccumulator, logcatColors: LogcatColors) {
     if (enabled) {
       textAccumulator.accumulate(
         text = " ${logLevel.priorityLetter} ",
-        textAttributesKey = logcatColors.getLogLevelKey(logLevel))
+        textAttributesKey = logcatColors.getLogLevelKey(logLevel)
+      )
       textAccumulator.accumulate(" ")
     }
   }

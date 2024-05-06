@@ -35,7 +35,7 @@ fun parseTrace(file: File): Model {
 fun findSampleData(): String {
     var path = "sample_data"
     while (!File(path).exists()) {
-        path = "../$path"
+        path = "../" + path
     }
     return path
 }

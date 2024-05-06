@@ -28,6 +28,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationSettings;
+import com.android.tools.configurations.Configurations;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
@@ -36,15 +37,14 @@ import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.surface.DeviceSizeList;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -109,7 +109,7 @@ public class CanvasResizeInteraction extends Interaction {
       int androidX = Coordinates.getAndroidX(myScreenView, myCurrentX);
       int androidY = Coordinates.getAndroidY(myScreenView, myCurrentY);
       if (androidX > 0 && androidY > 0 && androidX < myMaxSize && androidY < myMaxSize) {
-        NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
+        Configurations.updateScreenSize(myConfiguration, androidX, androidY);
       }
     }
   };
@@ -121,7 +121,7 @@ public class CanvasResizeInteraction extends Interaction {
    * Threshold used to force a resize of the surface when getting close to the border. If the mouse gets closer than
    * 2*myResizeTriggerThreshold to the border of the surface, the surface will be extended by myResizeTriggerThreshold
    */
-  private final int myResizeTriggerThreshold = JBUIScale.scale(200);
+  private final int myResizeTriggerThreshold = JBUI.scale(200);
 
   public CanvasResizeInteraction(@NotNull NlDesignSurface designSurface,
                                  @NotNull ScreenView screenView,
@@ -220,41 +220,38 @@ public class CanvasResizeInteraction extends Interaction {
   public void update(@NotNull InteractionEvent event) {
     if (event instanceof MouseDraggedEvent) {
       MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
-      update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
-    }
-  }
-
-  @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    if (myOriginalDevice.isScreenRound()) {
-      // Force aspect preservation
-      int deltaX = x - myStartX;
-      int deltaY = y - myStartY;
-      if (deltaX > deltaY) {
-        y = myStartY + deltaX;
+      int x = mouseEvent.getX();
+      int y = mouseEvent.getY();
+      if (myOriginalDevice.isScreenRound()) {
+        // Force aspect preservation
+        int deltaX = x - myStartX;
+        int deltaY = y - myStartY;
+        if (deltaX > deltaY) {
+          y = myStartY + deltaX;
+        }
+        else {
+          x = myStartX + deltaY;
+        }
       }
-      else {
-        x = myStartX + deltaY;
+
+      snapToDevice(x, y);
+
+      Dimension viewSize = myDesignSurface.getViewSize();
+      int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
+      int maxY = Coordinates.getSwingY(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
+      if (myCurrentX < maxX &&
+          myCurrentY < maxY &&
+          (myCurrentX + myResizeTriggerThreshold * 2 > viewSize.getWidth() ||
+           myCurrentY + myResizeTriggerThreshold * 2 > viewSize.getHeight())) {
+        // Extend the scrollable area of the surface to accommodate for the resize
+        myDesignSurface.setScrollableViewMinSize(
+          new Dimension(myCurrentX + myResizeTriggerThreshold, myCurrentY + myResizeTriggerThreshold));
+        myDesignSurface.validateScrollArea();
+        myUpdateQueue.queue(myLayerUpdate);
       }
+
+      myUpdateQueue.queue(myPositionUpdate);
     }
-
-    snapToDevice(x, y);
-    super.update(myCurrentX, myCurrentY, modifiersEx);
-
-    Dimension viewSize = myDesignSurface.getViewSize();
-    int maxX = Coordinates.getSwingX(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_X;
-    int maxY = Coordinates.getSwingY(myScreenView, myMaxSize) + NlConstants.DEFAULT_SCREEN_OFFSET_Y;
-    if (myCurrentX < maxX &&
-        myCurrentY < maxY &&
-        (myCurrentX + myResizeTriggerThreshold * 2 > viewSize.getWidth() ||
-         myCurrentY + myResizeTriggerThreshold * 2 > viewSize.getHeight())) {
-      // Extend the scrollable area of the surface to accommodate for the resize
-      myDesignSurface.setScrollableViewMinSize(new Dimension(myCurrentX + myResizeTriggerThreshold, myCurrentY + myResizeTriggerThreshold));
-      myDesignSurface.validateScrollArea();
-      myUpdateQueue.queue(myLayerUpdate);
-    }
-
-    myUpdateQueue.queue(myPositionUpdate);
   }
 
   private void snapToDevice(int x, int y) {
@@ -274,18 +271,12 @@ public class CanvasResizeInteraction extends Interaction {
 
   @Override
   public void commit(@NotNull InteractionEvent event) {
-    //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    end(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
-  }
-
-  @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
-    // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
+    // Set the surface in resize mode, so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
     myDesignSurface.setScrollableViewMinSize(new Dimension(0, 0));
 
-    int androidX = Coordinates.getAndroidX(myScreenView, x);
-    int androidY = Coordinates.getAndroidY(myScreenView, y);
+    int androidX = Coordinates.getAndroidX(myScreenView, event.getInfo().getX());
+    int androidY = Coordinates.getAndroidY(myScreenView, event.getInfo().getY());
 
     if (androidX < 0 || androidY < 0) {
       myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
@@ -297,7 +288,7 @@ public class CanvasResizeInteraction extends Interaction {
         myConfiguration.setEffectiveDevice(deviceToSnap, deviceState);
       }
       else {
-        NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
+        Configurations.updateScreenSize(myConfiguration, androidX, androidY);
       }
     }
   }
@@ -305,11 +296,6 @@ public class CanvasResizeInteraction extends Interaction {
   @Override
   public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
-  }
-
-  @Override
-  public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @JdkConstants.InputEventMask int modifiersEx) {
     myConfiguration.setEffectiveDevice(myOriginalDevice, myOriginalDeviceState);
   }
 

@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.widget;
 
+import static com.android.tools.idea.widget.AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_CONNECTED;
+import static com.android.tools.idea.widget.AdbConnectionWidget.ConnectionState.STUDIO_MANAGED_DISCONNECTED;
+import static com.android.tools.idea.widget.AdbConnectionWidget.ConnectionState.USER_MANAGED_CONNECTED;
+import static com.android.tools.idea.widget.AdbConnectionWidget.ConnectionState.USER_MANAGED_DISCONNECTED;
+import static icons.StudioIcons.Shell.StatusBar.ADB_MANAGED;
+import static icons.StudioIcons.Shell.StatusBar.ADB_UNMANAGED;
+import static java.awt.Color.GREEN;
+import static java.awt.Color.RED;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.Disposable;
@@ -26,18 +35,12 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.widget.AdbConnectionWidget.ConnectionState.*;
-import static icons.StudioIcons.Shell.StatusBar.ADB_MANAGED;
-import static icons.StudioIcons.Shell.StatusBar.ADB_UNMANAGED;
-import static java.awt.Color.GREEN;
-import static java.awt.Color.RED;
-
 final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, StatusBarWidget {
   @VisibleForTesting
   static final String ID = "AdbConnectionWidget";
 
-  private @NotNull ConnectionState myLastConnectionState;
-  private @Nullable StudioAdapter myAdapter;
+  @NotNull private ConnectionState myLastConnectionState;
+  @Nullable private StudioAdapter myAdapter;
 
   AdbConnectionWidget(@NotNull StudioAdapter adapter) {
     myAdapter = adapter;
@@ -48,13 +51,15 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
     myLastConnectionState = getConnectionState();
   }
 
+  @NotNull
   @Override
-  public @NotNull String ID() {
+  public String ID() {
     return ID;
   }
 
+  @NotNull
   @Override
-  public @NotNull WidgetPresentation getPresentation() {
+  public WidgetPresentation getPresentation() {
     return this;
   }
 
@@ -63,13 +68,15 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
     myAdapter = null;
   }
 
+  @NotNull
   @Override
-  public @NotNull String getTooltipText() {
+  public String getTooltipText() {
     return myLastConnectionState.myTooltip;
   }
 
+  @NotNull
   @Override
-  public @NotNull Icon getIcon() {
+  public Icon getIcon() {
     return myLastConnectionState.myIcon;
   }
 
@@ -92,7 +99,8 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
     statusBar.updateWidget(ID);
   }
 
-  private @NotNull ConnectionState getConnectionState() {
+  @NotNull
+  private ConnectionState getConnectionState() {
     if (myAdapter == null) {
       return STUDIO_MANAGED_DISCONNECTED;
     }
@@ -113,14 +121,17 @@ final class AdbConnectionWidget implements StatusBarWidget.IconPresentation, Sta
     @VisibleForTesting
     @NotNull
     Icon myIcon;
-    @VisibleForTesting private @NotNull String myTooltip;
+    @VisibleForTesting
+    @NotNull
+    private String myTooltip;
 
     ConnectionState(@NotNull Icon icon, @NotNull String tooltip) {
       myIcon = icon;
       myTooltip = tooltip;
     }
 
-    private static @NotNull Icon getStatusIcon(@NotNull Icon base, @NotNull Color color) {
+    @NotNull
+    private static Icon getStatusIcon(@NotNull Icon base, @NotNull Color color) {
       return ExecutionUtil.getIndicator(base, base.getIconWidth(), base.getIconHeight(), color);
     }
   }

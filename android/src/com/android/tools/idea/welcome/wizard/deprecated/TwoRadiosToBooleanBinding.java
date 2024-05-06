@@ -17,14 +17,14 @@ package com.android.tools.idea.welcome.wizard.deprecated;
 
 import com.android.tools.idea.wizard.dynamic.ScopedDataBinder;
 import com.google.common.base.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import javax.swing.JComponent;
-import javax.swing.JRadioButton;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Two-way binding for using dual radiobuttons to edit a boolean value.

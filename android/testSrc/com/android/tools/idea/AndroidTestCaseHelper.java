@@ -16,13 +16,13 @@
 
 package com.android.tools.idea;
 
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
+
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 
 public class AndroidTestCaseHelper {
 

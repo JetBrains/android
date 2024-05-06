@@ -72,7 +72,7 @@ class EmbeddedEmulatorTest {
     robot.type(' ')
 
     // Let the dust settle.
-    emulatorView.waitForFrame(frameNumber + 1, 2, TimeUnit.SECONDS)
+    emulatorView.waitForFrame(frameNumber + 1u, 2, TimeUnit.SECONDS)
     emulatorView.waitForPeriodWithoutNewFrames(Duration.ofSeconds(3))
     frameNumber = emulatorView.frameNumber
     val start = System.currentTimeMillis()
@@ -82,7 +82,7 @@ class EmbeddedEmulatorTest {
     }
     val typingTimePerCharacter = (System.currentTimeMillis() - start).toDouble() / text.length
     // Wait for a calm period after at least one new frame.
-    emulatorView.waitForFrame(frameNumber + 1, 2, TimeUnit.SECONDS)
+    emulatorView.waitForFrame(frameNumber + 1u, 2, TimeUnit.SECONDS)
     emulatorView.waitForPeriodWithoutNewFrames(Duration.ofSeconds(2))
 
     val timePerCharacter = (emulatorView.frameTimestampMillis - start).toDouble() / text.length
@@ -94,7 +94,7 @@ class EmbeddedEmulatorTest {
   }
 
   @Throws(TimeoutException::class)
-  private fun EmulatorView.waitForFrame(frame: Int, timeout: Long, unit: TimeUnit) {
+  private fun EmulatorView.waitForFrame(frame: UInt, timeout: Long, unit: TimeUnit) {
     waitForCondition(timeout, unit) { frameNumber >= frame }
   }
 

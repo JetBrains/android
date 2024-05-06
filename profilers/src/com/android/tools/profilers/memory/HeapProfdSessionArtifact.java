@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
 
 public class HeapProfdSessionArtifact extends MemorySessionArtifact<Trace.TraceInfo> {
@@ -61,6 +62,18 @@ public class HeapProfdSessionArtifact extends MemorySessionArtifact<Trace.TraceI
         //  Failed to append symbols to end of export file.
       }
     }
+  }
+
+  @NotNull
+  @Override
+  public String getExportableName() {
+    return MemoryProfiler.generateCaptureFileName();
+  }
+
+  @NotNull
+  @Override
+  public String getExportExtension() {
+    return "heapprofd";
   }
 
   public static List<SessionArtifact<?>> getSessionArtifacts(@NotNull StudioProfilers profilers,

@@ -67,6 +67,7 @@ constructor(
   }
 
   private fun fireCloseEvent() = onClose(false)
+
   private fun fireCancelEvent() = onClose(true)
 
   override fun perform(

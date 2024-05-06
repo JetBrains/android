@@ -12,10 +12,11 @@ import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
 
 public class IdeaITNProxy {
   public static List<Pair<String, String>> getKeyValuePairs(@Nullable String login,

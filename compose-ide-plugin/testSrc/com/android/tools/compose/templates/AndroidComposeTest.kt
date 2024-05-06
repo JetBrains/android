@@ -21,9 +21,9 @@ import com.intellij.codeInsight.template.impl.InvokeTemplateAction
 import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl
 import com.intellij.codeInsight.template.impl.TemplateSettings
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
-class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
+class AndroidComposeTest : JavaCodeInsightFixtureAdtTestCase() {
 
   override fun setUp() {
     super.setUp()
@@ -36,7 +36,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
     class Row
     class Column
     class Box
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
     TemplateManagerImpl.setTemplateTesting(myFixture.testRootDisposable)
@@ -55,7 +56,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
       fun NewsStory() {
           W<caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.type("\t")
@@ -73,7 +75,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
               
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -92,7 +95,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val template = TemplateSettings.getInstance().getTemplate("WR", "AndroidCompose")
@@ -113,7 +117,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -132,7 +137,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")</selection><caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val template = TemplateSettings.getInstance().getTemplate("WC", "AndroidCompose")
@@ -153,7 +159,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -173,7 +180,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
             "A day in Shark Fin Cove")
           Text("Davenport, California")
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val template = TemplateSettings.getInstance().getTemplate("paddp", "AndroidCompose")
@@ -193,7 +201,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
             "A day in Shark Fin Cove")
           Text("Davenport, California")
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -213,7 +222,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
             "A day in Shark Fin Cove")
           Text("Davenport, California")
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val template = TemplateSettings.getInstance().getTemplate("weight", "AndroidCompose")
@@ -233,7 +243,8 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
             "A day in Shark Fin Cove")
           Text("Davenport, California")
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 }

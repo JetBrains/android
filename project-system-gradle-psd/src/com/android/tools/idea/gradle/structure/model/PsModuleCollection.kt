@@ -22,7 +22,7 @@ import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.android.PsMutableCollectionBase
 import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleManager
@@ -74,7 +74,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
     //Add non-existing mid-hierarchy modules as empty modules.
     val declaredPaths = result.mapSmartSet { it.gradlePath }
     declaredPaths
-      .flatMap { GradleUtil.getAllParentModulesPaths(it) }
+      .flatMap { GradleProjectSystemUtil.getAllParentModulesPaths(it) }
       .filterNot { declaredPaths.contains(it) }
       .distinct()
       .forEach { result.add(ModuleKey(ModuleKind.EMPTY, it)) }

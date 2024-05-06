@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.project;
 
+import com.android.tools.idea.apk.debugging.ApkDebugging;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+
+import java.util.List;
+
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddApkFacet;
 import static com.google.common.truth.Truth.assertThat;
-
-import com.android.tools.idea.apk.debugging.ApkDebugging;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
-import java.util.List;
-import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Tests for {@link AndroidProjectInfo}.

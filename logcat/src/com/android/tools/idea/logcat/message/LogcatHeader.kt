@@ -23,14 +23,13 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.util.Locale
 
-private val epockTimeFormatter: DateTimeFormatter = DateTimeFormatterBuilder()
-  .appendValue(ChronoField.INSTANT_SECONDS)
-  .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
-  .toFormatter(Locale.ROOT)
+private val epockTimeFormatter: DateTimeFormatter =
+  DateTimeFormatterBuilder()
+    .appendValue(ChronoField.INSTANT_SECONDS)
+    .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+    .toFormatter(Locale.ROOT)
 
-/**
- * The header part of a Logcat message
- */
+/** The header part of a Logcat message */
 data class LogcatHeader(
   val logLevel: LogLevel,
   val pid: Int,

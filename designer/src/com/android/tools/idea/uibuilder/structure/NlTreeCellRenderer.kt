@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager
 import com.android.tools.lint.detector.api.stripIdPrefix
-import com.intellij.ui.NewUiValue
+import com.intellij.ui.ExperimentalUI
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
@@ -123,11 +123,10 @@ class NlTreeCellRenderer(private val myBadgeHandler: NlTreeBadgeHandler) :
 
     primaryLabel.icon =
       handler?.getIcon(value)?.let {
-        if (selected && treeFocused && !NewUiValue.isEnabled())
+        if (selected && treeFocused && !ExperimentalUI.isNewUI())
           ColoredIconGenerator.generateWhiteIcon(it)
         else it
-      }
-        ?: StudioIcons.LayoutEditor.Palette.VIEW
+      } ?: StudioIcons.LayoutEditor.Palette.VIEW
 
     val id = stripIdPrefix(value.id)
     var primaryLabelText = id.ifBlank { handler?.getTitle(value) }

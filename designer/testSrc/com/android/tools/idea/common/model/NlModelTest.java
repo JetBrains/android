@@ -42,7 +42,6 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
@@ -51,6 +50,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
@@ -922,7 +922,7 @@ public class NlModelTest extends LayoutTestCase {
 
   @NotNull
   private SyncNlModel createModel(@NotNull XmlFile modelXml) {
-    return SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE, null, myFacet, modelXml.getVirtualFile());
+    return SyncNlModel.create(myFixture.getTestRootDisposable(), NlComponentRegistrar.INSTANCE, null, myFacet, modelXml.getVirtualFile());
   }
 
   @NotNull

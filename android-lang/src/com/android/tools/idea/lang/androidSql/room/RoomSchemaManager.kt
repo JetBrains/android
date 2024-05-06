@@ -29,7 +29,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.originalFileOrSelf
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -53,6 +52,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiUtil
+import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.psi.KtExpression
 
@@ -80,7 +80,9 @@ class RoomSchemaManager(val module: Module) {
   fun getSchema(psiFile: PsiFile): RoomSchema? {
     var vFile = psiFile.originalFile.virtualFile ?: return null
     // When we are inside Editing Fragment vFile does not belong to module. We need to use original one.
-    vFile = vFile.originalFileOrSelf()
+    if (vFile is LightVirtualFile && vFile.originalFile != null) {
+      vFile = vFile.originalFile
+    }
     if (!module.moduleContentScope.contains(vFile)) return null
 
     val scopeType = module.getModuleSystem().getScopeType(vFile, module.project)

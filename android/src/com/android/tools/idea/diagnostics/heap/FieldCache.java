@@ -18,6 +18,7 @@ package com.android.tools.idea.diagnostics.heap;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.isPrimitive;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
+import com.google.common.collect.Sets;
 import com.intellij.util.Function;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
@@ -25,7 +26,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -75,7 +75,7 @@ public final class FieldCache {
 
     try {
       List<Field> declaredFields = getFields.fun(aClass);
-      Set<Field> fields = new HashSet<>();
+      Set<Field> fields = Sets.newHashSet();
 
       for (Field declaredField : declaredFields) {
         declaredField.setAccessible(true);
@@ -102,7 +102,7 @@ public final class FieldCache {
     catch (IncompatibleClassChangeError | NoClassDefFoundError | SecurityException |
            InaccessibleObjectException e) {
       // this exception may be thrown because there are two different versions of
-      // org.jetbrains.org.objectweb.asm.tree.ClassNode from different plugins.
+      // org.objectweb.asm.tree.ClassNode from different plugins.
       cache.put(aClass, EMPTY_FIELD_ARRAY);
     }
     return cache.get(aClass);
@@ -115,6 +115,6 @@ public final class FieldCache {
   }
 
   public Object[] getStaticFields(@NotNull Class<?> aClass) {
-    return HeapSnapshotTraverse.getClassStaticFieldsValues(aClass);
+    return MemoryReportJniHelper.getClassStaticFieldsValues(aClass);
   }
 }

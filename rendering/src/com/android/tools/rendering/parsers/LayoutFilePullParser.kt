@@ -17,19 +17,42 @@
 
 package com.android.tools.rendering.parsers
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_IGNORE
+import com.android.SdkConstants.ATTR_LAYOUT
+import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
+import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
+import com.android.SdkConstants.AUTO_URI
+import com.android.SdkConstants.EXPANDABLE_LIST_VIEW
+import com.android.SdkConstants.GRID_VIEW
+import com.android.SdkConstants.LIST_VIEW
+import com.android.SdkConstants.SPINNER
+import com.android.SdkConstants.TOOLS_URI
+import com.android.SdkConstants.VALUE_FILL_PARENT
+import com.android.SdkConstants.VALUE_MATCH_PARENT
+import com.android.SdkConstants.VIEW_INCLUDE
 import com.android.ide.common.rendering.api.ILayoutPullParser
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.util.PathString
 import com.android.support.FragmentTagUtil.isFragmentTag
+import com.android.tools.apk.analyzer.ResourceIdResolver
 import com.android.tools.rendering.LayoutMetadata
 import com.android.tools.res.FileResourceReader
+import com.android.tools.res.ids.ResourceIdManager
 import org.xmlpull.v1.XmlPullParser
 
 /** Creates a new [ILayoutPullParser] for the given XML file. */
-fun create(xml: PathString, namespace: ResourceNamespace): ILayoutPullParser? {
-  val parser = FileResourceReader.createXmlPullParser(xml) ?: return null
+fun create(
+  xml: PathString,
+  namespace: ResourceNamespace,
+  resIdManager: ResourceIdManager?
+): ILayoutPullParser? {
+  val parser =
+    FileResourceReader.createXmlPullParser(xml) { i ->
+      resIdManager?.let { it.findById(i)?.resourceUrl?.toString() }
+        ?: ResourceIdResolver.NO_RESOLUTION.resolve(i)
+    } ?: return null
   return LayoutPullParserImpl(parser, namespace)
 }
 
@@ -37,10 +60,9 @@ fun create(xml: PathString, namespace: ResourceNamespace): ILayoutPullParser? {
  * Modified [XmlPullParser] that adds the methods of [ILayoutPullParser], and performs other
  * layout-specific parser behavior like translating fragment tags into include tags.
  */
-private class LayoutPullParserImpl(
-  private val delegate: XmlPullParser,
-  private val layoutNamespace: ResourceNamespace
-) : ILayoutPullParser, XmlPullParser by delegate {
+private class LayoutPullParserImpl
+constructor(private val delegate: XmlPullParser, private val layoutNamespace: ResourceNamespace) :
+  ILayoutPullParser, XmlPullParser by delegate {
   /** The layout to be shown for the current `<fragment>` tag. Usually null. */
   private var fragmentLayout: String? = null
 

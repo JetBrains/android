@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -195,9 +196,15 @@ class DesignToolsIssueProviderTest {
     `when`(fakeNlComponent.model).thenReturn(fakeNlModel)
 
     val ktFileIssues = listOf(TestIssue(source = IssueSourceWithFile(ktFile, "")))
+    val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val visualLintIssues =
       listOf(
-        createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, listOf(fakeNlComponent), "")
+        createTestVisualLintRenderIssue(
+          VisualLintErrorType.BOUNDS,
+          listOf(fakeNlComponent),
+          issueProvider,
+          ""
+        )
       )
 
     val ktSource = Any()

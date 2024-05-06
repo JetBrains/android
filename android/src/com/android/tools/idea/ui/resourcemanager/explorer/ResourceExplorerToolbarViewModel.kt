@@ -50,7 +50,6 @@ import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
@@ -130,7 +129,7 @@ class ResourceExplorerToolbarViewModel(
         ResourceType.INTEGER,
         ResourceType.STRING -> add(NewResourceValueAction(resourceType, facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
         ResourceType.FONT -> add(AddFontAction(facet, this@ResourceExplorerToolbarViewModel::onCreatedResource))
-        else -> { }
+        else -> {}
       }
     }
 
@@ -222,17 +221,16 @@ class ResourceExplorerToolbarViewModel(
   /**
    * Implementation of [DataProvider] needed for [CreateResourceFileAction]
    */
-  override fun getData(dataId: String): Any? = when {
-    CommonDataKeys.PROJECT.`is`(dataId) -> facet.module.project
-    PlatformCoreDataKeys.MODULE.`is`(dataId) -> facet.module
-    LangDataKeys.IDE_VIEW.`is`(dataId) -> this
-    PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> {
-      val myFacet = facet
-      val myResourceType = resourceType
-      val myProject = facet.module.project
+  override fun getData(dataId: String): Any? = when (dataId) {
+    CommonDataKeys.PROJECT.name -> facet.module.project
+    PlatformCoreDataKeys.MODULE.name -> facet.module
+    LangDataKeys.IDE_VIEW.name -> this
+    PlatformCoreDataKeys.BGT_DATA_PROVIDER.name -> DataProvider { getDataInBackground(it) }
+    else -> null
+  }
 
-      DataProvider { dataId -> getSlowData(dataId, myFacet, myResourceType, myProject) }
-    }
+  private fun getDataInBackground(dataId: String): Any? = when(dataId) {
+    CommonDataKeys.PSI_ELEMENT.name -> getPsiDirForResourceType()
     else -> null
   }
 
@@ -241,15 +239,7 @@ class ResourceExplorerToolbarViewModel(
    *
    * Needed for AssetStudio.
    */
-  private fun getSlowData(dataId: String, facet: AndroidFacet, resourceType: ResourceType, project: Project): Any? {
-    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
-      return getPsiDirForResourceType(facet, resourceType)
-    } else {
-      return null
-    }
-  }
-
-  private fun getPsiDirForResourceType(facet: AndroidFacet, resourceType: ResourceType): PsiDirectory? {
+  private fun getPsiDirForResourceType(): PsiDirectory? {
     val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
     val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
       getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()

@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersi
 import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFix
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
 import com.android.tools.lint.checks.GooglePlaySdkIndex
+import com.android.utils.SdkUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -50,6 +51,7 @@ import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
 import java.util.EventListener
 
@@ -220,8 +222,10 @@ class PsAnalyzerDaemon(
     var numUpdates = 0
     var numOther = 0
     addAll(project.modules.flatMap { module ->
-      module.dependencies.libraries.mapNotNull {
-        getSdkIndexIssueFor(it.spec, it.path, it.parent.rootDir)?.also { issue->
+      module.dependencies.libraries.map {
+        getSdkIndexIssueFor(it.spec, it.path, it.parent.rootDir)
+      }.flatten()
+        .onEach { issue ->
           when (issue.severity) {
             ERROR -> numErrors++
             WARNING -> numWarnings++
@@ -231,7 +235,6 @@ class PsAnalyzerDaemon(
             else -> numOther++
           }
         }
-      }
     }, now = false)
     LOG.debug("Issues recreated: $numErrors errors, $numWarnings warnings, $numInfo information, $numUpdates updates, $numOther other")
     notifyRunning()
@@ -239,78 +242,60 @@ class PsAnalyzerDaemon(
 }
 
 /**
- * Checks if the dependency has issues in the Google Play SDK Index and if it does, returns the one with higher severity.
+ * Returns the list of issues from the Google Play SDK Index that the given library has.
  *
  * @param dependencySpec: dependency being checked
- * @param libraryPath: path of the library dependency, used generating the issues
+ * @param libraryPath: path of the library dependency, used for generating the issues
  * @param parentModuleRootDir: root dir of the parent module of this dependency
  *
- * @return The issue with the higher severity from the SDK index, or null if there are no issues
+ * @return The list of issues from the SDK index for the given library, empty if no issues are present
  */
 fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
                         libraryPath: PsPath,
                         parentModuleRootDir: File?,
-                        sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex): PsGeneralIssue? {
-  val groupId = dependencySpec.group ?: return null
-  val versionString = dependencySpec.version ?: return null
+                        sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex): List<PsGeneralIssue> {
+  val groupId = dependencySpec.group ?: return emptyList()
+  val versionString = dependencySpec.version ?: return emptyList()
   val artifactId = dependencySpec.name
 
+  // Report all SDK Index issues without grouping them(b/316038712):
+  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
   val isNonCompliant = sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)
   val isCritical = sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)
   val isOutdated = sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)
-  val numberOfTypes = listOf(isNonCompliant, isCritical, isOutdated).count { it }
 
-  if (numberOfTypes == 0) {
-    return null
-  }
-
-  val isBlocking = sdkIndex.hasLibraryBlockingIssues(groupId, artifactId, versionString)
-  val message: String
-  val severity: PsIssue.Severity
+  val foundIssues: MutableList<PsGeneralIssue> = mutableListOf()
   if (isBlocking) {
-    severity = ERROR
-    message = if (numberOfTypes == 1) {
-      when {
-        isNonCompliant -> sdkIndex.generateBlockingPolicyMessage(groupId, artifactId, versionString)
-        isCritical -> sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
-        isOutdated -> sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
-        else -> sdkIndex.generateBlockingGenericIssueMessage(groupId, artifactId, versionString)
+    if (isNonCompliant) {
+      sdkIndex.generateBlockingPolicyMessages(groupId, artifactId, versionString).forEach { message->
+        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
       }
     }
-    else {
-      sdkIndex.generateBlockingGenericIssueMessage(groupId, artifactId, versionString)
+    if (isCritical) {
+      val message = sdkIndex.generateBlockingCriticalMessage(groupId, artifactId, versionString)
+      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
+    }
+    if (isOutdated) {
+      val message = sdkIndex.generateBlockingOutdatedMessage(groupId, artifactId, versionString)
+      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, ERROR, sdkIndex))
     }
   }
   else {
-    if (numberOfTypes == 1) {
-      when {
-        isNonCompliant -> {
-          message = sdkIndex.generatePolicyMessage(groupId, artifactId, versionString)
-          severity = WARNING
-        }
-
-        isCritical -> {
-          message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
-          severity = INFO
-        }
-
-        isOutdated -> {
-          message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
-          severity = WARNING
-        }
-
-        else -> {
-          message = sdkIndex.generateGenericIssueMessage(groupId, artifactId, versionString)
-          severity = WARNING
-        }
+    if (isNonCompliant) {
+      sdkIndex.generatePolicyMessages(groupId, artifactId, versionString).forEach { message->
+        foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex))
       }
     }
-    else {
-      message = sdkIndex.generateGenericIssueMessage(groupId, artifactId, versionString)
-      severity = WARNING
+    if (isOutdated) {
+      val message = sdkIndex.generateOutdatedMessage(groupId, artifactId, versionString)
+      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, WARNING, sdkIndex))
+    }
+    if (isCritical) {
+      val message = sdkIndex.generateCriticalMessage(groupId, artifactId, versionString)
+      foundIssues.add(createIndexIssue(message, groupId, artifactId, versionString, libraryPath, INFO, sdkIndex))
     }
   }
-  return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, severity, sdkIndex)
+  return foundIssues
 }
 
 private fun createIndexIssue(
@@ -324,17 +309,25 @@ private fun createIndexIssue(
 ): PsGeneralIssue {
   val url = sdkIndex.getSdkUrl(groupId, artifactId)
   val fixes = if (url != null) {
-    listOf(SdkIndexLinkQuickFix("View details on Google Play SDK Index", url, groupId, artifactId, versionString))
+    listOf(SdkIndexLinkQuickFix("View details", url, groupId, artifactId, versionString))
   }
   else {
     listOf()
   }
+  val wrappedMessage = wrapMessage(message)
   return PsGeneralIssue(
-    message,
+    wrappedMessage,
     "",
     mainPath,
     PLAY_SDK_INDEX_ISSUE,
     severity,
     fixes
   )
+}
+
+@VisibleForTesting
+fun wrapMessage(message: String, maxWidth: Int = 55): String {
+  return SdkUtils.wrap(message, maxWidth, maxWidth, /* no hanging*/null, /*no breaks*/false)
+    .trim()
+    .replace("\n", "\n<br>")
 }

@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantImpl
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -34,7 +35,17 @@ import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 
-internal const val ourAndroidSyncVersion = "2023-07-14/1"
+/**
+ * Suffix for the cached sync files version to allow for changes between development versions that have the same version
+ */
+private const val ourAndroidSyncVersionSuffix = "2023-10-17/7"
+
+/**
+ * Version of the cached sync files, used to ensure caches were written by this version of Studio to avoid untested behavior.
+ *
+ * Includes the Android Studio (or IDEA) version to force sync when updating Android Studio (or IDEA)
+ */
+internal val ourAndroidSyncVersion: String = "${ApplicationInfo.getInstance()!!.build} $ourAndroidSyncVersionSuffix"
 
 interface GradleAndroidModelData : ModuleModel {
   val androidSyncVersion: String
@@ -61,10 +72,7 @@ data class GradleAndroidModelDataImpl(
 ) : GradleAndroidModelData {
   init {
     require(androidSyncVersion == ourAndroidSyncVersion) {
-      String.format(
-        "Attempting to deserialize a model of incompatible version (%s)",
-        androidSyncVersion
-      )
+      "Attempting to deserialize a model of incompatible version '$androidSyncVersion'. Current IDE model version is '$ourAndroidSyncVersion'"
     }
   }
 

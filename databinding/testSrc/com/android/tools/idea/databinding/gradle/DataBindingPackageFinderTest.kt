@@ -25,9 +25,9 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
@@ -40,8 +40,7 @@ class DataBindingPackageFinderTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -64,7 +63,7 @@ class DataBindingPackageFinderTest {
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
     // Make sure that all file system events up to this point have been processed.
-    VfsTestUtil.syncRefresh()
+    VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
     val facet = projectRule.androidFacet(":app")
@@ -72,7 +71,12 @@ class DataBindingPackageFinderTest {
 
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
-    assertThat(fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context))
+    assertThat(
+        fixture.findClass(
+          "com.android.example.viewbinding.databinding.ActivityMainBinding",
+          context
+        )
+      )
       .isInstanceOf(LightBindingClass::class.java)
     assertThat(fixture.findPackage("com.android.example.viewbinding.databinding")).isNotNull()
   }
@@ -84,13 +88,22 @@ class DataBindingPackageFinderTest {
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
     // Make sure that all file system events up to this point have been processed.
-    VfsTestUtil.syncRefresh()
+    VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
     val context = fixture.findClass("com.android.example.appwithdatabinding.MainActivity")
-    assertThat(LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode).isEqualTo(DataBindingMode.ANDROIDX)
-    assertThat(fixture.findClass("com.android.example.appwithdatabinding.databinding.ActivityMainBinding", context)).isInstanceOf(
-      LightBindingClass::class.java)
-    assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding")).isNotNull()
+    assertThat(
+        LayoutBindingModuleCache.getInstance(projectRule.androidFacet(":app")).dataBindingMode
+      )
+      .isEqualTo(DataBindingMode.ANDROIDX)
+    assertThat(
+        fixture.findClass(
+          "com.android.example.appwithdatabinding.databinding.ActivityMainBinding",
+          context
+        )
+      )
+      .isInstanceOf(LightBindingClass::class.java)
+    assertThat(fixture.findPackage("com.android.example.appwithdatabinding.databinding"))
+      .isNotNull()
   }
 }

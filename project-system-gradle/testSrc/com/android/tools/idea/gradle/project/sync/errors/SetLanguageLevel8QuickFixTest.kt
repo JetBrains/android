@@ -21,7 +21,7 @@ import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8Al
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetLanguageLevel8ModuleQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.findModule
@@ -172,7 +172,11 @@ class SetLanguageLevel8QuickFixTest {
   }
 
   private fun verifyBuildFiles(project: Project, quickfix: AbstractSetLanguageLevel8QuickFix, modules: List<Module>) {
-    val expectedBuildFiles = modules.map { GradleUtil.getGradleBuildFile(it) }
+    val expectedBuildFiles = modules.map {
+      GradleProjectSystemUtil.getGradleBuildFile(
+        it
+      )
+    }
     val buildFiles = quickfix.buildFilesToApply(project)
     assertThat(buildFiles).containsExactlyElementsIn(expectedBuildFiles)
   }

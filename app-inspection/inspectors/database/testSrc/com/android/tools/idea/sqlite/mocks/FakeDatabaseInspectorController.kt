@@ -25,9 +25,9 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.repository.DatabaseRepository
-import kotlinx.coroutines.withContext
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
+import kotlinx.coroutines.withContext
 
 open class FakeDatabaseInspectorController(
   private val repository: DatabaseRepository,

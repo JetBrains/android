@@ -19,8 +19,8 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.devicemanager.CountDownLatchAssert
-import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback
+import com.android.tools.idea.concurrency.CountDownLatchAssert
+import com.android.tools.idea.concurrency.CountDownLatchFutureCallback
 import com.android.tools.idea.devicemanager.Key
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures.immediateFuture

@@ -109,7 +109,7 @@ class JobEntry(override val id: String) : BackgroundTaskEntry {
         callstacks.add(BackgroundTaskCallStack(timestamp, backgroundTaskEvent.stacktrace))
         isRescheduled = backgroundTaskEvent.jobFinished.needsReschedule
       }
-      else -> { }
+      else -> {}
     }
   }
 }

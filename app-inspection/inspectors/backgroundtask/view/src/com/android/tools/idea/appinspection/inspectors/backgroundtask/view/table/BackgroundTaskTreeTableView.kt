@@ -35,10 +35,9 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
@@ -48,12 +47,15 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.SwingConstants
+import javax.swing.border.Border
 import javax.swing.event.TreeExpansionEvent
 import javax.swing.event.TreeExpansionListener
 import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 
 @VisibleForTesting
 val CLASS_NAME_COMPARATOR =
@@ -92,7 +94,8 @@ val START_TIME_COMPARATOR =
       .toInt()
   }
 
-val TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0)
+private val TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0)
+private val TABLE_ROW_BORDER: Border = JBUI.Borders.emptyLeft(10)
 
 /**
  * A [JBScrollPane] that consists of a tree table with basic information of all background tasks.
@@ -109,8 +112,9 @@ class BackgroundTaskTreeTableView(
   val expandedPaths = mutableSetOf<TreePath>()
 
   init {
-    val tree = JTree(treeModel)
+    val tree = Tree(treeModel)
     tree.isRootVisible = false
+    tree.border = TABLE_ROW_BORDER
     // Allow variable row heights.
     tree.rowHeight = 0
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
@@ -331,7 +335,6 @@ class BackgroundTaskTreeTableView(
         )
         .setComparator(START_TIME_COMPARATOR)
     )
-
     component = builder.build()
   }
 

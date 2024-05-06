@@ -16,8 +16,11 @@
 package org.jetbrains.android.dom.motion;
 
 import com.intellij.util.xml.DefinesXml;
+import com.intellij.util.xml.JavaNameStrategy;
 import com.intellij.util.xml.NameStrategy;
 import org.jetbrains.android.dom.Styleable;
+
+import java.util.List;
 
 @DefinesXml
 @NameStrategy(PascalNameStrategy.class)

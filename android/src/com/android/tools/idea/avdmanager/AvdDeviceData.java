@@ -21,6 +21,7 @@ import com.android.resources.Density;
 import com.android.resources.Keyboard;
 import com.android.resources.Navigation;
 import com.android.resources.ScreenOrientation;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.devices.ButtonType;
 import com.android.sdklib.devices.CameraLocation;
 import com.android.sdklib.devices.Device;
@@ -31,7 +32,6 @@ import com.android.sdklib.devices.Software;
 import com.android.sdklib.devices.State;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.DoubleProperty;
@@ -48,6 +48,7 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.double_.DoubleExpression;
+import com.android.tools.preview.config.Densities;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;
@@ -60,58 +61,58 @@ import org.jetbrains.annotations.Nullable;
  * Data class containing all properties needed to build a device.
  */
 public final class AvdDeviceData {
-  private StringProperty myName = new StringValueProperty();
-  private OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<IdDisplay>();
-  private StringProperty myManufacturer = new StringValueProperty();
-  private StringProperty myTagId = new StringValueProperty();
-  private StringProperty myDeviceId = new StringValueProperty();
+  private final StringProperty myName = new StringValueProperty();
+  private final OptionalProperty<IdDisplay> myDeviceType = new OptionalValueProperty<>();
+  private final StringProperty myManufacturer = new StringValueProperty();
+  private final StringProperty myTagId = new StringValueProperty();
+  private final StringProperty myDeviceId = new StringValueProperty();
 
-  private DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
-  private IntProperty myScreenResolutionWidth = new IntValueProperty();
-  private IntProperty myScreenResolutionHeight = new IntValueProperty();
-  private IntProperty myScreenFoldedXOffset = new IntValueProperty();
-  private IntProperty myScreenFoldedYOffset = new IntValueProperty();
-  private IntProperty myScreenFoldedWidth = new IntValueProperty();
-  private IntProperty myScreenFoldedHeight = new IntValueProperty();
-  private IntProperty myScreenFoldedXOffset2 = new IntValueProperty();
-  private IntProperty myScreenFoldedYOffset2 = new IntValueProperty();
-  private IntProperty myScreenFoldedWidth2 = new IntValueProperty();
-  private IntProperty myScreenFoldedHeight2 = new IntValueProperty();
-  private IntProperty myScreenFoldedXOffset3 = new IntValueProperty();
-  private IntProperty myScreenFoldedYOffset3 = new IntValueProperty();
-  private IntProperty myScreenFoldedWidth3 = new IntValueProperty();
-  private IntProperty myScreenFoldedHeight3 = new IntValueProperty();
+  private final DoubleProperty myDiagonalScreenSize = new DoubleValueProperty();
+  private final IntProperty myScreenResolutionWidth = new IntValueProperty();
+  private final IntProperty myScreenResolutionHeight = new IntValueProperty();
+  private final IntProperty myScreenFoldedXOffset = new IntValueProperty();
+  private final IntProperty myScreenFoldedYOffset = new IntValueProperty();
+  private final IntProperty myScreenFoldedWidth = new IntValueProperty();
+  private final IntProperty myScreenFoldedHeight = new IntValueProperty();
+  private final IntProperty myScreenFoldedXOffset2 = new IntValueProperty();
+  private final IntProperty myScreenFoldedYOffset2 = new IntValueProperty();
+  private final IntProperty myScreenFoldedWidth2 = new IntValueProperty();
+  private final IntProperty myScreenFoldedHeight2 = new IntValueProperty();
+  private final IntProperty myScreenFoldedXOffset3 = new IntValueProperty();
+  private final IntProperty myScreenFoldedYOffset3 = new IntValueProperty();
+  private final IntProperty myScreenFoldedWidth3 = new IntValueProperty();
+  private final IntProperty myScreenFoldedHeight3 = new IntValueProperty();
 
-  private ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<Storage>(new Storage(0, Storage.Unit.MiB));
+  private final ObjectProperty<Storage> myRamStorage = new ObjectValueProperty<>(new Storage(0, Storage.Unit.MiB));
 
-  private BoolProperty myHasHardwareButtons = new BoolValueProperty();
-  private BoolProperty myHasHardwareKeyboard = new BoolValueProperty();
-  private OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<Navigation>();
+  private final BoolProperty myHasHardwareButtons = new BoolValueProperty();
+  private final BoolProperty myHasHardwareKeyboard = new BoolValueProperty();
+  private final OptionalProperty<Navigation> myNavigation = new OptionalValueProperty<>();
 
-  private BoolProperty mySupportsLandscape = new BoolValueProperty();
-  private BoolProperty mySupportsPortrait = new BoolValueProperty();
+  private final BoolProperty mySupportsLandscape = new BoolValueProperty();
+  private final BoolProperty mySupportsPortrait = new BoolValueProperty();
 
-  private BoolProperty myHasBackCamera = new BoolValueProperty();
-  private BoolProperty myHasFrontCamera = new BoolValueProperty();
+  private final BoolProperty myHasBackCamera = new BoolValueProperty();
+  private final BoolProperty myHasFrontCamera = new BoolValueProperty();
 
-  private BoolProperty myHasAccelerometer = new BoolValueProperty();
-  private BoolProperty myHasGyroscope = new BoolValueProperty();
-  private BoolProperty myHasGps = new BoolValueProperty();
-  private BoolProperty myHasProximitySensor = new BoolValueProperty();
-  private BoolProperty myHasSdCard = new BoolValueProperty();
-  private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
-  private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
+  private final BoolProperty myHasAccelerometer = new BoolValueProperty();
+  private final BoolProperty myHasGyroscope = new BoolValueProperty();
+  private final BoolProperty myHasGps = new BoolValueProperty();
+  private final BoolProperty myHasProximitySensor = new BoolValueProperty();
+  private final BoolProperty myHasSdCard = new BoolValueProperty();
+  private final OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<>();
+  private final OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
-  private BoolValueProperty myIsAutomotive = new BoolValueProperty();
-  private BoolValueProperty myIsTv = new BoolValueProperty();
-  private BoolValueProperty myIsWear = new BoolValueProperty();
-  private BoolValueProperty myIsDesktop = new BoolValueProperty();
-  private BoolValueProperty myIsScreenRound = new BoolValueProperty();
-  private IntValueProperty myScreenChinSize = new IntValueProperty();
+  private final BoolValueProperty myIsAutomotive = new BoolValueProperty();
+  private final BoolValueProperty myIsTv = new BoolValueProperty();
+  private final BoolValueProperty myIsWear = new BoolValueProperty();
+  private final BoolValueProperty myIsDesktop = new BoolValueProperty();
+  private final BoolValueProperty myIsScreenRound = new BoolValueProperty();
+  private final IntValueProperty myScreenChinSize = new IntValueProperty();
   private State myDefaultState;
   private File myLastSkinFolder;
   private Dimension myLastSkinDimension;
-  private ObjectProperty<Density> myDensity = new ObjectProperty<Density>() {
+  private final ObjectProperty<Density> myDensity = new ObjectProperty<>() {
     private Density myDensity = Density.MEDIUM;
 
     @Override
@@ -123,17 +124,18 @@ public final class AvdDeviceData {
     public @NotNull Density get() {
       if (myOriginalDpi == myScreenDpi.get()) {
         return myDensity;
-      } else {
-        return AvdScreenData.getScreenDensity(isTv().get(), myScreenDpi.get(), myScreenResolutionHeight.get());
+      }
+      else {
+        return Densities.getScreenDensity(isTv().get(), myScreenDpi.get(), myScreenResolutionHeight.get());
       }
     }
   };
 
-  private OptionalProperty<Software> mySoftware = new OptionalValueProperty<Software>();
+  private final OptionalProperty<Software> mySoftware = new OptionalValueProperty<>();
 
   private double myOriginalDpi;
 
-  private DoubleExpression myScreenDpi =
+  private final DoubleExpression myScreenDpi =
     // Every time the screen size is changed we calculate its dpi to validate it on the step
     new DoubleExpression(myScreenResolutionWidth, myScreenResolutionHeight, myDiagonalScreenSize) {
       @NotNull
@@ -141,24 +143,25 @@ public final class AvdDeviceData {
       public Double get() {
         // The diagonal DPI will be somewhere in between the X and Y dpi if they differ
         return AvdScreenData.calculateDpi(
-            myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
+          myScreenResolutionWidth.get(), myScreenResolutionHeight.get(), myDiagonalScreenSize.get(), myIsScreenRound.get());
       }
     };
 
-  private ObservableBool mySkinSizeIsCompatible = new BooleanExpression(myScreenResolutionWidth, myScreenResolutionHeight, myCustomSkinFile) {
-    @NotNull
-    @Override
-    public Boolean get() {
-      if (!myCustomSkinFile.get().isPresent()) {
-        return true;
-      }
+  private final ObservableBool mySkinSizeIsCompatible =
+    new BooleanExpression(myScreenResolutionWidth, myScreenResolutionHeight, myCustomSkinFile) {
+      @NotNull
+      @Override
+      public Boolean get() {
+        if (myCustomSkinFile.get().isEmpty()) {
+          return true;
+        }
 
-      Dimension dimension = getSkinDimension(myCustomSkinFile.getValueOrNull());
-      return dimension == null ||
-             (dimension.getWidth() >= myScreenResolutionWidth.get() && dimension.getHeight() >= myScreenResolutionHeight.get()) ||
-             (dimension.getHeight() >= myScreenResolutionWidth.get() && dimension.getWidth() >= myScreenResolutionHeight.get());
-    }
-  };
+        Dimension dimension = getSkinDimension(myCustomSkinFile.getValueOrNull());
+        return dimension == null ||
+               (dimension.getWidth() >= myScreenResolutionWidth.get() && dimension.getHeight() >= myScreenResolutionHeight.get()) ||
+               (dimension.getHeight() >= myScreenResolutionWidth.get() && dimension.getWidth() >= myScreenResolutionHeight.get());
+      }
+    };
 
   public AvdDeviceData() {
     Software software = new Software();
@@ -210,11 +213,6 @@ public final class AvdDeviceData {
   @NotNull
   public StringProperty manufacturer() {
     return myManufacturer;
-  }
-
-  @NotNull
-  public StringProperty tagId() {
-    return myTagId;
   }
 
   @NotNull
@@ -495,8 +493,8 @@ public final class AvdDeviceData {
     myName.set(device.getDisplayName());
     String tagId = device.getTagId();
     if (myTagId.get().isEmpty()) {
-      myTagId.set(SystemImage.DEFAULT_TAG.getId());
-      myDeviceType.setValue(SystemImage.DEFAULT_TAG);
+      myTagId.set(SystemImageTags.DEFAULT_TAG.getId());
+      myDeviceType.setValue(SystemImageTags.DEFAULT_TAG);
     }
     else {
       for (IdDisplay tag : AvdWizardUtils.ALL_DEVICE_TAGS) {
@@ -527,10 +525,6 @@ public final class AvdDeviceData {
     myScreenFoldedYOffset3.set(screen.getFoldedYOffset3());
     myScreenFoldedWidth3.set(screen.getFoldedWidth3());
     myScreenFoldedHeight3.set(screen.getFoldedHeight3());
-    /**
-     * This is maxed out at {@link AvdWizardUtils.MAX_RAM_MB}, for more information read
-     * {@link AvdWizardUtils#getDefaultRam(Hardware)}
-     */
     myRamStorage.set(AvdWizardUtils.getDefaultRam(defaultHardware));
     myHasHardwareButtons.set(defaultHardware.getButtonType() == ButtonType.HARD);
     myHasHardwareKeyboard.set(defaultHardware.getKeyboard() != Keyboard.NOKEY);
@@ -580,7 +574,6 @@ public final class AvdDeviceData {
     myCustomSkinFile.setValue((skinFile == null) ? AvdWizardUtils.NO_SKIN : skinFile);
   }
 
-  @SuppressWarnings("SuspiciousNameCombination") // We sometimes deliberately swap x/width y/height relationships depending on orientation
   @NotNull
   public Dimension getDeviceScreenDimension() {
     int width = myScreenResolutionWidth.get();

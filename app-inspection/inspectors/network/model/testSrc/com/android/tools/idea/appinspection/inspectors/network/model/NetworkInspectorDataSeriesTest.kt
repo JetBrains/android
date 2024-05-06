@@ -19,15 +19,12 @@ import com.android.tools.adtui.model.Range
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.Event
-import studio.network.inspection.NetworkInspectorProtocol.SpeedEvent
 
 class NetworkInspectorDataSeriesTest {
   @Test
   fun getDataForRange() {
-    val event1 =
-      Event.newBuilder().setTimestamp(1000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
-    val event2 =
-      Event.newBuilder().setTimestamp(2000).setSpeedEvent(SpeedEvent.getDefaultInstance()).build()
+    val event1 = speedEvent(timestampNanos = 1000)
+    val event2 = speedEvent(timestampNanos = 2000)
     val source = FakeNetworkInspectorDataSource(speedEventList = listOf(event1, event2))
 
     val foundEvents = mutableListOf<Event>()

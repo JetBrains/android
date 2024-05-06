@@ -15,16 +15,13 @@
  */
 package com.android.tools.compose.intentions
 
-
 import com.google.common.truth.Truth
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.compose.stubComposableAnnotation
 
-/**
- * Test for [ComposeUnwrapAction].
- */
-internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
+/** Test for [ComposeUnwrapAction]. */
+internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureAdtTestCase() {
 
   public override fun setUp() {
     super.setUp()
@@ -41,7 +38,8 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
     inline fun Row(content: @Composable () -> Unit) {}
     inline fun Column(content: @Composable () -> Unit) {}
     inline fun Box(content: @Composable () -> Unit) {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -63,7 +61,8 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
               Text("December 2018")
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val action = myFixture.availableIntentions.find { it.text == "Remove wrapper" }
@@ -87,7 +86,8 @@ internal class ComposeUnwrapActionTest : JavaCodeInsightFixtureTestCase() {
           Text("Davenport, California")
           Text("December 2018")
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 }

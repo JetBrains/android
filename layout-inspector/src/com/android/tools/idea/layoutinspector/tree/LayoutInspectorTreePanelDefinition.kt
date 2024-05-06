@@ -22,16 +22,27 @@ import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.intellij.icons.AllIcons
 
-class LayoutInspectorTreePanelDefinition :
+class LayoutInspectorTreePanelDefinition(
+  side: Side = Side.RIGHT,
+  split: Split = Split.TOP,
+  overrideSide: Boolean = false,
+  overrideSplit: Boolean = false,
+  showGearAction: Boolean = true,
+  showHideAction: Boolean = true
+) :
   ToolWindowDefinition<LayoutInspector>(
     "Component Tree",
     AllIcons.Toolwindows.ToolWindowStructure,
     "TREE",
-    Side.LEFT,
-    Split.TOP,
+    side,
+    split,
     AutoHide.DOCKED,
     DEFAULT_SIDE_WIDTH,
     DEFAULT_BUTTON_SIZE,
     ALLOW_SPLIT_MODE,
+    showGearAction,
+    showHideAction,
+    overrideSide,
+    overrideSplit,
     { LayoutInspectorTreePanel(it) }
   )

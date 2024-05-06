@@ -21,14 +21,11 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter
 
-interface Property: AndroidDomElement {
+interface Property : AndroidDomElement {
 
-  @Required
-  fun getName(): AndroidAttributeValue<String>
+  @Required fun getName(): AndroidAttributeValue<String>
 
-  @Convert(ResourceReferenceConverter::class)
-  fun getResource(): AndroidAttributeValue<String>
+  @Convert(ResourceReferenceConverter::class) fun getResource(): AndroidAttributeValue<String>
 
-  @Convert(ResourceReferenceConverter::class)
-  fun getValue(): AndroidAttributeValue<String>
+  @Convert(ResourceReferenceConverter::class) fun getValue(): AndroidAttributeValue<String>
 }

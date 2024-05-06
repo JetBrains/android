@@ -151,6 +151,7 @@ class RenderTemplateModel private constructor(
         useGenericInstrumentedTests = newTemplate.useGenericInstrumentedTests
         useGenericLocalTests = newTemplate.useGenericLocalTests
         projectTemplateDataBuilder.language = language.value
+        projectTemplateDataBuilder.agpVersion = agpVersion.get()
 
         projectTemplateDataBuilder.debugKeyStoreSha1 = getSha1DebugKeystoreSilently(androidFacet)
 
@@ -204,7 +205,7 @@ class RenderTemplateModel private constructor(
       if (newTemplate.constraints.contains(TemplateConstraint.Compose)) {
         // Compose requires this specific Kotlin
         moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion =
-          getComposeKotlinVersion(isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3))
+          getComposeKotlinVersion()
       }
 
       val context = RenderingContext(
@@ -281,7 +282,6 @@ class RenderTemplateModel private constructor(
         Language.Java
     }
 
-    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.9.0"
-
+    fun getComposeKotlinVersion(): String = "1.9.0"
   }
 }

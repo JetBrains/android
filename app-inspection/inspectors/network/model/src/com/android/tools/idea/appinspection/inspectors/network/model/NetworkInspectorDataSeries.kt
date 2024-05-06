@@ -18,9 +18,9 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 import com.android.tools.adtui.model.DataSeries
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import studio.network.inspection.NetworkInspectorProtocol.Event
-import java.util.concurrent.TimeUnit
 
 /**
  * The amount of "padding" used when querying for data.

@@ -15,11 +15,15 @@
  */
 package com.android.tools.inspectors.common.ui.dataviewer
 
+import com.android.tools.adtui.swing.findDescendant
 import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.impl.EditorComponentImpl
 import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.ui.EditorNotificationPanel
+import com.intellij.ui.HyperlinkLabel
 import javax.swing.text.JTextComponent
 
 class IntellijDataViewerTest : HeavyPlatformTestCase() {
@@ -45,6 +49,98 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
     assertExpectedEditorSettings(viewer)
   }
+
+  fun testFormatting() {
+    val jsonText = """{product: "Studio", version: 3.14}"""
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
+      project,
+      jsonText.toByteArray(),
+      JsonFileType.INSTANCE,
+      true,
+      testRootDisposable
+    )
+
+    val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
+    assertThat(editorComponent.editor.document.text).isEqualTo(
+      """
+        {
+          product: "Studio",
+          version: 3.14
+        }
+    """.trimIndent()
+    )
+  }
+
+  fun testNoFormattingForTooLargeResponse() {
+    val jsonText = """{product: "Studio", version: 3.14}"""
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
+      project,
+      jsonText.toByteArray(),
+      JsonFileType.INSTANCE,
+      true,
+      testRootDisposable,
+      jsonText.length - 1,
+    )
+
+    val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
+    val banner = viewer.component.findDescendant<EditorNotificationPanel>() ?: kotlin.test.fail("Banner not found")
+    val action = banner.findDescendant<HyperlinkLabel>() ?: kotlin.test.fail("Banner action not found")
+    assertThat(editorComponent.editor.document.text).isEqualTo(jsonText)
+    assertThat(banner.text).isEqualTo("Response was not auto-formatted because it was too large.")
+    assertThat(action.text).isEqualTo("Reformat now")
+  }
+
+  fun testNoFormattingForTooLargeResponseAndReformat() {
+    val jsonText = """{product: "Studio", version: 3.14}"""
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
+      project,
+      jsonText.toByteArray(),
+      JsonFileType.INSTANCE,
+      true,
+      testRootDisposable,
+      jsonText.length - 1
+    )
+    val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
+    val banner = viewer.component.findDescendant<EditorNotificationPanel>() ?: kotlin.test.fail("Banner not found")
+    val action = banner.findDescendant<HyperlinkLabel>() ?: kotlin.test.fail("Banner action not found")
+    assertThat(editorComponent.editor.document.text).isEqualTo(jsonText)
+
+    action.doClick()
+
+    assertThat(editorComponent.editor.document.text).isEqualTo(
+      """
+        {
+          product: "Studio",
+          version: 3.14
+        }
+      """.trimIndent()
+    )
+  }
+
+  fun testNoFormattingForFormatableLargeResponse() {
+    val jsonText = """{product: "Studio", version: 3.14}"""
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(
+      project,
+      jsonText.toByteArray(),
+      JsonFileType.INSTANCE,
+      true,
+      testRootDisposable,
+      jsonText.length + 1
+    )
+
+    val editorComponent = viewer.component.findDescendant<EditorComponentImpl>() ?: kotlin.test.fail("EditorComponentImpl not found")
+    val banner = viewer.component.findDescendant<EditorNotificationPanel>()
+    assertThat(editorComponent.editor.document.text).isEqualTo(
+      """
+        {
+          product: "Studio",
+          version: 3.14
+        }
+      """.trimIndent()
+    )
+    assertThat(banner).isNull()
+  }
+
 
   fun testPlainTextCreatesPlainEditorViewerInsteadOfPrettyEditorViewer() {
     val sampleText = "ASDF ".repeat(100)

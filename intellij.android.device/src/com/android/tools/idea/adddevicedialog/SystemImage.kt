@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.runtime.Immutable
 import com.android.repository.api.RepoPackage
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.repository.meta.DetailsTypes.ApiDetailsType
@@ -23,17 +24,24 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 
+@Immutable
 internal class SystemImage private constructor(repoPackage: RepoPackage) {
   internal val apiLevel = (repoPackage.typeDetails as ApiDetailsType).androidVersion
 
   internal companion object {
-    internal fun getSystemImages(): Iterable<SystemImage> {
+    internal fun getSystemImages(): Collection<SystemImage> {
       val indicator = StudioLoggerProgressIndicator(SystemImage::class.java)
       val manager = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(indicator)
 
-      manager.loadSynchronously(0, indicator, StudioDownloader(), StudioSettingsController.getInstance())
+      manager.loadSynchronously(
+        0,
+        indicator,
+        StudioDownloader(),
+        StudioSettingsController.getInstance()
+      )
 
-      return manager.packages.consolidatedPkgs.values.asSequence()
+      return manager.packages.consolidatedPkgs.values
+        .asSequence()
         .map(UpdatablePackage::getRepresentative)
         .filter(RepoPackage::hasSystemImage)
         .map(::SystemImage)

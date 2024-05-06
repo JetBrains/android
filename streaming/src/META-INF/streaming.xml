@@ -24,6 +24,7 @@
                              bundle="messages.StreamingBundle"
                              key="android.configurable.DeviceMirroringConfigurable.displayName"/>
 
+    <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.device.actions.DeviceCustomizableActionGroupProvider"/>
     <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
     <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
@@ -144,8 +145,7 @@
         <keyboard-shortcut first-keystroke="alt shift 0" keymap="$default"/>
       </action>
       <action id="android.emulator.display.mode.foldable" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Foldable"
-              icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Unfolded Foldable"
-              description="Change display size to match a typical foldable">
+              icon="StudioIcons.Emulator.Menu.MODE_FOLDABLE" text="Foldable" description="Change display size to match a typical foldable">
         <keyboard-shortcut first-keystroke="alt shift 1" keymap="$default"/>
       </action>
       <action id="android.emulator.display.mode.tablet" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeAction$Tablet"
@@ -159,6 +159,8 @@
               description="Enable transparent forwarding of keyboard and mouse events to the connected device"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
+      <action id="android.streaming.ui.settings" class="com.android.tools.idea.streaming.actions.StreamingUiSettingsAction"
+              icon="StudioIcons.Common.SETTINGS" text="Common Android Settings" description="Shortcuts to common Android settings"/>
     </group>
     <action id="android.streaming.benchmark" class="com.android.tools.idea.streaming.benchmark.StreamingBenchmarkAction"
             icon="StudioIcons.Shell.Menu.PROFILER" text="Benchmark Streaming Device"
@@ -180,6 +182,7 @@
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
+      <reference ref="android.streaming.ui.settings"/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
       <group id="android.emulator.display.mode" class="com.android.tools.idea.streaming.emulator.actions.DisplayModeActionGroup"
@@ -191,6 +194,8 @@
       </group>
       <reference ref="android.emulator.snapshots"/>
       <reference ref="android.streaming.hardware.input"/>
+      <!-- Placeholder group to maintain ordering of WHS button, button is registered in wear-whs module -->
+      <group id="android.device.wear.whs.placeholder"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
@@ -207,6 +212,7 @@
       <reference ref="android.device.back.button"/>
       <reference ref="android.device.home.button"/>
       <reference ref="android.device.overview.button"/>
+      <reference ref="android.streaming.ui.settings"/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
       <reference ref="android.streaming.hardware.input"/>

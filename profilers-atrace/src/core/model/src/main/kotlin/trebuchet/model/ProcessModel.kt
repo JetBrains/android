@@ -18,7 +18,7 @@ package trebuchet.model
 
 import trebuchet.model.fragments.ProcessModelFragment
 
-class ProcessModel(val model: Model, fragment: ProcessModelFragment) {
+class ProcessModel constructor(val model: Model, fragment: ProcessModelFragment) {
     val id: Int = fragment.id
     val name: String = fragment.name ?: "<$id>"
     val threads: List<ThreadModel>

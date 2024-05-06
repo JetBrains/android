@@ -105,7 +105,7 @@ class ConstraintLayoutHelperInspectorBuilder(
       val comboBox = ComboBox<String>()
       fillCombobox(comboBox)
       comboBox.border = EmptyBorder(8, 8, 8, 8)
-      comboBox.putClientProperty(ComboBox.IS_TABLE_CELL_EDITOR_PROPERTY, true)
+      comboBox.putClientProperty("JComboBox.isTableCellEditor", true)
       comboBox.addActionListener {
         val selectedIndex = comboBox.selectedIndex
         var referencePicked = comboBox.getItemAt(selectedIndex)

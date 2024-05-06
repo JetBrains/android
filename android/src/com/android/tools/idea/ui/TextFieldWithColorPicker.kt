@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.ui
 
+import com.android.ide.common.resources.colorToString
+import com.android.ide.common.resources.parseColor
 import com.android.tools.adtui.FocusableIcon
 import com.android.tools.adtui.LightCalloutPopup
 import com.android.tools.adtui.TextFieldWithLeftComponent
 import com.android.tools.adtui.canShowBelow
-import com.android.tools.idea.res.colorToString
-import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider

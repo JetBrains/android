@@ -16,6 +16,7 @@
 package com.android.tools.idea.transport;
 
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.grpc.ManagedChannel;
 import com.android.tools.idea.io.grpc.Server;
 import com.android.tools.idea.io.grpc.inprocess.InProcessServerBuilder;
@@ -43,6 +44,17 @@ public class TransportProxy {
     // Returns true if the registered proxy command handler should handle the command, false if the proxy should delegate to the device.
     default boolean shouldHandle(Commands.Command command) {
       return true;
+    }
+
+    /**
+     * Populates event queue with a session ended event if Task-Based UX is enabled.
+     */
+    default void addSessionEndedEvent(BlockingDeque<Common.Event> eventQueue, long timestamp, int pid, long groupId) {
+      if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
+        eventQueue.offer(
+          Common.Event.newBuilder().setTimestamp(timestamp).setPid(pid).setGroupId(groupId).setKind(Common.Event.Kind.SESSION)
+            .setIsEnded(true).build());
+      }
     }
   }
 

@@ -19,6 +19,7 @@ import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getBundled
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
@@ -60,7 +61,6 @@ import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.module.AndroidModuleInfo;
-import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -362,7 +362,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     // resource repository.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myFacet);
-      LocalResourceRepository projectResources = repositoryManager.getProjectResources();
+      ResourceRepository projectResources = repositoryManager.getProjectResources();
       List<ResourceItem> items = projectResources.getResources(repositoryManager.getNamespace(), ResourceType.STRING, "app_name");
       ResourceValue resourceValue = !items.isEmpty() ? items.get(0).getResourceValue() : null;
       String defaultIconText = resourceValue == null || resourceValue.getValue() == null ? "Application Name" : resourceValue.getValue();

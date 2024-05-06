@@ -29,6 +29,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainChecker
 import com.google.common.annotations.VisibleForTesting
 import icons.StudioIcons.LayoutEditor.Toolbar
 import javax.swing.Icon
+import kotlin.streams.toList
 
 class ChainStyleViewActions {
   companion object {

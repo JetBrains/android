@@ -30,6 +30,7 @@ import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderResultStats
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VirtualFile
 import org.mockito.Mockito
 
 /**
@@ -58,11 +59,15 @@ class ScannerTestHelper {
     val nlComponent = Mockito.mock(NlComponent::class.java)
     val mixin = NlComponentMixin(nlComponent)
     whenever(nlComponent.mixin).thenReturn(mixin)
-    model?.let { whenever(nlComponent.model).thenReturn(model!!) }
 
-    val model = Mockito.mock(NlModel::class.java)
-    whenever(nlComponent.model).thenReturn(model)
-    whenever(model.modelDisplayName).thenReturn("displayName")
+    val nlModel =
+      model
+        ?: Mockito.mock(NlModel::class.java).apply {
+          whenever(modelDisplayName).thenReturn("displayName")
+          val mockFile = Mockito.mock(VirtualFile::class.java)
+          whenever(virtualFile).thenReturn(mockFile)
+        }
+    whenever(nlComponent.model).thenReturn(nlModel)
 
     whenever(nlComponent.tagName).thenReturn(tagName)
 

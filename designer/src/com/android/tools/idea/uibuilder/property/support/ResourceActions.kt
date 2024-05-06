@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceValue
+import com.android.ide.common.resources.colorToString
 import com.android.resources.ResourceType
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.android.tools.adtui.actions.locationFromEvent
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.res.colorToString
 import com.android.tools.idea.res.resolveColor
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcechooser.util.createAndShowColorPickerPopup
@@ -37,12 +37,12 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import icons.StudioIcons
-import org.jetbrains.annotations.TestOnly
 import java.awt.Color
 import java.awt.Component
 import java.awt.Point
 import java.util.Locale
 import javax.swing.JComponent
+import org.jetbrains.annotations.TestOnly
 
 const val PICK_A_RESOURCE = "Pick a Resource"
 
@@ -63,8 +63,7 @@ class ToggleShowResolvedValueAction(val model: NlPropertiesModel) :
   }
 
   companion object {
-    val SHORTCUT
-      get() = KeyboardShortcut(KeyStrokes.CMD_MINUS, null)
+    @JvmField val SHORTCUT = KeyboardShortcut(KeyStrokes.CMD_MINUS, null)
   }
 }
 
@@ -147,6 +146,7 @@ typealias ColorPickerCreator =
 
 object ColorSelectionAction : TestableColorSelectionAction()
 
+@Suppress("ComponentNotRegistered")
 open class TestableColorSelectionAction(
   @TestOnly val onCreateColorPicker: ColorPickerCreator = ::createAndShowColorPickerPopup
 ) : AnAction("Select Color") {

@@ -16,7 +16,7 @@
 package com.android.tools.nativeSymbolizer
 
 import com.android.sdklib.devices.Abi
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test

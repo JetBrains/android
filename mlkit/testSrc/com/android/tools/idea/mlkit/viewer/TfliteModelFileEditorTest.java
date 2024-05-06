@@ -18,7 +18,7 @@ package com.android.tools.idea.mlkit.viewer;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.annotations.NonNull;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
@@ -27,10 +27,12 @@ import com.android.tools.idea.mlkit.MlProjectTestUtil;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.google.wireless.android.sdk.stats.MlModelBindingEvent;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.BinaryLightVirtualFile;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.WaitFor;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -196,6 +198,18 @@ public class TfliteModelFileEditorTest extends AndroidTestCase {
     assertThat(contentPanel.getComponentCount()).isEqualTo(2);
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(0), "Model");
     verifySectionPanelContainsLabel((JPanel)contentPanel.getComponent(1), "Sample Code");
+  }
+
+  public void testNonPhysicalFile_doesNotThrow() throws IOException {
+    VirtualFile modelFile = setupProject("mobilenet_quant_no_metadata.tflite", "ml/my_model.tflite");
+    BinaryLightVirtualFile virtualFile = new BinaryLightVirtualFile("ml/my_model.tflite", modelFile.contentsToByteArray());
+    TfliteModelFileEditor editor = new TfliteModelFileEditor(myFixture.getProject(), virtualFile);
+
+    try {
+      editor.getComponent();
+    } catch (Exception e) {
+      fail("Should not throw");
+    }
   }
 
   private static void verifySectionPanelContainsLabel(@NonNull JPanel sectionPanel, @NonNull String labelText) {

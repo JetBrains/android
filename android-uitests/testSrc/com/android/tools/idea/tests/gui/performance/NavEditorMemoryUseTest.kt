@@ -15,7 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.performance
 
+import com.android.tools.idea.bleak.IgnoreList
+import com.android.tools.idea.bleak.IgnoreListEntry
+import com.android.tools.idea.bleak.StudioBleakOptions
 import com.android.tools.idea.bleak.UseBleak
+import com.android.tools.idea.bleak.runWithBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -24,7 +28,6 @@ import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
@@ -58,6 +61,13 @@ class NavEditorMemoryUseTest {
   @Test
   @UseBleak
   fun addDestination() {
+    val bleakOptions = StudioBleakOptions.defaultsWithAdditionalIgnoreList(
+      IgnoreList(listOf(
+        // Once we start the test, the KeyboardFocusManager will retain a reference to the current selected panel.
+        // Since we do not close the editor, this makes sense and it is not a leak.
+        IgnoreListEntry { it.leaktrace.referenceMatches(1, "com.intellij.ide.IdeKeyboardFocusManager", "focusOwner") },
+      ))
+    )
     val navSurface = guiTest.importProjectAndWaitForProjectSyncToFinish("Navigation")
       .editor
       .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
@@ -65,10 +75,17 @@ class NavEditorMemoryUseTest {
       .waitForRenderToFinish()
       .navSurface
 
-    guiTest.runWithBleak {
+    navSurface.click()
+
+    runWithBleak(bleakOptions) {
       navSurface.openAddDestinationMenu()
-        .waitForContents().selectDestination("fragment_my")
-      guiTest.robot().pressAndReleaseKey(KeyEvent.VK_DELETE)
+        .waitForContents()
+        .selectDestination("fragment_my")
+      navSurface.waitForRenderToFinish()
+      navSurface.click()
+      guiTest.robot().waitForIdle()
+      // Restore the state to the starting point
+      guiTest.ideFrame().invokeMenuPath("Edit","Undo Add fragment_my")
     }
   }
 }

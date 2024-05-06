@@ -42,7 +42,7 @@ class ModuleValidator(
 
   override fun validate(moduleGradlePath: String): Result {
     val illegalCharIdx = ILLEGAL_CHAR_MATCHER.indexIn(moduleGradlePath)
-    val rootedModuleGradlePath = if (moduleGradlePath.startsWith(":")) moduleGradlePath else ":$moduleGradlePath"
+    val rootedModuleGradlePath = if (moduleGradlePath.startsWith(":")) moduleGradlePath else ":" + moduleGradlePath
     // TODO(b/149203281): Fix support for composite projects. This code assumes that `moduleGradlePath` is for a Gradle build at the root
     //                    of the IDE project.
     val gradleProjectPath = GradleHolderProjectPath(projectPath, rootedModuleGradlePath)

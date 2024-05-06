@@ -38,7 +38,7 @@ public class GoToModuleAction extends DumbAwareAction {
   }
 
   @Override
-  public void actionPerformed(@NotNull AnActionEvent e) {
+  public void actionPerformed(AnActionEvent e) {
     myContext.setSelectedModule(myModuleName, myInvoker);
   }
 }

@@ -24,12 +24,9 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
@@ -41,11 +38,12 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
+import java.awt.Component
+import java.awt.Graphics
 import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.Icon
-import javax.swing.JComponent
 import javax.swing.SwingConstants
 import javax.swing.border.Border
 
@@ -60,8 +58,15 @@ val REFRESH_BUTTON =
     JBColor(0x59A869, 0x499C54)
   )
 
-internal fun chipBorder(color: Color): Border =
-  RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, ACTION_BORDER_THICKNESS)
+internal fun chipBorder(color: Color): Border = object: RoundedLineBorder(
+  UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, ACTION_BORDER_THICKNESS) {
+  override fun paintBorder(c: Component, g: Graphics, x: Int, y: Int, width: Int, height: Int) {
+    // Slightly hack RoundedLineBorder since it has a rendering bug in HiDPI modes.
+    // Will need to properly fix this by overriding the underlying component's paint method to
+    // use a filled Path instead of line rendering for border drawing.
+    super.paintBorder(c, g, x+1, y+1, width-1, height-1)
+  }
+}
 
 interface ComposeStatus {
   val icon: Icon?
@@ -113,9 +118,7 @@ open class IssueNotificationAction(
   private val createStatusInfo: (Project, DataContext) -> ComposeStatus?,
   private val createInformationPopup: (Project, DataContext) -> InformationPopup?,
   private val popupAlarm: Alarm = Alarm()
-) : AnAction(), CustomComponentAction, Disposable {
-
-  private val logger = logger<IssueNotificationAction>()
+) : IconWithTextAction(), Disposable {
 
   /**
    * The currently opened popup.
@@ -178,12 +181,6 @@ open class IssueNotificationAction(
     return status.icon == null && StringUtil.isEmpty(status.title)
   }
 
-  override fun createCustomComponent(presentation: Presentation, place: String): JComponent = IssueNotificationActionButton(this, presentation, place)
-
-  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
-    (component as ActionButtonWithText).update()
-  }
-
   override fun displayTextInToolbar(): Boolean = true
 
   override fun update(e: AnActionEvent) {
@@ -210,17 +207,12 @@ open class IssueNotificationAction(
    * Shows the actions popup.
    */
   private fun showPopup(e: AnActionEvent) {
-    val inputEvent = e.inputEvent ?: run {
-      logger.debug("showPopup($e): InputEvent is null.")
-      return
-    }
-
     popupAlarm.cancelAllRequests()
     val project = e.project ?: return
     popup = createInformationPopup(project, e.dataContext)?.also { newPopup ->
       // Whenever the mouse is inside the popup we cancel the existing alarms via callback
       newPopup.onMouseEnteredCallback = { popupAlarm.cancelAllRequests() }
-      newPopup.showPopup(this, inputEvent)
+      newPopup.showPopup(this, e.inputEvent!!)
     }
   }
 

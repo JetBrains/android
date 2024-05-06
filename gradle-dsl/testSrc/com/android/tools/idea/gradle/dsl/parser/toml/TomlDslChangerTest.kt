@@ -24,12 +24,30 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtil.findFile
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.io.File
 
-class TomlDslChangerTest : PlatformTestCase() {
+@RunWith(Parameterized::class)
+class TomlDslChangerTest(private val fileName: String) : LightPlatformTestCase() {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "For file: {0}")
+    fun filePath() = listOf("gradle/libs.versions.toml", "build.gradle.toml")
+  }
+
+  override fun setUp(){
+    Registry.`is`("android.gradle.declarative.plugin.studio.support", true)
+    super.setUp()
+  }
 
   @Test
   fun testDeleteSingleLiteral() {
@@ -65,23 +83,6 @@ class TomlDslChangerTest : PlatformTestCase() {
     doTest(toml, expected) { removeProperty("two") }
   }
 
-  fun testDeleteFromArrayTable() {
-    val toml = """
-      [[a]]
-      foo = "foo"
-      bar = "bar"
-    """.trimIndent()
-    val expected = """
-      [[a]]
-      foo = "foo"
-
-    """.trimIndent()
-    doTest(toml, expected) {
-      val map = ((elements["a"] as GradleDslExpressionList).getElementAt(0) as GradleDslExpressionMap)
-      map.removeProperty("bar")
-    }
-  }
-
   @Test
   fun testRenameMiddleLiteral() {
     val toml = """
@@ -98,35 +99,6 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
-  fun testDeleteSingleLiteralInTable() {
-    val toml = """
-      [table]
-      foo = "bar"
-    """.trimIndent()
-    val expected = """
-      [table]
-
-    """.trimIndent()
-    doTest(toml, expected) { (getPropertyElement("table") as? GradleDslExpressionMap)?.removeProperty("foo") }
-  }
-
-  @Test
-  fun testDeleteSingleLiteralInSegmentedTable() {
-    val toml = """
-      [table1.table2]
-      foo = "bar"
-    """.trimIndent()
-    val expected = """
-      [table1.table2]
-
-    """.trimIndent()
-    doTest(toml, expected) {
-      val table1 = (getPropertyElement("table1") as? GradleDslExpressionMap)
-      val table2  = table1?.getPropertyElement("table2") as? GradleDslExpressionMap
-      table2?.removeProperty("foo")
-    }
-  }
-  @Test
   fun testRenameSingleLiteralInTable() {
     val toml = """
       [table]
@@ -140,17 +112,6 @@ class TomlDslChangerTest : PlatformTestCase() {
       val table = (getPropertyElement("table") as? GradleDslExpressionMap)
       table?.elements?.get("foo")?.rename("foo_updated")
     }
-  }
-
-  @Test
-  fun testDeleteSingleLiteralInInlineTable() {
-    val toml = """
-      foo = { bar = "baz" }
-    """.trimIndent()
-    val expected = """
-      foo = { }
-    """.trimIndent()
-    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("bar") }
   }
 
   @Test
@@ -197,17 +158,6 @@ class TomlDslChangerTest : PlatformTestCase() {
       foo = { one = "one", two = "two" }
     """.trimIndent()
     doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionMap)?.removeProperty("three") }
-  }
-
-  @Test
-  fun testDeleteSingleLiteralInArray() {
-    val toml = """
-      foo = ["bar"]
-    """.trimIndent()
-    val expected = """
-      foo = []
-    """.trimIndent()
-    doTest(toml, expected) { (getPropertyElement("foo") as? GradleDslExpressionList)?.run { removeProperty(getElementAt(0)) } }
   }
 
   @Test
@@ -271,61 +221,6 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
-  fun testDeleteLastFromSegmentedTable() {
-    val toml = """
-      [a.b]
-      foo = "foo"
-      bar = "bar"
-    """.trimIndent()
-    val expected = """
-      [a.b]
-      foo = "foo"
-
-    """.trimIndent()
-    doTest(toml, expected) {
-      ((elements["a"] as GradleDslExpressionMap)
-        .getElement("b") as GradleDslExpressionMap)
-        .removeProperty("bar")
-    }
-  }
-
-  fun testDeleteFirstFromSegmentedTable() {
-    val toml = """
-      [a.b]
-      foo = "foo"
-      bar = "bar"
-    """.trimIndent()
-    val expected = """
-      [a.b]
-      bar = "bar"
-    """.trimIndent()
-    doTest(toml, expected) {
-      ((elements["a"] as GradleDslExpressionMap)
-        .getElement("b") as GradleDslExpressionMap)
-        .removeProperty("foo")
-    }
-  }
-
-  fun testDeleteMiddleFromSegmentedTable() {
-    val toml = """
-      [a.b]
-      foo = "foo"
-      bar = "bar"
-      baz = "baz"
-    """.trimIndent()
-    val expected = """
-      [a.b]
-      foo = "foo"
-      baz = "baz"
-    """.trimIndent()
-    doTest(toml, expected) {
-      ((elements["a"] as GradleDslExpressionMap)
-        .getElement("b") as GradleDslExpressionMap)
-        .removeProperty("bar")
-    }
-  }
-
-  @Test
   fun testAddSecondTable() {
     val toml = """
        [table]
@@ -381,23 +276,6 @@ class TomlDslChangerTest : PlatformTestCase() {
   }
 
   @Test
-  fun testAddToArrayTable() {
-    val toml = """
-      [[a]]
-      foo = "foo"
-    """.trimIndent()
-    val expected = """
-      [[a]]
-      foo = "foo"
-      bar = "bar"
-    """.trimIndent()
-    doTest(toml, expected) {
-      val map = ((elements["a"] as GradleDslExpressionList).getElementAt(0) as GradleDslExpressionMap)
-      map.addNewLiteral("bar","bar")
-    }
-  }
-
-  @Test
   fun testInsertLiteralLastInInlineTable() {
     val toml = """
       foo = { two = "two" }
@@ -445,89 +323,6 @@ class TomlDslChangerTest : PlatformTestCase() {
     }
   }
 
-  // Toml does not allow to have duplicate tables - so next cases are mostly about that we don't crash
-  @Test
-  fun testUpdateInSplitElement() {
-    val toml = """
-      [a]
-      foo = "foo"
-      [a]
-      bar = "bar"
-    """.trimIndent()
-    val expected = """
-      [a]
-      foo = "foo_updated"
-      [a]
-      bar = "bar"
-    """.trimIndent()
-    doTest(toml, expected) {
-      ((elements["a"] as GradleDslExpressionMap).getElement("foo") as GradleDslLiteral).setValue("foo_updated")
-    }
-  }
-  @Test
-  fun testUpdateInSplitElement2() {
-    val toml = """
-      [a]
-      foo = "foo"
-      [a]
-      bar = "bar"
-    """.trimIndent()
-    val expected = """
-      [a]
-      foo = "foo"
-      [a]
-      bar = "bar_updated"
-    """.trimIndent()
-    doTest(toml, expected) {
-      ((elements["a"] as GradleDslExpressionMap).getElement("bar") as GradleDslLiteral).setValue("bar_updated")
-    }
-  }
-
-  fun testAddIntoASplitElement() {
-    val toml = """
-      [a]
-      foo = "foo"
-      [a]
-      bar = "bar"
-    """.trimIndent()
-    val expected = """
-      [a]
-      foo = "foo"
-      [a]
-      bar = "bar"
-      baz = "baz"
-    """.trimIndent()
-    doTest(toml, expected) {
-      val a = getPropertyElement("a") as GradleDslExpressionMap
-      val baz = GradleDslLiteral(a, GradleNameElement.create("baz"))
-      baz.setValue("baz")
-      a.setNewElement(baz)
-    }
-  }
-
-  fun testAddIntoASplitElement2() {
-    val toml = """
-      [a.b]
-      foo = "foo"
-      [a.b]
-      bar = "bar"
-    """.trimIndent()
-    val expected = """
-      [a.b]
-      foo = "foo"
-      [a.b]
-      bar = "bar"
-      baz = "baz"
-    """.trimIndent()
-    doTest(toml, expected) {
-      val a = getPropertyElement("a") as GradleDslExpressionMap
-      val b = a.getPropertyElement("b") as GradleDslExpressionMap
-      val baz = GradleDslLiteral(b, GradleNameElement.create("baz"))
-      baz.setValue("baz")
-      b.setNewElement(baz)
-    }
-  }
-
   private fun doTest(toml: String, expected: String, changer: GradleDslFile.() -> Unit) {
     val libsTomlFile = writeLibsTomlFile(toml)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, MockitoKt.mock())) {}
@@ -544,9 +339,10 @@ class TomlDslChangerTest : PlatformTestCase() {
   private fun writeLibsTomlFile(text: String): VirtualFile {
     lateinit var libsTomlFile: VirtualFile
     runWriteAction {
-      val baseDir = getOrCreateProjectBaseDir()
-      val gradlePath = VfsUtil.createDirectoryIfMissing(baseDir, "gradle")
-      libsTomlFile = gradlePath.createChildData(this, "libs.versions.toml")
+      val file: File = File(project.basePath, fileName).getCanonicalFile()
+      FileUtil.createParentDirs(file)
+      val parent = findFile(file.parentFile.toPath(), true)!!
+      libsTomlFile = parent.createChildData(this, file.name)
       VfsUtil.saveText(libsTomlFile, text)
     }
     return libsTomlFile

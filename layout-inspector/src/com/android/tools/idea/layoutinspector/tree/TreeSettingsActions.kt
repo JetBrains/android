@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.ui.RenderModel
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
@@ -75,6 +76,8 @@ class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?
     renderModelProvider()?.refresh()
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_SYSTEM_NODES)
@@ -92,6 +95,8 @@ object HighlightSemanticsAction : ToggleAction("Highlight Semantics Layers") {
     event.treePanel()?.updateSemanticsFiltering()
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_SEMANTICS)
@@ -108,6 +113,8 @@ object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
     event.treePanel()?.refresh()
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible = isActionActive(event, Capability.SUPPORTS_COMPOSE)
@@ -115,6 +122,8 @@ object CallstackAction : ToggleAction("Show Compose as Callstack", null, null) {
 }
 
 object SupportLines : ToggleAction("Show Support Lines", null, null) {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun isSelected(event: AnActionEvent): Boolean =
     LayoutInspector.get(event)?.treeSettings?.supportLines ?: DEFAULT_SUPPORT_LINES
@@ -139,6 +148,8 @@ object RecompositionCounts : ToggleAction("Show Recomposition Counts", null, nul
     panel?.resetRecompositionCounts()
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.isVisible =
@@ -158,5 +169,4 @@ fun isActionActive(event: AnActionEvent, vararg capabilities: Capability): Boole
       .isConnected || // If not running, default to visible so user can modify selection when next
       // client is connected
       capabilities.all { client.capabilities.contains(it) }
-  }
-    ?: true
+  } ?: true

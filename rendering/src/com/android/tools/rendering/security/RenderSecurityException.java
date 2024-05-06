@@ -59,7 +59,7 @@ public class RenderSecurityException extends SecurityException {
      * @return a new exception
      */
     @NonNull
-    public static RenderSecurityException create(@NonNull String message) {
+    static RenderSecurityException create(@NonNull String message) {
         return new RenderSecurityException(message);
     }
 

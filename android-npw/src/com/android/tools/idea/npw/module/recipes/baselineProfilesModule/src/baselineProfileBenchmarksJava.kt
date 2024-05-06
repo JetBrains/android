@@ -19,7 +19,8 @@ fun baselineProfileBenchmarksJava(
   newModuleName: String,
   className: String,
   packageName: String,
-  targetPackageName: String
+  targetPackageName: String,
+  useInstrumentationArgumentForAppId: Boolean
 ): String {
   return """package $packageName;
 
@@ -30,6 +31,7 @@ import androidx.benchmark.macro.StartupTimingMetric;
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
+${if (useInstrumentationArgumentForAppId) "import androidx.test.platform.app.InstrumentationRegistry;" else ""}
 import kotlin.Unit;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,9 +47,10 @@ import java.util.Collections;
  * <p>
  * Run this benchmark to see startup measurements and captured system traces for verifying
  * the effectiveness of your Baseline Profiles. You can run it directly from Android
- * Studio as an instrumentation test, or run all benchmarks with this Gradle task:
+ * Studio as an instrumentation test, or run all benchmarks for a variant, for example benchmarkRelease,
+ * with this Gradle task:
  * <pre>
- * ./gradlew :$newModuleName:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark
+ * ./gradlew :$newModuleName:connectedBenchmarkReleaseAndroidTest
  * </pre>
  * <p>
  * You should run the benchmarks on a physical device, not an Android emulator, because the
@@ -74,8 +77,15 @@ public class $className {
     }
 
     private void benchmark(CompilationMode compilationMode) {
+        ${if (useInstrumentationArgumentForAppId) """
+          // The application id for the running build variant is read from the instrumentation arguments.
+          String targetAppId = InstrumentationRegistry.getArguments().getString("targetAppId");
+          if (targetAppId == null) {
+              throw new RuntimeException("targetAppId not passed as instrumentation runner arg");
+          }
+        """.trimIndent() else "// This example works only with the variant with application id `$targetPackageName`."}
         rule.measureRepeated(
-            "$targetPackageName",
+            ${if (useInstrumentationArgumentForAppId) "targetAppId" else "\"$targetPackageName\""},
             Collections.singletonList(new StartupTimingMetric()),
             compilationMode,
             StartupMode.COLD,

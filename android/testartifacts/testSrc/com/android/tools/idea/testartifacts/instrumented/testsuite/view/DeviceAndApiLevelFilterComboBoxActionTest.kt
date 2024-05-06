@@ -21,9 +21,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDeviceType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -75,8 +73,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
       addDevice(AndroidDevice("id3", "B-device3", "B-device3", AndroidDeviceType.LOCAL_EMULATOR, AndroidVersion(28)))
     }
 
-    val actionManager = ActionManager.getInstance()
-    val actions = comboBox.createActionGroup().getChildren(actionManager)
+    val actions = comboBox.createActionGroup().getChildren(null)
     assertThat(actions).asList().hasSize(7)
     assertThat(actions[0].templateText).isEqualTo("All devices")
     assertThat(actions[1]).isInstanceOf(Separator::class.java)
@@ -87,7 +84,7 @@ class DeviceAndApiLevelFilterComboBoxActionTest {
     assertThat(actions[5].templateText).isEqualTo("B-device3")
     assertThat(actions[6].templateText).isEqualTo("Z-device1")
 
-    val apiLevelActions = (actions[2] as DefaultActionGroup).getChildren(actionManager)
+    val apiLevelActions = (actions[2] as ActionGroup).getChildren(null)
     assertThat(apiLevelActions).asList().hasSize(2)
     assertThat(apiLevelActions[0].templateText).isEqualTo("API 28")
     assertThat(apiLevelActions[1].templateText).isEqualTo("API 29")

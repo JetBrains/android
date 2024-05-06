@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.catalog
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.dependencies.PluginDeclarationSpecImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.VersionDeclarationSpecImpl
@@ -148,7 +149,7 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
       val declarations = catalogModel.getVersionCatalogModel("libs")!!.pluginDeclarations()
 
       val versionDeclaration = versions.addDeclaration("fooVersion", "1.8.0")
-      declarations.addDeclaration("fooPlugin", "foo", versionDeclaration!!)
+      declarations.addDeclaration("fooPlugin", "foo", ReferenceTo(versionDeclaration!!, declarations))
 
       applyChangesAndReparse(buildModel)
       verifyFileContents(myVersionCatalogFile, """
@@ -180,7 +181,7 @@ class GradleVersionCatalogPluginsTest : GradleFileModelTestCase() {
 
   // We do not support writing in such format for now
   @Test
-  @Ignore
+  @Ignore("b/303108936")
   fun testAddDeclarationAsMapWithMapVersion() {
     prepareAddTest { buildModel, catalogModel ->
 

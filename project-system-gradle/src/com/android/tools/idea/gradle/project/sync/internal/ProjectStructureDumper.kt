@@ -97,12 +97,11 @@ fun ProjectDumper.dumpProject(project: Project) {
 
       val allModules = ModuleManager.getInstance(project).modules.toList().sortedModules()
       val appModules = ProjectStructure.getInstance(project).appHolderModules.sortedModules()
-      val leafModules = ProjectStructure.getInstance(project).leafHolderModules.sortedModules()
 
       when (buildMode) {
         BuildMode.REBUILD -> allModules
         BuildMode.COMPILE_JAVA -> allModules
-        BuildMode.ASSEMBLE -> leafModules
+        BuildMode.ASSEMBLE -> allModules
         BuildMode.CLEAN -> allModules
         BuildMode.APK_FROM_BUNDLE -> appModules
         BuildMode.BUNDLE -> appModules
@@ -145,7 +144,7 @@ fun ProjectDumper.dump(module: Module) {
     val moduleRootModel = moduleRootManager as ModuleRootModel
     moduleRootModel.contentEntries.sortedBy { it.url.toPrintablePath() }.forEach { dump(it) }
     val sourceFolderManager = SourceFolderManager.getInstance(module.project) as SourceFolderManagerImpl
-    val sourceFolders = sourceFolderManager.state.sourceFolders.filter { it.moduleName == module.name }
+    val sourceFolders = sourceFolderManager.state?.sourceFolders?.filter { it.moduleName == module.name }.orEmpty()
     sourceFolders.sortedBy { it.url.toPrintablePath() }.forEach {
       dump(it)
     }
@@ -300,7 +299,7 @@ private fun ProjectDumper.dump(library: Library) {
         .getUrls(type)
         .filterNot { file ->
           // Do not allow sources and java docs coming from cache sources as their content may change.
-          (file.toPrintablePath().contains("<KONAN>") || file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
+          (file.toPrintablePath().contains("<M2>") || file.toPrintablePath().contains("<GRADLE>")) &&
           (type == OrderRootType.DOCUMENTATION ||
            type == OrderRootType.SOURCES ||
            type == JavadocOrderRootType.getInstance())
@@ -359,7 +358,8 @@ private fun ProjectDumper.dump(facet: Facet<*>) {
   nest {
     prop("TypeId") { facet.typeId.toString() }
     prop("ExternalSource") { facet.externalSource?.id }
-    when (val configuration = facet.configuration) {
+    val configuration = facet.configuration
+    when (configuration) {
       is GradleFacetConfiguration -> dump(configuration)
       is AndroidFacetConfiguration -> dump(configuration)
       is NdkFacetConfiguration -> dump(configuration)

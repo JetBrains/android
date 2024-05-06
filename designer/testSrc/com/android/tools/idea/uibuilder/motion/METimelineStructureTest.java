@@ -16,11 +16,17 @@
 package com.android.tools.idea.uibuilder.motion;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.GraphRender;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TickMarkCalculator;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimeLineRowData;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.timeline.TimelineStructure;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.motion.adapters.BaseMotionEditorTest;
 import java.awt.Color;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import junit.framework.TestCase;
 
 public class METimelineStructureTest extends BaseMotionEditorTest {
   MTag layout = getLayout();

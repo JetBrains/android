@@ -27,4 +27,5 @@ interface DeviceFileExplorerActionListener {
   fun newFile(node: DeviceFileEntryNode)
   fun newDirectory(node: DeviceFileEntryNode)
   fun uploadFile(node: DeviceFileEntryNode)
+  fun setPackageFilter(isActive: Boolean)
 }

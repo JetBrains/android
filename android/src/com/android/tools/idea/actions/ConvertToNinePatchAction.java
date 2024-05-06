@@ -34,18 +34,19 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 public class ConvertToNinePatchAction extends AnAction {
   public ConvertToNinePatchAction() {
-    super(AndroidBundle.messagePointer("android.9patch.creator.title"));
+    super(AndroidBundle.message("android.9patch.creator.title"));
   }
 
   @Override

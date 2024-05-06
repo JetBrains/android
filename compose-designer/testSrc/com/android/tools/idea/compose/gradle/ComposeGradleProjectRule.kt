@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.gradle
 
 import com.android.flags.junit.FlagRule
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -101,6 +101,7 @@ open class ComposeGradleProjectRule(
     delegate.apply(base, description)
 
   fun clean() = GradleBuildInvoker.getInstance(project).cleanProject()
+
   fun build(): GradleInvocationResult = projectRule.invokeTasks("compileDebugSources")
 
   fun buildAndAssertIsSuccessful() {

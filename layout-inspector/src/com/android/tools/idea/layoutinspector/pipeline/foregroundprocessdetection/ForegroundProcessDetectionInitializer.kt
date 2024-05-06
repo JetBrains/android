@@ -21,6 +21,8 @@ import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportService
+import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
@@ -80,10 +82,12 @@ object ForegroundProcessDetectionInitializer {
   }
 
   fun initialize(
+    parentDisposable: Disposable,
     project: Project,
     processModel: ProcessesModel,
     deviceModel: DeviceModel,
     coroutineScope: CoroutineScope,
+    streamManager: TransportStreamManager,
     foregroundProcessListener: ForegroundProcessListener =
       getDefaultForegroundProcessListener(deviceModel, processModel),
     transportClient: TransportClient = getDefaultTransportClient(),
@@ -92,13 +96,15 @@ object ForegroundProcessDetectionInitializer {
   ): ForegroundProcessDetection {
     val foregroundProcessDetection =
       ForegroundProcessDetectionImpl(
+        parentDisposable,
         project,
         deviceModel,
         processModel,
         transportClient,
         layoutInspectorMetrics,
         metrics,
-        coroutineScope
+        coroutineScope,
+        streamManager
       )
 
     foregroundProcessDetection.addForegroundProcessListener(foregroundProcessListener)

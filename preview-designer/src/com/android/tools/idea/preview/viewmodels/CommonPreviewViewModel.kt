@@ -133,6 +133,7 @@ open class CommonPreviewViewModel(
         EditorNotifications.getInstance(project).updateNotifications(psiFilePointer.virtualFile)
       }
     }
+
   private fun updateViewAndNotifications() =
     UIUtil.invokeLaterIfNeeded {
       updateView()
@@ -149,6 +150,7 @@ open class CommonPreviewViewModel(
         // displaying if the mouse is hovering the link
       }
     }
+
   private fun updateView() {
     if (hasRendered.get()) {
       previewView.showContent()

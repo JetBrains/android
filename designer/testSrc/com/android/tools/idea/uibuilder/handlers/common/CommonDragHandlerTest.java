@@ -16,31 +16,18 @@
 package com.android.tools.idea.uibuilder.handlers.common;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.common.LayoutTestUtilities;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.GuiInputHandler;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.common.LayoutTestUtilities;
 import com.google.common.collect.ImmutableList;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 
 public class CommonDragHandlerTest extends LayoutTestCase {
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    StudioFlags.NELE_DRAG_PLACEHOLDER.override(true);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride();
-    super.tearDown();
-  }
 
   public void testDragFromTree() {
     SyncNlModel model = model("model.xml",
@@ -71,12 +58,7 @@ public class CommonDragHandlerTest extends LayoutTestCase {
     Transferable transferable = surface.getSelectionAsTransferable();
     GuiInputHandler manager = surface.getGuiInputHandler();
     manager.startListening();
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      LayoutTestUtilities.dragDrop(manager, 0, 0, 20, 0, transferable, DnDConstants.ACTION_MOVE);
-    }
-    else {
-      LayoutTestUtilities.dragDrop(manager, 0, 0, 40, 0, transferable, DnDConstants.ACTION_MOVE);
-    }
+    LayoutTestUtilities.dragDrop(manager, 0, 0, 20, 0, transferable, DnDConstants.ACTION_MOVE);
     assertEquals(3, model.find("inner").getChildCount());
     assertEquals("button", model.find("inner").getChild(2).getId());
     assertEquals(1, model.find("outer").getChildCount());

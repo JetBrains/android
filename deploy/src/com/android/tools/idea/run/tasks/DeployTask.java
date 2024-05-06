@@ -23,6 +23,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.InstallOptions;
+import com.android.tools.deployer.model.App;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.ApkInfo;
@@ -144,12 +145,12 @@ public class DeployTask extends AbstractDeployTask {
 
     options.setCancelChecker(canceller);
 
-    Deployer.Result result =
-      deployer.install(apkInfo.getApplicationId(), getPathsToInstall(apkInfo), options.build(), installMode);
+    App app = getAppToInstall(apkInfo);
+    Deployer.Result result = deployer.install(app, options.build(), installMode);
 
     // Manually force-stop the application if we set --dont-kill above.
     if (!result.skippedInstall && isDontKillSupported) {
-      device.forceStop(apkInfo.getApplicationId());
+      device.forceStop(app.getAppId());
     }
     return result;
   }

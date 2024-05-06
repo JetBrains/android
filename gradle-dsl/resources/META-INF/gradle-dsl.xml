@@ -5,8 +5,9 @@
     <extensionPoint qualifiedName="com.android.tools.idea.gradle.dsl.transformerFactory"
                     interface="com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory"
                     dynamic="true" />
-    <extensionPoint interface="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap$BlockModelProvider" dynamic="true"
-                    qualifiedName="org.jetbrains.idea.gradle.dsl.blockModel"/>
+    <extensionPoint interface="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap$BlockModelProvider"
+                    qualifiedName="org.jetbrains.idea.gradle.dsl.blockModel"
+                    dynamic="true" />
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -17,9 +18,6 @@
 
   <extensions defaultExtensionNs="org.jetbrains.idea.gradle.dsl">
     <blockModel implementation="com.android.tools.idea.gradle.dsl.model.GradleDefaultBlockModels"/>
-  </extensions>
-
-  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

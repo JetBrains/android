@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.lint.common
 
-import com.android.testutils.TestUtils.getWorkspaceRoot
+import com.android.test.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.google.common.base.Verify
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
@@ -56,7 +57,6 @@ import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
 import com.intellij.util.ThrowableRunnable
 import com.intellij.workspaceModel.ide.legacyBridge.impl.java.JAVA_MODULE_ENTITY_TYPE_ID_NAME
-import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -68,6 +68,7 @@ class LintIdeTest : UsefulTestCase() {
 
   private lateinit var myFixture: JavaCodeInsightTestFixture
   private lateinit var myModule: Module
+
   override fun setUp() {
     super.setUp()
 
@@ -263,12 +264,16 @@ class LintIdeTest : UsefulTestCase() {
   }
 
   fun testDisabledTestsEnabledOnTheFly() {
-    // If this changes test no longer applies; pick different disabled issue
-    /* b/214265385
-        assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse()
-    b/214265385 */
-    myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
-    doGlobalInspectionTest(AndroidLintStopShipInspection())
+    // Verifies that inspections are force-enabled when the IDE inspection profile mentions them.
+    val wasEnabled = CommentDetector.STOP_SHIP.isEnabledByDefault()
+    try {
+      CommentDetector.STOP_SHIP.setEnabledByDefault(false)
+      myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
+      doGlobalInspectionTest(AndroidLintStopShipInspection())
+      assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isTrue()
+    } finally {
+      CommentDetector.STOP_SHIP.setEnabledByDefault(wasEnabled)
+    }
   }
 
   fun testGradleWindows() {
@@ -296,7 +301,7 @@ class LintIdeTest : UsefulTestCase() {
     // Make sure that we include the lint implementation checks themselves outside of Android
     // contexts
     val issues = LintIdeIssueRegistry()
-    val issue = issues.getIssue("LintImplDollarEscapes")!!
+    val issue = issues.issues.find { it.id == "LintImplDollarEscapes" }!!
     val support = object : LintIdeSupport() {}
     assertEquals(support.getPlatforms(), issue.platforms)
   }
@@ -505,10 +510,11 @@ class LintIdeTest : UsefulTestCase() {
     LintModuleFixtureBuilder<ModuleFixtureImpl> {
 
     init {
-      JavaCodeInsightFixtureAdtTestCase.addJdk(this)
+      AdtTestProjectDescriptors.default().configureFixture(this)
     }
 
     private var myModuleRoot: File? = null
+
     override fun setModuleRoot(moduleRoot: String) {
       val file = File(moduleRoot)
       myModuleRoot = file

@@ -21,5 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui.tests" scope="TEST" />
   </component>
 </module>

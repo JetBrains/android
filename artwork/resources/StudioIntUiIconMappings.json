@@ -37,7 +37,10 @@
         "edit.svg": "studio/icons/avd/edit.svg",
         "pair-over-wifi.svg": "studio/icons/avd/pair-over-wifi.svg",
         "run.svg": "studio/icons/avd/run.svg",
-        "stop.svg": "studio/icons/avd/stop.svg"
+        "stop.svg": "studio/icons/avd/stop.svg",
+        "start-reservation.svg": "studio/icons/avd/start-reservation.svg",
+        "status-available-low.svg": "studio/icons/avd/status-available-low.svg",
+        "status-available-moderate.svg": "studio/icons/avd/status-available-moderate.svg"
       },
       "common": {
         "add.svg": "studio/icons/common/add.svg",
@@ -128,6 +131,7 @@
         "screen-size.svg": "studio/icons/device-configuration/screen-size.svg",
         "screen-width.svg": "studio/icons/device-configuration/screen-width.svg",
         "smallest-screen-size.svg": "studio/icons/device-configuration/smallest-screen-size.svg",
+        "screen-roundness.svg": "studio/icons/device-configuration/screen-roundness.svg",
         "text-input.svg": "studio/icons/device-configuration/text-input.svg",
         "touch-screen.svg": "studio/icons/device-configuration/touch-screen.svg",
         "ui-mode.svg": "studio/icons/device-configuration/ui-mode.svg",
@@ -159,7 +163,14 @@
           "mode-desktop.svg": "studio/icons/emulator/menu/mode-desktop.svg",
           "mode-foldable.svg": "studio/icons/emulator/menu/mode-foldable.svg",
           "mode-phone.svg": "studio/icons/emulator/menu/mode-phone.svg",
-          "mode-tablet.svg": "studio/icons/emulator/menu/mode-tablet.svg"
+          "mode-tablet.svg": "studio/icons/emulator/menu/mode-tablet.svg",
+          "posture-closed.svg": "studio/icons/emulator/menu/posture-closed.svg",
+          "posture-dual-display.svg": "studio/icons/emulator/menu/posture-dual-display.svg",
+          "posture-flipped.svg": "studio/icons/emulator/menu/posture-flipped.svg",
+          "posture-half-folded.svg": "studio/icons/emulator/menu/posture-half-folded.svg",
+          "posture-open.svg": "studio/icons/emulator/menu/posture-open.svg",
+          "posture-rear-display.svg": "studio/icons/emulator/menu/posture-rear-display.svg",
+          "posture-tent.svg": "studio/icons/emulator/menu/posture-tent.svg"
         },
         "snapshots": {
           "invalid-snapshot-decorator.svg": "studio/icons/emulator/snapshots/invalid-snapshot-decorator.svg",
@@ -514,16 +525,28 @@
         }
       },
       "layout-inspector": {
-        "clear-overlay.svg": "studio/icons/layout-inspector/clear-overlay.svg",
-        "color-picker.svg": "studio/icons/layout-inspector/color-picker.svg",
-        "degree.svg": "studio/icons/layout-inspector/degree.svg",
-        "live-updates.svg": "studio/icons/layout-inspector/live-updates.svg",
-        "load-overlay.svg": "studio/icons/layout-inspector/load-overlay.svg",
-        "mode-2d.svg": "studio/icons/layout-inspector/mode-2d.svg",
-        "mode-3d.svg": "studio/icons/layout-inspector/mode-3d.svg",
-        "recomposition-count.svg": "studio/icons/layout-inspector/recomposition-count.svg",
-        "recomposition-skipped.svg": "studio/icons/layout-inspector/recomposition-skipped.svg",
-        "reset-view.svg": "studio/icons/layout-inspector/reset-view.svg"
+        "panel": {
+          "bottom-swap.svg": "studio/icons/layout-inspector/panel/bottom-swap.svg",
+          "bottom.svg": "studio/icons/layout-inspector/panel/bottom.svg",
+          "left-vertical-swap.svg": "studio/icons/layout-inspector/panel/left-vertical-swap.svg",
+          "left-vertical.svg": "studio/icons/layout-inspector/panel/left-vertical.svg",
+          "right-vertical-swap.svg": "studio/icons/layout-inspector/panel/right-vertical-swap.svg",
+          "right-vertical.svg": "studio/icons/layout-inspector/panel/right-vertical.svg",
+          "vertical-split-swap.svg": "studio/icons/layout-inspector/panel/vertical-split-swap.svg",
+          "vertical-split.svg": "studio/icons/layout-inspector/panel/vertical-split.svg"
+        },
+        "toolbar": {
+          "clear-overlay.svg": "studio/icons/layout-inspector/toolbar/clear-overlay.svg",
+          "color-picker.svg": "studio/icons/layout-inspector/toolbar/color-picker.svg",
+          "degree.svg": "studio/icons/layout-inspector/toolbar/degree.svg",
+          "live-updates.svg": "studio/icons/layout-inspector/toolbar/live-updates.svg",
+          "load-overlay.svg": "studio/icons/layout-inspector/toolbar/load-overlay.svg",
+          "mode-2d.svg": "studio/icons/layout-inspector/toolbar/mode-2d.svg",
+          "mode-3d.svg": "studio/icons/layout-inspector/toolbar/mode-3d.svg",
+          "recomposition-count.svg": "studio/icons/layout-inspector/toolbar/recomposition-count.svg",
+          "recomposition-skipped.svg": "studio/icons/layout-inspector/toolbar/recomposition-skipped.svg",
+          "reset-view.svg": "studio/icons/layout-inspector/toolbar/reset-view.svg"
+        }
       },
       "logcat": {
         "input": {
@@ -732,7 +755,8 @@
           "native.svg": "studio/icons/wizards/modules/native.svg",
           "phone-tablet.svg": "studio/icons/wizards/modules/phone-tablet.svg",
           "wear-os.svg": "studio/icons/wizards/modules/wear-os.svg",
-          "baseline-profile.svg": "studio/icons/wizards/modules/baseline-profile.svg"
+          "baseline-profile.svg": "studio/icons/wizards/modules/baseline-profile.svg",
+          "baseline-profile-generate.svg": "studio/icons/wizards/modules/baseline-profile-generate.svg"
         }
       }
     }

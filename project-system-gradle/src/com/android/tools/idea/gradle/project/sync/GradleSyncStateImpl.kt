@@ -24,8 +24,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_
 import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarningAgainHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
+import com.android.tools.idea.gradle.project.sync.jdk.JdkAnalyticsTracker.reportGradleJdkConfiguration
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -87,7 +89,7 @@ private val SYNC_NOTIFICATION_GROUP =
  * events to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific
  * invocation of sync.
  */
-class GradleSyncStateImpl(project: Project) : GradleSyncState {
+class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
   private val delegate = GradleSyncStateHolder.getInstance(project)
   override val isSyncInProgress: Boolean
     get() = delegate.isSyncInProgress
@@ -100,6 +102,7 @@ class GradleSyncStateImpl(project: Project) : GradleSyncState {
 
   override fun lastSyncFailed(): Boolean = delegate.lastSyncFailed()
   override fun isSyncNeeded(): ThreeState = delegate.isSyncNeeded()
+  override fun getSyncNeededReason(): GradleSyncNeededReason? = delegate.getSyncNeededReason()
 
   override fun subscribe(project: Project, listener: GradleSyncListenerWithRoot, disposable: Disposable): MessageBusConnection {
     val connection = project.messageBus.connect(disposable)
@@ -116,7 +119,7 @@ val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListenerWith
  * A real implementation of [GradleSyncStateImpl] service which, unlike [GradleSyncStateImpl], can be accessed by various listeners in this
  * file as an implementing class type.
  */
-class GradleSyncStateHolder(private val project: Project)  {
+class GradleSyncStateHolder constructor(private val project: Project)  {
 
   companion object {
     @JvmStatic
@@ -150,7 +153,6 @@ class GradleSyncStateHolder(private val project: Project)  {
   val lastSyncFinishedTimeStamp: Long get() = state.get { lastSyncFinishedTimeStamp }
   val externalSystemTaskId: ExternalSystemTaskId? get() = state.get { externalSystemTaskId }
   val isSyncInProgress: Boolean get() = state.get { state.isInProgress }
-
   val syncResult: ProjectSystemSyncManager.SyncResult
     get() = state.get {
       when (state) {
@@ -158,6 +160,8 @@ class GradleSyncStateHolder(private val project: Project)  {
         else -> state.toSyncResult()
       }
     }
+
+  private val isGradleJvmConfigurationModified: Boolean get() = state.get { isGradleJvmConfigurationModified }
 
   private class Holder {
     private val lock = ReentrantLock()
@@ -181,7 +185,8 @@ class GradleSyncStateHolder(private val project: Project)  {
     val state: LastSyncState = LastSyncState.UNKNOWN,
     val stateBeforeSyncStarted: LastSyncState = LastSyncState.UNKNOWN,
     val externalSystemTaskId: ExternalSystemTaskId? = null,
-    val lastSyncFinishedTimeStamp: Long = -1L
+    val lastSyncFinishedTimeStamp: Long = -1L,
+    val isGradleJvmConfigurationModified: Boolean = false
   )
 
   private val state: Holder = Holder()
@@ -195,7 +200,7 @@ class GradleSyncStateHolder(private val project: Project)  {
         LOG.warnWithDebug("Sync already in progress for project '${project.name}'.", Throwable())
         return@syncStarted false
       }
-      copy(stateBeforeSyncStarted = state, state = LastSyncState.IN_PROGRESS)
+      copy(stateBeforeSyncStarted = state, state = LastSyncState.IN_PROGRESS, isGradleJvmConfigurationModified = false)
     }
 
     LOG.info("Started ($trigger) sync with Gradle for project '${project.name}'.")
@@ -208,7 +213,10 @@ class GradleSyncStateHolder(private val project: Project)  {
 
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
+    // TODO (b/306638551): temporarily here, to be refactored
+    SyncFailureUsageReporter.getInstance().onSyncStart(rootProjectPath)
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
+    reportGradleJdkConfiguration(project, rootProjectPath)
     project.getService(SyncAnalyzerManager::class.java)?.onSyncStarted(externalSystemTaskId)
     syncPublisher { syncStarted(project, rootProjectPath) }
     return true
@@ -274,6 +282,7 @@ class GradleSyncStateHolder(private val project: Project)  {
     }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
+    SyncFailureUsageReporter.getInstance().reportFailure(this, rootProjectPath, error)
     syncFinished(LastSyncState.FAILED, rootProjectPath)
     syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
@@ -307,11 +316,15 @@ class GradleSyncStateHolder(private val project: Project)  {
     syncPublisher { syncSkipped(project) }
   }
 
-  fun isSyncNeeded(): ThreeState {
+  fun isSyncNeeded() = getSyncNeededReason()?.let { ThreeState.YES } ?: ThreeState.NO
+
+  fun getSyncNeededReason(): GradleSyncNeededReason? {
     return when {
-      PropertiesComponent.getInstance(project).getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
-      GradleFiles.getInstance(project).areGradleFilesModified() -> ThreeState.YES
-      else -> ThreeState.NO
+      PropertiesComponent.getInstance(project).getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED
+      GradleFiles.getInstance(project).areGradleFilesModified() -> GradleSyncNeededReason.GRADLE_BUILD_FILES_CHANGED
+      GradleFiles.getInstance(project).areExternalBuildFilesModified() -> GradleSyncNeededReason.EXTERNAL_BUILD_FILES_CHANGED
+      isGradleJvmConfigurationModified -> GradleSyncNeededReason.GRADLE_JVM_CONFIG_CHANGED
+      else -> null
     }
   }
 
@@ -339,6 +352,19 @@ class GradleSyncStateHolder(private val project: Project)  {
   fun recordGradleVersion(gradleVersion: GradleVersion) {
     state.set {
       copy(lastSyncedGradleVersion = gradleVersion)
+    }
+  }
+
+  fun recordGradleJvmConfigurationChanged() {
+    state.set {
+      copy(isGradleJvmConfigurationModified = true)
+    }
+  }
+
+  fun ignoreChangedFiles() {
+    GradleFiles.getInstance(project).removeChangedFiles()
+    state.set {
+      copy(isGradleJvmConfigurationModified = false)
     }
   }
 
@@ -487,7 +513,7 @@ class GradleSyncStateHolder(private val project: Project)  {
       LOG.info("onImportFailed($projectPath)")
       val syncStateUpdaterService = project.getService(SyncStateUpdaterService::class.java)
       if (syncStateUpdaterService.stopTrackingTask(projectPath!!) != null) {
-        // If `onImportFailed` is called because of `ProcessCanceledException`, it results in `isCancelled == true`, and this is the way
+        // If `onImportFailed` is called because of `ProcessCancelledException`, it results in `isCancelled == true`, and this is the way
         // we detect this case since we don't have access to the exception instance itself here.
         if (ProgressManager.getGlobalProgressIndicator()?.isCanceled == true) {
           ProgressManager.getInstance().executeNonCancelableSection {

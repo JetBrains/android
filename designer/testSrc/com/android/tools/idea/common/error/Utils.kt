@@ -17,6 +17,7 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.ide.projectView.PresentationData
@@ -42,14 +43,14 @@ internal data class TestIssue(
 }
 
 internal object EmptyIssueSource : IssueSource {
-  override val file: VirtualFile? = null
+  override val files: Set<VirtualFile> = emptySet()
   override val displayText: String = ""
 }
 
-internal class IssueSourceWithFile(
-  override val file: VirtualFile,
-  override val displayText: String = ""
-) : IssueSource
+internal class IssueSourceWithFile(file: VirtualFile, override val displayText: String = "") :
+  IssueSource {
+  override val files: Set<VirtualFile> = setOf(file)
+}
 
 internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) :
   DesignerCommonIssueProvider<Any> {
@@ -58,6 +59,10 @@ internal class DesignerCommonIssueTestProvider(private val issues: List<Issue>) 
   override fun getFilteredIssues(): List<Issue> = issues.filter(viewOptionFilter)
 
   override fun registerUpdateListener(listener: Runnable) = Unit
+
+  override fun removeUpdateListener(listener: Runnable) = Unit
+
+  override fun update() = Unit
 
   override fun dispose() = Unit
 }
@@ -77,6 +82,7 @@ internal class CommonIssueTestParentNode(project: Project) :
 fun createTestVisualLintRenderIssue(
   type: VisualLintErrorType,
   components: List<NlComponent>,
+  issueProvider: VisualLintIssueProvider,
   summary: String = ""
 ): VisualLintRenderIssue {
   return VisualLintRenderIssue.builder()
@@ -88,6 +94,7 @@ fun createTestVisualLintRenderIssue(
     .components(components.toMutableList())
     .type(type)
     .build()
+    .apply { issueProvider.customizeIssue(this) }
 }
 
 internal fun String.toTabTitle(issueCount: Int = 0): String = createTabName(this, issueCount)

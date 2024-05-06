@@ -16,7 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.tools.idea.common.model.DataContextHolder
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
@@ -25,33 +25,37 @@ import org.junit.After
 import org.junit.Assert
 import org.junit.Test
 
-private class TestPreviewElement(
-  fqcn: String,
+private fun wearTilePreviewElement(
+  methodFqn: String,
   displaySettings: PreviewDisplaySettings = simplestDisplaySettings(),
   previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>? = null,
   previewBodyPsi: SmartPsiElementPointer<PsiElement>? = null,
-) : WearTilePreviewElement(
-  displaySettings,
-  previewElementDefinitionPsi,
-  previewBodyPsi,
-  fqcn
-)
+) =
+  WearTilePreviewElement(
+    displaySettings = displaySettings,
+    previewElementDefinitionPsi = previewElementDefinitionPsi,
+    previewBodyPsi = previewBodyPsi,
+    methodFqn = methodFqn,
+    configuration = WearTilePreviewConfiguration.forValues(device = "id:wearos_small_round")
+  )
 
 private class TestModel(override var dataContext: DataContext) : DataContextHolder {
   override fun dispose() {}
 }
 
-private fun simplestDisplaySettings() = PreviewDisplaySettings("", null, false, false, null)
+private fun simplestDisplaySettings(
+  name: String = ""
+) = PreviewDisplaySettings(name, null, false, false, null)
 
 class WearTilePreviewElementModelAdapterTest {
   private val rootDisposable = Disposer.newDisposable()
 
   @Test
   fun testCalcAffinityPriority() {
-    val pe1 = TestPreviewElement("foo")
-    val pe2 = TestPreviewElement("foo")
-    val pe3 = TestPreviewElement("foo", PreviewDisplaySettings("foo", null, false, false, null))
-    val pe4 = TestPreviewElement("bar")
+    val pe1 = wearTilePreviewElement(methodFqn = "foo")
+    val pe2 = wearTilePreviewElement(methodFqn = "foo")
+    val pe3 = wearTilePreviewElement(methodFqn = "foo", simplestDisplaySettings(name = "foo"))
+    val pe4 = wearTilePreviewElement(methodFqn = "bar")
 
     val adapter = WearTilePreviewElementModelAdapter<TestModel>()
 
@@ -65,7 +69,7 @@ class WearTilePreviewElementModelAdapterTest {
   fun testModelAndPreviewElementConnection() {
     val adapter = WearTilePreviewElementModelAdapter<TestModel>()
 
-    val element = TestPreviewElement("foo")
+    val element = wearTilePreviewElement(methodFqn = "foo")
 
     val model = TestModel(adapter.createDataContext(element))
     Disposer.register(rootDisposable, model)
@@ -83,15 +87,23 @@ class WearTilePreviewElementModelAdapterTest {
       """<androidx.wear.tiles.tooling.TileServiceViewAdapter
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    tools:tileServiceName="foo" />
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ff000000"
+    tools:tilePreviewMethodFqn="foo" />
 
 """
         .trimIndent(),
-      WearTilePreviewElementModelAdapter<TestModel>().toXml(
-        WearTilePreviewElement(simplestDisplaySettings(), null, null, "foo")
-      )
+      WearTilePreviewElementModelAdapter<TestModel>()
+        .toXml(
+          WearTilePreviewElement(
+            displaySettings = simplestDisplaySettings(),
+            previewElementDefinitionPsi = null,
+            previewBodyPsi = null,
+            methodFqn = "foo",
+            configuration = WearTilePreviewConfiguration.forValues(device = "id:wearos_small_round")
+          )
+        )
     )
   }
 

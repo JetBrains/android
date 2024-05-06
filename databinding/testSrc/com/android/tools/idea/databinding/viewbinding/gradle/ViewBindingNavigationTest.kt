@@ -24,11 +24,11 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiAnchor
 import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
@@ -41,8 +41,7 @@ class ViewBindingNavigationTest {
   private val projectRule = AndroidGradleProjectRule()
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   /**
    * Expose the underlying project rule fixture directly.
@@ -65,7 +64,7 @@ class ViewBindingNavigationTest {
     assertThat(syncState.isSyncNeeded().toBoolean()).isFalse()
 
     // Make sure that all file system events up to this point have been processed.
-    VfsTestUtil.syncRefresh()
+    VirtualFileManager.getInstance().syncRefresh()
     UIUtil.dispatchAllInvocationEvents()
 
     assertThat(projectRule.androidFacet(":app").isViewBindingEnabled()).isTrue()
@@ -78,11 +77,14 @@ class ViewBindingNavigationTest {
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml
-    val binding = fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context) as LightBindingClass
+    val binding =
+      fixture.findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)
+        as LightBindingClass
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")
 
-    // Regression test for 261536892: PsiAnchor.create throws assertion error for LightBindingClass navigation element.
+    // Regression test for 261536892: PsiAnchor.create throws assertion error for LightBindingClass
+    // navigation element.
     PsiAnchor.create(binding.navigationElement)
   }
 
@@ -93,9 +95,10 @@ class ViewBindingNavigationTest {
     val context = fixture.findClass("com.android.example.viewbinding.MainActivity")
 
     // ActivityMainBinding is in-memory and generated on the fly from activity_main.xml.
-    val binding = fixture
-      .findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)!!
-      .findFieldByName("testId", false)!!
+    val binding =
+      fixture
+        .findClass("com.android.example.viewbinding.databinding.ActivityMainBinding", context)!!
+        .findFieldByName("testId", false)!!
 
     binding.navigate(true)
     assertThat(editorManager.selectedFiles[0].name).isEqualTo("activity_main.xml")

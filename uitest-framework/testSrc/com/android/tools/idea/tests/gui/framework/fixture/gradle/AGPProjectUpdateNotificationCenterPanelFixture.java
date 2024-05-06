@@ -16,52 +16,31 @@
 package com.android.tools.idea.tests.gui.framework.fixture.gradle;
 
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.google.common.collect.Lists;
-import com.intellij.ui.components.labels.LinkLabel;
+import com.android.tools.idea.tests.gui.framework.fixture.wizard.NotificationCenterPanelFixture;
 import java.awt.Container;
-import java.util.List;
-import javax.swing.JLabel;
+import javax.swing.JButton;
 
 public class AGPProjectUpdateNotificationCenterPanelFixture {
   private final IdeFrameFixture myIdeFrameFixture;
-  private final Container targetPanel;
-  private final LinkLabel labelToClick;
-  static final String NOTIFICATION_HEADER = "Project update recommended";
-  static final String LINK_LABEL_TEXT = "Start AGP Upgrade Assistant";
+  private Container upgradeAssistantNotification;
 
   public static AGPProjectUpdateNotificationCenterPanelFixture find(IdeFrameFixture ideFrame) {
-    List <LinkLabel> linkLabels = Lists.newArrayList(ideFrame.robot().finder().findAll(ideFrame.target(), Matchers.byType(LinkLabel.class)));
-    if (linkLabels.size() > 0) {
-      for (LinkLabel label : linkLabels) {
-        if (label.getText() != null && label.getText().equalsIgnoreCase(LINK_LABEL_TEXT)) {
-          return new AGPProjectUpdateNotificationCenterPanelFixture(ideFrame, label.getFocusCycleRootAncestor(), label);
-        }
-      }
-    }
-    throw new AssertionError("Unable to find the Project Update Notification center panel with text " + NOTIFICATION_HEADER);
+    NotificationCenterPanelFixture upgradeNotification = NotificationCenterPanelFixture.find(ideFrame, ".*Project update recommended.*");
+    return new AGPProjectUpdateNotificationCenterPanelFixture(ideFrame, upgradeNotification.target());
   }
 
-  private AGPProjectUpdateNotificationCenterPanelFixture (IdeFrameFixture ideFrame, Container target, LinkLabel label) {
+  private AGPProjectUpdateNotificationCenterPanelFixture (IdeFrameFixture ideFrame, Container target) {
     myIdeFrameFixture = ideFrame;
-    targetPanel = target;
-    labelToClick = label;
+    upgradeAssistantNotification = target;
   }
 
   public boolean notificationIsShowing() {
-    List<JLabel> notificationLabels = Lists.newArrayList(myIdeFrameFixture.robot().finder().findAll(targetPanel, Matchers.byType(JLabel.class)));
-    if (notificationLabels.size() > 0) {
-      for (JLabel label : notificationLabels) {
-        if (label.getText() != null && label.getText().contains(NOTIFICATION_HEADER) && label.isVisible()) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return upgradeAssistantNotification.isShowing();
   }
 
   public void clickStartUpgradeAssistant() {
-    myIdeFrameFixture.robot().click(labelToClick);
+    JButton openUpgradeAssistantButton = myIdeFrameFixture.robot().finder().findByType(upgradeAssistantNotification, JButton.class);
+    myIdeFrameFixture.robot().click(openUpgradeAssistantButton);
   }
 }
 

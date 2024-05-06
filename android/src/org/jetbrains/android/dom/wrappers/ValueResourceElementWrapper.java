@@ -35,7 +35,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import java.io.File;
-import javax.swing.Icon;
+import javax.swing.*;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.annotations.NonNls;
@@ -290,12 +290,12 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
 
   @Override
   @Nullable
-  public <T> T getCopyableUserData(@NotNull Key<T> key) {
+  public <T> T getCopyableUserData(Key<T> key) {
     return myWrappedElement.getCopyableUserData(key);
   }
 
   @Override
-  public <T> void putCopyableUserData(@NotNull Key<T> key, T value) {
+  public <T> void putCopyableUserData(Key<T> key, T value) {
     myWrappedElement.putCopyableUserData(key, value);
   }
 

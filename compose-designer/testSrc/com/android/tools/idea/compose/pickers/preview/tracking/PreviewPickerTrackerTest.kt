@@ -18,16 +18,16 @@ package com.android.tools.idea.compose.pickers.preview.tracking
 import com.android.ide.common.rendering.api.HardwareConfig
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
-import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.avdmanager.AvdScreenData
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.DeviceType
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerParameter
@@ -71,37 +71,37 @@ internal class PreviewPickerTrackerTest {
         registerNameModificationWithDevice(
           isCustom = true,
           isGeneric = false,
-          tagId = SystemImage.ANDROID_TV_TAG.id
+          tagId = SystemImageTags.ANDROID_TV_TAG.id
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImage.ANDROID_TV_TAG.id
+          tagId = SystemImageTags.ANDROID_TV_TAG.id
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImage.AUTOMOTIVE_TAG.id
+          tagId = SystemImageTags.AUTOMOTIVE_TAG.id
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImage.WEAR_TAG.id
+          tagId = SystemImageTags.WEAR_TAG.id
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImage.DEFAULT_TAG.id
+          tagId = SystemImageTags.DEFAULT_TAG.id
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = true,
-          tagId = SystemImage.DEFAULT_TAG.id
+          tagId = SystemImageTags.DEFAULT_TAG.id
         )
         registerNameModificationWithDevice(
           isCustom = false,
           isGeneric = false,
-          tagId = SystemImage.DESKTOP_TAG.id
+          tagId = SystemImageTags.DESKTOP_TAG.id
         )
       }
 
@@ -226,7 +226,7 @@ private fun createDevice(isCustom: Boolean, isGeneric: Boolean, tagId: String): 
             screenRound = ScreenRound.NOTROUND
             chin = 0
             size = ScreenSize.getScreenSize(diagonalLength)
-            ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+            ratio = ScreenRatio.create(xDimension, yDimension)
           }
       }
   }

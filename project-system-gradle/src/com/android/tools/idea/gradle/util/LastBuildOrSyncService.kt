@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.TestOnly
 
@@ -36,7 +36,7 @@ class LastBuildOrSyncService {
     @VisibleForTesting set
 }
 
-internal class LastBuildOrSyncListener : ExternalSystemTaskNotificationListener {
+internal class LastBuildOrSyncListener : ExternalSystemTaskNotificationListenerAdapter() {
   override fun onEnd(id: ExternalSystemTaskId) {
     id.findProject()?.also { project ->
       project.getService(LastBuildOrSyncService::class.java).lastBuildOrSyncTimeStamp = System.currentTimeMillis()

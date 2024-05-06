@@ -1,68 +1,15 @@
 // This is a generated file. Not intended for manual editing.
 package com.android.tools.idea.compose.preview.util.device.parser;
 
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.TRUE_CONDITION;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil._COLLAPSE_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil._NONE_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.adapt_builder_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.consumeToken;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.consumeTokens;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.create_token_set_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.current_position_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.empty_element_parsed_guard_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.enter_section_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.exit_section_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.nextTokenIs;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.parseTokens;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.recursion_guard_;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.BOOLEAN_T;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.CHIN_SIZE_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.CHIN_SIZE_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.COLON;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.COMMA;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.DP;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.DPI_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.DPI_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.EQUALS;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.FALSE;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.HEIGHT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.HEIGHT_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.ID_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.ID_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.IS_ROUND_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.IS_ROUND_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.LANDSCAPE_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.NAME_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.NAME_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.NUMERIC_T;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.ORIENTATION_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.ORIENTATION_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.ORIENTATION_T;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PARENT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PARENT_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PORTRAIT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.PX;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.SHAPE_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.SIZE_T;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.SPEC;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.SPEC_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.SQUARE_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.STRING_T;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.TRUE;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.UNIT;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.UNIT_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.UNIT_PARAM;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.WIDTH_KEYWORD;
-import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.WIDTH_PARAM;
-
-import com.intellij.lang.ASTNode;
-import com.intellij.lang.LightPsiParser;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
-import com.intellij.lang.PsiParser;
+import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes.*;
+import static com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecParserUtil.*;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.lang.PsiParser;
+import com.intellij.lang.LightPsiParser;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class DeviceSpecParser implements PsiParser, LightPsiParser {

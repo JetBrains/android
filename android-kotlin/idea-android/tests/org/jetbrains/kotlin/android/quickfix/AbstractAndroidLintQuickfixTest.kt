@@ -19,8 +19,10 @@ package org.jetbrains.kotlin.android.quickfix
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.PathUtil
-import org.jetbrains.kotlin.android.InTextDirectivesUtils
+import org.jetbrains.kotlin.android.DirectiveBasedActionUtils.findStringWithPrefixesByFrontend
+import org.jetbrains.kotlin.android.DirectiveBasedActionUtils.isDirectiveDefinedForFrontend
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import java.io.File
 
 
@@ -28,10 +30,12 @@ abstract class AbstractAndroidLintQuickfixTest : KotlinAndroidTestCase() {
 
     fun doTest(path: String) {
         val fileText = FileUtil.loadFile(File(testDataPath, path), true)
-        val intentionText = InTextDirectivesUtils.findStringWithPrefixes(fileText, "// INTENTION_TEXT: ") ?: error("Empty intention text")
-        val mainInspectionClassName = InTextDirectivesUtils.findStringWithPrefixes(fileText, "// INSPECTION_CLASS: ") ?: error("Empty inspection class name")
-        val dependency = InTextDirectivesUtils.findStringWithPrefixes(fileText, "// DEPENDENCY: ")
-        val intentionAvailable = !InTextDirectivesUtils.isDirectiveDefined(fileText, "// INTENTION_NOT_AVAILABLE")
+        val intentionText =
+            findStringWithPrefixesByFrontend(fileText, "// INTENTION_TEXT: ") ?: error("Empty intention text")
+        val mainInspectionClassName =
+            findStringWithPrefixesByFrontend(fileText, "// INSPECTION_CLASS: ") ?: error("No inspection class specified")
+        val dependency = findStringWithPrefixesByFrontend(fileText, "// DEPENDENCY: ")
+        val intentionAvailable = !isDirectiveDefinedForFrontend(fileText, "// INTENTION_NOT_AVAILABLE")
 
         val inspection = Class.forName(mainInspectionClassName).newInstance() as InspectionProfileEntry
         myFixture.enableInspections(inspection)
@@ -52,10 +56,16 @@ abstract class AbstractAndroidLintQuickfixTest : KotlinAndroidTestCase() {
                             ?: myFixture.getAvailableIntention(oldLabel)
                             ?: error("Failed to find intention")
             myFixture.launchAction(intention)
-            myFixture.checkResultByFile("$path.expected")
+            if (KotlinPluginModeProvider.isK2Mode() && File(testDataPath, "$path.k2.expected").isFile) {
+                myFixture.checkResultByFile("$path.k2.expected")
+            }
+            else {
+                myFixture.checkResultByFile("$path.expected")
+            }
         }
         else {
             assertNull("Intention should not be available", myFixture.availableIntentions.find { it.text == intentionText })
         }
     }
+
 }

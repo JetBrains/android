@@ -17,4 +17,4 @@ package org.jetbrains.android.dom.converters
 
 import com.android.resources.ResourceType
 
-class StyleResourceReferenceConverter: ResourceReferenceConverter(listOf(ResourceType.STYLE))
+class StyleResourceReferenceConverter : ResourceReferenceConverter(listOf(ResourceType.STYLE))

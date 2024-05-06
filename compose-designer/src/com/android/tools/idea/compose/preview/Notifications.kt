@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -97,7 +96,7 @@ internal class ComposeNewPreviewNotificationManager : Disposable {
             onEvent(event)
           }
         },
-        project
+        this
       )
   }
 }

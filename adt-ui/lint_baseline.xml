@@ -1,372 +1,510 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 7.4.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int CLOSE_BUTTON_SIZE = JBUI.scale(24); // Icon is 16x16. This gives it some padding, so it doesn&apos;t touch the border."
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/CloseButton.java"
-            line="31"/>
+            line="31"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val FOCUS_BORDER_WIDTH = JBUI.scale(3)"
+        errorLine2="                                        ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/internal/ColorButton.kt"
-            line="41"/>
+            line="41"
+            column="41"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val ROUND_CORNER_ARC = JBUI.scale(5)"
+        errorLine2="                                      ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/internal/ColorButton.kt"
-            line="42"/>
+            line="42"
+            column="39"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val hoverBorderLeft = JBUI.scale(0)"
+        errorLine2="                                     ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="361"/>
+            line="361"
+            column="38"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val hoverBorderTop = JBUI.scale(0)"
+        errorLine2="                                    ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="362"/>
+            line="362"
+            column="37"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val hoverBorderThickness = JBUI.scale(1)"
+        errorLine2="                                          ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="363"/>
+            line="363"
+            column="43"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val pressedBorderLeft = JBUI.scale(1)"
+        errorLine2="                                       ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="364"/>
+            line="364"
+            column="40"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val pressedBorderTop = JBUI.scale(1)"
+        errorLine2="                                      ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="365"/>
+            line="365"
+            column="39"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val pressedBorderThickness = JBUI.scale(2)"
+        errorLine2="                                            ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="366"/>
+            line="366"
+            column="45"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val borderCornerArc = JBUI.scale(7)"
+        errorLine2="                                     ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/ColorValuePanel.kt"
-            line="367"/>
+            line="367"
+            column="38"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    public static final int DEFAULT_PADDING_PX = JBUI.scale(12);"
+        errorLine2="                                                      ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/instructions/InstructionsPanel.java"
-            line="340"/>
+            line="340"
+            column="55"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int LEGEND_VERT_MARGIN_PX = JBUI.scale(8);"
+        errorLine2="                                                        ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/LegendComponent.java"
-            line="61"/>
+            line="61"
+            column="57"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private final static int LEGEND_HORIZ_MARGIN_PX = JBUI.scale(10);"
+        errorLine2="                                                         ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/LegendComponent.java"
-            line="66"/>
+            line="66"
+            column="58"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private static final int ICON_MARGIN_PX = JBUI.scale(6);"
+        errorLine2="                                                 ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/LegendComponent.java"
-            line="71"/>
+            line="71"
+            column="50"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private static final int DEFAULT_PADDING_X_PX = JBUI.scale(1); // Should at least be 1 to avoid borders getting clipped."
+        errorLine2="                                                         ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/LegendComponent.java"
-            line="304"/>
+            line="304"
+            column="58"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private static final int DEFAULT_PADDING_Y_PX = JBUI.scale(5);"
+        errorLine2="                                                         ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/LegendComponent.java"
-            line="305"/>
+            line="305"
+            column="58"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private static final float DEFAULT_TEXT_SIZE = JBUI.scale(12);"
+        errorLine2="                                                        ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/LegendComponent.java"
-            line="306"/>
+            line="306"
+            column="57"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int DEFAULT_ROW_MARGIN = JBUI.scale(5);"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/instructions/NewRowInstruction.java"
-            line="27"/>
+            line="27"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val knobOuterRadius = JBUI.scale(4)"
+        errorLine2="                                     ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SaturationBrightnessComponent.kt"
-            line="36"/>
+            line="36"
+            column="38"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val knobInnerRadius = JBUI.scale(3)"
+        errorLine2="                                     ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SaturationBrightnessComponent.kt"
-            line="37"/>
+            line="37"
+            column="38"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val knobWidth = JBUI.scale(5)"
+        errorLine2="                               ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="59"/>
+            line="59"
+            column="32"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val knobCornerArc = JBUI.scale(5)"
+        errorLine2="                                   ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="60"/>
+            line="60"
+            column="36"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val focusBorderWidth = JBUI.scale(3)"
+        errorLine2="                                      ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="61"/>
+            line="61"
+            column="39"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  private val focusBorderCornerArc = JBUI.scale(5)"
+        errorLine2="                                          ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="62"/>
+            line="62"
+            column="43"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  protected val leftPadding = JBUI.scale(PADDING)"
+        errorLine2="                                   ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="64"/>
+            line="64"
+            column="36"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  protected val rightPadding = JBUI.scale(PADDING)"
+        errorLine2="                                    ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="65"/>
+            line="65"
+            column="37"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  protected val topPadding = JBUI.scale(PADDING)"
+        errorLine2="                                  ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="66"/>
+            line="66"
+            column="35"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  protected val bottomPadding = JBUI.scale(PADDING)"
+        errorLine2="                                     ~~~~~">
         <location
             file="src/main/java/com/android/tools/idea/ui/resourcechooser/colorpicker2/SliderComponent.kt"
-            line="67"/>
+            line="67"
+            column="38"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val COMBO_LEFT_PADDING = JBUI.scale(7)"
+        errorLine2="                                ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="26"/>
+            line="26"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val HORIZONTAL_PADDING = JBUI.scale(6)"
+        errorLine2="                                ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="27"/>
+            line="27"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val VERTICAL_PADDING = JBUI.scale(1)"
+        errorLine2="                              ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="28"/>
+            line="28"
+            column="31"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val INNER_BORDER_WIDTH = JBUI.scale(1f)"
+        errorLine2="                                ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="29"/>
+            line="29"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val OUTER_BORDER_WIDTH = JBUI.scale(OUTER_BORDER_UNSCALED.toFloat())"
+        errorLine2="                                ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="30"/>
+            line="30"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val DROPDOWN_ARROW_WIDTH = JBUI.scale(8f)"
+        errorLine2="                                  ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="31"/>
+            line="31"
+            column="35"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val DROPDOWN_ARROW_HEIGHT = JBUI.scale(5f)"
+        errorLine2="                                   ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="32"/>
+            line="32"
+            column="36"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val DROPDOWN_ARROW_HORIZONTAL_PADDING = JBUI.scale(4f)"
+        errorLine2="                                               ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="33"/>
+            line="33"
+            column="48"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val DROPDOWN_ARROW_VERTICAL_PADDING_TOP = JBUI.scale(7f)"
+        errorLine2="                                                 ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="34"/>
+            line="34"
+            column="50"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  val DROPDOWN_ARROW_VERTICAL_PADDING_BOTTOM = JBUI.scale(6f)"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="35"/>
+            line="35"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  var MENU_HEIGHT = JBUI.scale(20f)"
+        errorLine2="                         ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="36"/>
+            line="36"
+            column="26"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  var MENU_LEFT_PADDING = JBUI.scale(6f)"
+        errorLine2="                               ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="37"/>
+            line="37"
+            column="32"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  var MENU_RIGHT_PADDING = JBUI.scale(10f)"
+        errorLine2="                                ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="38"/>
+            line="38"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  var MENU_ICON_TEXT_GAP = JBUI.scale(4f)"
+        errorLine2="                                ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="39"/>
+            line="39"
+            column="33"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  var MENU_CHECK_ICON_GAP = JBUI.scale(5f)"
+        errorLine2="                                 ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/stdui/StandardDimensions.kt"
-            line="40"/>
+            line="40"
+            column="34"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="  public static final int DEFAULT_SIDE_WIDTH = JBUI.scale(225);"
+        errorLine2="                                                    ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/workbench/ToolWindowDefinition.java"
-            line="34"/>
+            line="34"
+            column="53"/>
     </issue>
 
     <issue
         id="JbUiStored"
-        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
+        message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes"
+        errorLine1="    private final int BUTTON_PANEL_WIDTH = JBUI.scale(21);"
+        errorLine2="                                                ~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/workbench/WorkBench.java"
-            line="679"/>
+            line="705"
+            column="49"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    List&lt;JList&lt;T>> lists = myComponent.getLists();"
+        errorLine2="                                       ~~~~~~~~">
         <location
             file="src/main/java/com/android/tools/adtui/treegrid/TreeGridSpeedSearch.java"
-            line="52"/>
+            line="63"
+            column="40"/>
     </issue>
 
 </issues>

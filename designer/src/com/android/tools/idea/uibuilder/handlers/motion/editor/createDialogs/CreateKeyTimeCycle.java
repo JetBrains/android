@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 
+import javax.swing.JFrame;
+
 /**
  * This is the dialog that pops up when you create a KeyTimeCycle
  */

@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analyzeSingleDepthInlinedFunctions
 import com.android.tools.idea.run.deployment.liveedit.isKotlinPluginBundled
 import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -37,17 +36,13 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.concurrent.Callable
-import java.util.concurrent.ExecutionException
 import kotlin.io.path.createFile
-
-private val defaultRetryTimes = Integer.getInteger("fast.preview.224875189.retries", 3)
 
 private fun Throwable?.isCompilationError(): Boolean =
   this is LiveEditUpdateException
@@ -70,77 +65,12 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.KNOWN_ISSUE -> false
   }
 
-class NonRetriableException(cause: Throwable): Exception(cause)
-
 /**
  * [Throwable] used by the [EmbeddedCompilerClientImpl] during a compilation when the embedded plugin is not being used. This signals
  * to the caller that the error *might* have been caused by an incompatibility of the Kotlin Plugin.
  */
 private class NotUsingKotlinBundledPlugin(cause: Throwable):
   Exception(FastPreviewBundle.message("fast.preview.error.needs.bundled.plugin"), cause)
-
-/**
- * Retries the [retryBlock] [retryTimes] or until it does not throw an exception. The block will be executed in a
- * read action with write priority.
- *
- * This method will also check [ProgressManager.checkCanceled] in between retries.
- *
- * Every retry will wait 50ms * number of retries with a maximum of 200ms per retry.
- */
-@VisibleForTesting
-fun <T> retryInNonBlockingReadAction(retryTimes: Int = defaultRetryTimes,
-                                     indicator: ProgressIndicator = EmptyProgressIndicator(),
-                                     retryBlock: () -> T): T {
-  var lastException: Throwable? = null
-  val result: CompletableDeferred<T> = CompletableDeferred()
-  repeat(retryTimes) { retryAttempt ->
-    indicator.checkCanceled()
-    try {
-      ReadAction.nonBlocking(Callable<Unit> {
-        try {
-          lastException = null
-          result.complete(retryBlock())
-        }
-        catch (t: ProcessCanceledException) {
-          throw t
-        }
-        catch (t: Throwable) {
-          lastException = if (t is ExecutionException) {
-            t.cause
-          }
-          else t
-        }
-      })
-        .wrapProgress(indicator)
-        .submit(AndroidExecutors.getInstance().workerThreadExecutor).get()
-    }
-    catch (t: ProcessCanceledException) {
-      lastException = when (t.cause) {
-        // InvalidModuleException needs to be retried. It can cancel the NonReadBlocking
-        // action but can be solved by retrying again.
-        is InvalidModuleException -> t.cause
-
-        // Any other ProcessCanceledException should not be retried.
-        else -> NonRetriableException(t)
-      }
-    }
-    if (result.isCompleted) return result.getCompleted()
-
-    lastException?.let {
-      (it as? NonRetriableException)?.cause?.let { nonRetriableException ->
-        throw nonRetriableException
-      }
-
-      Logger.getInstance(EmbeddedCompilerClientImpl::class.java).debug("Retrying after error (retry $retryAttempt)", it)
-    }
-    indicator.checkCanceled()
-    Thread.sleep((50 * retryAttempt).coerceAtMost(200).toLong())
-  }
-  lastException?.let {
-    Logger.getInstance(EmbeddedCompilerClientImpl::class.java).warn("Compile request failed with exception", it)
-    throw it
-  } ?: throw ProcessCanceledException()
-}
 
 /**
  * Implementation of the [CompilerDaemonClient] that uses the embedded compiler in Android Studio. This allows
@@ -156,7 +86,7 @@ class EmbeddedCompilerClientImpl private constructor(
   private val project: Project,
   private val log: Logger,
   private val isKotlinPluginBundled: () -> Boolean,
-  private val beforeCompilationStarts: () -> Unit) : CompilerDaemonClient {
+  private val beforeCompilationStarts: suspend () -> Unit) : CompilerDaemonClient {
 
   constructor(project: Project, log: Logger):
     this(project, log, ::isKotlinPluginBundled, {})
@@ -165,7 +95,7 @@ class EmbeddedCompilerClientImpl private constructor(
   constructor(project: Project,
               log: Logger,
               isKotlinPluginBundled: Boolean = true,
-              beforeCompilationStarts: () -> Unit = {}) :
+              beforeCompilationStarts: suspend () -> Unit = {}) :
     this(project, log,
          isKotlinPluginBundled = { isKotlinPluginBundled },
          beforeCompilationStarts = beforeCompilationStarts)
@@ -184,55 +114,55 @@ class EmbeddedCompilerClientImpl private constructor(
    * Compiles the given list of inputs using [module] as context. The output will be generated in the given [outputDirectory] and progress
    * will be updated in the given [ProgressIndicator].
    */
-  private fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path, indicator: ProgressIndicator) {
+  private suspend fun compileKtFiles(inputs: List<KtFile>, module: Module, outputDirectory: Path) = withContext(AndroidDispatchers.workerThread) {
     log.debug("compileKtFile($inputs, $outputDirectory)")
 
-    // Retry is a temporary workaround for b/224875189
-    val generationState = retryInNonBlockingReadAction(indicator = indicator) {
-      runWithCompileLock {
-        beforeCompilationStarts()
+    val generationState =
+      readAction {
+        runWithCompileLock {
+          beforeCompilationStarts()
 
-        log.debug("fetchResolution")
-        val resolution = fetchResolution(project, inputs)
-        ProgressManager.checkCanceled()
-        log.debug("analyze")
-        val analysisResult = analyze(inputs, resolution)
-        val inlineCandidates = inputs
-          .flatMap { analyzeSingleDepthInlinedFunctions(it, analysisResult.bindingContext, inlineCandidateCache) }
-          .toSet()
-        ProgressManager.checkCanceled()
-        log.debug("backCodeGen")
-        try {
-          backendCodeGen(project, analysisResult, inputs, module, inlineCandidates)
-        }
-        catch (e: LiveEditUpdateException) {
-          if (e.isCompilationError() || e.cause.isCompilationError()) {
-            log.debug("backCodeGen compilation exception ", e)
-            throw NonRetriableException(e)
+          log.debug("fetchResolution")
+          val resolution = fetchResolution(project, inputs)
+          ProgressManager.checkCanceled()
+          log.debug("analyze")
+          val analysisResult = analyze(inputs, resolution)
+          val inlineCandidates = inputs
+            .flatMap { analyzeSingleDepthInlinedFunctions(it, analysisResult.bindingContext, inlineCandidateCache) }
+            .toSet()
+          ProgressManager.checkCanceled()
+          log.debug("backCodeGen")
+          try {
+            backendCodeGen(project, analysisResult, inputs, module, inlineCandidates)
           }
+          catch (e: LiveEditUpdateException) {
+            if (e.isCompilationError() || e.cause.isCompilationError()) {
+              log.debug("backCodeGen compilation exception ", e)
+              throw e
+            }
 
-          if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
-            log.debug("backCodeGen exception ", e)
-            throw e
+            if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
+              log.debug("backCodeGen exception ", e)
+              throw e
+            }
+
+            // Add any extra source file this compilation need in order to support the input file calling an inline function
+            // from another source file then perform a compilation again.
+            log.debug("inline analysis")
+            val inputFilesWithInlines = inputs.flatMap {
+              performInlineSourceDependencyAnalysis(resolution, it, analysisResult.bindingContext)
+            }
+
+            // We need to perform the analysis once more with the new set of input files.
+            log.debug("inline analysis with inlines ${inputFilesWithInlines.joinToString(",") { it.name }}")
+            val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFilesWithInlines)
+
+            // We will need to start using the new analysis for code gen.
+            log.debug("backCodeGen retry")
+            backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates)
           }
-
-          // Add any extra source file this compilation need in order to support the input file calling an inline function
-          // from another source file then perform a compilation again.
-          log.debug("inline analysis")
-          val inputFilesWithInlines = inputs.flatMap {
-            performInlineSourceDependencyAnalysis(resolution, it, analysisResult.bindingContext)
-          }
-
-          // We need to perform the analysis once more with the new set of input files.
-          log.debug("inline analysis with inlines ${inputFilesWithInlines.joinToString(",") { it.name }}")
-          val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFilesWithInlines)
-
-          // We will need to start using the new analysis for code gen.
-          log.debug("backCodeGen retry")
-          backendCodeGen(project, newAnalysisResult, inputFilesWithInlines, module, inlineCandidates)
         }
       }
-    }
     log.debug("backCodeGen completed")
 
     generationState.factory.asList().forEach {
@@ -248,11 +178,11 @@ class EmbeddedCompilerClientImpl private constructor(
     module: Module,
     outputDirectory: Path,
     indicator: ProgressIndicator): CompilationResult = coroutineScope {
-    daemonLock.lock(this)
-    return@coroutineScope try {
+    daemonLock.withLock(this) {
       val inputs = files.filterIsInstance<KtFile>().toList()
       val result = CompletableDeferred<CompilationResult>()
       val compilationIndicator = ProgressWrapper.wrap(indicator)
+
 
       // When the coroutine completes, make sure we also stop or cancel the indicator
       // depending on what happened with the co-routine.
@@ -269,7 +199,7 @@ class EmbeddedCompilerClientImpl private constructor(
       }
 
       try {
-        compileKtFiles(inputs, module, outputDirectory = outputDirectory, compilationIndicator)
+        compileKtFiles(inputs, module, outputDirectory = outputDirectory)
         result.complete(CompilationResult.Success)
       }
       catch (t: CancellationException) {
@@ -286,14 +216,12 @@ class EmbeddedCompilerClientImpl private constructor(
             // we can not guarantee Fast Preview to work.
             result.complete(CompilationResult.RequestException(NotUsingKotlinBundledPlugin(t)))
           }
+
           else -> result.complete(CompilationResult.RequestException(t))
         }
       }
 
       result.await()
-    }
-    finally {
-      daemonLock.unlock(this)
     }
   }
 

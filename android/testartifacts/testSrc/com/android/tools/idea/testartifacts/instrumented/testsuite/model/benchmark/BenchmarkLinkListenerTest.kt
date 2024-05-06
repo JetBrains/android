@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.fileEditor.FileEditorNavigatable
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TemporaryDirectory
 import org.jetbrains.android.ComponentStack
@@ -32,6 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
+import org.mockito.Mockito.anyBoolean
 
 class BenchmarkLinkListenerTest {
 
@@ -41,13 +42,14 @@ class BenchmarkLinkListenerTest {
   @get:Rule
   val rules = RuleChain.outerRule(projectRule).around(temporaryDirectoryRule)
   private val mockEditorService = mock<FileEditorManager>()
-  private val fileCapture = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+  private val fileCapture = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
   private lateinit var componentStack: ComponentStack;
   @Before
   fun setup() {
     componentStack = ComponentStack(projectRule.project)
     componentStack.registerServiceInstance(FileEditorManager::class.java, mockEditorService)
-    whenever(mockEditorService.openEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
+    whenever(mockEditorService.openEditor(any(), anyBoolean())).thenCallRealMethod()
+    whenever(mockEditorService.openFileEditor(fileCapture.capture(), any())).thenReturn(ArrayList<FileEditor>())
   }
 
   @After

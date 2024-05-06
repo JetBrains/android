@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files.mocks
 
+import com.android.ddmlib.FileListingService
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.explorer.files.cancelAndThrow
@@ -22,6 +23,7 @@ import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
 import com.android.tools.idea.device.explorer.files.mocks.MockDeviceFileEntry.Companion.createRoot
+import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.io.FileOutputStream
@@ -32,7 +34,8 @@ import kotlin.math.min
 
 class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, override val name: String) : DeviceFileSystem {
 
-  val root: MockDeviceFileEntry = createRoot(this)
+  val root: MockDeviceFileEntry = createRoot(this, "")
+  val data: MockDeviceFileEntry = createRoot(this, "data")
   var downloadChunkSize: Long = 1024
   var uploadChunkSize: Long = 1024
   var downloadChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS
@@ -47,6 +50,32 @@ class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, over
     delay(OPERATION_TIMEOUT_MILLIS)
     rootDirectoryError?.let { throw it }
     return this.root
+  }
+
+  override suspend fun dataDirectory(): DeviceFileEntry {
+    delay(OPERATION_TIMEOUT_MILLIS)
+    rootDirectoryError?.let { throw it }
+    return this.data
+  }
+
+  override suspend fun getEntry(path: String): DeviceFileEntry {
+    val root = rootDirectory()
+    if (StringUtil.isEmpty(path) || StringUtil.equals(path, FileListingService.FILE_SEPARATOR)) {
+      return root
+    }
+    val pathSegments = path.substring(1).split(FileListingService.FILE_SEPARATOR.toRegex()).toList()
+    return resolvePathSegments(root, pathSegments)
+  }
+
+  private suspend fun resolvePathSegments(
+    rootEntry: DeviceFileEntry,
+    segments: List<String>
+  ): DeviceFileEntry {
+    var currentEntry = rootEntry
+    for (segment in segments) {
+      currentEntry = currentEntry.entries().find { it.name == segment } ?: throw IllegalArgumentException("Path not found")
+    }
+    return currentEntry
   }
 
   suspend fun downloadFile(entry: DeviceFileEntry, localPath: Path, progress: FileTransferProgress) {

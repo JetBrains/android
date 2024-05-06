@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.gradle.structure.configurables.ui.UiUtil.revalidateAndRepaint
 import com.android.tools.idea.gradle.structure.model.PsModule
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.showDefaultWizard
 import com.android.tools.idea.structure.configurables.ui.CrossModuleUiStateComponent
@@ -33,6 +33,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
@@ -53,12 +54,14 @@ import com.intellij.ui.navigation.Place
 import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.ui.navigation.Place.queryFurther
 import com.intellij.util.IconUtil
+import com.intellij.util.alsoIfNull
 import com.intellij.util.ui.tree.TreeUtil
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ToolTipManager
+import javax.swing.tree.TreePath
 
 const val BASE_PERSPECTIVE_MODULE_PLACE_NAME = "base_perspective.module"
 
@@ -85,6 +88,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var treeInitiated: Boolean = false
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
+  private var selectedUnresolvedPath: String? = null
   val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
   val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
 
@@ -101,6 +105,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
       override fun ended() {
         loadingPanelVisible = false
         stopSyncAnimation()
+        maybeUpdateTreeAfterSync()
       }
     }, this)
 
@@ -117,6 +122,12 @@ abstract class BasePerspectiveConfigurable protected constructor(
     context.uiSettings.addListener(PsUISettings.ChangeListener { reconfigureForCurrentSettings() }, this)
   }
 
+  private fun maybeUpdateTreeAfterSync() {
+    if (myTree.isEmpty) myTree.expandPath(TreePath(myTree.model.root))
+    selectedUnresolvedPath?.let { selectModule(it) }
+    selectedUnresolvedPath = null
+  }
+
   private fun stopSyncAnimation() {
     loadingPanel?.stopLoading()
   }
@@ -128,6 +139,10 @@ abstract class BasePerspectiveConfigurable protected constructor(
         selectNodeInTree(node)
         selectedNode = node
         node.configurable as? BaseNamedConfigurable<*>
+      }.also {
+        if (it == null) {
+          selectedUnresolvedPath = gradlePath
+        }
       }
 
   protected fun findModuleByGradlePath(gradlePath: String): PsModule? =
@@ -248,7 +263,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
               // If gradle root is among modules add it to the tree root node
               hasRootGradleModule -> module.gradlePath == ":"
               // otherwise flatten the Gradle root project and add its children directly under the tree root.
-              else -> GradleUtil.isDirectChild(module.gradlePath, ":")
+              else -> GradleProjectSystemUtil.isDirectChild(module.gradlePath, ":")
             }
           }
         }.also { Disposer.register(this, it) })
@@ -333,7 +348,10 @@ abstract class BasePerspectiveConfigurable protected constructor(
           }
         }
       }
+
+      override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.BGT
     }
+
     val removeModuleAction = object : DumbAwareAction(
       AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.title"),
       AndroidGradlePsdBundle.message("android.project.system.gradle.action.remove.module.description"), IconUtil.removeIcon) {
@@ -342,6 +360,8 @@ abstract class BasePerspectiveConfigurable protected constructor(
         super.update(e)
         e.presentation.isEnabled = (selectedObject as? PsModule)?.gradlePath != null
       }
+
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
       override fun actionPerformed(e: AnActionEvent) {
         val module = (selectedObject as? PsModule) ?: return

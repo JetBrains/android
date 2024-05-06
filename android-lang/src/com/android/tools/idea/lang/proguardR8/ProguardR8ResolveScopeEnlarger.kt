@@ -17,7 +17,6 @@ package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.isHolderModule
-import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -30,7 +29,7 @@ import com.intellij.psi.search.SearchScope
  */
 class ProguardR8ResolveScopeEnlarger : ResolveScopeEnlarger() {
   override fun getAdditionalResolveScope(file: VirtualFile, project: Project): SearchScope? {
-    if (FileTypeRegistry.getInstance().isFileOfType(file, ProguardR8FileType.INSTANCE)) {
+    if (file.fileType == ProguardR8FileType.INSTANCE) {
       val module = ModuleUtil.findModuleForFile(file, project)?.takeIf { it.isHolderModule() } ?: return null
 
       return GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module.getMainModule())

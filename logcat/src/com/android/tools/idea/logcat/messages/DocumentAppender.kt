@@ -31,15 +31,18 @@ import kotlin.math.max
 
 internal val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 
-internal class DocumentAppender(project: Project, private val document: DocumentEx, private var maxDocumentSize: Int) {
+internal class DocumentAppender(
+  project: Project,
+  private val document: DocumentEx,
+  private var maxDocumentSize: Int
+) {
   private val markupModel = DocumentMarkupModel.forDocument(document, project, true)
 
   /**
-   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
-   * they are valid.
+   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so
+   * we need to keep them alive as long as they are valid.
    */
-  @VisibleForTesting
-  internal val ranges = ArrayDeque<RangeMarker>()
+  @VisibleForTesting internal val ranges = ArrayDeque<RangeMarker>()
 
   fun reset() {
     ranges.clear()
@@ -51,33 +54,50 @@ internal class DocumentAppender(project: Project, private val document: Document
     val text = buffer.text
     if (text.length >= maxDocumentSize) {
       document.setText("")
-      document.insertString(document.textLength, text.substring(text.lastIndexOf('\n', text.length - maxDocumentSize) + 1))
-    }
-    else {
+      document.insertString(
+        document.textLength,
+        text.substring(text.lastIndexOf('\n', text.length - maxDocumentSize) + 1)
+      )
+    } else {
       document.insertString(document.textLength, text)
       trimToSize()
     }
 
-    LOGGER.debug {"Document text.length: ${document.text.length} immutableCharSequence.length: ${document.immutableCharSequence.length}" }
+    LOGGER.debug {
+      "Document text.length: ${document.text.length} immutableCharSequence.length: ${document.immutableCharSequence.length}"
+    }
 
-    // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
+    // Document has a cyclic buffer, so we need to get document.textLength again after inserting
+    // text.
     val offset = document.textLength - text.length
     for (range in buffer.textAttributesRanges) {
       range.applyRange(offset) { start, end, textAttributes ->
-        markupModel.addRangeHighlighter(start, end, HighlighterLayer.SYNTAX, textAttributes, HighlighterTargetArea.EXACT_RANGE)
+        markupModel.addRangeHighlighter(
+          start,
+          end,
+          HighlighterLayer.SYNTAX,
+          textAttributes,
+          HighlighterTargetArea.EXACT_RANGE
+        )
       }
     }
     for (range in buffer.textAttributesKeyRanges) {
       range.applyRange(offset) { start, end, textAttributesKey ->
-        markupModel.addRangeHighlighter(textAttributesKey, start, end, HighlighterLayer.SYNTAX, HighlighterTargetArea.EXACT_RANGE)
+        markupModel.addRangeHighlighter(
+          textAttributesKey,
+          start,
+          end,
+          HighlighterLayer.SYNTAX,
+          HighlighterTargetArea.EXACT_RANGE
+        )
       }
     }
 
     for (range in buffer.messageRanges) {
       range.applyRange(offset) { start, end, message ->
-        ranges.add(document.createRangeMarker(start, end).apply {
-          putUserData(LOGCAT_MESSAGE_KEY, message)
-        })
+        ranges.add(
+          document.createRangeMarker(start, end).apply { putUserData(LOGCAT_MESSAGE_KEY, message) }
+        )
       }
     }
 
@@ -91,9 +111,7 @@ internal class DocumentAppender(project: Project, private val document: Document
     trimToSize()
   }
 
-  /**
-   * Trim the document to size at a line boundary (Based on Document.trimToSize).
-   */
+  /** Trim the document to size at a line boundary (Based on Document.trimToSize). */
   private fun trimToSize() {
     if (document.textLength > maxDocumentSize) {
       val offset = document.textLength - maxDocumentSize
@@ -102,10 +120,14 @@ internal class DocumentAppender(project: Project, private val document: Document
   }
 }
 
-// There seems to be a bug where a range that is exactly the same as a portion that's deleted remains valid but has a 0 size
+// There seems to be a bug where a range that is exactly the same as a portion that's deleted
+// remains valid but has a 0 size
 private fun RangeMarker.isReallyValid() = isValid && startOffset < endOffset
 
-private fun <T> TextAccumulator.Range<T>.applyRange(offset: Int, apply: (start: Int, end: Int, data: T) -> Unit) {
+private fun <T> TextAccumulator.Range<T>.applyRange(
+  offset: Int,
+  apply: (start: Int, end: Int, data: T) -> Unit
+) {
   val rangeEnd = offset + end
   if (rangeEnd <= 0) {
     return

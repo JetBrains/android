@@ -23,13 +23,14 @@ import com.android.tools.idea.gradle.completions.ElementType.GENERIC_PROPERTY
 import com.android.tools.idea.gradle.completions.ElementType.INTEGER
 import com.android.tools.idea.gradle.completions.ElementType.STRING
 import com.android.tools.idea.gradle.completions.ElementType.STRING_ARRAY
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.DECLARATIVE_TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
+import com.android.tools.idea.gradle.util.generateExistingPath
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -46,12 +47,9 @@ import com.intellij.patterns.PlatformPatterns.psiFile
 import com.intellij.patterns.StandardPatterns
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.findParentOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
 import org.toml.lang.psi.TomlFile
-import org.toml.lang.psi.TomlHeaderOwner
-import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlRecursiveVisitor
@@ -113,7 +111,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                  val originalFile = parameters.originalFile as? TomlFile ?: return
                  val existingKeys = getDeclaredKeys(originalFile)
                  val segment = parameters.position.parent as? TomlKeySegment ?: return
-                 val path = generateExistingPath(segment)
+                 val path = generateExistingPath(segment, false)
                  result.addAllElements(getSuggestions(path, existingKeys).map {
                    val element = LookupElementBuilder.create(it.name)
                      .withTypeText(it.type.str, null, true)
@@ -131,7 +129,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
              object : CompletionProvider<CompletionParameters>() {
                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                  val segment = parameters.position.parent as? TomlKeySegment ?: return
-                 val path = generateExistingPath(segment)
+                 val path = generateExistingPath(segment, false)
                  val originalFile = parameters.originalFile as? TomlFile ?: return
                  val existingKeys = getDeclaredKeys(originalFile)
                  result.addAllElements(getSuggestions(path, existingKeys).map {
@@ -274,22 +272,21 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   }
 
   private fun getSuggestions(path: List<String>, rootNode: NamedNode): Iterable<Suggestion> {
-    val rootModel = GradleBuildFile.BuildGradlePropertiesDslElementSchema()
-    var currentModel: GradlePropertiesDslElementSchema = rootModel
+    var currentModel: GradlePropertiesDslElementSchema = GradleBuildFile.BuildGradlePropertiesDslElementSchema()
     var currentNode: NamedNode? = rootNode
 
     path.forEach { element ->
       currentNode = currentNode?.getChild(element)
-      val blockElement = currentModel.getBlockElementDescription(element) ?: return listOf()
+      val blockElement = currentModel.getBlockElementDescription(DECLARATIVE_TOML, element) ?: return listOf()
       currentModel = blockElement.schemaConstructor.construct()
     }
     val result = mutableListOf<Suggestion>()
-    result += currentModel.blockElementDescriptions.map {
+    result += currentModel.getBlockElementDescriptions(DECLARATIVE_TOML).map {
       Suggestion(it.key,
                  if(isArrayBlock(it.value)) ARRAY_TABLE else BLOCK
       )
     }
-    result += currentModel.getPropertiesInfo(GradleDslNameConverter.Kind.TOML).entrySet
+    result += currentModel.getPropertiesInfo(DECLARATIVE_TOML).entrySet
       .filterNot { currentNode?.children?.contains(it.surfaceSyntaxDescription.name) ?: false }
       .map {
         val propertyDescription = it.modelEffectDescription.property
@@ -310,30 +307,6 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       // TODO -  need to handle map type
       else -> GENERIC_PROPERTY
     }
-  }
-
-  private fun generateExistingPath(psiElement: TomlKeySegment): List<String> {
-    val result = mutableListOf<String>()
-    var key: TomlKey?
-    var nextElement: PsiElement = psiElement
-    if (psiElement.parent.parent !is TomlTableHeader) {
-      do {
-        // bubble up via inline tables to root/file
-        key = nextElement.findParentOfType<TomlKey>()
-        if (key != null) {
-          nextElement = key
-          key.appendReversedSegments(result, psiElement)
-        }
-      }
-      while (key != null)
-    }
-    val parentTableHeaderKey = nextElement.findParentOfType<TomlHeaderOwner>()?.header?.key
-    parentTableHeaderKey?.appendReversedSegments(result, psiElement)
-    return result.reversed()
-  }
-
-  private fun TomlKey.appendReversedSegments(list: MutableList<String>, startElement: PsiElement) {
-    segments.reversed().forEach { segment -> if (segment != startElement) list += segment.text }
   }
 
 }

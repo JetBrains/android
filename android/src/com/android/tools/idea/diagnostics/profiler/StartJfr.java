@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.profiler;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -23,6 +24,12 @@ import org.jetbrains.annotations.NotNull;
 public class StartJfr extends DumbAwareAction {
   public StartJfr() {
     super("Start JFR");
+  }
+
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
   }
 
   @Override

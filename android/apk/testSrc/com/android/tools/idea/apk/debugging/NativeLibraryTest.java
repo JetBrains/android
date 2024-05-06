@@ -23,13 +23,13 @@ import static com.android.tools.idea.testing.ProjectFiles.createFile;
 import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
 import static com.android.utils.FileUtils.toSystemIndependentPath;
 import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.Mockito.mock;
 
 import com.android.sdklib.devices.Abi;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -293,6 +293,6 @@ public class NativeLibraryTest extends PlatformTestCase {
 
   @NotNull
   private String createFolderAndGetPath(@NotNull String folderName) throws IOException {
-    return FileUtilRt.toSystemDependentName(createFolderInProjectRoot(getProject(), folderName).getPath());
+    return toSystemDependentName(createFolderInProjectRoot(getProject(), folderName).getPath());
   }
 }

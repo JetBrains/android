@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.quickfix;
 
-import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
-
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
@@ -25,7 +22,10 @@ import com.intellij.jarFinder.FindJarFix;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.openapi.module.ModuleUtilCore.findModuleForPsiElement;
 
 /**
  * Class to unload unwanted quick fixes
@@ -37,14 +37,14 @@ public class AndroidUnresolvedReferenceQuickFixProvider extends UnresolvedRefere
     if (contextModule == null) {
       return;
     }
-    GradleFacet gradleFacet = GradleFacet.getInstance(contextModule);
-    if (gradleFacet == null) {
+    AndroidFacet androidFacet = AndroidFacet.getInstance(contextModule);
+    if (androidFacet == null) {
       return;
     }
 
-    // Since this is a gradle android project, we need to unregister:
+    // Since this is an Android project of some kind, we need to unregister:
     //  "add jar from web quick fix",
-    // since those quick fixes would make the iml file and the gradle file out of sync.
+    // since those quick fixes would make the iml file and the build file (Gradle, Bazel, Blaze, Soong, ...) out of sync.
     registrar.unregister(new Condition<IntentionAction>() {
       @Override
       public boolean value(IntentionAction intentionAction) {

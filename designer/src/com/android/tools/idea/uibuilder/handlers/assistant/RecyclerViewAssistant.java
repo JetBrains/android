@@ -27,17 +27,17 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.adtui.HorizontalSpinner;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.assistant.AssistantPopupPanel;
 import com.android.tools.idea.uibuilder.assistant.ComponentAssistantFactory.Context;
-import com.android.tools.res.LocalResourceRepository;
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
@@ -55,7 +55,6 @@ import com.intellij.ui.components.JBList;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -66,6 +65,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.facet.AndroidFacet;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,7 +133,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     }
 
     try {
-      String strValue = Files.toString(layoutFile, StandardCharsets.UTF_8);
+      String strValue = Files.toString(layoutFile, Charsets.UTF_8);
 
       for (int i = 0; i < availableTemplates.length; i++) {
         if (availableTemplates[i].hasSameContent(strValue)) {
@@ -258,7 +258,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
 
   @NotNull
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
-    LocalResourceRepository LocalResourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
+    ResourceRepository localResourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
     String resourceNameRoot = FileResourceNameValidator.getValidResourceFileName(templateRootName);
 
     String resourceName;
@@ -267,7 +267,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       resourceName = resourceNameRoot + (index < 1 ? "" : "_" + index);
       index++;
     }
-    while (!LocalResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
+    while (!localResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT, resourceName).isEmpty());
     return resourceName;
   }
 
@@ -283,7 +283,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
 
     return WriteCommandAction.runWriteCommandAction(project, (Computable<PsiFile>)() -> {
       List<VirtualFile> files = IdeResourcesUtil.findOrCreateStateListFiles(
-        project, resourceDir, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, resourceName, Collections.singletonList(FD_RES_LAYOUT));
+        component.getModel().getModule(), resourceDir, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, resourceName, Collections.singletonList(FD_RES_LAYOUT));
       if (files == null || files.isEmpty()) {
         return null;
       }
@@ -292,7 +292,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
       CommandProcessor.getInstance().addAffectedFiles(project, file);
       try {
         try (OutputStream stream = file.getOutputStream(null)) {
-          stream.write(content.getBytes(StandardCharsets.UTF_8));
+          stream.write(content.getBytes(Charsets.UTF_8));
         }
       }
       catch (IOException e) {

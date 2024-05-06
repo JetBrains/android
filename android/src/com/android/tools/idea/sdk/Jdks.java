@@ -20,9 +20,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -30,14 +27,11 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.system.CpuArch;
 import java.nio.file.Path;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,9 +40,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class Jdks {
   @NotNull private static final Logger LOG = Logger.getInstance(Jdks.class);
-
-  @NonNls public static final String DOWNLOAD_JDK_8_URL =
-    "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html";
 
   @NotNull private final IdeInfo myIdeInfo;
 
@@ -73,7 +64,7 @@ public class Jdks {
   }
 
   @Nullable
-  public JavaSdkVersion getVersion(String jdkRoot) {
+  public JavaSdkVersion getVersion(@NotNull String jdkRoot) {
     String version = JavaSdk.getInstance().getVersionString(jdkRoot);
     return isEmpty(version) ? null : JavaSdkVersion.fromVersionString(version);
   }
@@ -104,40 +95,5 @@ public class Jdks {
       return jdk;
     }
     return null;
-  }
-
-  public static boolean isJdkRunnableOnPlatform(@NotNull Sdk jdk) {
-    if (!(jdk.getSdkType() instanceof JavaSdk)) {
-      return false;
-    }
-
-    if (!(SystemInfo.isWindows && CpuArch.is32Bit())) {
-      // We only care about bitness compatibility on Windows. Elsewhere we just assume things are fine, because
-      // nowadays virtually all Mac and Linux installations are 64 bits. No need to spend cycles on running 'java -version'
-      return true;
-    }
-
-    JavaSdk javaSdk = (JavaSdk)jdk.getSdkType();
-    String javaExecutablePath = javaSdk.getVMExecutablePath(jdk);
-    return runAndCheckJVM(javaExecutablePath);
-  }
-
-  public static boolean isJdkRunnableOnPlatform(@NotNull String jdkHome) {
-    return runAndCheckJVM(FileUtil.join(jdkHome, "bin", "java"));
-  }
-
-  private static boolean runAndCheckJVM(@NotNull String javaExecutablePath) {
-    LOG.info("Checking java binary: " + javaExecutablePath);
-    GeneralCommandLine commandLine = new GeneralCommandLine(javaExecutablePath);
-    commandLine.addParameter("-version");
-    try {
-      CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
-      int exitCode = process.runProcess().getExitCode();
-      return (exitCode == 0);
-    }
-    catch (ExecutionException e) {
-      LOG.info("Could not invoke 'java -version'", e);
-      return false;
-    }
   }
 }

@@ -25,9 +25,9 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
@@ -75,12 +75,6 @@ private fun getStatus(project: Project, previewStatus: ComposePreviewManager.Sta
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
 
-    // Refresh status
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.starting"))
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.stopping"))
-
     // Build/Syntax/Render errors
     project.needsBuild -> PreviewStatus.NeedsBuild
     previewStatus.hasSyntaxErrors -> PreviewStatus.SyntaxError
@@ -107,12 +101,6 @@ private fun getStatusForFastPreview(project: Project, previewStatus: ComposePrev
 
     // Resources are out of date. FastPreview does not help with this.
     previewStatus.areResourcesOutOfDate -> PreviewStatus.OutOfDate
-
-    // Refresh status
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STARTING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.starting"))
-    previewStatus.interactiveMode == ComposePreviewManager.InteractiveMode.STOPPING ->
-      PreviewStatus.Refreshing(message("notification.interactive.preview.stopping"))
     project.needsBuild -> PreviewStatus.NeedsBuild
     previewStatus.hasRuntimeErrors -> PreviewStatus.RenderIssues
     project.fastPreviewManager.isCompiling -> PreviewStatus.FastPreviewCompiling
@@ -317,11 +305,9 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
       return
     }
 
-    // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
-    // that nothing has changed. But we want to always force a refresh when this button is pressed
-    findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
-      composePreviewManager.invalidate()
-    }
+    // The ComposePreviewManager will avoid refreshing its corresponding preview if it detects
+    // that nothing has changed. But we want to always force a refresh when this button is pressed.
+    findComposePreviewManagerForContext(e.dataContext)?.invalidate()
 
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger
@@ -333,11 +319,11 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val isRefreshing =
-      findComposePreviewManagersForContext(e.dataContext).any {
+      findComposePreviewManagerForContext(e.dataContext)?.let {
         e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
           it.status().isRefreshing
         }
-      }
+      } ?: false
     presentation.isEnabled = !isRefreshing
     templateText?.let {
       presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)
@@ -369,10 +355,10 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
  * [DefaultActionGroup] that shows the notification chip and the
  * [ForceCompileAndRefreshActionForNotification] button when applicable.
  */
-class ComposeNotificationGroup(surface: DesignSurface<*>, parentDisposable: Disposable) :
+class ComposeNotificationGroup(parentDisposable: Disposable) :
   DefaultActionGroup(
     listOf(
-      ComposeHideFilterAction(surface),
+      ComposeHideFilterAction(),
       PreviewIssueNotificationAction(parentDisposable),
       ForceCompileAndRefreshActionForNotification.getInstance()
     )

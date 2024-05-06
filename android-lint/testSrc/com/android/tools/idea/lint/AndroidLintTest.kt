@@ -181,37 +181,37 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
     modules: List<MyAdditionalModuleData>
   ) {
-    when {
-      "testImlFileOutsideContentRoot" == name -> {
-        addModuleWithAndroidFacet(
-          projectBuilder,
-          modules,
-          "module1",
-          AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-        )
-        addModuleWithAndroidFacet(
-          projectBuilder,
-          modules,
-          "module2",
-          AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-        )
-      }
-      "testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name -> {
-        addModuleWithAndroidFacet(
-          projectBuilder,
-          modules,
-          "appcompat",
-          AndroidProjectTypes.PROJECT_TYPE_APP
-        )
-      }
-      "testAddSdkIntJava" == name || "testAddSdkIntKotlin" == name || name.startsWith("testPartialResultsGlobalAnalysis") -> {
-        addModuleWithAndroidFacet(
-          projectBuilder,
-          modules,
-          "module1",
-          AndroidProjectTypes.PROJECT_TYPE_LIBRARY
-        )
-      }
+    if ("testImlFileOutsideContentRoot" == name) {
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "module1",
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+      )
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "module2",
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+      )
+    } else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "appcompat",
+        AndroidProjectTypes.PROJECT_TYPE_APP
+      )
+    } else if (
+      "testAddSdkIntJava" == name ||
+        "testAddSdkIntKotlin" == name ||
+        name.startsWith("testPartialResultsGlobalAnalysis")
+    ) {
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "module1",
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+      )
     }
   }
 

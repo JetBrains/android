@@ -59,7 +59,10 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.ExperimentalUI
+import com.intellij.openapi.util.registry.RegistryManager
+import com.intellij.openapi.util.registry.RegistryValue
+import com.intellij.openapi.util.registry.RegistryValueListener
+import com.intellij.ui.NewUiValue
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.channels.BroadcastChannel
@@ -189,6 +192,9 @@ object AndroidStudioUsageTracker {
         runShutdownReports()
       }
     })
+    RegistryManager.getInstance().get("ide.highlighting.mode.essential").addListener(object : RegistryValueListener {
+      override fun beforeValueChanged(value: RegistryValue) = TypingLatencyTracker.reportTypingLatency()
+    }, AndroidPluginDisposable.getApplicationInstance())
   }
 
   private fun runStartupReports() {
@@ -244,7 +250,7 @@ object AndroidStudioUsageTracker {
   private fun logNewUI() {
     val enabled =
       try {
-        ExperimentalUI.isNewUI()
+        NewUiValue.isEnabled()
       }
       catch (_: Throwable) {
         // Don't send the message if the new UI check fails
@@ -264,7 +270,7 @@ object AndroidStudioUsageTracker {
   private fun updateNewUISettings() {
     val enabled =
       try {
-        ExperimentalUI.isNewUI()
+        NewUiValue.isEnabled()
       }
       catch (_: Throwable) {
         return

@@ -24,9 +24,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 
-/**
- * An action that adds or a tag to the global ignore tag set
- */
+/** An action that adds or a tag to the global ignore tag set */
 internal class IgnoreTagAction : DumbAwareAction("Ignore Tag") {
 
   override fun update(e: AnActionEvent) {

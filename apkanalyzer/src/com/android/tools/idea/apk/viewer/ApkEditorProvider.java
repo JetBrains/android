@@ -40,19 +40,21 @@ final class ApkEditorProvider implements FileEditorProvider, DumbAware {
   }
 
   @Override
-  public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     VirtualFile root = ApkFileSystem.getInstance().getRootByLocal(file);
     assert root != null; // see accept above
     return new ApkEditor(project, file, root);
   }
 
+  @NotNull
   @Override
-  public @NotNull String getEditorTypeId() {
+  public String getEditorTypeId() {
     return ID;
   }
 
+  @NotNull
   @Override
-  public @NotNull FileEditorPolicy getPolicy() {
+  public FileEditorPolicy getPolicy() {
     return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
   }
 }

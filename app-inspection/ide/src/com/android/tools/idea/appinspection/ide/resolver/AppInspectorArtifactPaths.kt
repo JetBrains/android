@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.io.FileService
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
@@ -41,10 +41,10 @@ const val INSPECTOR_JAR = "inspector.jar"
  *
  * It is an internal class not meant to be exposed to users.
  *
- * Note the inspector jars are keyed by their respective library's [ArtifactCoordinate].
+ * Note the inspector jars are keyed by their respective library's [RunningArtifactCoordinate].
  *
  * The directory structure follows the following scheme:
- * $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
+ * $cache_dir/&lt;group_id&gt;/&lt;artifact_id&gt;/&lt;version&gt;/inspector.jar
  */
 @ThreadSafe
 class AppInspectorArtifactPaths(private val fileService: FileService) {
@@ -57,10 +57,10 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
    * Concurrent data structure is used here because it could be accessed by multiple threads at the
    * same time.
    */
-  private val jars = ConcurrentHashMap<ArtifactCoordinate, Path>()
+  private val jars = ConcurrentHashMap<RunningArtifactCoordinate, Path>()
 
   /** Gets the cached inspector jar based on the provided coordinate. Null if it's not in cache. */
-  fun getInspectorArchive(inspector: ArtifactCoordinate): Path? {
+  fun getInspectorArchive(inspector: RunningArtifactCoordinate): Path? {
     if (!jars.containsKey(inspector)) {
       val cachePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
       val jarPath =
@@ -89,7 +89,7 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
    * $cache_dir/<group_id>/<artifact_id>/<version>/<group_id>-<artifact_id>-<version>-inspector.jar
    */
   @WorkerThread
-  fun populateInspectorArchive(artifactCoordinate: ArtifactCoordinate, archive: Path) {
+  fun populateInspectorArchive(artifactCoordinate: RunningArtifactCoordinate, archive: Path) {
     try {
       val destDir =
         fileService
@@ -106,6 +106,6 @@ class AppInspectorArtifactPaths(private val fileService: FileService) {
     }
   }
 
-  private fun ArtifactCoordinate.inspectorJarFileName() =
+  private fun RunningArtifactCoordinate.inspectorJarFileName() =
     "${groupId}-${artifactId}-${version}-inspector.jar"
 }

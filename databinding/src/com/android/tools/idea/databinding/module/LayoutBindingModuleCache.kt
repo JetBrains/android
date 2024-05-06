@@ -47,40 +47,44 @@ import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
 
-private val LIGHT_BINDING_CLASSES_KEY = Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
+private val LIGHT_BINDING_CLASSES_KEY =
+  Key.create<List<LightBindingClass>>("LIGHT_BINDING_CLASSES_KEY")
 
 @ThreadSafe
 class LayoutBindingModuleCache(private val module: Module) {
   companion object {
-    // We are using facet.mainModule as a temporary workaround. This is needed because main, unitTest and androidTest modules
-    // all access the same resources (all the resources). Ideally, they should only access their own resources.
+    // We are using facet.mainModule as a temporary workaround. This is needed because main,
+    // unitTest and androidTest modules
+    // all access the same resources (all the resources). Ideally, they should only access their own
+    // resources.
     @JvmStatic
-    fun getInstance(facet: AndroidFacet) = facet.mainModule.getService(LayoutBindingModuleCache::class.java)!!
+    fun getInstance(facet: AndroidFacet) =
+      facet.mainModule.getService(LayoutBindingModuleCache::class.java)!!
   }
 
   private val lock = Any()
 
-  @GuardedBy("lock")
-  private var _dataBindingMode = DataBindingMode.NONE
+  @GuardedBy("lock") private var _dataBindingMode = DataBindingMode.NONE
   var dataBindingMode: DataBindingMode
-    get() = synchronized(lock) {
-      return _dataBindingMode
-    }
+    get() =
+      synchronized(lock) {
+        return _dataBindingMode
+      }
     set(value) {
       synchronized(lock) {
         if (_dataBindingMode != value) {
-            _dataBindingMode = value
-            DataBindingModeTrackingService.getInstance().incrementModificationCount()
+          _dataBindingMode = value
+          DataBindingModeTrackingService.getInstance().incrementModificationCount()
         }
       }
     }
 
-  @GuardedBy("lock")
-  private var _viewBindingEnabled = false
+  @GuardedBy("lock") private var _viewBindingEnabled = false
   var viewBindingEnabled: Boolean
-    get() = synchronized(lock) {
-      return _viewBindingEnabled
-    }
+    get() =
+      synchronized(lock) {
+        return _viewBindingEnabled
+      }
     set(value) {
       synchronized(lock) {
         if (_viewBindingEnabled != value) {
@@ -98,11 +102,16 @@ class LayoutBindingModuleCache(private val module: Module) {
       }
     }
 
-    module.project.messageBus.connect(module).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        syncModeWithDependencies()
-      }
-    })
+    module.project.messageBus
+      .connect(module)
+      .subscribe(
+        PROJECT_SYSTEM_SYNC_TOPIC,
+        object : ProjectSystemSyncManager.SyncResultListener {
+          override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+            syncModeWithDependencies()
+          }
+        }
+      )
     syncModeWithDependencies()
   }
 
@@ -114,16 +123,15 @@ class LayoutBindingModuleCache(private val module: Module) {
     }
   }
 
-  @GuardedBy("lock")
-  private var _lightBrClass: LightBrClass? = null
+  @GuardedBy("lock") private var _lightBrClass: LightBrClass? = null
   /**
    * Fetches the singleton light BR class associated with this module.
    *
    * If this is the first time requesting this information, it will be created on the fly.
    *
-   * This can return `null` if the current module is not associated with an
-   * [AndroidFacet] OR if we were not able to obtain enough information from the given facet
-   * at this time (e.g. because we couldn't determine the class's fully-qualified name).
+   * This can return `null` if the current module is not associated with an [AndroidFacet] OR if we
+   * were not able to obtain enough information from the given facet at this time (e.g. because we
+   * couldn't determine the class's fully-qualified name).
    */
   val lightBrClass: LightBrClass?
     get() {
@@ -132,12 +140,12 @@ class LayoutBindingModuleCache(private val module: Module) {
       synchronized(lock) {
         if (_lightBrClass == null) {
           val qualifiedName = DataBindingUtil.getBrQualifiedName(facet) ?: return null
-          _lightBrClass = LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName)
+          _lightBrClass =
+            LightBrClass(PsiManager.getInstance(facet.module.project), facet, qualifiedName)
         }
         return _lightBrClass
       }
     }
-
 
   @GuardedBy("lock")
   private var _lightDataBindingComponentClass: LightDataBindingComponentClass? = null
@@ -146,17 +154,19 @@ class LayoutBindingModuleCache(private val module: Module) {
    *
    * If this is the first time requesting this information, it will be created on the fly.
    *
-   * This can return `null` if the current module is not associated with an
-   * [AndroidFacet] OR if the current module doesn't provide one (e.g. it's not an app
-   * module).
+   * This can return `null` if the current module is not associated with an [AndroidFacet] OR if the
+   * current module doesn't provide one (e.g. it's not an app module).
    */
   val lightDataBindingComponentClass: LightDataBindingComponentClass?
     get() {
-      val facet = AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject } ?: return null
+      val facet =
+        AndroidFacet.getInstance(module)?.takeUnless { it.configuration.isLibraryProject }
+          ?: return null
 
       synchronized(lock) {
         if (_lightDataBindingComponentClass == null) {
-          _lightDataBindingComponentClass = LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet)
+          _lightDataBindingComponentClass =
+            LightDataBindingComponentClass(PsiManager.getInstance(module.project), facet)
         }
         return _lightDataBindingComponentClass
       }
@@ -171,14 +181,12 @@ class LayoutBindingModuleCache(private val module: Module) {
    * We keep track of it to know when to regenerate [BindingLayoutGroup]s, since they depend on
    * resources. See also [bindingLayoutGroups].
    */
-  @GuardedBy("lock")
-  private var lastResourcesModificationCount = Long.MIN_VALUE
+  @GuardedBy("lock") private var lastResourcesModificationCount = Long.MIN_VALUE
 
-  @GuardedBy("lock")
-  private var _bindingLayoutGroups = emptySet<BindingLayoutGroup>()
+  @GuardedBy("lock") private var _bindingLayoutGroups = emptySet<BindingLayoutGroup>()
   /**
-   * Returns all [BindingLayoutGroup] instances associated with this module, representing all layouts
-   * that should have bindings generated for them.
+   * Returns all [BindingLayoutGroup] instances associated with this module, representing all
+   * layouts that should have bindings generated for them.
    *
    * See also [getLightBindingClasses].
    */
@@ -193,24 +201,30 @@ class LayoutBindingModuleCache(private val module: Module) {
       // If we're called at a time before indexes are ready, BindingLayout.tryCreate below would
       // fail with an exception. To prevent this, we abort early with what we have.
       if (DumbService.isDumb(module.project)) {
-        Logger.getInstance(LayoutBindingModuleCache::class.java).info(
-          "Binding classes may be temporarily stale due to indices not being accessible right now.")
+        Logger.getInstance(LayoutBindingModuleCache::class.java)
+          .info(
+            "Binding classes may be temporarily stale due to indices not being accessible right now."
+          )
         return _bindingLayoutGroups
       }
 
       // Note: LocalResourceRepository and BindingXmlIndex are updated at different times,
       // so we must incorporate both into the modification count (see b/283753328).
       val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
-      val bindingIndexModificationCount = FileBasedIndex.getInstance().getIndexModificationStamp(BindingXmlIndex.NAME, module.project)
+      val bindingIndexModificationCount =
+        FileBasedIndex.getInstance().getIndexModificationStamp(BindingXmlIndex.NAME, module.project)
       val modificationCount = moduleResources.modificationCount + bindingIndexModificationCount
       synchronized(lock) {
         if (modificationCount != lastResourcesModificationCount) {
-          val layoutResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
-          _bindingLayoutGroups = layoutResources.values()
-            .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
-            .groupBy { info -> info.file.name }
-            .map { entry -> BindingLayoutGroup(entry.value) }
-            .toSet()
+          val layoutResources =
+            moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.LAYOUT)
+          _bindingLayoutGroups =
+            layoutResources
+              .values()
+              .mapNotNull { resource -> BindingLayout.tryCreate(facet, resource) }
+              .groupBy { info -> info.file.name }
+              .map { entry -> BindingLayoutGroup(entry.value) }
+              .toSet()
           lastResourcesModificationCount = modificationCount
         }
 
@@ -219,8 +233,8 @@ class LayoutBindingModuleCache(private val module: Module) {
     }
 
   /**
-   * Returns a list of [LightBindingClass] instances corresponding to the layout XML files
-   * related to the passed-in [BindingLayoutGroup].
+   * Returns a list of [LightBindingClass] instances corresponding to the layout XML files related
+   * to the passed-in [BindingLayoutGroup].
    *
    * If there is only one layout.xml (i.e. single configuration), this will return a single light
    * class (a "Binding"). If there are multiple layout.xmls (i.e. multi- configuration), this will
@@ -246,9 +260,13 @@ class LayoutBindingModuleCache(private val module: Module) {
 
         // "Impl" classes are only necessary if we have more than a single configuration.
         // Also, only create "Impl" bindings for data binding; view binding does not generate them
-        if (group.layouts.size > 1 && group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT) {
+        if (
+          group.layouts.size > 1 &&
+            group.mainLayout.data.layoutType == BindingLayoutType.DATA_BINDING_LAYOUT
+        ) {
           for (layoutIndex in group.layouts.indices) {
-            val bindingImplClass = LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
+            val bindingImplClass =
+              LightBindingClass(psiManager, BindingImplClassConfig(facet, group, layoutIndex))
             bindingClasses.add(bindingImplClass)
           }
         }

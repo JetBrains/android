@@ -27,9 +27,6 @@ public class TfliteModelFileType implements FileType {
   public static final TfliteModelFileType INSTANCE = new TfliteModelFileType();
   public static final String TFLITE_EXTENSION = "tflite";
 
-  private TfliteModelFileType() {
-  }
-
   @NotNull
   @Override
   public String getName() {

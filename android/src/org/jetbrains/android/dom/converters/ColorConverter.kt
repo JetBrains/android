@@ -16,21 +16,21 @@
 package org.jetbrains.android.dom.converters
 
 import com.android.ide.common.rendering.api.AttributeFormat
-import com.android.tools.idea.res.parseColor
+import com.android.ide.common.resources.parseColor
 import com.intellij.util.xml.ConvertContext
 import com.intellij.util.xml.ResolvingConverter
 import org.jetbrains.android.util.AndroidBundle
 
 /**
  * [ResolvingConverter] that accepts a Color resource literal of the form:
- *  * #RGB
- *  * #ARGB
- *  * #RRGGBB
- *  * #AARRGGBB
+ * * #RGB
+ * * #ARGB
+ * * #RRGGBB
+ * * #AARRGGBB
  *
  * @see AttributeFormat.COLOR
  */
-class ColorConverter: ResolvingConverter<String>() {
+class ColorConverter : ResolvingConverter<String>() {
   override fun toString(t: String?, context: ConvertContext): String? = t
 
   override fun fromString(s: String?, context: ConvertContext): String? {
@@ -42,13 +42,13 @@ class ColorConverter: ResolvingConverter<String>() {
   }
 
   override fun getErrorMessage(s: String?, context: ConvertContext): String? {
-    return s?.let { AndroidBundle.message("cannot.resolve.color.literal.error", s) } ?: super.getErrorMessage(null, context)
+    return s?.let { AndroidBundle.message("cannot.resolve.color.literal.error", s) }
+      ?: super.getErrorMessage(s, context)
   }
 
   override fun getVariants(context: ConvertContext): Collection<String> = emptyList()
 
   companion object {
-    @JvmField
-    val INSTANCE = ColorConverter()
+    @JvmField val INSTANCE = ColorConverter()
   }
 }

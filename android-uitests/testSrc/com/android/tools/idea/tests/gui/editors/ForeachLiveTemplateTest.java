@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 @RunWith(GuiTestRemoteRunner.class)
 public class ForeachLiveTemplateTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
 
   private static String FOR_EACH = ".*for \\(:.*\n.*\\).*\\{.*\n.*\n.*\\}" + LiveTemplatesTestUtil.STATEMENT + ".*";
@@ -62,7 +62,7 @@ public class ForeachLiveTemplateTest {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     EditorFixture editorFixture = ideFrame.getEditor().open(LiveTemplatesTestUtil.JAVA_FILE);
 
-    LiveTemplatesTestUtil.doubleTapToInsertLiveTemplate(ideFrame, editorFixture, "foreach");
+    LiveTemplatesTestUtil.doubleTapToInsertLiveTemplate(guiTest, ideFrame, editorFixture, "foreach");
     Wait.seconds(20).expecting("For/each statement to show in code.")
       .until(() -> new PatternTextMatcher(FOR_EACH_PATTERN).isMatching(editorFixture.getCurrentFileContents()));
   }

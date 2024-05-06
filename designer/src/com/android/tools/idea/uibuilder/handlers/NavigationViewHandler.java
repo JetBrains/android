@@ -15,28 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_FITS_SYSTEM_WINDOWS;
-import static com.android.SdkConstants.ATTR_HEADER_LAYOUT;
-import static com.android.SdkConstants.ATTR_ITEM_BACKGROUND;
-import static com.android.SdkConstants.ATTR_ITEM_ICON_TINT;
-import static com.android.SdkConstants.ATTR_ITEM_TEXT_APPEARANCE;
-import static com.android.SdkConstants.ATTR_ITEM_TEXT_COLOR;
-import static com.android.SdkConstants.ATTR_MENU;
-import static com.android.SdkConstants.AUTO_URI;
-
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.model.Ranges;
 import com.google.common.collect.ImmutableList;
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 final class NavigationViewHandler extends FrameLayoutHandler {
   @Override

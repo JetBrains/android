@@ -35,24 +35,33 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 /**
- * Runs after explicit code formatting invocation and for Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer,
- * splits it in one modifier per line.
+ * Runs after explicit code formatting invocation and for Modifier(androidx.compose.ui.Modifier)
+ * chain that is two modifiers or longer, splits it in one modifier per line.
  */
 class ComposePostFormatProcessor : PostFormatProcessor {
 
   private fun isAvailable(psiElement: PsiElement, settings: CodeStyleSettings): Boolean {
     return psiElement.containingFile is KtFile &&
-           isComposeEnabled(psiElement) &&
-           !DumbService.isDumb(psiElement.project) &&
-           settings.getCustomSettings(ComposeCustomCodeStyleSettings::class.java).USE_CUSTOM_FORMATTING_FOR_MODIFIERS
+      isComposeEnabled(psiElement) &&
+      !DumbService.isDumb(psiElement.project) &&
+      settings
+        .getCustomSettings(ComposeCustomCodeStyleSettings::class.java)
+        .USE_CUSTOM_FORMATTING_FOR_MODIFIERS
   }
 
   override fun processElement(source: PsiElement, settings: CodeStyleSettings): PsiElement {
-    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).process(source) else source
+    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).process(source)
+    else source
   }
 
-  override fun processText(source: PsiFile, rangeToReformat: TextRange, settings: CodeStyleSettings): TextRange {
-    return if (isAvailable(source, settings)) ComposeModifierProcessor(settings).processText(source, rangeToReformat) else rangeToReformat
+  override fun processText(
+    source: PsiFile,
+    rangeToReformat: TextRange,
+    settings: CodeStyleSettings
+  ): TextRange {
+    return if (isAvailable(source, settings))
+      ComposeModifierProcessor(settings).processText(source, rangeToReformat)
+    else rangeToReformat
   }
 }
 
@@ -77,10 +86,7 @@ class ComposeModifierProcessor(private val settings: CodeStyleSettings) : KtTree
     return formatted
   }
 
-  fun processText(
-    source: PsiFile,
-    rangeToReformat: TextRange
-  ): TextRange {
+  fun processText(source: PsiFile, rangeToReformat: TextRange): TextRange {
     myPostProcessor.resultTextRange = rangeToReformat
     source.accept(this)
     return myPostProcessor.resultTextRange
@@ -88,23 +94,20 @@ class ComposeModifierProcessor(private val settings: CodeStyleSettings) : KtTree
 }
 
 /**
- * Returns true if it's Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or longer.
+ * Returns true if it's Modifier(androidx.compose.ui.Modifier) chain that is two modifiers or
+ * longer.
  */
 private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
-  // Take very top KtDotQualifiedExpression, e.g for `Modifier.adjust1().adjust2()` take whole expression, not only `Modifier.adjust1()`.
+  // Take very top KtDotQualifiedExpression, e.g for `Modifier.adjust1().adjust2()` take whole
+  // expression, not only `Modifier.adjust1()`.
   return element is KtDotQualifiedExpression &&
-         element.parent !is KtDotQualifiedExpression &&
-         isModifierChainLongerThanTwo(element)
+    element.parent !is KtDotQualifiedExpression &&
+    isModifierChainLongerThanTwo(element)
 }
 
-/**
- * Splits KtDotQualifiedExpression it one call per line.
- */
+/** Splits KtDotQualifiedExpression it one call per line. */
 internal fun wrapModifierChain(element: KtDotQualifiedExpression, settings: CodeStyleSettings) {
-  CodeStyle.runWithLocalSettings(
-    element.project,
-    settings
-  ) { tempSettings: CodeStyleSettings ->
+  CodeStyle.doWithTemporarySettings(element.project, settings) { tempSettings: CodeStyleSettings ->
     tempSettings.kotlinCommonSettings.METHOD_CALL_CHAIN_WRAP = CommonCodeStyleSettings.WRAP_ALWAYS
     tempSettings.kotlinCommonSettings.WRAP_FIRST_METHOD_IN_CALL_CHAIN = true
     CodeFormatterFacade(tempSettings, element.language).processElement(element.node)

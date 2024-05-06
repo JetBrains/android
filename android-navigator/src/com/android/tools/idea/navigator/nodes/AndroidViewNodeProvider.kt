@@ -28,7 +28,7 @@ import com.intellij.util.application
  */
 interface AndroidViewNodeProvider {
   companion object {
-    private val EP_NAME: ExtensionPointName<AndroidViewNodeProvider> =
+    val EP_NAME: ExtensionPointName<AndroidViewNodeProvider> =
       ExtensionPointName.create("com.android.tools.idea.navigator.androidViewNodeProvider")
 
     @JvmStatic

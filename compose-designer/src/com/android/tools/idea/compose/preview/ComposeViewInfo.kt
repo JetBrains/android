@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.sdklib.AndroidCoordinate
 import com.google.common.annotations.VisibleForTesting
 
 /** Information needed for creating custom scene components later. */
@@ -25,7 +25,7 @@ data class ComposeViewInfo(
   val children: List<ComposeViewInfo>
 ) {
   override fun toString(): String =
-    """${sourceLocation}
+    """$sourceLocation
       |   bounds=(top=${bounds.top}, left=${bounds.left}, bottom=${bounds.bottom}, right=${bounds.right})
       |   childCount=${children.size}"""
       .trimMargin()
@@ -65,8 +65,7 @@ fun List<ComposeViewInfo>.findDeepestHits(
     .maxByOrNull { it.key }
     ?.value
     ?.map { it.second }
-    ?.toList()
-    ?: emptyList()
+    ?.toList() ?: emptyList()
 
 /** Pixel bounds. The model closely resembles how Compose Stack is returned. */
 data class PxBounds(val left: Int, val top: Int, val right: Int, val bottom: Int) {

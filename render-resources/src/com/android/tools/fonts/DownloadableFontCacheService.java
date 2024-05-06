@@ -19,13 +19,14 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.intellij.openapi.application.ApplicationManager;
-import java.awt.Font;
-import java.io.File;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.awt.Font;
+import java.io.File;
+import java.util.List;
 
 /**
  * A {@link DownloadableFontCacheService} provides a cache of downloadable fonts and system fonts.

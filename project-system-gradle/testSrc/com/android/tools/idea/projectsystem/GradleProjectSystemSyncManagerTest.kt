@@ -17,7 +17,7 @@ package com.android.tools.idea.projectsystem
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
-import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.Info
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -32,7 +32,7 @@ import org.mockito.Mockito.mock
 
 class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   private lateinit var ideComponents: IdeComponents
-  private lateinit var gradleProjectInfo: GradleProjectInfo
+  private lateinit var gradleProjectInfo: Info
   private lateinit var syncManager: ProjectSystemSyncManager
   private lateinit var gradleBuildState: GradleBuildState
   private lateinit var syncTopicConnection: MessageBusConnection
@@ -43,13 +43,13 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     ideComponents = IdeComponents(myProject)
 
     ideComponents.mockProjectService(GradleDependencyManager::class.java)
-    gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo::class.java)
-    whenever(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
+    gradleProjectInfo = ideComponents.mockProjectService(Info::class.java)
+    whenever<Boolean>(gradleProjectInfo.isBuildWithGradle).thenReturn(true)
 
     syncManager = GradleProjectSystemSyncManager(myProject)
     gradleBuildState = GradleBuildState.getInstance(myProject)
 
-    syncTopicConnection = project.messageBus.connect()
+    syncTopicConnection = project.messageBus.connect(project)
     syncTopicListener = mock(SyncResultListener::class.java)
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
   }

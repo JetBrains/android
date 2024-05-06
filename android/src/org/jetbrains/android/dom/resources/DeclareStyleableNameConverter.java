@@ -32,12 +32,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class DeclareStyleableNameConverter extends Converter<String> implements CustomReferenceConverter<String> {
   @Override
-  public String fromString(@Nullable @NonNls String s, @NotNull ConvertContext context) {
+  public String fromString(@Nullable @NonNls String s, ConvertContext context) {
     return s;
   }
 
   @Override
-  public String toString(@Nullable String s, @NotNull ConvertContext context) {
+  public String toString(@Nullable String s, ConvertContext context) {
     return s;
   }
 

@@ -33,14 +33,14 @@ import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.TableUtil
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.table.TableView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import studio.network.inspection.NetworkInspectorProtocol
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
 import javax.swing.ListSelectionModel
 import javax.swing.event.TableModelEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import studio.network.inspection.NetworkInspectorProtocol
 
 class RulesTableView(
   project: Project,

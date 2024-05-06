@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
@@ -28,8 +29,12 @@ import com.intellij.openapi.diagnostic.Logger
 data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
+    if (issue == state.selectedIssue) {
+      return StateTransition(state, Action.NONE)
+    }
     if (issue != null) {
       tracker.logCrashListDetailView(
         AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.newBuilder()
@@ -47,9 +52,21 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
     return StateTransition(
       state.copy(
         issues = state.issues.map { Timed(value = it.value.select(issue), time = it.time) },
+        currentIssueVariants =
+          if (issue != null && state.issues is LoadingState.Ready) {
+            LoadingState.Loading
+          } else {
+            LoadingState.Ready(null)
+          },
         currentIssueDetails =
           if (issue != null && state.issues is LoadingState.Ready) {
             LoadingState.Loading
+          } else {
+            LoadingState.Ready(null)
+          },
+        currentEvents =
+          if (issue != null && state.issues is LoadingState.Ready) {
+            transitionEventForKey(key, issue.sampleEvent)
           } else {
             LoadingState.Ready(null)
           },
@@ -62,7 +79,7 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
       ),
       action =
         if (issue != null && state.issues is LoadingState.Ready)
-          Action.FetchDetails(issue.id) and Action.FetchNotes(issue.id)
+          actionsForSelectedIssue(key, issue.id)
         else Action.NONE
     )
   }

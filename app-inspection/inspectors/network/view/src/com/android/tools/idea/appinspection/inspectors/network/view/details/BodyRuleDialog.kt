@@ -23,7 +23,6 @@ import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ItemEvent
@@ -31,6 +30,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.event.DocumentEvent
+import org.jetbrains.annotations.VisibleForTesting
 
 const val REPLACE_ENTIRE_BODY_TEXT = "Replace entire body"
 

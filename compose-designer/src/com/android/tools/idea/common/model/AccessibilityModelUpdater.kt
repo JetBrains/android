@@ -64,7 +64,7 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
           rootViewInfo = viewInfo,
           logger = Logger.getInstance(AccessibilityModelUpdater::class.java)
         )
-      createTree(it, composeViewInfos, viewInfo.children, model, 0, 0)
+      createTree(it, composeViewInfos, viewInfo.children, model, viewInfo.left, viewInfo.top)
     }
   }
 
@@ -82,13 +82,18 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
       root.addChild(childComponent)
       val globalLeft = rootGlobalX + viewInfo.left
       val globalTop = rootGlobalY + viewInfo.top
+      var midPointX = globalLeft + (viewInfo.right - viewInfo.left) / 2
+      var midPointY = globalTop + (viewInfo.bottom - viewInfo.top) / 2
+      if (composeViewInfos.isNotEmpty()) {
+        val globalBounds = composeViewInfos.maxBy { it.bounds.width * it.bounds.height }.bounds
+        // ViewInfo bounds from accessibility can be larger than ComposeViewInfo bounds.
+        // If a view is on the edge of a preview, make sure to pick a point that is inside the
+        // ComposeViewInfo bounds when looking for a navigatable.
+        midPointX = minOf(midPointX, globalBounds.right)
+        midPointY = minOf(midPointY, globalBounds.bottom)
+      }
       val navigatable =
-        findNavigatableComponentHit(
-          model.module,
-          composeViewInfos,
-          globalLeft + (viewInfo.right - viewInfo.left) / 2,
-          globalTop + (viewInfo.bottom - viewInfo.top) / 2
-        )
+        findNavigatableComponentHit(model.module, composeViewInfos, midPointX, midPointY)
       if (navigatable != null) {
         childComponent.setNavigatable(navigatable)
       }

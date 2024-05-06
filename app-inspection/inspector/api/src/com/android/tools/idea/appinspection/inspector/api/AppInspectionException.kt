@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.api
 
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 
 abstract class AppInspectionException(message: String, cause: Throwable? = null) :
   Exception(message, cause)
@@ -85,6 +85,6 @@ class AppInspectionAppProguardedException(message: String) : AppInspectionServic
 /** Thrown when an inspector artifact can't be resolved. */
 class AppInspectionArtifactNotFoundException(
   message: String,
-  val artifactCoordinate: ArtifactCoordinate,
+  val artifactCoordinate: RunningArtifactCoordinate,
   cause: Throwable? = null
 ) : AppInspectionServiceException(message, cause)

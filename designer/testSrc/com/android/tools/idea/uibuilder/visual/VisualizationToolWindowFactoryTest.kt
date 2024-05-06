@@ -22,12 +22,12 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
 import com.intellij.util.ui.UIUtil
+import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertNotNull
 
 class VisualizationToolWindowFactoryTest {
 

@@ -16,7 +16,6 @@
 package com.android.tools.adtui.util;
 
 import com.google.common.math.IntMath;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Point;
@@ -96,7 +95,7 @@ public class SwingUtil {
     }
 
     private boolean isTableCellEditor() {
-      return Boolean.TRUE.equals(comboBox.getClientProperty(ComboBox.IS_TABLE_CELL_EDITOR_PROPERTY));
+      return Boolean.TRUE.equals(comboBox.getClientProperty("JComboBox.isTableCellEditor"));
     }
 
     private int newIndex(int current, boolean next) {

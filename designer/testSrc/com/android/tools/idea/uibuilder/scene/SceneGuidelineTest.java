@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
-import static com.android.SdkConstants.TEXT_VIEW;
-
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.SdkConstants.TEXT_VIEW;
 
 /**
  * Test guideline interactions

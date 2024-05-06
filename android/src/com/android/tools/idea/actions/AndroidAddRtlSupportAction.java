@@ -16,7 +16,6 @@
 
 package com.android.tools.idea.actions;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.refactoring.rtl.RtlSupportManager;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -51,9 +50,6 @@ public class AndroidAddRtlSupportAction extends AnAction implements DumbAware {
   }
 
   private static boolean isIdeaAndroidModule(Module module){
-    if (GradleFacet.getInstance(module) != null) {
-      return true;
-    }
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
     return androidFacet != null && AndroidModel.isRequired(androidFacet);
   }

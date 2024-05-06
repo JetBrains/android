@@ -39,6 +39,7 @@ class StartStopMirroringButtonTest {
 
   private val project
     get() = projectRule.project
+
   private val mirroringManager
     get() = project.service<MirroringManager>()
 

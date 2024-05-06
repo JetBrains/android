@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.palette;
 
+import com.android.tools.idea.uibuilder.palette.Palette;
 import com.intellij.openapi.util.Condition;
 import com.intellij.ui.SpeedSearchComparator;
 import org.jetbrains.annotations.NotNull;

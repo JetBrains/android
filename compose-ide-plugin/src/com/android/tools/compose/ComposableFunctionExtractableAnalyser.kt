@@ -31,20 +31,24 @@ import org.jetbrains.kotlin.resolve.calls.model.ArgumentMatch
 import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 
 /**
- * Adds [COMPOSABLE_FQ_NAME] annotation to a function when it's extracted from a function annotated with [COMPOSABLE_FQ_NAME]
- * or Composable context.
+ * Adds [COMPOSABLE_FQ_NAME] annotation to a function when it's extracted from a function annotated
+ * with [COMPOSABLE_FQ_NAME] or Composable context.
  */
 class ComposableFunctionExtractableAnalyser : AdditionalExtractableAnalyser {
   /**
-   * Returns @Composable annotation of type of given KtLambdaArgument if there is any otherwise returns null.
+   * Returns @Composable annotation of type of given KtLambdaArgument if there is any otherwise
+   * returns null.
    *
-   * Example: fun myFunction(context: @Composable () -> Unit)
-   * If given [KtLambdaArgument] corresponds to context parameter function returns [AnnotationDescriptor] for @Composable.
+   * Example: fun myFunction(context: @Composable () -> Unit) If given [KtLambdaArgument]
+   * corresponds to context parameter function returns [AnnotationDescriptor] for @Composable.
    */
-  private fun KtLambdaArgument.getComposableAnnotation(bindingContext: BindingContext): AnnotationDescriptor? {
+  private fun KtLambdaArgument.getComposableAnnotation(
+    bindingContext: BindingContext
+  ): AnnotationDescriptor? {
     val callExpression = parent as KtCallExpression
     val resolvedCall = callExpression.getResolvedCall(bindingContext)
-    val argument = (resolvedCall?.getArgumentMapping(this) as? ArgumentMatch)?.valueParameter ?: return null
+    val argument =
+      (resolvedCall?.getArgumentMapping(this) as? ArgumentMatch)?.valueParameter ?: return null
     return argument.type.annotations.findAnnotation(ComposeFqNames.Composable)
   }
 
@@ -53,16 +57,22 @@ class ComposableFunctionExtractableAnalyser : AdditionalExtractableAnalyser {
       return descriptor
     }
 
+    // When a property is being extracted (as in, "Extract constant"), the @Composable annotation
+    // does not apply.
+    if (descriptor.extractionData.options.extractAsProperty) return descriptor
+
     val bindingContext = descriptor.extractionData.bindingContext ?: return descriptor
     val sourceFunction = descriptor.extractionData.targetSibling
     if (sourceFunction is KtAnnotated) {
-      val composableAnnotation = sourceFunction.findAnnotation(ComposeFqNames.Composable)?.resolveToDescriptorIfAny()
+      val composableAnnotation =
+        sourceFunction.findAnnotation(ComposeFqNames.Composable)?.resolveToDescriptorIfAny()
       if (composableAnnotation != null) {
         return descriptor.copy(annotations = descriptor.annotations + composableAnnotation)
       }
     }
     val outsideLambda = descriptor.extractionData.commonParent.parentOfType<KtLambdaArgument>(true)
-    val composableAnnotation = outsideLambda?.getComposableAnnotation(bindingContext) ?: return descriptor
+    val composableAnnotation =
+      outsideLambda?.getComposableAnnotation(bindingContext) ?: return descriptor
     return descriptor.copy(annotations = descriptor.annotations + composableAnnotation)
   }
 }

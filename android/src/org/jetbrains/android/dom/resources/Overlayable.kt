@@ -22,9 +22,8 @@ import org.jetbrains.android.dom.AndroidDomElement
 interface Overlayable : ResourceElement {
   fun getPolicies(): List<Policy>
 
-  interface Policy: AndroidDomElement {
-    @Required
-    fun getType(): GenericAttributeValue<String>
+  interface Policy : AndroidDomElement {
+    @Required fun getType(): GenericAttributeValue<String>
 
     fun getItems(): List<Item>
   }

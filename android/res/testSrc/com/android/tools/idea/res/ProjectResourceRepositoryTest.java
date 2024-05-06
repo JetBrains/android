@@ -94,7 +94,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
     // Just need an empty repository to make it a real module -set-; otherwise with a single
     // module we just get a module repository, not a module set repository.
-    LocalResourceRepository other = new TestLocalResourceRepository(RES_AUTO);
+    LocalResourceRepository<VirtualFile> other = new TestLocalResourceRepository(RES_AUTO);
 
     ModuleResourceRepository module = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2, res3), RES_AUTO, null);
     ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(module, other));
@@ -141,11 +141,11 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      LocalResourceRepository moduleRepository = StudioResourceRepositoryManager.getModuleResources(facet);
+      ResourceRepository moduleRepository = StudioResourceRepositoryManager.getModuleResources(facet);
       assertNotNull(moduleRepository);
-      LocalResourceRepository moduleSetRepository = StudioResourceRepositoryManager.getProjectResources(facet);
+      ResourceRepository moduleSetRepository = StudioResourceRepositoryManager.getProjectResources(facet);
       assertNotNull(moduleSetRepository);
-      LocalResourceRepository librarySetRepository = StudioResourceRepositoryManager.getAppResources(facet);
+      ResourceRepository librarySetRepository = StudioResourceRepositoryManager.getAppResources(facet);
       assertNotNull(librarySetRepository);
     }
     StudioResourceRepositoryManager.getModuleResources(myFacet);
@@ -158,7 +158,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     List<VirtualFile> flavorDirs = Lists.newArrayList(ResourceFolderManager.getInstance(myFacet).getFolders());
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     Disposer.register(getTestRootDisposable(), repository);
-    List<LocalResourceRepository> originalChildren = repository.getLocalResources();
+    List<LocalResourceRepository<VirtualFile>> originalChildren = repository.getLocalResources();
     // Should have a bunch repository directories from the various flavors.
     Set<VirtualFile> resourceDirs = repository.getResourceDirs();
     assertNotEmpty(resourceDirs);
@@ -181,7 +181,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       }
     });
     // The child repositories should be the same since the module structure didn't change.
-    List<LocalResourceRepository> newChildren = repository.getLocalResources();
+    List<LocalResourceRepository<VirtualFile>> newChildren = repository.getLocalResources();
     Set<VirtualFile> newResourceDirs = repository.getResourceDirs();
     assertEquals(newChildren, originalChildren);
     // However, the resourceDirs should now be different, missing the first flavor directory.
@@ -189,8 +189,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testRootChangeListener() {
-    MultiResourceRepository resources = (MultiResourceRepository)StudioResourceRepositoryManager.getProjectResources(myFacet);
-    List<LocalResourceRepository> originalChildren = resources.getLocalResources();
+    MultiResourceRepository<VirtualFile> resources = (MultiResourceRepository<VirtualFile>)StudioResourceRepositoryManager.getProjectResources(myFacet);
+    List<LocalResourceRepository<VirtualFile>> originalChildren = resources.getLocalResources();
     assertNotEmpty(originalChildren);
     Collection<VirtualFile> originalDirs = resources.getResourceDirs();
     assertNotEmpty(originalDirs);
@@ -213,8 +213,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotSame(res1, res3);
     assertNotSame(res2, res3);
     // Test having some overlap between the modules.
-    LocalResourceRepository module1 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
-    LocalResourceRepository module2 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res2, res3), RES_AUTO, null);
+    LocalResourceRepository<VirtualFile> module1 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res1, res2), RES_AUTO, null);
+    LocalResourceRepository<VirtualFile> module2 = ModuleResourceRepository.createForTest(myFacet, ImmutableList.of(res2, res3), RES_AUTO, null);
     ProjectResourceRepository resources = ProjectResourceRepository.createForTest(myFacet, ImmutableList.of(module1, module2));
 
     // Create a repo with res1, res2, res3 and check types.
@@ -318,8 +318,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(sharedLibValues);
     assertNotNull(lib2Values);
 
-    LocalResourceRepository lib1Resources = StudioResourceRepositoryManager.getAppResources(lib1Facet);
-    LocalResourceRepository lib2Resources = StudioResourceRepositoryManager.getAppResources(lib2Facet);
+    ResourceRepository lib1Resources = StudioResourceRepositoryManager.getAppResources(lib1Facet);
+    ResourceRepository lib2Resources = StudioResourceRepositoryManager.getAppResources(lib2Facet);
     assertNotNull(lib1Resources);
     assertNotNull(lib2Resources);
     assertNotSame(lib1Resources, lib2Resources);

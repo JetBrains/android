@@ -20,7 +20,7 @@ import com.android.tools.idea.compose.preview.animation.DispatchToTargetAdapter
 import com.android.tools.idea.compose.preview.animation.InspectorColors
 import com.android.tools.idea.compose.preview.animation.InspectorLayout
 import com.android.tools.idea.compose.preview.animation.TimelinePanel
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale

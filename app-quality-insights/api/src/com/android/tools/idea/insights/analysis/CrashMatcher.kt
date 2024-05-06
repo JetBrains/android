@@ -40,6 +40,7 @@ class DelegatingConfidenceMatcher(
     private val log: Logger
       get() = Logger.getInstance(DelegatingConfidenceMatcher::class.java)
   }
+
   override fun match(file: PsiFile, crash: CrashFrame): Match? =
     matchers
       .asSequence()

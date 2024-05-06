@@ -41,7 +41,7 @@ val UI_UNITS = Storage.Unit.MiB
  * Intel® HAXM installable component
  */
 class Haxm(
-  installationIntention: InstallationIntention,
+  installationIntention: VmInstallationIntention,
   isCustomInstall: ScopedStateStore.Key<Boolean>
 ) : Vm(InstallerInfo, installationIntention, isCustomInstall) {
   override val installUrl =
@@ -52,11 +52,11 @@ class Haxm(
   private val emulatorMemoryMb: IntProperty = IntValueProperty(getRecommendedHaxmMemory(AvdManagerConnection.getMemorySize()))
 
   override fun createSteps(): Collection<DynamicWizardStep> =
-    setOf(if (installationIntention === InstallationIntention.UNINSTALL) VmUninstallInfoStep(VmType.HAXM)
+    setOf(if (installationIntention === VmInstallationIntention.UNINSTALL) VmUninstallInfoStep(VmType.HAXM)
           else HaxmInstallSettingsStep(isCustomInstall, willBeInstalled, emulatorMemoryMb))
 
   override val steps: Collection<ModelWizardStep<*>>
-    get() = setOf(if (installationIntention == InstallationIntention.UNINSTALL) com.android.tools.idea.welcome.wizard.VmUninstallInfoStep(
+    get() = setOf(if (installationIntention == VmInstallationIntention.UNINSTALL) com.android.tools.idea.welcome.wizard.VmUninstallInfoStep(
       VmType.HAXM)
                   else com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep(emulatorMemoryMb))
 

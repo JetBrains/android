@@ -43,7 +43,7 @@ public class PluginsBlockTest extends GradleFileModelTestCase {
 
   @After
   public void onAfter() {
-    Registry.get("android.gradle.declarative.plugin.studio.support").setValue(false);
+    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault();
   }
 
   @Test

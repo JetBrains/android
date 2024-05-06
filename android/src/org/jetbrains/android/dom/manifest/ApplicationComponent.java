@@ -17,11 +17,12 @@
 package org.jetbrains.android.dom.manifest;
 
 import com.intellij.util.xml.Convert;
-import java.util.List;
-import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.resources.ResourceValue;
+
+import java.util.List;
 
 public interface ApplicationComponent extends ManifestElementWithName {
   @Convert(ResourceReferenceConverter.class)

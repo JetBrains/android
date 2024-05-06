@@ -40,10 +40,12 @@ private val XML = DocumentBuilderFactory.newInstance().newDocumentBuilder()
 /**
  * An action that opens a popup dialog containing embedded JSON/XML from the log message
  *
- * Embedded is a complete snippet of XML/JSON embedded in the message. We detect a snippet by extracting the text between the first
- * `{` or `<` and the last `}` or `>` and running it through a parser.
+ * Embedded is a complete snippet of XML/JSON embedded in the message. We detect a snippet by
+ * extracting the text between the first `{` or `<` and the last `}` or `>` and running it through a
+ * parser.
  *
- * TODO(b/235501148): Add the ability to include even partial XML/JSON, as in, a snippet that doesn't full parse.
+ * TODO(b/235501148): Add the ability to include even partial XML/JSON, as in, a snippet that
+ *   doesn't full parse.
  */
 internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File from JSON/XML") {
   private val scratchRootType = ScratchRootType.getInstance()
@@ -55,7 +57,8 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = false
     val (_, language) = e.findEmbeddedData() ?: return
-    e.presentation.text = LogcatBundle.message("logcat.open.embedded.data.text", language.displayName)
+    e.presentation.text =
+      LogcatBundle.message("logcat.open.embedded.data.text", language.displayName)
     e.presentation.icon = language.associatedFileType?.icon
     e.presentation.isVisible = true
   }
@@ -67,7 +70,9 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
     val formatted = ScratchFileCreationHelper.reformat(project, language, text)
     val fileExtension = language.associatedFileType?.defaultExtension ?: ""
     val fileName = PathUtil.makeFileName("logcat", fileExtension)
-    val file = scratchRootType.createScratchFile(project, fileName, language, formatted, create_new_always) ?: return
+    val file =
+      scratchRootType.createScratchFile(project, fileName, language, formatted, create_new_always)
+        ?: return
     navigationSupport.createNavigatable(project, file, 0).navigate(true)
   }
 
@@ -97,11 +102,11 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
     }
   }
 
-  @VisibleForTesting
-  internal data class EmbeddedData(val text: String, val language: Language)
+  @VisibleForTesting internal data class EmbeddedData(val text: String, val language: Language)
 
   companion object {
-    // This is visible for testing because it's tricky to test actionPerformed() directly since it has side effects of creating actual
+    // This is visible for testing because it's tricky to test actionPerformed() directly since it
+    // has side effects of creating actual
     // files on disk and changing the state of the Scratch File subsystem.
     @VisibleForTesting
     internal fun AnActionEvent.findEmbeddedData(): EmbeddedData? {
@@ -117,24 +122,24 @@ internal class CreateScratchFileAction : DumbAwareAction("Create a Scratch File 
   }
 }
 
-// TODO(b/235501148): Detect partial JSON. See LintSyntaxHighlighter#tokenizeXml() for a starting point.
+// TODO(b/235501148): Detect partial JSON. See LintSyntaxHighlighter#tokenizeXml() for a starting
+// point.
 private fun isJson(text: String): Boolean {
   return try {
     GSON.fromJson(text, JsonObject::class.java)
     true
-  }
-  catch (e: Exception) {
+  } catch (e: Exception) {
     false
   }
 }
 
-// TODO(b/235501148): Detect partial XML. See LintSyntaxHighlighter#tokenizeXml() for a starting point.
+// TODO(b/235501148): Detect partial XML. See LintSyntaxHighlighter#tokenizeXml() for a starting
+// point.
 private fun isXml(text: String): Boolean {
   return try {
     XML.parse(InputSource(StringReader(text)))
     true
-  }
-  catch (e: Exception) {
+  } catch (e: Exception) {
     false
   }
 }

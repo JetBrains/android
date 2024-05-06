@@ -1,25 +1,10 @@
 // This is a generated file. Not intended for manual editing.
 package com.android.tools.idea.compose.preview.util.device.parser;
 
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecBooleanTImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecChinSizeParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecDpiParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecHeightParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecIdParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecIsRoundParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecNameParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecOrientationParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecOrientationTImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecParentParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecShapeParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecSizeTImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecSpecImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecUnitImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecUnitParamImpl;
-import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecWidthParamImpl;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.PsiElement;
+import com.intellij.lang.ASTNode;
+import com.android.tools.idea.compose.preview.util.device.parser.impl.*;
 
 public interface DeviceSpecTypes {
 

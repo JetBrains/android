@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.diagnostics.hprof.parser
 
+import java.util.HashMap
+
 enum class Type(val typeId: Int, val size: Int, private val arrayName: String) {
   // Pointer sizes are dependent on the hprof file, so set it to 0 for now.
   OBJECT(2, 0, ""),

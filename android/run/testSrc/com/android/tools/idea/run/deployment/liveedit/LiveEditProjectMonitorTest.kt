@@ -21,14 +21,13 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.project.Project
 import junit.framework.Assert
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -108,24 +107,6 @@ class LiveEditProjectMonitorTest {
     monitor.processChanges(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
     monitor.onPsiChanged(EditEvent(file2, foo2))
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
-  }
-
-  @Test
-  @Ignore("Test was written assuming a world where the class differ doesn't exist")
-  fun `Auto Mode with Private and Public Inline`() {
-    var monitor = LiveEditProjectMonitor(
-      LiveEditService.getInstance(myProject), myProject);
-    var file = projectRule.fixture.configureByText("A.kt", "public inline fun foo() : Int { return 1}")
-    var foo = findFunction(file, "foo")
-    monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file, foo))
-
-    var file2 = projectRule.fixture.configureByText("B.kt", "private inline fun foo2() : Int { return 1}")
-    var foo2 = findFunction(file2, "foo2")
-    monitor.processChanges(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
-    monitor.onPsiChanged(EditEvent(file2, foo2))
-    Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
-    Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_PRIVATE_INLINE_FUNCTION))
   }
 
   /**

@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -63,7 +64,7 @@ class DaggerIndexTest {
 
     assertThat(DaggerIndex.getValues("com.example.Foo", myProject.projectScope()))
       .containsExactly(
-        InjectedConstructorIndexValue("com.example.Foo"),
+        InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")),
       )
   }
 
@@ -83,7 +84,7 @@ class DaggerIndexTest {
 
     assertThat(DaggerIndex.getValues("com.example.Foo", myProject.projectScope()))
       .containsExactly(
-        InjectedConstructorIndexValue("com.example.Foo"),
+        InjectedConstructorIndexValue(ClassId.fromString("com/example/Foo")),
       )
   }
 
@@ -139,8 +140,8 @@ class DaggerIndexTest {
 
     assertThat(DaggerIndex.getValues("Bar", projectRule.project.projectScope()))
       .containsExactly(
-        ProvidesMethodIndexValue("com.example.BarModule", "provideBar"),
-        InjectedConstructorParameterIndexValue("com.example.Foo", "bar"),
+        ProvidesMethodIndexValue(ClassId.fromString("com/example/BarModule"), "provideBar"),
+        InjectedConstructorParameterIndexValue(ClassId.fromString("com/example/Foo"), "bar"),
       )
   }
 }

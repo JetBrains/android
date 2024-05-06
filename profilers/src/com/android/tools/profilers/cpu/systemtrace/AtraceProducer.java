@@ -16,12 +16,12 @@
 package com.android.tools.profilers.cpu.systemtrace;
 
 import com.android.tools.idea.protobuf.ByteString;
+import com.google.common.base.Charsets;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.zip.DataFormatException;
@@ -51,7 +51,7 @@ public class AtraceProducer implements TrebuchetBufferProducer {
   /**
    * The TRACE:\n header comes from atrace when it dumps data to disk. Each compressed chunk starts with this.
    */
-  public static final ByteString HEADER = ByteString.copyFrom("TRACE:\n", StandardCharsets.UTF_8);
+  public static final ByteString HEADER = ByteString.copyFrom("TRACE:\n", Charsets.UTF_8);
 
   private static Logger getLogger() {
     return Logger.getInstance(AtraceProducer.class);

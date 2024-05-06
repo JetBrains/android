@@ -15,22 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.FRAME_LAYOUT;
-import static com.android.SdkConstants.LINEAR_LAYOUT;
-import static com.android.SdkConstants.TAB_WIDGET;
-import static com.android.SdkConstants.VALUE_MATCH_PARENT;
-import static com.android.SdkConstants.VALUE_VERTICAL;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
-import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;
 import com.android.xml.XmlBuilder;
+import com.android.tools.idea.uibuilder.api.XmlType;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <TabHost>} layout

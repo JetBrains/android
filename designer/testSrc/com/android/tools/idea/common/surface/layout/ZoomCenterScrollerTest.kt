@@ -17,12 +17,12 @@ package com.android.tools.idea.common.surface.layout
 
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class ZoomCenterScrollerTest {
 

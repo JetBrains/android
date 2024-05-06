@@ -23,7 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
 import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.Disposable;
@@ -34,6 +34,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Disposer;
@@ -45,7 +46,6 @@ import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -77,10 +77,11 @@ public final class Sdks {
 
   @NotNull
   public static Sdk addAndroidSdk(@NotNull Disposable parentDisposable, @NotNull Module module, @NotNull AndroidVersion androidPlatformVersion) {
-    String sdkName = "SDK";
-    List<Sdk> androidSdks = ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance());
-    Sdk androidSdk = androidSdks.stream().filter(sdk -> sdk.getName().equals(sdkName)).findFirst()
-      .orElseGet(() -> createAndroidSdk(parentDisposable, sdkName, true, androidPlatformVersion));
+    String name = "SDK - " + androidPlatformVersion;
+    Sdk androidSdk = ProjectJdkTable.getInstance().findJdk(name);
+    if (androidSdk == null) {
+      androidSdk = createAndroidSdk(parentDisposable, name, true, androidPlatformVersion);
+    }
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
     IndexingTestUtil.waitUntilIndexesAreReady(module.getProject());
     return androidSdk;
@@ -106,16 +107,15 @@ public final class Sdks {
     VirtualFile resFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/platforms/" + platformDir + "/data/res");
     sdkModificator.addRoot(resFolder, OrderRootType.CLASSES);
 
-    // TODO nvuksic Uncomment once we publish docs and sources with android SDK
-    //VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
-    //if (androidSrcFolder != null) {
-    //  sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
-    //}
-    //
-    //VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
-    //if (docsFolder != null) {
-    //  sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
-    //}
+    VirtualFile androidSrcFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/sources/" + platformDir);
+    if (androidSrcFolder != null) {
+      sdkModificator.addRoot(androidSrcFolder, OrderRootType.SOURCES);
+    }
+
+    VirtualFile docsFolder = LocalFileSystem.getInstance().findFileByPath(sdkPath + "/docs/reference");
+    if (docsFolder != null) {
+      sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
+    }
 
     AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = getSdkData(sdkPath);
@@ -132,9 +132,7 @@ public final class Sdks {
     data.setBuildTarget(foundTarget);
     sdkModificator.setSdkAdditionalData(data);
     ExternalAnnotationsSupport.attachJdkAnnotations(sdkModificator);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      sdkModificator.commitChanges();
-    });
+    WriteAction.run(() -> sdkModificator.commitChanges());
     return sdk;
   }
 

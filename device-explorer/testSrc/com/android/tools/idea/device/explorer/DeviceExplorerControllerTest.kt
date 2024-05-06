@@ -22,9 +22,8 @@ import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
+import com.android.tools.idea.device.explorer.mocks.MockDeviceExplorerTabController
 import com.android.tools.idea.device.explorer.mocks.MockDeviceExplorerView
-import com.android.tools.idea.device.explorer.mocks.MockDeviceFileExplorerController
-import com.android.tools.idea.device.explorer.mocks.MockDeviceMonitorController
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
@@ -50,15 +49,13 @@ class DeviceExplorerControllerTest {
 
   private lateinit var model: DeviceExplorerModel
   private lateinit var view: MockDeviceExplorerView
-  private lateinit var fileController: MockDeviceFileExplorerController
-  private lateinit var monitorController: MockDeviceMonitorController
+  private lateinit var tabController: MockDeviceExplorerTabController
 
   @Before
   fun setUp() {
     model = DeviceExplorerModel(deviceProvisionerRule.deviceProvisioner)
     view = MockDeviceExplorerView(project, model)
-    fileController = MockDeviceFileExplorerController()
-    monitorController = MockDeviceMonitorController()
+    tabController = MockDeviceExplorerTabController()
   }
 
   @After
@@ -88,8 +85,7 @@ class DeviceExplorerControllerTest {
     controller.setup()
 
     // Assert
-    pumpEventsAndWaitForFuture(fileController.activeDeviceTracker.consume())
-    pumpEventsAndWaitForFuture(monitorController.activeDeviceTracker.consume())
+    pumpEventsAndWaitForFuture(tabController.activeDeviceTracker.consume())
     assertThat(view.viewComboBox().isVisible).isFalse()
     assertThat(view.viewTabPane().isVisible).isFalse()
   }
@@ -104,8 +100,7 @@ class DeviceExplorerControllerTest {
     controller.setup()
 
     // Assert
-    pumpEventsAndWaitForFutures(fileController.activeDeviceTracker.consumeMany(2))
-    pumpEventsAndWaitForFutures(monitorController.activeDeviceTracker.consumeMany(2))
+    pumpEventsAndWaitForFutures(tabController.activeDeviceTracker.consumeMany(2))
     assertThat(view.viewComboBox().isVisible).isTrue()
     assertThat(view.viewComboBox().itemCount).isEqualTo(1)
     assertThat(view.viewTabPane().isVisible).isTrue()
@@ -129,8 +124,23 @@ class DeviceExplorerControllerTest {
     assertThat(view.viewTabPane().isVisible).isTrue()
   }
 
+  @Test
+  fun simulatePackageFilterSelection() = runBlocking(AndroidDispatchers.uiThread) {
+    // Prepare
+    val controller = createController()
+    controller.setup()
+
+    // Act
+    controller.packageFilterToggled(true)
+
+    // Assert
+    pumpEventsAndWaitForFuture(tabController.activeDeviceTracker.consume())
+    val isActive = pumpEventsAndWaitForFuture(tabController.packageFilterTracker.consume())
+    assertThat(isActive).isTrue()
+  }
+
   private fun createController(): DeviceExplorerController =
-    DeviceExplorerController(project, model, view, fileController, monitorController)
+    DeviceExplorerController(project, model, view, listOf(tabController))
 
   private fun connectDevice(deviceId: String): DeviceState {
     val deviceState = deviceProvisionerRule.fakeAdb.connectDevice(

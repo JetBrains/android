@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.GradleSettingsDialogFixture
@@ -33,9 +34,7 @@ import java.util.concurrent.TimeUnit
 class StudioDefaultJDKTest {
   @Rule
   @JvmField
-  val guiTest = GuiTestRule().withTimeout(7, TimeUnit.MINUTES)
-
-  private val ACTIVITY_TEMPLATE: String = "Empty Views Activity"
+  val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   /**
    * To verify that studio is taking bundled JDK instead of installed JDK by default
@@ -51,7 +50,6 @@ class StudioDefaultJDKTest {
    *   3. Go to Settings/Build, Execution, Deployment/Build Tools/Gradle (Verify 1,2)
    *   4. Change the gradle JDK to any other JAVA path (verify 3)
    *   5. Open gradle.xml (Verify 4)
-   *
    *   Verify:
    *   1. Verify if the gradle JDK top combo box is pointed to GRADLE_LOCAL_JAVA_HOME by default.
    *   2. Verify if the gradle JDK bottom combo is assigned to a path and enabled.
@@ -60,15 +58,39 @@ class StudioDefaultJDKTest {
    *   </pre>
    * <p>
    */
-
   @Test
-  fun testDefaultJDK() {
-    WizardUtils.createNewProject(guiTest, ACTIVITY_TEMPLATE)
+  fun testExistingProject() {
+    val ide = guiTest.importSimpleApplication()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+    ide.clearNotificationsPresentOnIdeFrame()
+
+    testGradleSettings(ide)
+
+    val editor = ide.editor
+    GuiTests.refreshFiles()
+
+    // Additional verification step to make sure `name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME"` is added to idea/gradle.xml file.
+    editor.open(".idea/gradle.xml")
+    val gradleFileContents = editor.currentFileContents
+    Truth.assertThat(gradleFileContents).contains("name=\"gradleJvm\" value=\"#GRADLE_LOCAL_JAVA_HOME\"")
+  }
+
+  /**
+   * To verify that studio is taking bundled JDK instead of installed JDK by default for new projects.
+   */
+  @Test
+  fun testNewProject() {
+    WizardUtils.createNewProject(guiTest, "Empty Views Activity")
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     val ide: IdeFrameFixture = guiTest.ideFrame()
     ide.clearNotificationsPresentOnIdeFrame()
 
+    testGradleSettings(ide)
+    //gradle.xml file verification is skipped due to flakiness in opening that file for new projects (b/308437557)
+  }
+
+  private fun testGradleSettings(ide: IdeFrameFixture) {
     if (SystemInfo.isMac) {
       ide.robot().pressKey(KeyEvent.VK_META);
       ide.robot().pressAndReleaseKey(KeyEvent.VK_COMMA)
@@ -76,7 +98,6 @@ class StudioDefaultJDKTest {
     } else {
       ide.invokeMenuPath("File", "Settings...")
     }
-    ide.takeScreenshot() // Remove the line once the test is stable.
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val settings = IdeSettingsDialogFixture.find(ide.robot())
@@ -85,23 +106,20 @@ class StudioDefaultJDKTest {
 
     val gradleSettings =  GradleSettingsDialogFixture(settings)
     val gradleJDK = gradleSettings.gradleJDKComboBox()
-    val jdkPath = gradleSettings.gradleJDKPathComboBox()
+    val gradleJdkPathEditComboBox = gradleSettings.gradleJDKPathComboBox()
 
     Truth.assertThat(gradleJDK.selectedItem()).contains("GRADLE_LOCAL_JAVA_HOME")
     Truth.assertThat(gradleJDK.isEnabled).isTrue()
-    Truth.assertThat(jdkPath.isEnabled).isTrue()
+    // GradleJdkPathEditComboBox will be visible only when gradleJDK is selected to GRADLE_LOCAL_JAVA_HOME.
+    Truth.assertThat(gradleJdkPathEditComboBox.target().parent.isVisible).isTrue()
 
     //Change the GRADLE_LOCAL_JAVA_HOME -> any other JDK
     gradleJDK.selectItem("jbr-17")
     Truth.assertThat(gradleJDK.isEnabled).isTrue()
-    Truth.assertThat(jdkPath.isEnabled).isFalse()
+    // If any other JDK other "GRADLE_LOCAL_JAVA_HOME" is selected,
+    // the combo box (GradleJdkPathEditComboBox) should not be visible
+    Truth.assertThat(gradleJdkPathEditComboBox.target().parent.isVisible).isFalse()
 
     settings.clickButton("Cancel")
-
-    val editor = ide.editor
-    editor.open(".idea/gradle.xml")
-    val gradleFileContents = editor.currentFileContents
-
-    Truth.assertThat(gradleFileContents).contains("name=\"gradleJvm\" value=\"#GRADLE_LOCAL_JAVA_HOME\"")
   }
 }

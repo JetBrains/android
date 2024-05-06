@@ -44,7 +44,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
@@ -199,7 +199,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
           final List<VirtualFile> finalList = files;
           scope.accept(new PsiElementVisitor() {
             @Override
-            public void visitFile(@NotNull PsiFile file) {
+            public void visitFile(PsiFile file) {
               VirtualFile virtualFile = file.getVirtualFile();
               if (virtualFile != null) {
                 finalList.add(virtualFile);
@@ -278,7 +278,7 @@ public class LintGlobalInspectionContext implements GlobalInspectionContextExten
         if (!baselineFile.isAbsolute()) {
           String path = module.getProject().getBasePath();
           if (path != null) {
-            baselineFile = new File(FileUtilRt.toSystemDependentName(path), baselineFile.getPath());
+            baselineFile = new File(FileUtil.toSystemDependentName(path), baselineFile.getPath());
           }
         }
         myBaseline = new LintBaseline(client, baselineFile);

@@ -15,10 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.StringFormattingUtils.formatStringInTitleCase;
-import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getFormattedBatteryDrainName;
-import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
-
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.BoxSelectionModel;
 import com.android.tools.adtui.model.DefaultTimeline;
@@ -33,6 +29,7 @@ import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
+import com.android.tools.idea.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.perfetto.proto.TraceProcessor;
@@ -52,12 +49,12 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.FramesAnalysisModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineModel;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
-import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.CpuCoreTrackModel;
@@ -69,6 +66,7 @@ import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.systemtrace.DeadlineTextModel;
 import com.android.tools.profilers.cpu.systemtrace.FrameState;
+import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip;
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
@@ -85,10 +83,12 @@ import com.android.tools.profilers.event.UserEventDataSeries;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
+import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -109,6 +109,10 @@ import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.profilers.StringFormattingUtils.formatStringInTitleCase;
+import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
+import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getFormattedBatteryDrainName;
 
 /**
  * This class holds the models and capture data for the {@code com.android.tools.profilers.cpu.CpuCaptureStageView}.
@@ -227,6 +231,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
     if (captureFile == null) {
       return null;
     }
+
+    // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
+    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
+      var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
+      if (traceType == TraceType.PERFETTO) {
+        PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile, traceId);
+        return null; // prevent Profiler UI from opening the trace
+      }
+    }
+
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
     return new CpuCaptureStage(profilers, configuration, entryPoint, captureFile, traceId, captureProcessNameHint,
                                profilers.getSession().getPid());
@@ -427,9 +441,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
         }
       }
     }
-    if (getStudioProfilers().getSession().getPid() == 0) {
+    if (SessionsManager.isSessionImported(getStudioProfilers().getSession()) &&
+        !getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
-      // correct trace type associated with the imported file.
+      // correct trace type associated with the imported file. In the Task Based UX, however, a CPU_TRACE event is inserted at import-time,
+      // so we do not need to insert another event here.
       insertImportedTraceEvent(capture);
     }
   }

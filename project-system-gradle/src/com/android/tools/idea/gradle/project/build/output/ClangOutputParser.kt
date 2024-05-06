@@ -16,8 +16,8 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.android.utils.cxx.process.NativeBuildOutputClassifier
-import com.android.utils.cxx.process.NativeToolLineClassification.Kind.ERROR
 import com.android.utils.cxx.process.NativeToolLineClassification.Kind.INFO
+import com.android.utils.cxx.process.NativeToolLineClassification.Kind.ERROR
 import com.android.utils.cxx.process.NativeToolLineClassification.Kind.WARNING
 import com.android.utils.cxx.process.regexField
 import com.intellij.build.FilePosition

@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_SRC;
 import static com.android.SdkConstants.ATTR_TEXT;
 import static com.android.SdkConstants.BUTTON;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.IMAGE_VIEW;
 import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
@@ -43,16 +43,17 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.TestAdtUiCursorsProvider;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
+import com.android.tools.idea.common.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -61,7 +62,10 @@ import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.DataManager;
 import com.intellij.ide.impl.HeadlessDataManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Point;
@@ -116,12 +120,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                          "     android:text=\"Hello World\"\n" +
                          "/>";
     Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      dragDrop(manager, 0, 0, 50, 50, transferable);
-    }
-    else {
-      dragDrop(manager, 0, 0, 100, 100, transferable);
-    }
+    dragDrop(manager, 0, 0, 50, 50, transferable);
     Disposer.dispose(model);
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +
@@ -151,12 +150,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                          "     android:layout_height=\"wrap_content\"\n" +
                          "/>";
     Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      dragDrop(manager, 0, 0, 50, 50, transferable);
-    }
-    else {
-      dragDrop(manager, 0, 0, 100, 100, transferable);
-    }
+    dragDrop(manager, 0, 0, 50, 50, transferable);
     Disposer.dispose(model);
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +

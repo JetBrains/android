@@ -22,24 +22,21 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
-import org.jetbrains.kotlin.idea.references.mainReference
+import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-
-/**
- * Removes wrappers like Row, Column and Box around widgets.
- */
+/** Removes wrappers like Row, Column and Box around widgets. */
 class ComposeUnwrapAction : IntentionAction {
-  private val WRAPPERS_FQ_NAMES = setOf(
-    "androidx.compose.foundation.layout.Box",
-    "androidx.compose.foundation.layout.Row",
-    "androidx.compose.foundation.layout.Column"
-  )
+  private val WRAPPERS_FQ_NAMES =
+    setOf(
+      "androidx.compose.foundation.layout.Box",
+      "androidx.compose.foundation.layout.Row",
+      "androidx.compose.foundation.layout.Column"
+    )
 
   override fun startInWriteAction() = true
 
@@ -56,17 +53,21 @@ class ComposeUnwrapAction : IntentionAction {
   }
 
   private fun isCaretAtWrapper(editor: Editor, file: PsiFile): Boolean {
-    val elementAtCaret = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>() ?: return false
-    val name = elementAtCaret.mainReference.resolve()?.kotlinFqName?.asString() ?: return false
+    val elementAtCaret =
+      file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>()
+        ?: return false
+    val name = (elementAtCaret.resolve() as? KtNamedFunction)?.fqName?.asString() ?: return false
     return WRAPPERS_FQ_NAMES.contains(name)
   }
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     if (file == null || editor == null) return
-    val wrapper = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>() ?: return
+    val wrapper =
+      file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>()
+        ?: return
     val outerBlock = wrapper.parent as? KtCallExpression ?: return
-    val lambdaBlock = PsiTreeUtil.findChildOfType(outerBlock, KtBlockExpression::class.java, true) ?: return
+    val lambdaBlock =
+      PsiTreeUtil.findChildOfType(outerBlock, KtBlockExpression::class.java, true) ?: return
     outerBlock.replace(lambdaBlock)
   }
-
 }

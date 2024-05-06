@@ -52,17 +52,17 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.client.ClientSystemInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.TreeSpeedSearch;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.ThreadingAssertions;
 import com.intellij.util.ui.JBInsets;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -198,7 +198,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
    * the XML declaration.
    */
   private void overrideCtrlClick() {
-    int modifier = ClientSystemInfo.isMac() ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
+    int modifier = SystemInfo.isMac ? InputEvent.META_MASK : InputEvent.CTRL_MASK;
     MouseShortcut ctrlClickShortcut = new MouseShortcut(MouseEvent.BUTTON1, modifier, 1);
 
     // Get all the action registered for this component
@@ -412,8 +412,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
 
   private static void paintInsertionLine(@NotNull Graphics2D g, int x, int y, int width) {
     Polygon triangle = new Polygon();
-    int indicatorSize = JBUIScale.scale(6);
-    x += JBUIScale.scale(6);
+    int indicatorSize = JBUI.scale(6);
+    x += JBUI.scale(6);
     triangle.addPoint(x + indicatorSize, y);
     triangle.addPoint(x, y + indicatorSize / 2);
     triangle.addPoint(x, y - indicatorSize / 2);
@@ -433,10 +433,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private static void paintInsertionRectangle(@NotNull Graphics2D g, int x, int y, int width, int height) {
-    x += JBUIScale.scale(1);
-    y += JBUIScale.scale(1);
-    width -= JBUIScale.scale(3);
-    height -= JBUIScale.scale(4);
+    x += JBUI.scale(1);
+    y += JBUI.scale(1);
+    width -= JBUI.scale(3);
+    height -= JBUI.scale(4);
     g.drawRect(x, y, width, height);
   }
 
@@ -639,8 +639,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   private static final class StructureSpeedSearch extends TreeSpeedSearch {
-    StructureSpeedSearch(@NotNull NlComponentTree tree) {
-      super(tree);
+    private StructureSpeedSearch(@NotNull NlComponentTree tree) {
+      super(tree, (Void)null);
     }
 
     static @NotNull StructureSpeedSearch installOn(@NotNull NlComponentTree tree) {
@@ -709,7 +709,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   boolean shouldDisplayFittedText(int index) {
-    return !ClientProperty.isTrue((Component)this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
+    return !ClientProperty.isTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
            !getExpandableItemsHandler().getExpandedItems().contains(index);
   }
 

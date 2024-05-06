@@ -16,10 +16,11 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.IconButton
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBColor
@@ -30,7 +31,6 @@ import com.intellij.ui.tabs.impl.JBTabsImpl
 import com.intellij.ui.tabs.impl.TabLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
-import java.awt.Insets
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.MouseAdapter
@@ -40,14 +40,17 @@ import javax.swing.SwingUtilities
 import javax.swing.border.MatteBorder
 
 /** Tabs panel with enabled navigation. */
-class AnimationTabs(surface: DesignSurface<*>) : JBTabsImpl(surface.project, surface.project) {
-  private val decoration = UiDecorator.UiDecoration(null, Insets(5, 10, 5, 2))
+class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(project, disposable) {
+
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
     ActionToolbarUtil.makeToolbarNavigable(moreToolbar!!)
-    setUiDecorator(object : UiDecorator {
-      override fun getDecoration(): UiDecorator.UiDecoration = decoration
-    })
+    setUiDecorator(
+      object : UiDecorator {
+        override fun getDecoration() =
+          UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10, 5, 2))
+      }
+    )
   }
 
   fun addTabWithCloseButton(info: TabInfo, closeAction: (tabInfo: TabInfo) -> Unit): TabInfo {
@@ -138,6 +141,7 @@ class AnimationTabs(surface: DesignSurface<*>) : JBTabsImpl(surface.project, sur
     }
 
     var isCreated = false
+
     override fun isFocusable(): Boolean {
       // Make sure label is focusable until it's marked as created.
       return !isCreated || super.isFocusable()

@@ -19,12 +19,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
+import javax.swing.event.HyperlinkListener
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.event.HyperlinkListener
 
 class DesignerCommonIssueSidePanelTest {
 

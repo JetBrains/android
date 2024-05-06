@@ -17,8 +17,8 @@ package com.android.tools.idea.uibuilder.handlers.grid
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
-import com.android.tools.idea.common.model.AndroidCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.sdklib.AndroidCoordinate
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
@@ -42,6 +42,7 @@ class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int
   val columnIndices = columns.keys
 
   val array: Array<Int> = arrayOf(1, 2, 3)
+
   init {
     array.asSequence()
   }
@@ -58,6 +59,7 @@ class GridBarriers(private val rows: Map<Int, Int>, private val columns: Map<Int
   }
 
   @AndroidDpCoordinate fun getColumnValue(columnIndex: Int) = columns[columnIndex]
+
   @AndroidDpCoordinate fun getRowValue(rowIndex: Int) = rows[rowIndex]
 
   /**

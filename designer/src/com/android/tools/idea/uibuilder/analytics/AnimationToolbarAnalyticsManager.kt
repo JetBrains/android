@@ -21,13 +21,13 @@ import com.android.tools.idea.uibuilder.editor.AnimationToolbarType
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AnimationPreviewEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executor
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
+import org.jetbrains.annotations.VisibleForTesting
 
 /** Handles analytics that are common across animation toolbar. */
 class AnimationToolbarAnalyticsManager

@@ -31,8 +31,7 @@ android {
             buildConfig "public final static boolean IS_LIVE=false;"
         }
     }
-}
-
-dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }

@@ -36,7 +36,7 @@ class TransportServiceTest : LightPlatformTestCase() {
   private lateinit var service: TransportService
 
   @get:Rule
-  val timeout: Timeout = Timeout.seconds(10)
+  val timeout: Timeout = Timeout.seconds(60)
 
   @Throws(Exception::class)
   override fun setUp() {

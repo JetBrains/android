@@ -63,7 +63,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.hamcrest.core.SubstringMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
-import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProviderKt;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -203,6 +202,7 @@ public class StudioCrashReporterTest {
   public void testSendHeapReportFieldAsFile() throws IOException {
     AnalyzedHeapReport analyzedHeapReport =
       new AnalyzedHeapReport("heap report text",
+                             "heap summary text",
                              new HeapReportProperties(MemoryReportReason.UserInvoked, "stats"),
                              new DiagnosticReportProperties());
     CrashReport crashReport = analyzedHeapReport.asCrashReport();

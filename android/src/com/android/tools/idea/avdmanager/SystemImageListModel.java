@@ -23,9 +23,9 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.SystemImageTags;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.StudioProgressRunner;
@@ -42,9 +42,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.AbstractTableCellEditor;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
@@ -229,14 +229,14 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         return Comparator.comparing(SystemImageDescription::getVersion);
       }
     },
-    new SystemImageColumnInfo("API Level", JBUIScale.scale(100)) {
+    new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
       @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
     },
-    new SystemImageColumnInfo("ABI", JBUIScale.scale(100)) {
+    new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
       @NotNull
       @Override
       public String valueOf(SystemImageDescription systemImage) {
@@ -249,7 +249,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       public String valueOf(SystemImageDescription systemImage) {
         IdDisplay tag = systemImage.getTag();
         String name = systemImage.getName();
-        return String.format("%1$s%2$s", name, tag.equals(SystemImage.DEFAULT_TAG) ? "" :
+        return String.format("%1$s%2$s", name, tag.equals(SystemImageTags.DEFAULT_TAG) ? "" :
                                                String.format(" (%s)", tag.getDisplay()));
       }
     },

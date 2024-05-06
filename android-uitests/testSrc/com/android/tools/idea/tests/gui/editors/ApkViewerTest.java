@@ -84,10 +84,11 @@ public class ApkViewerTest {
     // Open source code and make some changes, then trigger a build.
     // Build should be successful.
     editor
-      .open("app/src/main/java/google/simpleapplication/MyActivity.java")
-      .moveBetween("setContentView(R.layout.activity_my);", "")
-      .enterText("\nSystem.out.println(\"Hello.\");")
-      .close();
+      .open("app/src/main/java/google/simpleapplication/MyActivity.java");
+
+    ideFrame.find(guiTest.robot()).requestFocusIfLost();
+    editor.moveBetween("super.onCreate(savedInstanceState);", "")
+      .enterText("\n" + "System.out.println(\"Hello.\");" + "\n");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Build Bundle(s) / APK(s)", "Build APK(s)");

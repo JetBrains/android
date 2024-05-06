@@ -36,7 +36,7 @@ class DownloadsInfoPageView(
   val disposable: Disposable,
   ) : BuildAnalyzerDataPageView {
 
-  private val resultsTable = TableView(pageModel.repositoriesTableModel).apply {
+  val resultsTable = TableView(pageModel.repositoriesTableModel).apply {
     setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
     setShowGrid(false)
     tableHeader.reorderingAllowed = false

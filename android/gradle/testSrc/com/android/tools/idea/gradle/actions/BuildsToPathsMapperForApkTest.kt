@@ -41,7 +41,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Lists
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.HeavyPlatformTestCase
-import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.io.File
 
@@ -221,21 +220,21 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     private val myPostBuildModuleModels: PostBuildModuleModels = Mockito.mock(PostBuildModuleModels::class.java)
     fun setProjectBuildOutput(projectBuildOutput: ProjectBuildOutput): PostBuildModuleModelsMockBuilder {
       whenever(
-        myPostBuildModuleModels.findModel(ArgumentMatchers.eq(
+        myPostBuildModuleModels.findModel(Mockito.eq(
           ProjectBuildOutput::class.java))).thenReturn(projectBuildOutput)
       return this
     }
 
     fun setAppBundleProjectBuildOutput(appBundleOutput: AppBundleProjectBuildOutput): PostBuildModuleModelsMockBuilder {
       whenever(
-        myPostBuildModuleModels.findModel(ArgumentMatchers.eq(
+        myPostBuildModuleModels.findModel(Mockito.eq(
           AppBundleProjectBuildOutput::class.java))).thenReturn(appBundleOutput)
       return this
     }
 
     fun setInstantAppProjectBuildOutput(instantAppProjectBuildOutput: InstantAppProjectBuildOutput): PostBuildModuleModelsMockBuilder {
       whenever(
-        myPostBuildModuleModels.findModel(ArgumentMatchers.eq(
+        myPostBuildModuleModels.findModel(Mockito.eq(
           InstantAppProjectBuildOutput::class.java))).thenReturn(instantAppProjectBuildOutput)
       return this
     }
@@ -249,7 +248,7 @@ class BuildsToPathsMapperTest : HeavyPlatformTestCase() {
     private val myPostBuildProjectModels: PostBuildProjectModels = Mockito.mock(PostBuildProjectModels::class.java)
     fun setPostBuildModuleModels(gradlePath: String,
                                  postBuildModuleModels: PostBuildModuleModels): PostBuildProjectModelsMockBuilder {
-      whenever(myPostBuildProjectModels.getModels(ArgumentMatchers.eq(gradlePath))).thenReturn(
+      whenever(myPostBuildProjectModels.getModels(Mockito.eq(gradlePath))).thenReturn(
         postBuildModuleModels)
       return this
     }

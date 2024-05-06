@@ -17,20 +17,17 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.adtui.Zoomable
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.prettyPrintActions
+import com.android.tools.idea.actions.ColorBlindModeAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.SurfaceLayoutManagerOption
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
@@ -55,14 +52,12 @@ class ComposeViewControlActionTest {
   @Before
   fun setup() {
     StudioFlags.COMPOSE_VIEW_FILTER.override(false)
-    StudioFlags.COMPOSE_COLORBLIND_MODE.override(true)
     StudioFlags.COMPOSE_VIEW_INSPECTOR.override(true)
   }
 
   @After
   fun tearDown() {
     StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
-    StudioFlags.COMPOSE_COLORBLIND_MODE.clearOverride()
     StudioFlags.COMPOSE_VIEW_FILTER.clearOverride()
     StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.clearOverride()
   }
@@ -78,24 +73,12 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-
-    val context = DataContext {
-      when {
-        ZOOMABLE_KEY.`is`(it) -> TestZoomable()
-        DESIGN_SURFACE.`is`(it) -> designSurfaceMock
-        else -> null
-      }
-    }
-
     val viewControlAction =
       ComposeViewControlAction(
-        EmptyLayoutManagerSwitcher,
         options,
-        onSurfaceLayoutSelected = { _, _ -> }
+        updateMode = { _, _ -> },
+        additionalActionProvider = ColorBlindModeAction()
       )
-    viewControlAction.updateActions(context)
 
     val expected =
       """View Control
@@ -116,7 +99,11 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val actionContent = prettyPrintActions(viewControlAction)
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+
+    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
   }
 
@@ -131,24 +118,12 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
-
-    val context = DataContext {
-      when {
-        ZOOMABLE_KEY.`is`(it) -> TestZoomable()
-        DESIGN_SURFACE.`is`(it) -> designSurfaceMock
-        else -> null
-      }
-    }
-
     val viewControlAction =
       ComposeViewControlAction(
-        EmptyLayoutManagerSwitcher,
         options,
-        onSurfaceLayoutSelected = { _, _ -> }
+        updateMode = { _, _ -> },
+        additionalActionProvider = ColorBlindModeAction()
       )
-    viewControlAction.updateActions(context)
 
     val expected =
       """View Control
@@ -173,7 +148,11 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val actionContent = prettyPrintActions(viewControlAction)
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+
+    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
   }
 
@@ -188,27 +167,12 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
-    val screenViewProviderMock = mock<ScreenViewProvider>()
-
-    val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
-    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
-
-    val context = DataContext {
-      when {
-        ZOOMABLE_KEY.`is`(it) -> TestZoomable()
-        DESIGN_SURFACE.`is`(it) -> designSurfaceMock
-        else -> null
-      }
-    }
-
     val viewControlAction =
       ComposeViewControlAction(
-        EmptyLayoutManagerSwitcher,
         options,
-        onSurfaceLayoutSelected = { _, _ -> }
+        updateMode = { _, _ -> },
+        additionalActionProvider = ColorBlindModeAction()
       )
-    viewControlAction.updateActions(context)
 
     val expected =
       """View Control
@@ -233,7 +197,14 @@ class ComposeViewControlActionTest {
         Tritanomaly
 """
 
-    val actionContent = prettyPrintActions(viewControlAction)
+    val screenViewProviderMock = mock<ScreenViewProvider>()
+
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
+    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
+    val dataContext = DataContext { if (DESIGN_SURFACE.`is`(it)) designSurfaceMock else null }
+
+    val actionContent = prettyPrintActions(viewControlAction, dataContext = dataContext)
     assertEquals(expected, actionContent)
   }
 
@@ -247,7 +218,6 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = true,
         areResourcesOutOfDate = false,
-        interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
       )
     val nonRefreshingStatus =
       ComposePreviewManager.Status(
@@ -256,7 +226,6 @@ class ComposeViewControlActionTest {
         isOutOfDate = false,
         isRefreshing = false,
         areResourcesOutOfDate = false,
-        interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
       )
     val context = DataContext {
       when {
@@ -264,12 +233,11 @@ class ComposeViewControlActionTest {
         else -> null
       }
     }
-    val event = TestActionEvent(context)
+    val event = TestActionEvent.createTestEvent(context)
     val viewControlAction =
       ComposeViewControlAction(
-        EmptyLayoutManagerSwitcher,
         listOf(createOption("Layout A", EmptySurfaceLayoutManager())),
-        onSurfaceLayoutSelected = { _, _ -> }
+        updateMode = { _, _ -> }
       )
 
     manager.currentStatus = nonRefreshingStatus
@@ -288,19 +256,10 @@ class ComposeViewControlActionTest {
   @Suppress("UnstableApiUsage")
   @Test
   fun testNotMultiChoiceAction() {
-    val switcher =
-      object : LayoutManagerSwitcher {
-        override fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager): Boolean = true
-
-        override fun setLayoutManager(
-          layoutManager: SurfaceLayoutManager,
-          sceneViewAlignment: DesignSurface.SceneViewAlignment
-        ) = Unit
-      }
     val option = listOf(SurfaceLayoutManagerOption("Layout A", EmptySurfaceLayoutManager()))
 
     var enabled = true
-    val action = ComposeViewControlAction(switcher, option, { enabled }) { _, _ -> }
+    val action = ComposeViewControlAction(option, { enabled }, { _, _ -> })
     val presentation = Presentation()
 
     // It should always not be multi-choice no matter it is enabled or not.
@@ -310,30 +269,6 @@ class ComposeViewControlActionTest {
     action.update(TestActionEvent.createTestToolbarEvent(presentation))
     assertFalse(Utils.isMultiChoiceGroup(action))
   }
-}
-
-private class TestZoomable : Zoomable {
-  override val scale: Double = 1.0
-  override val screenScalingFactor = 1.0
-  override fun zoom(type: ZoomType): Boolean = true
-
-  override fun canZoomIn(): Boolean = true
-
-  override fun canZoomOut(): Boolean = true
-
-  override fun canZoomToFit(): Boolean = true
-
-  override fun canZoomToActual(): Boolean = true
-}
-
-private object EmptyLayoutManagerSwitcher : LayoutManagerSwitcher {
-
-  override fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager): Boolean = false
-
-  override fun setLayoutManager(
-    layoutManager: SurfaceLayoutManager,
-    sceneViewAlignment: DesignSurface.SceneViewAlignment
-  ) = Unit
 }
 
 private fun createOption(

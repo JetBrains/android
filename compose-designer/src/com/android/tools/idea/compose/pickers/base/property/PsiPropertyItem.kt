@@ -20,6 +20,7 @@ import com.android.tools.property.panel.api.NewPropertyItem
 /** Base class for properties of the [PsiPropertiesModel]. */
 interface PsiPropertyItem : NewPropertyItem {
   override fun isSameProperty(qualifiedName: String): Boolean = false
+
   override val namespace: String
     get() = ""
 }

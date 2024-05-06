@@ -46,6 +46,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
@@ -69,7 +70,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun disposeInspectorSucceeds() =
-    runBlocking {
+    runBlocking<Unit> {
       val connection = appInspectionRule.launchInspectorConnection()
 
       connection.scope.cancel()
@@ -77,7 +78,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun disposeFailsButInspectorIsDisposedAnyway() =
-    runBlocking {
+    runBlocking<Unit> {
       val connection =
         appInspectionRule.launchInspectorConnection(
           commandHandler =
@@ -96,7 +97,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun sendRawCommandSucceedWithCallback() =
-    runBlocking {
+    runBlocking<Unit> {
       val connection = appInspectionRule.launchInspectorConnection()
 
       assertThat(connection.sendRawCommand("TestData".toByteArray()))
@@ -105,7 +106,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun sendRawCommandFailWithCallback() =
-    runBlocking {
+    runBlocking<Unit> {
       val connection =
         appInspectionRule.launchInspectorConnection(
           commandHandler =
@@ -136,7 +137,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun sendRawCommandSucceedWithPayload() =
-    runBlocking {
+    runBlocking<Unit> {
       val payloadId = 1L
       val connection =
         appInspectionRule.launchInspectorConnection(
@@ -164,7 +165,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun receiveRawEventWithData() =
-    runBlocking {
+    runBlocking<Unit> {
       val connection = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
       appInspectionRule.addAppInspectionEvent(createRawAppInspectionEvent(byteArrayOf(0x12, 0x15)))
 
@@ -181,7 +182,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun receiveRawEventWithPayload() =
-    runBlocking {
+    runBlocking<Unit> {
       val connection = appInspectionRule.launchInspectorConnection()
 
       val payloadId1 = 1L
@@ -226,7 +227,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun disposeConnectionClosesConnection() =
-    runBlocking {
+    runBlocking<Unit> {
       val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
       connection.scope.cancel()
@@ -243,7 +244,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun receiveDisposedEvent_cancelsSendingCommands() =
-    runBlocking {
+    runBlocking<Unit> {
       val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
       val sendRawCommandCalled = CompletableDeferred<Unit>()
@@ -286,7 +287,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun receiveDisposedEvent() =
-    runBlocking {
+    runBlocking<Unit> {
       val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
       appInspectionRule.addAppInspectionEvent(
@@ -302,7 +303,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun receiveCrashEvent() =
-    runBlocking {
+    runBlocking<Unit> {
       val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
       appInspectionRule.addAppInspectionEvent(
@@ -319,7 +320,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun sendCommandUsingClosedConnectionThrowsException() =
-    runBlocking {
+    runBlocking<Unit> {
       val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
 
       appInspectionRule.addEvent(Event.newBuilder().setKind(PROCESS).setIsEnded(true).build())
@@ -338,7 +339,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun crashSetsAllOutstandingFutures() =
-    runBlocking {
+    runBlocking<Unit> {
       val readyDeferred = CompletableDeferred<Unit>()
       val client =
         appInspectionRule.launchInspectorConnection(
@@ -382,7 +383,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun connectionDoesNotReceiveStaleEvents() =
-    runBlocking {
+    runBlocking<Unit> {
       val staleEventData = byteArrayOf(0x12, 0x15)
       val freshEventData = byteArrayOf(0x01, 0x02)
 
@@ -400,7 +401,7 @@ class AppInspectorConnectionTest {
   @ExperimentalCoroutinesApi
   @Test
   fun connectionDoesNotReceiveAlreadyReceivedEvents() =
-    runBlocking {
+    runBlocking<Unit> {
       val firstEventData = byteArrayOf(0x12, 0x15)
       val secondEventData = byteArrayOf(0x01, 0x02)
 
@@ -432,7 +433,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun cancelRawCommandSendsCancellationCommand() =
-    runBlocking {
+    runBlocking<Unit> {
       val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
       val cancelReadyDeferred = CompletableDeferred<Unit>()
       val cancelCompletedDeferred = CompletableDeferred<Unit>()
@@ -441,6 +442,7 @@ class AppInspectorConnectionTest {
         Commands.Command.CommandType.APP_INSPECTION,
         object : CommandHandler(timer) {
           var commandId: Int? = null
+
           override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
             if (command.appInspectionCommand.hasRawInspectorCommand()) {
               commandId = command.appInspectionCommand.commandId
@@ -547,7 +549,7 @@ class AppInspectorConnectionTest {
 
   @Test
   fun verifyAwaitForDisposalReturnsExpectedValues() =
-    runBlocking {
+    runBlocking<Unit> {
       // Scope cancellation
       val client = appInspectionRule.launchInspectorConnection(inspectorId = INSPECTOR_ID)
       client.scope.cancel()

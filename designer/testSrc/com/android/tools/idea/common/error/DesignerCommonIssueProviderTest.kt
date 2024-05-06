@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.visual.visuallint.ViewVisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
@@ -29,9 +30,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
 
 class DesignerCommonIssueProviderTest {
 
@@ -43,15 +41,16 @@ class DesignerCommonIssueProviderTest {
     val provider =
       DesignToolsIssueProvider(projectRule.testRootDisposable, project, EmptyFilter, null)
 
-    val listener = mock(Runnable::class.java)
+    var count = 0
+    val listener: () -> Unit = { count++ }
     provider.registerUpdateListener(listener)
 
     val source = Any()
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
-    verify(listener).run()
+    assertEquals(1, count)
 
     project.messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
-    verify(listener, times(2)).run()
+    assertEquals(2, count)
   }
 
   @Test
@@ -173,11 +172,21 @@ class DesignerCommonIssueProviderTest {
 
     val filter = NotSuppressedFilter
 
+    val issueProvider = ViewVisualLintIssueProvider(projectRule.testRootDisposable)
     val visualLintIssue1 =
-      createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model1.components, "")
+      createTestVisualLintRenderIssue(
+        VisualLintErrorType.BOUNDS,
+        model1.components,
+        issueProvider,
+        ""
+      )
     val visualLintIssue2 =
-      createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model2.components, "")
-
+      createTestVisualLintRenderIssue(
+        VisualLintErrorType.BOUNDS,
+        model2.components,
+        issueProvider,
+        ""
+      )
     assertTrue(filter.invoke(visualLintIssue1))
     assertFalse(filter.invoke(visualLintIssue2))
   }
@@ -212,10 +221,21 @@ class DesignerCommonIssueProviderTest {
     }
 
     val filter = SelectedEditorFilter(projectRule.project)
+    val issueProvider = ViewVisualLintIssueProvider(projectRule.testRootDisposable)
     val visualLintIssue1 =
-      createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model1.components, "")
+      createTestVisualLintRenderIssue(
+        VisualLintErrorType.BOUNDS,
+        model1.components,
+        issueProvider,
+        ""
+      )
     val visualLintIssue2 =
-      createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, model2.components, "")
+      createTestVisualLintRenderIssue(
+        VisualLintErrorType.BOUNDS,
+        model2.components,
+        issueProvider,
+        ""
+      )
 
     runInEdtAndWait { projectRule.fixture.openFileInEditor(model1.virtualFile) }
     assertTrue(filter.invoke(visualLintIssue1))

@@ -73,6 +73,7 @@ private constructor(
     private val units: MutableMap<Int, ComposeUnit.NumberUnit<*>> = mutableMapOf()
     private var _startTimeMs: Int? = null
     private var _endTimeMs: Int? = null
+
     fun add(ms: Int, property: ComposeUnit.NumberUnit<*>): Builder {
       units[ms] = property
       return this
@@ -100,16 +101,16 @@ private constructor(
       if (units.values.any { it::class != valueClass }) return null
       // Check all max and min values are correct
       val maxValues: List<Double> =
-        List(dimension) { index -> units.values.map { it.componentAsDouble(index) }.maxOrNull() }
+        List(dimension) { index -> units.values.maxOfOrNull { it.componentAsDouble(index) } }
           .filterNotNull()
       val minValues: List<Double> =
-        List(dimension) { index -> units.values.map { it.componentAsDouble(index) }.minOrNull() }
+        List(dimension) { index -> units.values.minOfOrNull { it.componentAsDouble(index) } }
           .filterNotNull()
       if (maxValues.size != dimension && minValues.size != dimension) return null
       // Check if values could be grouped.
       // Values could be grouped if the maximum difference between normalized to [0, 1] curves is
       // less than CURVES_SIMILARITY threshold.
-      var grouped: Boolean =
+      val grouped: Boolean =
         units
           .mapValues {
             Array(dimension) { index ->

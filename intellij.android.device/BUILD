@@ -5,10 +5,12 @@ iml_module(
     name = "intellij.android.device",
     srcs = ["src"],
     iml_files = ["intellij.android.device.iml"],
+    kotlin_use_compose = True,
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

@@ -23,14 +23,13 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
 import com.android.tools.idea.transport.TransportServiceProxy
-import com.android.tools.idea.transport.manager.TransportStreamManager
+import com.android.tools.idea.transport.manager.TransportStreamManagerService
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -57,8 +56,7 @@ class AppInspectionDiscoveryService : Disposable {
   }
 
   private val client = TransportClient(TransportService.channelName)
-  private val streamManager =
-    TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
+  private val streamManager = service<TransportStreamManagerService>().streamManager
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 
@@ -102,6 +100,7 @@ class AppInspectionDiscoveryService : Disposable {
     return object : AppInspectionJarCopier {
       private val delegate =
         TransportFileManager(this@createJarCopier, TransportService.getInstance().messageBus)
+
       override fun copyFileToDevice(jar: AppInspectorJar): List<String> =
         delegate.copyFileToDevice(jar.toDeployableFile())
     }
@@ -113,9 +112,7 @@ class AppInspectionDiscoveryService : Disposable {
       get() = service()
   }
 
-  override fun dispose() {
-    TransportStreamManager.unregisterManager(streamManager)
-  }
+  override fun dispose() = Unit
 
   /**
    * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return

@@ -111,7 +111,7 @@ class AppInspectionTargetTest {
 
   @Test
   fun launchInspectorReturnsCorrectConnection() =
-    runBlocking {
+    runBlocking<Unit> {
       val target = appInspectionRule.launchTarget(createFakeProcessDescriptor())
 
       transportService.setCommandHandler(
@@ -184,7 +184,7 @@ class AppInspectionTargetTest {
 
   @Test
   fun processTerminationDisposesClient() =
-    runBlocking {
+    runBlocking<Unit> {
       val target =
         appInspectionRule.launchTarget(createFakeProcessDescriptor()) as DefaultAppInspectionTarget
 
@@ -316,25 +316,15 @@ class AppInspectionTargetTest {
       // These are the version files we are interested in targeting.
       val targets =
         listOf(
+          LibraryCompatibility(ArtifactCoordinate("1st", "file", "1.0.0")),
+          LibraryCompatibility(ArtifactCoordinate("2nd", "file", "1.0.0")),
+          LibraryCompatibility(ArtifactCoordinate("3rd", "file", "1.0.0")),
+          LibraryCompatibility(ArtifactCoordinate("4th", "file", "1.0.0")),
           LibraryCompatibility(
-            ArtifactCoordinate("1st", "file", "1.0.0", ArtifactCoordinate.Type.JAR)
-          ),
-          LibraryCompatibility(
-            ArtifactCoordinate("2nd", "file", "1.0.0", ArtifactCoordinate.Type.JAR)
-          ),
-          LibraryCompatibility(
-            ArtifactCoordinate("3rd", "file", "1.0.0", ArtifactCoordinate.Type.JAR)
-          ),
-          LibraryCompatibility(
-            ArtifactCoordinate("4th", "file", "1.0.0", ArtifactCoordinate.Type.JAR)
-          ),
-          LibraryCompatibility(
-            ArtifactCoordinate("5th", "file", "1.0.0", ArtifactCoordinate.Type.JAR),
+            ArtifactCoordinate("5th", "file", "1.0.0"),
             listOf("com.example.MyClass")
           ),
-          LibraryCompatibility(
-            ArtifactCoordinate("6th", "file", "1.0.0", ArtifactCoordinate.Type.JAR)
-          ),
+          LibraryCompatibility(ArtifactCoordinate("6th", "file", "1.0.0")),
         )
 
       // Add the fake process to transport so we can attach to it via apiServices.attachToProcess

@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.handlers
 
 import com.android.SdkConstants
-import com.android.tools.idea.common.api.DragType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
@@ -24,22 +23,11 @@ import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SnappingInfo
-import com.android.tools.idea.uibuilder.api.DragHandler
-import com.android.tools.idea.uibuilder.api.ViewEditor
-import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
 import java.awt.Point
 
 /** Handler for the <layout> tag */
 class LayoutHandler : FrameLayoutHandler() {
-  override fun createDragHandler(
-    editor: ViewEditor,
-    layout: SceneComponent,
-    components: List<NlComponent>,
-    type: DragType
-  ): DragHandler {
-    return FrameDragHandler(editor, this, layout, components, type)
-  }
 
   override fun getTitle(tagName: String): String {
     return "<layout>"

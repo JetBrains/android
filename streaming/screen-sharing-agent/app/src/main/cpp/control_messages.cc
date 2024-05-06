@@ -59,13 +59,27 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case RequestDeviceStateMessage::TYPE:
       return unique_ptr<ControlMessage>(RequestDeviceStateMessage::Deserialize(stream));
 
+    case DisplayConfigurationRequest::TYPE:
+      return unique_ptr<ControlMessage>(DisplayConfigurationRequest::Deserialize(stream));
+
+    case UiSettingsRequest::TYPE:
+      return unique_ptr<ControlMessage>(UiSettingsRequest::Deserialize(stream));
+
+    case SetDarkModeMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetDarkModeMessage::Deserialize(stream));
+
     default:
-      Log::Fatal("Unexpected message type %d", type);
+      Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
   }
 }
 
 void ControlMessage::Serialize(Base128OutputStream& stream) const {
   stream.WriteInt32(type_);
+}
+
+void CorrelatedMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(request_id_);
 }
 
 MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) {
@@ -104,7 +118,7 @@ KeyEventMessage* KeyEventMessage::Deserialize(Base128InputStream& stream) {
 TextInputMessage* TextInputMessage::Deserialize(Base128InputStream& stream) {
   unique_ptr<u16string> text = stream.ReadString16();
   if (text == nullptr || text->empty()) {
-    Log::Fatal("Received a TextInputMessage without text");
+    Log::Fatal(INVALID_CONTROL_MESSAGE, "Received a TextInputMessage without text");
   }
   return new TextInputMessage(*text);
 }
@@ -115,17 +129,22 @@ SetDeviceOrientationMessage* SetDeviceOrientationMessage::Deserialize(Base128Inp
 }
 
 SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128InputStream& stream) {
+  int32_t display_id = stream.ReadInt32();
   int32_t width = stream.ReadInt32();
   int32_t height = stream.ReadInt32();
-  return new SetMaxVideoResolutionMessage(Size(width, height));
-}
-
-StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
-  return new StopVideoStreamMessage();
+  return new SetMaxVideoResolutionMessage(display_id, Size(width, height));
 }
 
 StartVideoStreamMessage* StartVideoStreamMessage::Deserialize(Base128InputStream& stream) {
-  return new StartVideoStreamMessage();
+  int32_t display_id = stream.ReadInt32();
+  int32_t width = stream.ReadInt32();
+  int32_t height = stream.ReadInt32();
+  return new StartVideoStreamMessage(display_id, Size(width, height));
+}
+
+StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
+  int32_t display_id = stream.ReadInt32();
+  return new StopVideoStreamMessage(display_id);
 }
 
 StartClipboardSyncMessage* StartClipboardSyncMessage::Deserialize(Base128InputStream& stream) {
@@ -143,6 +162,38 @@ RequestDeviceStateMessage* RequestDeviceStateMessage::Deserialize(Base128InputSt
   return new RequestDeviceStateMessage(state);
 }
 
+DisplayConfigurationRequest* DisplayConfigurationRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
+  return new DisplayConfigurationRequest(request_id);
+}
+
+UiSettingsRequest* UiSettingsRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
+  return new UiSettingsRequest(request_id);
+}
+
+SetDarkModeMessage* SetDarkModeMessage::Deserialize(Base128InputStream& stream) {
+  bool dark_mode = stream.ReadBool();
+  return new SetDarkModeMessage(dark_mode);
+}
+
+void ErrorResponse::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+  stream.WriteBytes(error_message_);
+}
+
+void DisplayConfigurationResponse::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+  stream.WriteInt32(displays_.size());
+  for (auto display : displays_) {
+    stream.WriteInt32(display.first);
+    stream.WriteInt32(display.second.logical_size.width);
+    stream.WriteInt32(display.second.logical_size.height);
+    stream.WriteInt32(display.second.rotation);
+    stream.WriteInt32(display.second.type);
+  }
+}
+
 void ClipboardChangedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteBytes(text_);
@@ -156,6 +207,30 @@ void SupportedDeviceStatesNotification::Serialize(Base128OutputStream& stream) c
 void DeviceStateNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(device_state_);
+}
+
+void DisplayAddedNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(display_id_);
+}
+
+void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(display_id_);
+}
+
+void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+}
+
+void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+  stream.WriteBool(dark_mode_);
+}
+
+void SetDarkModeMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(dark_mode_);
 }
 
 }  // namespace screensharing

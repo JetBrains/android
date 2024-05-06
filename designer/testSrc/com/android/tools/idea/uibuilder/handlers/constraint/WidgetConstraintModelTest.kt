@@ -24,9 +24,9 @@ import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
-import org.mockito.Mockito
 import java.awt.event.ActionEvent
 import java.util.Locale
+import org.mockito.Mockito
 
 class WidgetConstraintModelTest : SceneTest() {
   private var defaultLocale: Locale? = null

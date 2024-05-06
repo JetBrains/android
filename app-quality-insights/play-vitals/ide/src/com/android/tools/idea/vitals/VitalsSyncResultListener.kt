@@ -20,12 +20,15 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.vitals.ui.VitalsConfigurationService
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.util.application
 
 class VitalsSyncResultListener(private val project: Project) :
   ProjectSystemSyncManager.SyncResultListener {
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
     if (StudioFlags.PLAY_VITALS_ENABLED.get()) {
-      project.service<VitalsConfigurationService>().manager.refreshConfiguration()
+      application.executeOnPooledThread {
+        project.service<VitalsConfigurationService>().manager.refreshConfiguration()
+      }
     }
   }
 }

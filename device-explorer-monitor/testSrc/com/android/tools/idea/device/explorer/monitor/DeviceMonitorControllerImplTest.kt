@@ -20,11 +20,12 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
+import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceHandle
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.mocks.MockProjectApplicationIdsProvider
-import com.android.tools.idea.device.explorer.monitor.options.DeviceMonitorSettings
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
 import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
@@ -36,12 +37,14 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.registerOrReplaceServiceInstance
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -54,13 +57,14 @@ class DeviceMonitorControllerImplTest {
     get() = androidProjectRule.project
 
   @get:Rule
-  val adb = FakeAdbRule()
+  val fakeAdbRule = FakeAdbRule()
 
   private lateinit var model: DeviceMonitorModel
   private lateinit var service: AdbDeviceService
   private lateinit var processService: DeviceProcessService
   private lateinit var mockView: MockDeviceMonitorView
   private lateinit var testDevice1: DeviceState
+  private lateinit var testDeviceHandle1: MockDeviceHandle
   private lateinit var packageNameProvider: MockProjectApplicationIdsProvider
 
   @Before
@@ -72,22 +76,23 @@ class DeviceMonitorControllerImplTest {
       addClient(testDevice1, 60)
     }
     ApplicationManager.getApplication().registerOrReplaceServiceInstance(
-      DeviceMonitorSettings::class.java,
-      DeviceMonitorSettings(),
+      DeviceExplorerSettings::class.java,
+      DeviceExplorerSettings(),
       androidProjectRule.testRootDisposable
     )
     packageNameProvider = MockProjectApplicationIdsProvider(project)
     model = DeviceMonitorModel(processService, packageNameProvider)
-    mockView = MockDeviceMonitorView(model)
+    mockView = MockDeviceMonitorView(project, model)
     mockView.setup()
-    testDevice1 = adb.attachDevice("test_device_01", "Google", "Pix3l", "versionX", "29")
+    testDevice1 = fakeAdbRule.attachDevice("test_device_01", "Google", "Pix3l", "versionX", "29")
+    testDeviceHandle1 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice1.deviceId)
     addClient(testDevice1, 5)
   }
 
   @After
   fun tearDown() {
     Disposer.dispose(service)
-    adb.disconnectDevice(testDevice1.deviceId)
+    fakeAdbRule.disconnectDevice(testDevice1.deviceId)
   }
 
   @Test
@@ -107,7 +112,7 @@ class DeviceMonitorControllerImplTest {
     // Act
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
 
     // Assert
     checkMockViewInitialState()
@@ -119,17 +124,20 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
 
     // Act
-    val testDevice2 = adb.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
-    controller.setActiveConnectedDevice(testDevice2.deviceId)
+    val testDevice2 = fakeAdbRule.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
+    val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle2)
     addClient(testDevice2, 10)
     addClient(testDevice2, 20)
 
     // Assert
     checkMockViewActiveDevice(2)
+
+    fakeAdbRule.disconnectDevice(testDevice2.deviceId)
   }
 
   @Test
@@ -138,7 +146,7 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
 
     // Act
@@ -154,7 +162,7 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
 
     // Act
@@ -176,7 +184,7 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
     waitForCondition("Client ${model.tableModel.getValueForRow(0).safeProcessName} has an unknown name") { !model.tableModel.getValueForRow(0).isPidOnly }
     val config = RunManager.getInstance(project).createConfiguration("debugAllInDeviceMonitorTest", AndroidTestRunConfigurationType.getInstance().factory)
@@ -207,17 +215,20 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
 
     // Act
-    val testDevice2 = adb.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
-    controller.setActiveConnectedDevice(testDevice2.deviceId)
+    val testDevice2 = fakeAdbRule.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
+    val testDeviceHandle2 = MockDeviceHandle(mock(CoroutineScope::class.java), testDevice2.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle2)
 
     // Assert
     checkMockViewActiveDevice(0)
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewActiveDevice(1)
+
+    fakeAdbRule.disconnectDevice(testDevice2.deviceId)
   }
 
   @Test
@@ -226,7 +237,7 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
 
     addClient(testDevice1, 10)
@@ -246,7 +257,7 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
 
     addClient(testDevice1, 10)
@@ -266,7 +277,7 @@ class DeviceMonitorControllerImplTest {
     val controller = createController()
     controller.setup()
     waitForServiceToRetrieveInitialDevice()
-    controller.setActiveConnectedDevice(testDevice1.deviceId)
+    controller.setActiveConnectedDevice(testDeviceHandle1)
     checkMockViewInitialState()
 
     model.setPackageFilter(true)

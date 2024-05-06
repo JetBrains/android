@@ -51,14 +51,14 @@ public class ComponentStack {
   public <T> void registerComponentInstance(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
-    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance, myComponentManager);
+    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance, myDisposable);
   }
 
   public void restore() {
     Disposer.dispose(myDisposable);
     while (!myComponents.isEmpty()) {
       ComponentItem component = myComponents.pop();
-      ServiceContainerUtil.registerComponentInstance(myComponentManager, component.key, component.instance, myComponentManager);
+      ServiceContainerUtil.registerComponentInstance(myComponentManager, component.key, component.instance, null);
     }
     while (!myServices.isEmpty()) {
       myComponentManager.unregisterComponent(myServices.pop().key);

@@ -19,7 +19,6 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.Preview
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationSubscribed
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager.onAnimationUnsubscribed
@@ -77,7 +76,7 @@ object ComposePreviewAnimationManager {
     return invokeAndWaitIfNeeded {
       val animationInspectorPanel =
         AnimationPreview(
-          surface,
+          surface.project,
           AnimationTracker(AnimationToolingUsageTracker.getInstance(surface)),
           { surface.sceneManager },
           surface,

@@ -21,5 +21,6 @@ package com.android.tools.idea.layoutinspector.pipeline
  */
 class InspectorConnectionError : Exception {
   constructor(cause: Throwable) : super(cause)
+
   constructor(message: String) : super(message)
 }

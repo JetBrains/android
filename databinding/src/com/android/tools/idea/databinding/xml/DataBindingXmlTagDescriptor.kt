@@ -23,25 +23,25 @@ import com.intellij.xml.impl.dom.DomElementXmlDescriptor
 import org.jetbrains.android.dom.layout.Data
 
 /**
- * [DataBindingXmlTagDescriptor] is a wrapper around [DomElementXmlDescriptor] to which most of its function calls are delegated.
- * It overrides [getContentType] to provide custom functionality for data binding tags.
+ * [DataBindingXmlTagDescriptor] is a wrapper around [DomElementXmlDescriptor] to which most of its
+ * function calls are delegated. It overrides [getContentType] to provide custom functionality for
+ * data binding tags.
  */
-class DataBindingXmlTagDescriptor(private val dataBindingElement: DomElement) : XmlElementDescriptor by DomElementXmlDescriptor(
-  dataBindingElement) {
+class DataBindingXmlTagDescriptor(private val dataBindingElement: DomElement) :
+  XmlElementDescriptor by DomElementXmlDescriptor(dataBindingElement) {
 
   /**
-   * The return value dictates what type of xml element this is. In the context of autocompletion, this dictates what kind of xml
-   * autocompletion is performed.
+   * The return value dictates what type of xml element this is. In the context of autocompletion,
+   * this dictates what kind of xml autocompletion is performed.
    *
-   * [CONTENT_TYPE_CHILDREN] will indicate this element can contain children and autocompletion will populate both start and end tags.
-   * Ex: <tag></tag>
-   * [CONTENT_TYPE_EMPTY] indicates this is an empty tag and autocompletion will populate an empty tag. Ex <tag/>.
+   * [CONTENT_TYPE_CHILDREN] will indicate this element can contain children and autocompletion will
+   * populate both start and end tags. Ex: <tag></tag> [CONTENT_TYPE_EMPTY] indicates this is an
+   * empty tag and autocompletion will populate an empty tag. Ex <tag/>.
    */
   override fun getContentType(): Int {
     if (dataBindingElement is Data) {
       return CONTENT_TYPE_CHILDREN
-    }
-    else {
+    } else {
       return CONTENT_TYPE_EMPTY
     }
   }

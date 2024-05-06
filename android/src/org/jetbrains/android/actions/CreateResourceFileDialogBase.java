@@ -15,11 +15,11 @@
  */
 package org.jetbrains.android.actions;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.utils.HtmlBuilder;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.project.Project;
@@ -28,14 +28,15 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import javax.swing.JTextField;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.uipreview.InvalidOptionValueException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * Interface for dialogs that create new resource files.

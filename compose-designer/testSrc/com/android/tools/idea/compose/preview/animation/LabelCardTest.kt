@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.ApplicationManager
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.awt.Dimension
@@ -34,7 +34,7 @@ class LabelCardTest {
 
     assertTrue(card.getCurrentHeight() > minimumSize.height)
 
-    invokeAndWaitIfNeeded {
+    ApplicationManager.getApplication().invokeAndWait {
       val ui = FakeUi(card.component)
       ui.layout()
 

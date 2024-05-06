@@ -201,8 +201,8 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     position: SourcePosition,
   ): List<ClassPrepareRequest> {
     return ReadAction.compute<List<ClassPrepareRequest>, RuntimeException> {
-      val element = position.elementAt
-      val classHolder = element?.getInterfaceParent() ?: return@compute emptyList()
+      val element = position.elementAt ?: return@compute emptyList()
+      val classHolder = element.getInterfaceParent() ?: return@compute emptyList()
       if (element.isAbstractMethod()) {
         return@compute emptyList()
       }

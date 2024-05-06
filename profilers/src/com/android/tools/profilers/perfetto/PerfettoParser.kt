@@ -16,10 +16,12 @@
 package com.android.tools.profilers.perfetto
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.MainProcessSelector
 import com.android.tools.profilers.cpu.TraceParser
+import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.android.tools.profilers.cpu.systemtrace.ProcessListSorter
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilder
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceSurfaceflingerManager
@@ -69,7 +71,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
           }
           if (uiState.timelineStartTs != 0L && uiState.timelineEndTs != 0L) {
             initialViewRange.set(TimeUnit.NANOSECONDS.toMicros(uiState.timelineStartTs).toDouble(),
-                                 TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble())
+                                 TimeUnit.NANOSECONDS.toMicros(uiState.timelineEndTs).toDouble());
           }
         }
         catch (throwable:Throwable) {
@@ -98,7 +100,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
 
       val builder = SystemTraceCpuCaptureBuilder(model)
 
-      if (initialViewRange.isEmpty) {
+      if (initialViewRange.isEmpty()) {
         initialViewRange.set(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble())
       }
       return builder.build(traceId, userSelectedProcess, initialViewRange)

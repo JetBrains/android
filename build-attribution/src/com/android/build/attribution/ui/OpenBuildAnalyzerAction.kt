@@ -24,7 +24,9 @@ import org.jetbrains.android.util.AndroidUtils
 
 class OpenBuildAnalyzerAction : AnAction() {
 
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
 
   override fun update(e: AnActionEvent) {
     val project = e.project

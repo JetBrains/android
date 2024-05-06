@@ -20,12 +20,14 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
+import com.android.tools.profilers.cpu.CpuThreadTrackModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel.Type
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
+
 
 class CaptureNodeAnalysisModelTest {
   @Test
@@ -50,11 +52,25 @@ class CaptureNodeAnalysisModelTest {
   }
 
   @Test
-  fun getAllOccurrencesStats() {
+  fun getAllOccurrencesStatsWithoutNameMapping() {
     val capture = Mockito.mock(CpuCapture::class.java).apply {
       whenever(this.range).thenReturn(Range())
     }
     val stats = CaptureNodeAnalysisModel(BAR_11, capture, Utils::runOnUi).allOccurrenceStats
+    assertThat(stats.count).isEqualTo(5)
+    assertThat(stats.average).isWithin(EPSILON).of(13.2)
+    assertThat(stats.max).isEqualTo(35)
+    assertThat(stats.min).isEqualTo(1)
+    assertThat(stats.standardDeviation).isWithin(EPSILON).of(11.873)
+  }
+
+  @Test
+  fun getAllOccurrencesStatsWithNameMapping() {
+    val capture = Mockito.mock(CpuCapture::class.java).apply {
+      whenever(this.range).thenReturn(Range())
+    }
+    val nameToNodes = CpuThreadTrackModel.getNameToNodesMapping(ROOT_NODE)
+    val stats = CaptureNodeAnalysisModel(BAR_11, capture, Utils::runOnUi, nameToNodes).allOccurrenceStats
     assertThat(stats.count).isEqualTo(5)
     assertThat(stats.average).isWithin(EPSILON).of(13.2)
     assertThat(stats.max).isEqualTo(35)

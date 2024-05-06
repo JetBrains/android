@@ -27,11 +27,17 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
+import com.android.tools.idea.execution.common.debug.DebuggerThreadCleanupRule
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
+import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DeploymentApplicationService
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
@@ -39,7 +45,6 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ExceptionUtil
@@ -60,11 +65,22 @@ import java.util.concurrent.TimeUnit
  */
 @Ignore("FakeAdbTestRule hangs")
 class AndroidJavaDebuggerTest {
-  @get:Rule
-  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule(order = 0)
+  val projectRule = AndroidProjectRule.withAndroidModels(
+    AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      AndroidProjectBuilder(
+        applicationIdFor = { "com.test.integration.ddmlib" }
+      ))
+  )
+
+  @get:Rule(order = 1)
+  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+
+  @get:Rule(order = 2)
+  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.server }
 
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
@@ -78,7 +94,7 @@ class AndroidJavaDebuggerTest {
   private lateinit var javaDebugger: AndroidJavaDebugger
 
   @Before
-  fun setUp() {
+  fun setUp() = runTest {
     // Connect a test device.
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
 
@@ -97,7 +113,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @After
-  fun tearDown() {
+  fun tearDown() = runTest {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
     }
@@ -111,7 +127,7 @@ class AndroidJavaDebuggerTest {
   fun testAllInformationForPositionManager() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
@@ -119,7 +135,7 @@ class AndroidJavaDebuggerTest {
       EmptyProgressIndicator()
     )
 
-    val processHandler = session!!.debugProcess.processHandler
+    val processHandler = session.debugProcess.processHandler
     // For AndroidPositionManager.
     assertThat(processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(26))
   }
@@ -132,7 +148,7 @@ class AndroidJavaDebuggerTest {
 
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), onDebugProcessDestroyed, EmptyProgressIndicator()
@@ -148,11 +164,12 @@ class AndroidJavaDebuggerTest {
     val countDownLatch = CountDownLatch(1)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), destroyRunningProcess = { countDownLatch.countDown() }, EmptyProgressIndicator())
 
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
     if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
@@ -161,22 +178,22 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testSessionName() {
-    val session = AndroidJavaDebugger().attachToClient(project, client, null)
+  fun testSessionName() = runTest {
+    val session = DebugSessionStarter.attachDebuggerToClientAndShowTab(project, client, AndroidJavaDebugger(), AndroidDebuggerState())
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
     assertThat(session!!.sessionName).isEqualTo("Java Only (${client.clientData.pid})")
   }
 
   @Test
-  fun testCatchError() {
+  fun testCatchError() = runTest {
     val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(
       ExecutionException("Test execution exception in test testCatchError"))
 
     try {
-      AndroidJavaDebugger().attachToClient(project, client, null)
+      DebugSessionStarter.attachDebuggerToClientAndShowTab(project, client, AndroidJavaDebugger(), AndroidDebuggerState())
       fail()
     }
     catch (e: Throwable) {
@@ -189,7 +206,7 @@ class AndroidJavaDebuggerTest {
   fun testKillAppOnDestroy() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(), onDebugProcessDestroyed, indicator = EmptyProgressIndicator())
@@ -210,6 +227,7 @@ class AndroidJavaDebuggerTest {
       }
     })
 
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
     if (!countDownLatch.await(20, TimeUnit.SECONDS)) {
@@ -231,7 +249,7 @@ class AndroidJavaDebuggerTest {
 
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
-      FakeAdbTestRule.CLIENT_PACKAGE_NAME,
+      TestApplicationProjectContext(FakeAdbTestRule.CLIENT_PACKAGE_NAME),
       executionEnvironment,
       javaDebugger,
       javaDebugger.createState(),
@@ -239,6 +257,7 @@ class AndroidJavaDebuggerTest {
       EmptyProgressIndicator()
     )
 
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.detachProcess()
     session.debugProcess.processHandler.waitFor()
     Mockito.verify(spyClient).notifyVmMirrorExited()

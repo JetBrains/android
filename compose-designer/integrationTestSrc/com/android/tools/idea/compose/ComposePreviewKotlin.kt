@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Path
@@ -42,7 +41,7 @@ class ComposePreviewKotlin {
   fun setup() {
     // Create a new android project, and set a fixed distribution
     project = AndroidProject("tools/adt/idea/compose-designer/testData/projects/composepreview")
-    project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
+    project.setDistribution("tools/external/gradle/gradle-7.5-bin.zip")
 
     system.installRepo(MavenRepo("tools/adt/idea/compose-designer/compose_preview_deps.manifest"))
 
@@ -52,7 +51,6 @@ class ComposePreviewKotlin {
     )
   }
 
-  @Ignore("b/279237690")
   @Test
   fun composePreviewKotlinBasicTest() {
     system.runStudio(project, watcher.dashboardName) { studio ->
@@ -71,15 +69,9 @@ class ComposePreviewKotlin {
       // A build is necessary for Compose Preview to show.
       studio.executeAction("MakeGradleProject")
       studio.waitForBuild()
-      studio.waitForComponent("DefaultPreview")
+      studio.waitForComponentWithExactText("DefaultPreview")
 
-      val matcher =
-        system.installation.ideaLog.waitForMatchingLine(
-          ".*Render completed (.*)",
-          2,
-          TimeUnit.MINUTES
-        )
-      println("Render took ${matcher.group()}")
+      system.installation.ideaLog.waitForMatchingLine(".*Render completed(.*)", 2, TimeUnit.MINUTES)
     }
   }
 }

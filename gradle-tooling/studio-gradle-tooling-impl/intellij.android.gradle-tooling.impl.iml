@@ -9,8 +9,8 @@
         <compilerArguments>
           <stringArguments>
             <stringArg name="jvmTarget" value="1.8" />
-            <stringArg name="languageVersion" value="1.5" />
-            <stringArg name="apiVersion" value="1.5" />
+            <stringArg name="languageVersion" value="1.8" />
+            <stringArg name="apiVersion" value="1.8" />
           </stringArguments>
         </compilerArguments>
       </configuration>
@@ -25,12 +25,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="PROVIDED" name="javax-inject" level="project" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
-    <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
-    <orderEntry type="library" name="org.codehaus.groovy:groovy" level="project" />
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="javax-inject" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
   </component>
 </module>

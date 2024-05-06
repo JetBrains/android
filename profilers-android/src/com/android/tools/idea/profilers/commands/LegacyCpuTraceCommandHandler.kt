@@ -75,7 +75,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     when (command.type) {
       Commands.Command.CommandType.START_TRACE -> startTrace(command)
       Commands.Command.CommandType.STOP_TRACE -> stopTrace(command)
-      else -> { }
+      else -> {}
     }
 
     return Transport.ExecuteResponse.getDefaultInstance()
@@ -224,6 +224,9 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       }
     }
 
+    val requestTime = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
+    addSessionEndedEvent(eventQueue, requestTime, command.pid, command.sessionId)
+
     // Remove the entry if there exists one.
     legacyProfilingRecord.remove(pid)
   }
@@ -245,6 +248,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       pid = command.pid
       kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
+      timestamp = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
       traceStatus = Trace.TraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
@@ -267,6 +271,7 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
       pid = command.pid
       kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
+      timestamp = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
       traceStatus = Trace.TraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)

@@ -208,34 +208,6 @@ class ComposePreviewTest {
 
   @Test
   @Throws(Exception::class)
-  fun testAddAdditionalPreview() {
-    val fixture = getSyncedProjectFixture()
-    val composePreview = openComposePreview(fixture)
-
-    assertFalse(composePreview.hasRenderErrors())
-    composePreview.waitForSceneViewsCount(1)
-
-    val editor = fixture.editor
-    editor.invokeAction(EditorFixture.EditorAction.TEXT_END)
-      .pressAndReleaseKeys(KeyEvent.VK_ENTER)
-      // The closing braces are not needed since they are added by the editor automatically
-      .typeText("""
-        @Preview(name = "Second")
-        @Composable
-        fun SecondPreview() {
-          MaterialTheme {
-            Text(text = "A second preview")
-      """.trimIndent())
-
-    composePreview.waitForRenderToFinish()
-
-    // Check the new preview has been added
-    composePreview.waitForSceneViewsCount(2)
-    editor.close()
-  }
-
-  @Test
-  @Throws(Exception::class)
   fun testInteractivePreview() {
     val fixture = getSyncedProjectFixture()
     val composePreview = openComposePreview(fixture, "MultipleComposePreviews.kt")

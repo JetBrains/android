@@ -57,6 +57,8 @@ import com.android.tools.idea.uibuilder.property.testutils.MockAppCompat
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.asJava.classes.runReadAction
 import org.junit.Rule
@@ -81,7 +83,8 @@ private fun PropertiesTable<NlPropertyItem>.doesNotContain(
 class NlPropertiesProviderTest {
   private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule))!!
+  @get:Rule
+  val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
 
   private val viewAttrs =
     listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)
@@ -161,6 +164,21 @@ class NlPropertiesProviderTest {
       createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
     val properties = runReadAction { provider.getProperties(model, null, components) }
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
+    assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSrcCompatIncludedWhenUsingAppCompatAndKeepSrcIfPresent() {
+    setUpAppCompat()
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val provider = NlPropertiesProvider(facet)
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val components =
+      createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+    components.first().setAttribute(ANDROID_URI, ATTR_SRC, "@drawable/mine")
+    val properties = runReadAction { provider.getProperties(model, null, components) }
+    assertThat(properties.contains(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
 

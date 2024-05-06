@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
-import com.android.tools.idea.configurations.ThemeSelectionDialog;
+import com.android.tools.idea.actions.ThemeSelectionDialog;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.treeStructure.Tree;

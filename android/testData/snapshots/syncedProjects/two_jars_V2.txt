@@ -91,7 +91,7 @@ PROJECT                       : My Application
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -155,8 +155,8 @@ PROJECT                       : My Application
         ORDER_ENTRY                   : My_Application.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/classes
-            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/build/intermediates/javac/debugAndroidTest/compileDebugAndroidTestJavaWithJavac/classes
+            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/processDebugAndroidTestResources/R.jar!/
             -                             : file://<PROJECT>/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -249,15 +249,15 @@ PROJECT                       : My Application
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         Classes
             -                             : file://<PROJECT>/lib/build/classes/java/main
@@ -300,15 +300,15 @@ PROJECT                       : My Application
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib1/liba.jar!/
-        LIBRARY
+        LIBRARY                       : Gradle:  [=]
             LibraryLevel                  : module
             IsModuleLevel                 : true
-            LIBRARY
+            LIBRARY                       : Gradle:
                 *CLASSES                      : jar://<PROJECT>/lib2/liba.jar!/
         ORDER_ENTRY                   : My_Application.lib.main
         BUILD_TASKS
@@ -339,7 +339,7 @@ PROJECT                       : My Application
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/intermediates/javac/debug/classes [-]
+            compilerSourceOutputPath      : file://<PROJECT>/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/My_Application.main.iml [-]
@@ -396,8 +396,8 @@ PROJECT                       : My Application
         LIBRARY                       : Gradle: ./lib2/liba.jar [=]
         ORDER_ENTRY                   : My_Application.lib.main
         Classes
-            -                             : file://<PROJECT>/build/intermediates/javac/debug/classes
-            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
+            -                             : jar://<PROJECT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/processDebugResources/R.jar!/
             -                             : file://<PROJECT>/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -443,7 +443,7 @@ PROJECT                       : My Application
         LinkedProjectPath             : <PROJECT>
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
@@ -546,7 +546,7 @@ PROJECT                       : My Application
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
-            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::assembleDebugUnitTest, <PROJECT>::lib:assemble, <PROJECT>::lib:testClasses
             REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::assembleDebugUnitTest, <PROJECT>::clean, <PROJECT>::lib:assemble, <PROJECT>::lib:clean, <PROJECT>::lib:testClasses
             COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources, <PROJECT>::compileDebugUnitTestSources, <PROJECT>::lib:compileJava, <PROJECT>::lib:testClasses
             SOURCE_GEN                    : <PROJECT>::createMockableJar, <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
@@ -554,7 +554,7 @@ PROJECT                       : My Application
             APK_FROM_BUNDLE               : :extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
-            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
+            ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::lib:assemble
             REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugAndroidTest, <PROJECT>::clean, <PROJECT>::lib:assemble, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::compileDebugAndroidTestSources, <PROJECT>::compileDebugSources, <PROJECT>::lib:compileJava
             SOURCE_GEN                    : <PROJECT>::generateDebugAndroidTestSources, <PROJECT>::generateDebugSources
@@ -562,7 +562,7 @@ PROJECT                       : My Application
             APK_FROM_BUNDLE               : :extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::createMockableJar, <PROJECT>::generateDebugSources
-            ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugUnitTest, <PROJECT>::lib:assemble, <PROJECT>::lib:testClasses
             REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::assembleDebugUnitTest, <PROJECT>::clean, <PROJECT>::lib:assemble, <PROJECT>::lib:clean, <PROJECT>::lib:testClasses
             COMPILE_JAVA                  : <PROJECT>::compileDebugUnitTestSources, <PROJECT>::lib:compileJava, <PROJECT>::lib:testClasses
             SOURCE_GEN                    : <PROJECT>::createMockableJar, <PROJECT>::generateDebugSources
@@ -570,7 +570,7 @@ PROJECT                       : My Application
             APK_FROM_BUNDLE               : :extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::generateDebugSources
-            ASSEMBLE                      : :assembleDebug
+            ASSEMBLE                      : <PROJECT>::assembleDebug, <PROJECT>::lib:assemble
             REBUILD                       : <PROJECT>::assembleDebug, <PROJECT>::clean, <PROJECT>::lib:assemble, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::compileDebugSources, <PROJECT>::lib:compileJava
             SOURCE_GEN                    : <PROJECT>::generateDebugSources

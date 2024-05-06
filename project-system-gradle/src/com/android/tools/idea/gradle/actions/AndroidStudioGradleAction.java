@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.intellij.ide.impl.TrustedProjects;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import javax.swing.Icon;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,9 +30,6 @@ import org.jetbrains.annotations.Nullable;
  * Base class for actions that perform Gradle-specific tasks in Android Studio.
  */
 public abstract class AndroidStudioGradleAction extends AnAction {
-  protected AndroidStudioGradleAction() {
-    super();
-  }
   protected AndroidStudioGradleAction(@Nullable String text) {
     super(text);
   }
@@ -42,40 +38,47 @@ public abstract class AndroidStudioGradleAction extends AnAction {
     super(text, description, icon);
   }
 
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   @Override
   public final void update(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project == null || !isGradleProject(project) || !TrustedProjects.isTrusted(project)) {
+    if (!isGradleProject(e)) {
       e.getPresentation().setEnabledAndVisible(false);
+      return;
+    }
+
+    Project project = e.getProject();
+    //noinspection UnstableApiUsage
+    if (project == null || !TrustedProjects.isTrusted(project)) {
+      e.getPresentation().setEnabled(false);
       return;
     }
 
     // Make it visible and enabled for Gradle projects, and let subclasses decide whether the action should be enabled or not.
     e.getPresentation().setEnabledAndVisible(true);
-
     doUpdate(e, project);
-  }
-
-  @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.BGT;
   }
 
   protected abstract void doUpdate(@NotNull AnActionEvent e, @NotNull Project project);
 
   @Override
   public final void actionPerformed(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project == null || !isGradleProject(project)) {
+    if (!isGradleProject(e)) {
       return;
     }
+    Project project = e.getProject();
+    assert project != null;
     doPerform(e, project);
   }
 
   protected abstract void doPerform(@NotNull AnActionEvent e, @NotNull Project project);
 
-  protected static boolean isGradleProject(@NotNull Project project) {
-    return GradleProjectInfo.getInstance(project).isBuildWithGradle() &&
-           (IdeInfo.getInstance().isAndroidStudio() || AndroidUtils.hasAndroidFacets(project));
+  protected static boolean isGradleProject(@NotNull AnActionEvent e) {
+    Project project = e.getProject();
+    return project != null && ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem;
   }
 }

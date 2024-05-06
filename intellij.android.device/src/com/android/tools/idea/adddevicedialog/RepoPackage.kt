@@ -16,10 +16,10 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.android.repository.api.RepoPackage
+import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.meta.DetailsTypes.AddonDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.PlatformDetailsType
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType
-import com.android.sdklib.repository.targets.SystemImage
 
 internal fun RepoPackage.hasSystemImage(): Boolean {
   val details = typeDetails
@@ -35,16 +35,16 @@ private fun AddonDetailsType.hasSystemImage(): Boolean {
 
 private fun isGoogleApiTag(tag: Any): Boolean {
   return when (tag) {
-    SystemImage.ANDROID_TV_TAG,
-    SystemImage.AUTOMOTIVE_PLAY_STORE_TAG,
-    SystemImage.AUTOMOTIVE_TAG,
-    SystemImage.CHROMEOS_TAG,
-    SystemImage.DESKTOP_TAG,
-    SystemImage.GOOGLE_APIS_TAG,
-    SystemImage.GOOGLE_APIS_X86_TAG,
-    SystemImage.GOOGLE_TV_TAG,
-    SystemImage.PLAY_STORE_TAG,
-    SystemImage.WEAR_TAG -> true
+    SystemImageTags.ANDROID_TV_TAG,
+    SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG,
+    SystemImageTags.AUTOMOTIVE_TAG,
+    SystemImageTags.CHROMEOS_TAG,
+    SystemImageTags.DESKTOP_TAG,
+    SystemImageTags.GOOGLE_APIS_TAG,
+    SystemImageTags.GOOGLE_APIS_X86_TAG,
+    SystemImageTags.GOOGLE_TV_TAG,
+    SystemImageTags.PLAY_STORE_TAG,
+    SystemImageTags.WEAR_TAG -> true
 
     else -> false
   }

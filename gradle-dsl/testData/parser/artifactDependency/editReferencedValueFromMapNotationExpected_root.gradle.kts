@@ -1,1 +1,0 @@
-val guavaVersion by extra("19.0")

@@ -111,7 +111,7 @@ object NavModelBuilderUtil {
   class NavigationComponentDescriptor(id: String?, startDestination: String?, label: String?) : NavComponentDescriptor(TAG_NAVIGATION) {
 
     init {
-      id?.let { id("@+id/$it") }
+      id?.let { id("@+id/" + it) }
       startDestination?.let { withAttribute(AUTO_URI, ATTR_START_DESTINATION, "@id/$it") }
       label?.let { withAttribute(ANDROID_URI, ATTR_LABEL, it) }
     }
@@ -206,7 +206,7 @@ object NavModelBuilderUtil {
   class ActionComponentDescriptor(id: String, destination: String?, popUpTo: String? = null, popUpToInclusive: Boolean = false)
     : NavComponentDescriptor(TAG_ACTION) {
     init {
-      id("@+id/$id")
+      id("@+id/" + id)
       destination?.let { withAttribute(AUTO_URI, ATTR_DESTINATION, "@id/$it") }
       popUpTo?.let { withAttribute(AUTO_URI, ATTR_POP_UP_TO, "@id/$it") }
       if (popUpToInclusive) {

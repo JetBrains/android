@@ -22,6 +22,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.XmlUtils;
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -33,7 +34,6 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -112,7 +112,7 @@ public class DeviceArtDescriptor {
 
     for (File file : files)
       try {
-        String xml = Files.toString(file, StandardCharsets.UTF_8);
+        String xml = Files.toString(file, Charsets.UTF_8);
         Document document = XmlUtils.parseDocumentSilently(xml, false);
         if (document != null) {
           File baseFolder = file.getParentFile();
@@ -244,6 +244,15 @@ public class DeviceArtDescriptor {
     double imgAspectRatio = image.getWidth() / (double) image.getHeight();
     double descriptorAspectRatio = getAspectRatio(orientation);
     return Math.abs(imgAspectRatio - descriptorAspectRatio) < ImageUtils.EPSILON;
+  }
+
+  @Override
+  public @NotNull String toString() {
+    return "DeviceArtDescriptor{" +
+           "myId='" + myId + '\'' +
+           ", myName='" + myName + '\'' +
+           ", myFolder=" + myFolder +
+           '}';
   }
 
   /** Descriptor for a particular device frame (e.g. a set of images for a particular device in a particular orientation) */

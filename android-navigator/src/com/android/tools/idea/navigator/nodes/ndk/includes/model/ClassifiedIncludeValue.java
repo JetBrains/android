@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
-import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
-
-import java.io.File;
 import org.apache.commons.io.FilenameUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+
+import static com.intellij.openapi.util.io.FileUtil.getLocationRelativeToUserHome;
 
 /**
  * An include path or collection of include paths categorized into a PackageType.

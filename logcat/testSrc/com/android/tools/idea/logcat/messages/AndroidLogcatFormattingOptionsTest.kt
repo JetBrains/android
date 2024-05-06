@@ -18,9 +18,7 @@ package com.android.tools.idea.logcat.messages
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-/**
- * Tests for [AndroidLogcatFormattingOptions]
- */
+/** Tests for [AndroidLogcatFormattingOptions] */
 class AndroidLogcatFormattingOptionsTest {
   private val defaultFormattingOptions = AndroidLogcatFormattingOptions()
 
@@ -30,7 +28,8 @@ class AndroidLogcatFormattingOptionsTest {
 
     formattingOptions.standardFormattingOptions.tagFormat = TagFormat(enabled = false)
 
-    assertThat(formattingOptions.standardFormattingOptions).isNotEqualTo(defaultFormattingOptions.standardFormattingOptions)
+    assertThat(formattingOptions.standardFormattingOptions)
+      .isNotEqualTo(defaultFormattingOptions.standardFormattingOptions)
   }
 
   @Test
@@ -39,6 +38,7 @@ class AndroidLogcatFormattingOptionsTest {
 
     formattingOptions.compactFormattingOptions.tagFormat = TagFormat(enabled = true)
 
-    assertThat(formattingOptions.compactFormattingOptions).isNotEqualTo(defaultFormattingOptions.compactFormattingOptions)
+    assertThat(formattingOptions.compactFormattingOptions)
+      .isNotEqualTo(defaultFormattingOptions.compactFormattingOptions)
   }
 }

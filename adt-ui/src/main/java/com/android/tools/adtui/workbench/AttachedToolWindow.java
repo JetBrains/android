@@ -31,13 +31,12 @@ import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.toolWindow.StripeButtonUi;
 import com.intellij.ui.DocumentAdapter;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.NewUiValue;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
@@ -123,6 +122,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     setDefaultProperty(PropertyType.AUTO_HIDE, definition.getAutoHide().isAutoHide());
     setDefaultProperty(PropertyType.MINIMIZED, minimizedByDefault);
     updateContent();
+    if (myDefinition.overrideSide()) {
+      setProperty(PropertyType.LEFT, definition.getSide().isLeft());
+    }
+    if (myDefinition.overrideSplit()) {
+      setProperty(PropertyType.SPLIT, definition.getSplit().isBottom());
+    }
     AnAction globalFindAction = ActionManager.getInstance().getAction(ACTION_FIND);
     if (globalFindAction != null) {
       new FindAction().registerCustomShortcutSet(globalFindAction.getShortcutSet(), myPanel, this);
@@ -366,8 +371,10 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     if (includeSearchField) {
       mySearchField = new MySearchField(TOOL_WINDOW_PROPERTY_PREFIX + myWorkBench.getName() + ".TEXT_SEARCH_HISTORY");
 
-      // Override the preferred height of the search field in order to align all tool window headers
-      mySearchField.setPreferredSize(new Dimension(mySearchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
+      if (!ExperimentalUI.isNewUI() && (myDefinition.showGearAction() || myDefinition.showHideAction())) {
+        // Override the preferred height of the search field in order to align with the toolbar in the center panel:
+        mySearchField.setPreferredSize(new Dimension(mySearchField.getPreferredSize().width, titlePanel.getPreferredSize().height));
+      }
       titlePanel.add(mySearchField, SEARCH_HEADER);
     }
     layout.show(titlePanel, LABEL_HEADER);
@@ -419,8 +426,13 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       rightGroup.addAll(content.getAdditionalActions());
       rightGroup.add(Separator.getInstance());
     }
-    rightGroup.add(new GearAction());
-    rightGroup.add(new HideAction());
+    if (myDefinition.showGearAction()) {
+      rightGroup.add(new GearAction());
+    }
+    if (myDefinition.showHideAction()) {
+      rightGroup.add(new HideAction());
+    }
+
     ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar("AttachedToolWindow", rightGroup, true);
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar);
     actionToolbar.setMinimumButtonSize(myDefinition.getButtonSize());
@@ -462,14 +474,23 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
         group.addSeparator();
       }
     }
-    DefaultActionGroup attachedSide = DefaultActionGroup.createPopupGroup(() -> "Attached Side");
-    attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
-    attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
-    attachedSide.add(new SwapAction());
-    if (myDefinition.isFloatingAllowed()) {
-      attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    DefaultActionGroup attachedLocation = DefaultActionGroup.createPopupGroup(() -> "Attached to");
+    if (myDefinition.isSplitModeChangesAllowed()) {
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.LeftTop));
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.LeftBottom));
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.RightTop));
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.RightBottom));
     }
-    group.add(attachedSide);
+    else {
+      attachedLocation.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
+      attachedLocation.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
+    }
+
+    attachedLocation.add(new SwapAction());
+    if (myDefinition.isFloatingAllowed()) {
+      attachedLocation.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    }
+    group.add(attachedLocation);
     ActionManager manager = ActionManager.getInstance();
     if (myDefinition.isAutoHideAllowed()) {
       group.add(
@@ -477,9 +498,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
     if (myDefinition.isFloatingAllowed()) {
       group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
-    }
-    if (myDefinition.isSplitModeChangesAllowed()) {
-      group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
     }
   }
 
@@ -612,7 +630,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       }
       Graphics graphics2 = graphics.create();
       try {
-        graphics2.translate(JBUIScale.scale(1), 0);
+        graphics2.translate(JBUI.scale(1), 0);
         super.paint(graphics2);
       }
       finally {
@@ -697,7 +715,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
      */
     @Override
     public boolean isSelected() {
-      return NewUiValue.isEnabled() ? myIsActive : !myIsMinimized;
+      return ExperimentalUI.isNewUI() ? myIsActive : !myIsMinimized;
     }
 
     /**
@@ -705,7 +723,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
      */
     @Override
     public boolean isRollover() {
-      return NewUiValue.isEnabled() ? !myIsMinimized : super.isRollover();
+      return ExperimentalUI.isNewUI() ? !myIsMinimized : super.isRollover();
     }
   }
 
@@ -713,11 +731,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
     private SearchAction() {
       super("Search", null, AllIcons.Actions.Find);
-    }
-
-    @Override
-    public @NotNull ActionUpdateThread getActionUpdateThread() {
-      return ActionUpdateThread.EDT;
     }
 
     @Override
@@ -730,6 +743,11 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       showSearchField(true);
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
     }
   }
 
@@ -754,7 +772,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
   private class HideAction extends DumbAwareAction {
     private HideAction() {
-      super(UIBundle.messagePointer("tool.window.hide.action.name"), AllIcons.General.HideToolWindow);
+      super(UIBundle.message("tool.window.hide.action.name"), null, AllIcons.General.HideToolWindow);
     }
 
     @Override
@@ -784,6 +802,34 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void setSelected(@NotNull AnActionEvent event, boolean state) {
       setPropertyAndUpdate(myProperty, state);
+    }
+  }
+
+  private class AttachedLocationAction extends AnAction {
+    private final AttachedLocation myLocation;
+
+    private AttachedLocationAction(@NotNull AttachedLocation location) {
+      super(location.getTitle(), null, location.getIcon());
+      myLocation = location;
+    }
+
+    @NotNull
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      boolean isCurrentLocation = myLocation.isLeft() == getProperty(PropertyType.LEFT) &&
+                                  myLocation.isBottom() == getProperty(PropertyType.SPLIT);
+      event.getPresentation().setEnabled(!isCurrentLocation);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      setProperty(PropertyType.LEFT, myLocation.isLeft());
+      setPropertyAndUpdate(PropertyType.SPLIT, myLocation.isBottom());
     }
   }
 

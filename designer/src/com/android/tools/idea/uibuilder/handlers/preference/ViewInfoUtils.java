@@ -16,11 +16,14 @@
 package com.android.tools.idea.uibuilder.handlers.preference;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.SdkConstants.FQCN_LIST_VIEW;
 
 final class ViewInfoUtils {
   private ViewInfoUtils() {

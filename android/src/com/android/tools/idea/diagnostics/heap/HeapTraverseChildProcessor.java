@@ -22,18 +22,21 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.rendering.imagepool.ImagePool;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.util.TriConsumer;
 import java.lang.ref.Reference;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HeapTraverseChildProcessor {
 
   private static final Set<String> REFERENCE_CLASS_FIELDS_TO_IGNORE = Set.of("referent", "discovered", "next");
+  private static final String ARRAY_ELEMENT_REFERENCE_LABEL = "[]";
+  private static final String STATIC_FIELD_REFERENCE_LABEL = "(static)";
+  private static final String DISPOSER_TREE_REFERENCE_LABEL = "(disposer-tree)";
 
   @NotNull
   private final Object myDisposerTree;
@@ -55,7 +58,7 @@ public class HeapTraverseChildProcessor {
    * @param fieldCache cache that stores fields declared for the given class.
    */
   void processChildObjects(@Nullable final Object obj,
-                           @NotNull final BiConsumer<Object, HeapTraverseNode.RefWeight> consumer,
+                           @NotNull final TriConsumer<Object, HeapTraverseNode.RefWeight, String> consumer,
                            @NotNull final FieldCache fieldCache)
     throws HeapSnapshotTraverseException {
     if (obj == null) {
@@ -85,7 +88,7 @@ public class HeapTraverseChildProcessor {
           continue;
         }
         value = field.get(obj);
-        consumer.accept(value, HeapTraverseNode.RefWeight.INSTANCE_FIELD);
+        consumer.accept(value, HeapTraverseNode.RefWeight.INSTANCE_FIELD, field.getName());
       }
       catch (IllegalArgumentException | IllegalAccessException e) {
         myStatistics.incrementUnsuccessfulFieldAccessCounter();
@@ -95,7 +98,7 @@ public class HeapTraverseChildProcessor {
     // JVMTI_HEAP_REFERENCE_ARRAY_ELEMENT
     if (nodeClass.isArray() && !isArrayOfPrimitives(nodeClass)) {
       for (Object value : (Object[])obj) {
-        consumer.accept(value, HeapTraverseNode.RefWeight.ARRAY_ELEMENT);
+        consumer.accept(value, HeapTraverseNode.RefWeight.ARRAY_ELEMENT, ARRAY_ELEMENT_REFERENCE_LABEL);
       }
     }
     // We need to check that class is initialized and only in this case traverse child elements of
@@ -106,12 +109,13 @@ public class HeapTraverseChildProcessor {
     // 2) a static method of the class is invoked,
     // 3) a static field of the class is assigned,
     // 4) a non-constant static field is used;
-    if (obj instanceof Class && HeapSnapshotTraverse.isClassInitialized((Class<?>)obj)) {
+    if (obj instanceof Class && MemoryReportJniHelper.isClassInitialized((Class<?>)obj)) {
       for (Object fieldValue : fieldCache.getStaticFields((Class<?>)obj)) {
         if (fieldValue == null) {
           continue;
         }
-        consumer.accept(fieldValue, HeapTraverseNode.RefWeight.STATIC_FIELD);
+        // TODO(b/291062810): properly handle names of the static fields
+        consumer.accept(fieldValue, HeapTraverseNode.RefWeight.STATIC_FIELD, STATIC_FIELD_REFERENCE_LABEL);
       }
     }
 
@@ -135,7 +139,7 @@ public class HeapTraverseChildProcessor {
         if (!(currDisposable instanceof Disposable)) {
           continue;
         }
-        consumer.accept(currDisposable, HeapTraverseNode.RefWeight.DISPOSER_TREE_REFERENCE);
+        consumer.accept(currDisposable, HeapTraverseNode.RefWeight.DISPOSER_TREE_REFERENCE, DISPOSER_TREE_REFERENCE_LABEL);
       }
     }
   }

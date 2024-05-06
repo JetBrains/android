@@ -15,16 +15,20 @@
  */
 package org.jetbrains.android.actions;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.testFramework.MapDataContext;
+import java.util.Collections;
 import org.jetbrains.android.AndroidTestCase;
 
 public final class CreateTypedResourceFileActionTest extends AndroidTestCase {
 
-  private MapDataContext myDataContext = new MapDataContext();
+  private final MapDataContext myDataContext = new MapDataContext();
 
   public void testDoIsAvailableForTypedResourceDirectory() {
     for (ResourceFolderType folderType: ResourceFolderType.values()) {
@@ -38,5 +42,16 @@ public final class CreateTypedResourceFileActionTest extends AndroidTestCase {
     myDataContext.put(CommonDataKeys.PSI_ELEMENT, psiResDir);
     // Should fail when the directory is not a type specific resource directory (e.g: res/drawable).
     assertFalse(CreateTypedResourceFileAction.doIsAvailable(myDataContext, ResourceFolderType.DRAWABLE.getName()));
+  }
+
+  public void testAddPreferencesScreenAndroidxPreferenceLibraryHandling() {
+    // First check without having androidx.preference as a library
+    assertEquals("PreferenceScreen", CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myModule, ResourceFolderType.XML));
+
+    // Now with the dependency, the handler should return "androidx.preference.PreferenceScreen"
+    TestProjectSystem testProjectSystem = new TestProjectSystem(getProject(), Collections.emptyList());
+    testProjectSystem.useInTests();
+    testProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_PREFERENCE, myFacet.getModule(), new GradleVersion(1, 1));
+    assertEquals("androidx.preference.PreferenceScreen", CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myModule, ResourceFolderType.XML));
   }
 }

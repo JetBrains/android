@@ -1,7 +1,8 @@
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "generate_old_agp_tests_from_list")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_4")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
-load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_4", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -9,6 +10,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -48,7 +50,6 @@ iml_module(
         "//tools/base/kotlin-multiplatform-models:studio.android.kotlin-multiplatform-models[module]",
         "//tools/adt/idea/.idea/libraries:kotlin-multiplatform-android-models-proto",
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
-        "//tools/adt/idea/project-system-gradle/lib:pepk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
@@ -72,6 +73,10 @@ iml_module(
             ],
             "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
+        "kts.indexes": {
+            "test_filter": "com.android.tools.idea.gradle.navigation.DeclarativeGotoApiDeclarationHandlerTest",
+            "shard_count": 2,
+        },
         "other": {
             "shard_count": 27,
         },
@@ -86,6 +91,7 @@ iml_module(
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-33",
         # TODO: Update and use platforms/latest-preview instead
         "//prebuilts/studio/sdk:platforms/android-TiramisuPrivacySandbox",
         "//tools/adt/idea/android/annotations",
@@ -109,7 +115,9 @@ iml_module(
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
+        "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea",
+        "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea.common",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions",
     ],
     # do not sort: must match IML order
@@ -154,38 +162,43 @@ iml_module(
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
     ],
 )
 
-old_agp_test(
+generate_old_agp_tests_from_list(
     name = "MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest",
-    timeout = "long",
-    agp_version = AGP_7_4,
-    data = [
-        "//prebuilts/studio/jdk/jdk11",
-        "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//prebuilts/studio/sdk:build-tools/latest",
-        "//prebuilts/studio/sdk:platforms/android-32",
-        "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/adt/idea/android/testData",
-        "//tools/adt/idea/project-system-gradle/testData",
-        "//tools/base/build-system:gradle-distrib",
-        "//tools/base/build-system:gradle-distrib-7.5",
-    ],
-    gradle_version = "7.5",
-    ignore_other_tests = True,
     iml_module = ":intellij.android.projectSystem.gradle.tests",
-    maven_deps = [
-        "//tools/base/build-system/previous-versions:7.4.1",
-        "//tools/base/build-system/previous-versions:kgp1.3.72",
-        ":test_deps",
+    tests_list = [
+        dict(
+            timeout = "long",
+            agp_version = AGP_7_4,
+            data = [
+                "//prebuilts/studio/jdk/jdk11",
+                "//prebuilts/studio/sdk:build-tools/30.0.3",
+                "//prebuilts/studio/sdk:build-tools/latest",
+                "//prebuilts/studio/sdk:platforms/android-32",
+                "//prebuilts/studio/sdk:platforms/latest",
+                "//tools/adt/idea/android/testData",
+                "//tools/adt/idea/project-system-gradle/testData",
+                "//tools/base/build-system:gradle-distrib",
+                "//tools/base/build-system:gradle-distrib-7.5",
+            ],
+            gradle_version = "7.5",
+            ignore_other_tests = True,
+            maven_deps = [
+                "//tools/base/build-system/previous-versions:7.4.1",
+                "//tools/base/build-system/previous-versions:kgp1.3.72",
+                ":test_deps",
+            ],
+            tags = [
+                "block-network",
+                "no_test_mac",
+                "no_test_windows",
+            ],
+            test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemOldAgpTestSuite",
+        ),
     ],
-    tags = [
-        "block-network",
-        "no_test_mac",
-        "no_test_windows",
-    ],
-    test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemOldAgpTestSuite",
 )
 
 maven_repository(
@@ -248,11 +261,16 @@ maven_repository(
         "@maven//:com.google.guava.guava_23.0",
         "@maven//:com.google.jimfs.jimfs_1.1",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
+        "@maven//:com.google.protobuf.protobuf-bom_3.19.3",
+        "@maven//:com.google.protobuf.protobuf-bom_3.21.8",
         "@maven//:com.google.protobuf.protobuf-java-util_3.17.2",
+        "@maven//:com.google.protobuf.protobuf-java-util_3.19.3",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
+        "@maven//:com.google.protobuf.protobuf-java_3.19.3",
         "@maven//:com.google.truth.truth_0.44",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
+        "@maven//:commons-io.commons-io_2.4",
         "@maven//:commons-lang.commons-lang_2.4",
         "@maven//:commons-logging.commons-logging_1.1.1",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
@@ -260,27 +278,24 @@ maven_repository(
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-klib-commonizer-embeddable_2.0.0-Beta5",
-        "@maven//:org.jetbrains.kotlin.kotlin-native-prebuilt_2.0.0-Beta5",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.9.0",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
-        "@maven//:org.jetbrains.kotlin.kotlin-test-junit",
+        "@maven//:org.jetbrains.kotlin.kotlin-test-junit_1.9.20",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.4",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.3",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.4",
-        "@maven//:org.mockito.mockito-core_4.8.0",
+        "@maven//:org.mockito.mockito-core_5.6.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(

@@ -76,8 +76,6 @@ import com.intellij.util.ui.tree.TreeUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import icons.StudioIcons
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.Image
 import java.awt.Rectangle
@@ -87,6 +85,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.tree.TreeCellRenderer
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.android.facet.AndroidFacet
 
 /** The delay used to minimize updates */
 private const val UPDATE_DELAY_MILLISECONDS = 250
@@ -244,7 +244,7 @@ private class ComponentTreePanel(
 
   private fun showContextMenuForComponent(component: NlComponent, x: Int, y: Int) {
     surface?.actionManager?.getPopupMenuActions(component)?.let {
-      showPopup(componentTree.focusComponent, x, y, it, ActionPlaces.EDITOR_POPUP)
+      showPopup(surface, componentTree.focusComponent, x, y, it, ActionPlaces.EDITOR_POPUP)
     }
   }
 
@@ -385,7 +385,11 @@ private class ComponentTreePanel(
       if (!data.isDataFlavorSupported(ItemTransferable.DESIGNER_FLAVOR)) return false
       val item = DnDTransferItem.getTransferItem(data, true) ?: return false
       val insertType =
-        if (isMove && draggedFromTree.isNotEmpty()) InsertType.MOVE else InsertType.COPY
+        when {
+          isMove && draggedFromTree.isNotEmpty() -> InsertType.MOVE
+          item.isFromPalette -> InsertType.CREATE
+          else -> InsertType.COPY
+        }
       val components =
         if (insertType == InsertType.MOVE) draggedFromTree.filterIsInstance<NlComponent>()
         else model.createComponents(item, insertType)
@@ -486,7 +490,7 @@ private class ComponentTreePanel(
     override fun performAction(item: Any, component: JComponent, bounds: Rectangle) {
       if (item !is NlComponent) return
       val currentSurface = surface ?: return
-      IssuePanelService.getInstance(project).showIssueForComponent(currentSurface, true, item, true)
+      IssuePanelService.getInstance(project).showIssueForComponent(currentSurface, item)
     }
 
     override fun showPopup(item: Any, component: JComponent, x: Int, y: Int) {}

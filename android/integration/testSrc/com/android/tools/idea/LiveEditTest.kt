@@ -51,7 +51,7 @@ class LiveEditTest {
     val filetypeContents = String.format(
       "<application>%n" +
       "  <component name=\"LiveEditConfiguration\">%n" +
-      "    <option name=\"leTriggerMode\" value=\"LE_TRIGGER_AUTOMATIC\" />%n" +
+      "    <option name=\"leTriggerMode\" value=\"AUTOMATIC\" />%n" +
       "    <option name=\"mode\" value=\"LIVE_EDIT\" />%n" +
       "  </component>%n" +
       "</application>")
@@ -61,16 +61,25 @@ class LiveEditTest {
   @Test
   fun liveEditTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/liveedit")
-    project.setDistribution("tools/external/gradle/gradle-7.3.3-bin.zip")
+    project.setDistribution("tools/external/gradle/gradle-8.0-bin.zip")
     system.installRepo(MavenRepo("tools/adt/idea/android/integration/live_edit_project_deps.manifest"))
 
     enableLiveEdit()
     system.runAdb { adb ->
       // Live Edit requires an API level of at least 30.
-      system.runEmulator(Emulator.SystemImage.API_30) { emulator ->
+      system.runEmulator(Emulator.SystemImage.API_33) { emulator ->
+        println("Waiting for boot")
+        emulator.waitForBoot()
+
+        println("Waiting for device")
+        adb.waitForDevice(emulator)
+
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
           studio.waitForIndex()
+
+          println("Waiting for project init");
+          studio.waitForProjectInit()
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
           val path = project.targetProject.resolve("app/src/main/java/com/example/liveedittest/MainActivity.kt")
@@ -78,21 +87,21 @@ class LiveEditTest {
 
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
-
           studio.executeAction("Run")
+
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.liveedittest",
             60, TimeUnit.SECONDS)
-          adb.runCommand("logcat") {
-            waitForLog(".*Before editing.*", 30, TimeUnit.SECONDS);
+          adb.runCommand("logcat", emulator = emulator) {
+            waitForLog(".*Before editing.*", 600, TimeUnit.SECONDS);
           }
 
           val newContents = "Log.i(\"MainActivity\", \"After editing\")\n" +
                             "Text(text = \"Hello, Live Edit and \$name!\")";
           studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE LINE.*?// END SEARCH", newContents)
 
-          adb.runCommand("logcat") {
-            waitForLog(".*After editing.*", 480, TimeUnit.SECONDS);
+          adb.runCommand("logcat", emulator = emulator) {
+            waitForLog(".*After editing.*", 600, TimeUnit.SECONDS);
           }
         }
       }

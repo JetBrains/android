@@ -35,6 +35,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Before
@@ -45,13 +46,10 @@ import org.junit.runners.JUnit4
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 
-/**
- * Test for [ComposeModifierCompletionContributor].
- */
+/** Test for [ComposeModifierCompletionContributor]. */
 @RunWith(JUnit4::class)
 class ComposeModifierCompletionContributorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -74,7 +72,8 @@ class ComposeModifierCompletionContributorTest {
 
     fun Modifier.extensionFunction():Modifier { return this }
     fun Modifier.extensionFunctionReturnsNonModifier():Int { return 1 }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addFileToProject(
@@ -87,7 +86,9 @@ class ComposeModifierCompletionContributorTest {
 
       @Composable
       fun myWidgetWithModifier(modifier: Modifier) {}
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   @Test
@@ -104,14 +105,19 @@ class ComposeModifierCompletionContributorTest {
       fun HomeScreen() {
         val m = Modifier.$caret
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.completeBasic()
 
     var lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.indexOf("extensionFunction")).isLessThan(lookupStrings.indexOf("function"))
-    assertThat(lookupStrings.indexOf("extensionFunction")).isLessThan(lookupStrings.indexOf("extensionFunctionReturnsNonModifier"))
-    assertThat(lookupStrings.indexOf("extensionFunctionReturnsNonModifier")).isLessThan(lookupStrings.indexOf("function"))
+    assertThat(lookupStrings.indexOf("extensionFunction"))
+      .isLessThan(lookupStrings.indexOf("function"))
+    assertThat(lookupStrings.indexOf("extensionFunction"))
+      .isLessThan(lookupStrings.indexOf("extensionFunctionReturnsNonModifier"))
+    assertThat(lookupStrings.indexOf("extensionFunctionReturnsNonModifier"))
+      .isLessThan(lookupStrings.indexOf("function"))
 
     myFixture.loadNewFile(
       "src/com/example/Test2.kt",
@@ -126,12 +132,15 @@ class ComposeModifierCompletionContributorTest {
       fun HomeScreen2() {
         val m = Modifier.extensionFunction().$caret
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.completeBasic()
 
     lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.indexOf("extensionFunction")).isLessThan(lookupStrings.indexOf("function"))
+    assertThat(lookupStrings.indexOf("extensionFunction"))
+      .isLessThan(lookupStrings.indexOf("function"))
 
     myFixture.loadNewFile(
       "src/com/example/Test3.kt",
@@ -145,12 +154,15 @@ class ComposeModifierCompletionContributorTest {
       fun HomeScreen3(modifier: Modifier = Modifier) {
         modifier.$caret
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.completeBasic()
 
     lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.indexOf("extensionFunction")).isLessThan(lookupStrings.indexOf("function"))
+    assertThat(lookupStrings.indexOf("extensionFunction"))
+      .isLessThan(lookupStrings.indexOf("function"))
 
     myFixture.loadNewFile(
       "src/com/example/Test4.kt",
@@ -164,12 +176,15 @@ class ComposeModifierCompletionContributorTest {
       fun HomeScreen4() {
         Modifier.<caret>
       }
-      """.trimIndent())
+      """
+        .trimIndent()
+    )
 
     myFixture.completeBasic()
 
     lookupStrings = myFixture.lookupElementStrings!!
-    assertThat(lookupStrings.indexOf("extensionFunction")).isLessThan(lookupStrings.indexOf("function"))
+    assertThat(lookupStrings.indexOf("extensionFunction"))
+      .isLessThan(lookupStrings.indexOf("function"))
   }
 
   @RunsInEdt
@@ -177,6 +192,8 @@ class ComposeModifierCompletionContributorTest {
   fun modifierAsArgument() {
     fun checkArgumentCompletion() {
       myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString.contains("extensionFunction") }
+      myFixture.lookup.currentItem =
+        myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')
       myFixture.checkResult(
         """
@@ -190,12 +207,14 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(Modifier.extensionFunction()
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     }
 
     fun checkNamedArgumentCompletion() {
-      myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString.contains("extensionFunction") }
+      myFixture.lookup.currentItem =
+        myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')
       myFixture.checkResult(
         """
@@ -209,7 +228,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(modifier = Modifier.extensionFunction()
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     }
 
@@ -225,7 +245,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(Modifier.<caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -248,7 +269,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(<caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -258,7 +280,8 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings).doesNotContain("Modifier.extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("Modifier.extensionFunction")).isEqualTo(0)
 
-    // to check that we still suggest "Modifier.extensionFunction" when prefix doesn't much with function name and only with "Modifier".
+    // to check that we still suggest "Modifier.extensionFunction" when prefix doesn't much with
+    // function name and only with "Modifier".
     // See [ComposeModifierCompletionContributor.ModifierLookupElement.getAllLookupStrings]
     myFixture.type("M")
 
@@ -275,7 +298,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(modifier = <caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -298,7 +322,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(modifier = Modifier.<caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -308,6 +333,54 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
     checkNamedArgumentCompletion()
+  }
+
+  @RunsInEdt
+  @Test
+  fun modifierImportAlias() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          myWidgetWithModifier(Modifier1.<caret>
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.completeBasic()
+
+    var lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings).contains("extensionFunction")
+    assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
+    assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
+
+    myFixture.lookup.currentItem =
+      myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
+    myFixture.finishLookup('\n')
+    // TODO(302558638): Fix this redundant import issue for K1.
+    val redundantImport = if (!KotlinPluginModeProvider.isK2Mode()) "import androidx.compose.ui.Modifier\n      " else ""
+    myFixture.checkResult(
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      ${redundantImport}import androidx.compose.ui.extensionFunction
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          myWidgetWithModifier(Modifier1.extensionFunction()
+      }
+      """
+        .trimIndent()
+    )
   }
 
   @RunsInEdt
@@ -326,7 +399,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           val myModifier:Modifier = <caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -350,7 +424,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           val myModifier:Modifier = Modifier.extensionFunction()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.loadNewFile(
@@ -365,14 +440,14 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           val myModifier:Modifier = Modifier.<caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
     lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).contains("extensionFunction")
     assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
-
 
     myFixture.loadNewFile(
       "src/com/example/Test.kt",
@@ -387,7 +462,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           val myModifier:Modifier = Modifier.extensionFunction().<caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -395,6 +471,55 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings).contains("extensionFunction")
     assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
+  }
+
+  @RunsInEdt
+  @Test
+  fun modifierImportAliasForProperty() {
+
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          val myModifier:Modifier1 = <caret>
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.completeBasic()
+
+    var lookupStrings = myFixture.lookupElementStrings!!
+    assertThat(lookupStrings).contains("Modifier.extensionFunction")
+    // If user didn't type Modifier don't suggest extensions that doesn't return Modifier.
+    assertThat(lookupStrings).doesNotContain("Modifier.extensionFunctionReturnsNonModifier")
+
+    myFixture.type("extensionFunction\t")
+
+    // TODO(302569454): Handle import alias for both K1 and K2. In the following code, we do not
+    // actually need `Modifier` because we already have `Modifier1`.
+    myFixture.checkResult(
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+      import androidx.compose.ui.Modifier
+      import androidx.compose.ui.extensionFunction
+      import androidx.compose.ui.Modifier as Modifier1
+
+      @Composable
+      fun myWidget() {
+          val myModifier:Modifier1 = Modifier.extensionFunction()
+      }
+      """
+        .trimIndent()
+    )
   }
 
   @RunsInEdt
@@ -411,7 +536,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(modifier = Modifier.<caret>
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -420,7 +546,8 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings).contains("extensionFunctionReturnsNonModifier")
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
-    myFixture.lookup.currentItem = myFixture.lookupElements?.find { it.lookupString == "extensionFunction" }
+    myFixture.lookup.currentItem =
+      myFixture.lookupElements!!.find { it.lookupString == "extensionFunction" }
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(
@@ -435,7 +562,8 @@ class ComposeModifierCompletionContributorTest {
       fun myWidget() {
           myWidgetWithModifier(modifier = Modifier.extensionFunction()
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -452,7 +580,8 @@ class ComposeModifierCompletionContributorTest {
 
       fun Modifier.foo() = extensionFunction().<caret>
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.completeBasic()
@@ -468,14 +597,16 @@ class ComposeModifierCompletionContributorTest {
     val contributor = ComposeModifierCompletionContributor()
     val mockResultSet: CompletionResultSet = mock()
 
-    // This is a super-contrived example to try to regression test b/279049842. I haven't been able to reproduce the real scenario, which
-    // involves internal items coming from other libs/modules and relies on Kotlin plugin bugs which (hopefully) would get fixed at some
+    // This is a super-contrived example to try to regression test b/279049842. I haven't been able
+    // to reproduce the real scenario, which
+    // involves internal items coming from other libs/modules and relies on Kotlin plugin bugs which
+    // (hopefully) would get fixed at some
     // some point.
 
     ApplicationManager.getApplication().invokeAndWait {
       myFixture.loadNewFile(
         "src/com/example/Test.kt",
-        //language=kotlin
+        // language=kotlin
         """
         package com.example
 
@@ -500,23 +631,37 @@ class ComposeModifierCompletionContributorTest {
         fun doSomething() {
             functionNeedingModifier(modifier = MyModifier.)
         }
-        """.trimIndent()
+        """
+          .trimIndent()
       )
     }
 
     runReadAction {
-      val functionCompletionCall: KtCallExpression = myFixture.findParentElement("functionNeeding|Modifier(modifier = MyModifier")
+      val functionCompletionCall: KtCallExpression =
+        myFixture.findParentElement("functionNeeding|Modifier(modifier = MyModifier")
 
-      val visibleChildFunctionCompletion = mockCompletionResult(
-        myFixture.findParentElement<KtFunction>("Modifier.visibleChild|Function():"))
+      val visibleChildFunctionCompletion =
+        mockCompletionResult(
+          myFixture.findParentElement<KtFunction>("Modifier.visibleChild|Function():")
+        )
       contributor.consumerCompletionResultFromRemainingContributor(
-        visibleChildFunctionCompletion, emptySet(), functionCompletionCall, mockResultSet)
+        visibleChildFunctionCompletion,
+        emptySet(),
+        functionCompletionCall,
+        mockResultSet
+      )
       verify(mockResultSet).passResult(visibleChildFunctionCompletion)
 
-      val notVisibleChildFunctionCompletion = mockCompletionResult(
-        myFixture.findParentElement<KtFunction>("Modifier.notVisibleChild|Function():"))
+      val notVisibleChildFunctionCompletion =
+        mockCompletionResult(
+          myFixture.findParentElement<KtFunction>("Modifier.notVisibleChild|Function():")
+        )
       contributor.consumerCompletionResultFromRemainingContributor(
-        notVisibleChildFunctionCompletion, emptySet(), functionCompletionCall, mockResultSet)
+        notVisibleChildFunctionCompletion,
+        emptySet(),
+        functionCompletionCall,
+        mockResultSet
+      )
       verify(mockResultSet, never()).passResult(notVisibleChildFunctionCompletion)
     }
   }

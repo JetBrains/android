@@ -52,6 +52,7 @@ iml_module(
         "//tools/adt/idea/codenavigation[module]",
         "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
 
@@ -62,6 +63,7 @@ kotlin_test(
         "testSrc/com/android/tools/profilers/performance/**/*.java",
     ]),
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilers.performance.jar"],
+    lint_baseline = "lint_baseline_performance.xml",
     test_class = "com.android.testutils.JarTestSuite",
     deps = [
         ":intellij.android.profilers",

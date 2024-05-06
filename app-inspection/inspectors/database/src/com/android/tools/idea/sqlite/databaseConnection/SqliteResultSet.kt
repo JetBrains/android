@@ -35,6 +35,7 @@ import com.intellij.openapi.Disposable
 interface SqliteResultSet : Disposable {
   fun SqliteStatement.toRowCountStatement() =
     this.transform(SqliteStatementType.SELECT) { "SELECT COUNT(*) FROM ($it)" }
+
   fun SqliteStatement.toSelectLimitOffset(rowOffset: Int, rowBatchSize: Int) =
     this.transform(SqliteStatementType.SELECT) {
       "SELECT * FROM ($it) LIMIT $rowOffset, $rowBatchSize"

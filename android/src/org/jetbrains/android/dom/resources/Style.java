@@ -20,8 +20,9 @@ import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.Required;
-import java.util.List;
 import org.jetbrains.android.dom.converters.ParentStyleConverter;
+
+import java.util.List;
 
 public interface Style extends ResourceElement {
   List<StyleItem> getItems();

@@ -18,38 +18,31 @@ package com.android.tools.idea.uibuilder.visual.analytics
 import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.common.analytics.setApplicationId
-import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.VisualLintEvent
-import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import org.jetbrains.android.facet.AndroidFacet
 
 interface VisualLintUsageTracker {
-  fun trackIssueCreation(issueType: VisualLintErrorType, facet: AndroidFacet) {
-    track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet)
+  fun trackIssueCreation(
+    issueType: VisualLintErrorType,
+    origin: VisualLintOrigin,
+    facet: AndroidFacet
+  ) {
+    track(VisualLintEvent.IssueEvent.CREATE_ISSUE, issueType, facet, origin)
   }
 
-  fun trackIssueExpanded(issue: Issue, facet: AndroidFacet) {
-    val issueType =
-      when (issue) {
-        is VisualLintAtfIssue -> VisualLintErrorType.ATF
-        is VisualLintRenderIssue -> issue.type
-        else -> null
-      }
-    if (issueType != null) {
-      track(VisualLintEvent.IssueEvent.EXPAND_ISSUE, issueType, facet)
-    }
-  }
-
-  fun trackIssueIgnored(issueType: VisualLintErrorType, facet: AndroidFacet) {
-    track(VisualLintEvent.IssueEvent.IGNORE_ISSUE, issueType, facet)
+  fun trackIssueIgnored(
+    issueType: VisualLintErrorType,
+    origin: VisualLintOrigin,
+    facet: AndroidFacet
+  ) {
+    track(VisualLintEvent.IssueEvent.IGNORE_ISSUE, issueType, facet, origin)
   }
 
   fun trackBackgroundRuleStatusChanged(issueType: VisualLintErrorType, enabled: Boolean) {
@@ -70,15 +63,55 @@ interface VisualLintUsageTracker {
     track(VisualLintEvent.IssueEvent.CANCEL_BACKGROUND_ANALYSIS, null, null)
   }
 
-  fun trackClickHyperLink(issueType: VisualLintErrorType) {
-    track(VisualLintEvent.IssueEvent.CLICK_DOCUMENTATION_LINK, issueType, null)
+  fun trackClickHyperLink(issueType: VisualLintErrorType, origin: VisualLintOrigin) {
+    track(VisualLintEvent.IssueEvent.CLICK_DOCUMENTATION_LINK, issueType, null, origin)
+  }
+
+  fun trackFirstRunTime(timeMs: Long, facet: AndroidFacet?) {
+    logEvent(facet) { VisualLintEvent.newBuilder().setUiCheckStartTimeMs(timeMs).build() }
+  }
+
+  fun trackVisiblePreviews(count: Int, facet: AndroidFacet?) {
+    logEvent(facet) { VisualLintEvent.newBuilder().setVisiblePreviewsNumber(count).build() }
   }
 
   fun track(
     issueEvent: VisualLintEvent.IssueEvent,
     issueType: VisualLintErrorType?,
-    facet: AndroidFacet?
-  )
+    facet: AndroidFacet?,
+    origin: VisualLintOrigin? = null,
+  ) {
+    val metricsIssueType =
+      when (issueType) {
+        VisualLintErrorType.BOUNDS -> VisualLintEvent.IssueType.BOUNDS
+        VisualLintErrorType.BOTTOM_NAV -> VisualLintEvent.IssueType.BOTTOM_NAV
+        VisualLintErrorType.BOTTOM_APP_BAR -> VisualLintEvent.IssueType.BOTTOM_APP_BAR
+        VisualLintErrorType.OVERLAP -> VisualLintEvent.IssueType.OVERLAP
+        VisualLintErrorType.LONG_TEXT -> VisualLintEvent.IssueType.LONG_TEXT
+        VisualLintErrorType.ATF -> VisualLintEvent.IssueType.ATF
+        VisualLintErrorType.ATF_COLORBLIND -> VisualLintEvent.IssueType.ATF_COLORBLIND
+        VisualLintErrorType.LOCALE_TEXT -> VisualLintEvent.IssueType.LOCALE_TEXT
+        VisualLintErrorType.TEXT_FIELD_SIZE -> VisualLintEvent.IssueType.TEXT_FIELD_SIZE
+        VisualLintErrorType.BUTTON_SIZE -> VisualLintEvent.IssueType.BUTTON_SIZE
+        VisualLintErrorType.WEAR_MARGIN -> VisualLintEvent.IssueType.WEAR_MARGIN
+        else -> VisualLintEvent.IssueType.UNKNOWN_TYPE
+      }
+    logEvent(facet) {
+      VisualLintEvent.newBuilder()
+        .setIssueType(metricsIssueType)
+        .setIssueEvent(issueEvent)
+        .setEventOrigin(
+          when (origin) {
+            VisualLintOrigin.UI_CHECK -> VisualLintEvent.EventOrigin.UI_CHECK
+            VisualLintOrigin.XML_LINTING -> VisualLintEvent.EventOrigin.XML_LINTING
+            null -> VisualLintEvent.EventOrigin.UNKNOWN_ORIGIN
+          }
+        )
+        .build()
+    }
+  }
+
+  fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent)
 
   companion object {
     fun getInstance(): VisualLintUsageTracker {
@@ -92,33 +125,13 @@ private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
   private val executorService =
     ThreadPoolExecutor(0, 1, 1, TimeUnit.MINUTES, LinkedBlockingQueue(10))
 
-  override fun track(
-    issueEvent: VisualLintEvent.IssueEvent,
-    issueType: VisualLintErrorType?,
-    facet: AndroidFacet?
-  ) {
-    val metricsIssueType =
-      when (issueType) {
-        VisualLintErrorType.BOUNDS -> VisualLintEvent.IssueType.BOUNDS
-        VisualLintErrorType.BOTTOM_NAV -> VisualLintEvent.IssueType.BOTTOM_NAV
-        VisualLintErrorType.BOTTOM_APP_BAR -> VisualLintEvent.IssueType.BOTTOM_APP_BAR
-        VisualLintErrorType.OVERLAP -> VisualLintEvent.IssueType.OVERLAP
-        VisualLintErrorType.LONG_TEXT -> VisualLintEvent.IssueType.LONG_TEXT
-        VisualLintErrorType.ATF -> VisualLintEvent.IssueType.ATF
-        VisualLintErrorType.LOCALE_TEXT -> VisualLintEvent.IssueType.LOCALE_TEXT
-        VisualLintErrorType.TEXT_FIELD_SIZE -> VisualLintEvent.IssueType.TEXT_FIELD_SIZE
-        VisualLintErrorType.BUTTON_SIZE -> VisualLintEvent.IssueType.BUTTON_SIZE
-        VisualLintErrorType.WEAR_MARGIN -> VisualLintEvent.IssueType.WEAR_MARGIN
-        else -> VisualLintEvent.IssueType.UNKNOWN_TYPE
-      }
+  override fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent) {
     try {
       executorService.execute {
-        val visualLintEventBuilder =
-          VisualLintEvent.newBuilder().setIssueType(metricsIssueType).setIssueEvent(issueEvent)
         val layoutEditorEventBuilder =
           LayoutEditorEvent.newBuilder()
             .setType(LayoutEditorEvent.LayoutEditorEventType.VISUAL_LINT)
-            .setVisualLintEvent(visualLintEventBuilder.build())
+            .setVisualLintEvent(visualLintEventProvider())
         val studioEvent =
           AndroidStudioEvent.newBuilder()
             .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
@@ -133,9 +146,10 @@ private object VisualLintUsageTrackerImpl : VisualLintUsageTracker {
 }
 
 private object VisualLintNoOpUsageTracker : VisualLintUsageTracker {
-  override fun track(
-    issueEvent: VisualLintEvent.IssueEvent,
-    issueType: VisualLintErrorType?,
-    facet: AndroidFacet?
-  ) {}
+  override fun logEvent(facet: AndroidFacet?, visualLintEventProvider: () -> VisualLintEvent) = Unit
+}
+
+enum class VisualLintOrigin {
+  XML_LINTING,
+  UI_CHECK
 }

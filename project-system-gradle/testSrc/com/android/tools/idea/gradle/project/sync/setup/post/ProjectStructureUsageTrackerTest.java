@@ -102,7 +102,10 @@ public class ProjectStructureUsageTrackerTest {
           .addModules(GradleModule.newBuilder()
                         .setTotalModuleCount(1)
                         .setAppModuleCount(1)
-                        .setLibModuleCount(0))
+                        .setLibModuleCount(0)
+                        .setDynamicFeatureModuleCount(0)
+                        .setTestModuleCount(0)
+                        .setKotlinMultiplatformModuleCount(0))
           .addAndroidModules(GradleAndroidModule.newBuilder()
                                .setModuleName(AnonymizerUtil.anonymizeUtf8("project"))
                                .setIsLibrary(false)
@@ -137,7 +140,10 @@ public class ProjectStructureUsageTrackerTest {
           .addModules(GradleModule.newBuilder()
                         .setTotalModuleCount(2)
                         .setAppModuleCount(1)
-                        .setLibModuleCount(0))
+                        .setLibModuleCount(0)
+                        .setDynamicFeatureModuleCount(0)
+                        .setTestModuleCount(0)
+                        .setKotlinMultiplatformModuleCount(0))
           .addAndroidModules(GradleAndroidModule.newBuilder()
                                .setModuleName(AnonymizerUtil.anonymizeUtf8("project.app"))
                                .setIsLibrary(false)
@@ -219,7 +225,7 @@ public class ProjectStructureUsageTrackerTest {
     assertThat(buildDetails.getGradleVersion()).isEqualTo(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION));
     assertThat(buildDetails.getLibrariesList()).containsExactly(
       GradleLibrary.newBuilder()
-        .setJarDependencyCount(12)
+        .setJarDependencyCount(9)
         .setAarDependencyCount(49)
         .build());
     assertThat(buildDetails.getModulesList()).containsExactly(
@@ -227,6 +233,9 @@ public class ProjectStructureUsageTrackerTest {
         .setTotalModuleCount(3)
         .setAppModuleCount(1)
         .setLibModuleCount(1)
+        .setDynamicFeatureModuleCount(0)
+        .setTestModuleCount(0)
+        .setKotlinMultiplatformModuleCount(0)
         .build());
     assertThat(buildDetails.getAndroidModulesList()).containsExactly(
       GradleAndroidModule.newBuilder()
@@ -246,7 +255,7 @@ public class ProjectStructureUsageTrackerTest {
         .setSigningConfigCount(1)
         .build());
     assertThat(buildDetails.getModuleCount()).isEqualTo(3);
-    assertThat(buildDetails.getLibCount()).isEqualTo(82);
+    assertThat(buildDetails.getLibCount()).isEqualTo(79);
     assertThat(buildDetails.getAppId()).isEqualTo(AnonymizerUtil.anonymizeUtf8("com.example.projectwithappandlib.app"));
   }
 }

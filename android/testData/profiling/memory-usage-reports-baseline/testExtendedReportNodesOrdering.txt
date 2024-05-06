@@ -1,0 +1,70 @@
+========== CATEGORY ANDROID:UNCATEGORIZED =========
+Owned: 0B/0 objects
+      Histogram:
+      Studio objects histogram:
+      Category roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+=============== CATEGORY DIAGNOSTICS ==============
+Owned: 240B/9 objects
+      Histogram:
+        152B/5 objects: [I
+        56B/2 objects: [Ljava.lang.Object;
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+      Studio objects histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+      Category roots histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+Platform object: 0B/0 objects[0B/0 objects]
+=========== COMPONENT UNCATEGORIZED_MAIN ==========
+Owned: 0B/0 objects
+      Histogram:
+      Studio objects histogram:
+      Component roots histogram:
+Platform object: 0B/0 objects[0B/0 objects]
+============= COMPONENT TESTCOMPONENT =============
+Owned: 240B/9 objects
+      Histogram:
+        152B/5 objects: [I
+        56B/2 objects: [Ljava.lang.Object;
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+      Studio objects histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+      Component roots histogram:
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+        16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+Platform object: 0B/0 objects[0B/0 objects]
+========== EXCEEDED CLUSTER TESTCOMPONENT =========
+======== INSTANCES OF EACH NOMINATED CLASS ========
+Nominated classes:
+ --> [152B/5 objects] [I
+ --> [56B/2 objects] [Ljava.lang.Object;
+ --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+ --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+
+CLASS: [I (5 objects)
+Root 1:
+[    2/ 52%/   80B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+[    2/ 52%/   80B]      104B/1 objects          myArray: [Ljava.lang.Object;
+[    2/ 52%/   80B]       80B/2 objects *        []: [I {0-250KB->2;}
+Root 2:
+[    3/ 47%/   72B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+[    3/ 47%/   72B]      104B/1 objects          myArray: [Ljava.lang.Object;
+[    3/ 47%/   72B]       72B/3 objects *        []: [I {0-250KB->3;}
+CLASS: [Ljava.lang.Object; (2 objects)
+Root 1:
+[    1/ 57%/   32B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+[    1/ 57%/   32B]      104B/1 objects *        myArray: [Ljava.lang.Object; {0-250KB->1;}
+Root 2:
+[    1/ 42%/   24B]      120B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2
+[    1/ 42%/   24B]      104B/1 objects *        myArray: [Ljava.lang.Object; {0-250KB->1;}
+CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray (1 objects)
+Root 1:
+[    1/100%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray
+CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2 (1 objects)
+Root 1:
+[    1/100%/   16B]      120B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToObjectArray$ReferenceToObjectArray2

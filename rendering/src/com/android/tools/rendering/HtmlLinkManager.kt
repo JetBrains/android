@@ -15,6 +15,7 @@
  */
 package com.android.tools.rendering
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
@@ -23,6 +24,8 @@ import java.io.File
 import java.net.MalformedURLException
 
 interface HtmlLinkManager {
+  fun showNotification(content: String) = Unit
+
   fun handleUrl(
     url: String,
     module: Module?,
@@ -67,8 +70,10 @@ interface HtmlLinkManager {
 
   fun createClearCacheUrl(): String = URL_CLEAR_CACHE_AND_NOTIFY
 
-  fun createAddDependencyUrl(artifactId: String): String = "$URL_ADD_DEPENDENCY$artifactId"
-  fun createAddDebugDependencyUrl(artifactId: String): String =
+  fun createAddDependencyUrl(artifactId: GoogleMavenArtifactId): String =
+    "$URL_ADD_DEPENDENCY$artifactId"
+
+  fun createAddDebugDependencyUrl(artifactId: GoogleMavenArtifactId): String =
     "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
 
   fun createReplaceAttributeValueUrl(
@@ -124,7 +129,9 @@ interface HtmlLinkManager {
           hasRenderResult: Boolean,
           surface: RefreshableSurface
         ) {}
+
         override fun createCommandLink(command: CommandLink): String = ""
+
         override fun createRunnableLink(runnable: Runnable): String = ""
       }
 
@@ -132,6 +139,7 @@ interface HtmlLinkManager {
     val NOOP_SURFACE =
       object : RefreshableSurface {
         override fun handleRefreshRenderUrl() {}
+
         override fun requestRender() {}
       }
   }

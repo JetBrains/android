@@ -20,7 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class TriggerSampleThreadingViolationAction : AnAction() {
+class TriggerSampleThreadingViolationAction() : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     workerThreadMethod()
     uiThreadMethod()

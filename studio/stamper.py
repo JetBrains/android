@@ -65,20 +65,21 @@ def _overwrite_plugin_version(build_txt, content):
 
   build_number = utils.read_file(build_txt)
   build = build_number[3:] # removes the AI- prefix
+  api_version = ".".join(build.split(".")[:3]) # first 3 components form the IntelliJ API version
 
   content = re.sub("<version>.*</version>", "<version>%s</version>" % build, content, 1)
   content = re.sub("<idea-version\\s+since-build=\"\\d+\\.\\d+\"\\s+until-build=\"\\d+\\.\\d+\"",
-                   "<idea-version since-build=\"%s\" until-build=\"%s\"" % (build, build),
+                   "<idea-version since-build=\"%s\" until-build=\"%s\"" % (api_version, api_version),
                    content, 1)
   content = re.sub("<idea-version\\s+since-build=\"\\d+\\.\\d+\"",
-                   "<idea-version since-build=\"%s\"" % build,
+                   "<idea-version since-build=\"%s\"" % api_version,
                    content, 1)
 
   anchor = "</id>" if "</id>" in content else "</name>"
   if "<version>" not in content:
     content = re.sub(anchor, "%s\n  <version>%s</version>" %(anchor, build), content)
   if "<idea-version since-build" not in content:
-    content = re.sub(anchor, "%s\n  <idea-version since-build=\"%s\" until-build=\"%s\"/>" % (anchor, build, build), content)
+    content = re.sub(anchor, "%s\n  <idea-version since-build=\"%s\" until-build=\"%s\"/>" % (anchor, api_version, api_version), content)
 
   return content
 
@@ -87,7 +88,10 @@ def _replace_build_number(content, info_file):
   build_info = _read_status_file(info_file)
   bid = _get_build_id(build_info)
   return content.replace("__BUILD_NUMBER__", bid)
-  
+
+def _replace_selector(content, selector):
+  return content.replace("_ANDROID_STUDIO_SYSTEM_SELECTOR_", selector)
+
 
 def _read_file(file, entry = None, optional_entry = False):
   if entry:
@@ -124,6 +128,9 @@ def main(argv):
       "--replace_build_number",
       action="store_true",
       help="Replaces __BUILD_NUMBER__ on the given file using --info_file.")
+  parser.add_argument(
+      "--replace_selector",
+      help="Replaces _ANDROID_STUDIO_SYSTEM_SELECTOR_ with the given value")
   parser.add_argument(
       "--stamp_app_info",
       action="store_true",
@@ -184,6 +191,9 @@ def main(argv):
   if content:
     if args.replace_build_number:
       content = _replace_build_number(content, args.info_file)
+    
+    if args.replace_selector:
+      content= _replace_selector(content, args.replace_selector)
 
     if args.stamp_app_info:
       content = _stamp_app_info(args.version_file, args.build_txt, args.version_micro, args.version_patch, args.version_full, args.eap, content)

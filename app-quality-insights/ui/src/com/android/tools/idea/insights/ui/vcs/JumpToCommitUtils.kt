@@ -48,7 +48,7 @@ private fun tryCreateHash(revision: String): Hash? {
 }
 
 // Copied from GitShowCommitInLogAction#jumpToRevision
-private fun jumpToRevision(project: Project, hash: Hash) {
+internal fun jumpToRevision(project: Project, hash: Hash) {
   runInMainLog(
     project,
     Consumer { logUi: MainVcsLogUi -> jumpToRevisionUnderProgress(project, logUi, hash) }

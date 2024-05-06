@@ -22,6 +22,7 @@ private const val BUNDLE_NAME = "bundle.glance.PreviewBundle"
 
 object GlancePreviewBundle {
   private val bundleRef = MessageBundleReference(BUNDLE_NAME)
+
   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any) =
     bundleRef.message(key, *params)
 

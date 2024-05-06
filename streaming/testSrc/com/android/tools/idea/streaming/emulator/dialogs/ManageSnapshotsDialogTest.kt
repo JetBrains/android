@@ -16,7 +16,7 @@
 package com.android.tools.idea.streaming.emulator.dialogs
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
@@ -62,8 +62,8 @@ import javax.swing.JComponent
 import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JLayeredPane
+import javax.swing.JTextArea
 import javax.swing.JTextField
-import javax.swing.JTextPane
 import javax.swing.table.DefaultTableCellRenderer
 
 /**
@@ -455,7 +455,7 @@ class ManageSnapshotsDialogTest {
       }
 
       if (description != null) {
-        val descriptionField = ui.getComponent<JTextPane>()
+        val descriptionField = ui.getComponent<JTextArea>()
         descriptionField.text = description
       }
 
@@ -469,15 +469,12 @@ class ManageSnapshotsDialogTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  private fun performAction(action: AnAction?) {
-    assertThat(action).isNotNull()
+  private fun performAction(action: AnAction) {
     assertThat(isPresentationEnabled(action)).isTrue()
-    action?.actionPerformed(TestActionEvent.createTestEvent(action))
+    action.actionPerformed(TestActionEvent.createTestEvent(action))
   }
 
-  private fun isPresentationEnabled(action: AnAction?): Boolean {
-    if (action == null) return false
-
+  private fun isPresentationEnabled(action: AnAction): Boolean {
     if (action is AnActionButton) {
       val contextComponent = object : JLayeredPane() {
         override fun isShowing(): Boolean {

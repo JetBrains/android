@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.hprof.classstore.HProfMetadata
 import com.android.tools.idea.diagnostics.hprof.parser.HProfEventBasedParser
 import com.android.tools.idea.diagnostics.hprof.visitors.CreateAuxiliaryFilesVisitor
 import it.unimi.dsi.fastutil.longs.LongArrayList
+import java.lang.RuntimeException
 import java.nio.channels.FileChannel
 
 abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Long) {

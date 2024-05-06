@@ -36,6 +36,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.CollectionQuery
 import icons.StudioIcons
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.stream.Collectors
 import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
@@ -45,9 +48,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 
 class NlPaletteModelTest {
   private var facet: AndroidFacet? = null
@@ -88,7 +88,6 @@ class NlPaletteModelTest {
         SdkConstants.LINEAR_LAYOUT,
         null,
         null,
-        SdkConstants.CONSTRAINT_LAYOUT_LIB_ARTIFACT,
         null,
         emptyList(),
         emptyList()
@@ -137,20 +136,20 @@ class NlPaletteModelTest {
     assertThat(item1.tagName).isEqualTo(CUSTOM_VIEW_CLASS)
     assertThat(item1.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(item1.title).isEqualTo(CUSTOM_VIEW)
-    assertThat(item1.gradleCoordinateId).isEmpty()
+    assertThat(item1.gradleCoordinateId).isNull()
     assertThat(item1.xml.trim()).isEqualTo(expectedViewXml)
     val item2 = items[1]
     assertThat(item2.tagName).isEqualTo(CUSTOM_VIEW_GROUP_CLASS)
     assertThat(item2.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(item2.title).isEqualTo(CUSTOM_VIEW_GROUP)
-    assertThat(item2.gradleCoordinateId).isEmpty()
+    assertThat(item2.gradleCoordinateId).isNull()
     assertThat(item2.xml.trim()).isEqualTo(expectedViewGroupXml)
     val handler = ViewHandlerManager.get(facet!!).getHandler(CUSTOM_VIEW_CLASS) {}
     assertThat(handler).isNotNull()
     assertThat(handler!!.getTitle(CUSTOM_VIEW_CLASS)).isEqualTo(CUSTOM_VIEW)
     assertThat(handler.getIcon(CUSTOM_VIEW_CLASS))
       .isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
-    assertThat(handler.getGradleCoordinateId(CUSTOM_VIEW_CLASS)).isEmpty()
+    assertThat(handler.getGradleCoordinateId(CUSTOM_VIEW_CLASS)).isNull()
     assertThat(handler.getPreviewScale(CUSTOM_VIEW_CLASS)).isWithin(0.0).of(1.0)
     assertThat(handler.inspectorProperties).isEmpty()
     assertThat(handler.layoutInspectorProperties).isEmpty()
@@ -172,7 +171,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_CLASS,
         getXml(CUSTOM_VIEW_CLASS),
         getPreviewXml(CUSTOM_VIEW_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()
@@ -188,7 +186,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_CLASS,
         getXml(CUSTOM_VIEW_CLASS),
         getPreviewXml(CUSTOM_VIEW_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()
@@ -214,7 +211,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_GROUP_CLASS,
         getXml(CUSTOM_VIEW_GROUP_CLASS),
         getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()
@@ -230,7 +226,6 @@ class NlPaletteModelTest {
         CUSTOM_VIEW_GROUP_CLASS,
         getXml(CUSTOM_VIEW_GROUP_CLASS),
         getPreviewXml(CUSTOM_VIEW_GROUP_CLASS),
-        "",
         "family",
         ImmutableList.of("family", "size"),
         emptyList()
@@ -263,7 +258,7 @@ class NlPaletteModelTest {
     assertThat(item.tagName).isEqualTo(CUSTOM_VIEW_CLASS)
     assertThat(item.icon).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW)
     assertThat(item.title).isEqualTo(CUSTOM_VIEW)
-    assertThat(item.gradleCoordinateId).isEmpty()
+    assertThat(item.gradleCoordinateId).isNull()
     assertThat(item.xml.trim())
       .isEqualTo(
         """
@@ -339,6 +334,7 @@ class NlPaletteModelTest {
     private const val CUSTOM_VIEW_GROUP_CLASS = "com.example.FakeCustomViewGroup"
     private val CUSTOM_VIEW = StringUtil.getShortName(CUSTOM_VIEW_CLASS)
     private val CUSTOM_VIEW_GROUP = StringUtil.getShortName(CUSTOM_VIEW_GROUP_CLASS)
+
     private fun getProjectGroup(palette: Palette): Palette.Group? {
       val groups = palette.items
       return groups

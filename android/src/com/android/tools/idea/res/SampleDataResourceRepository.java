@@ -31,8 +31,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.PsiManager;
@@ -45,10 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,19 +61,14 @@ import org.jetbrains.annotations.Nullable;
  *   <li><b>Directories</b>: Folders that contain a list of images
  * </ul>
  */
-public class SampleDataResourceRepository extends LocalResourceRepository implements SingleNamespaceResourceRepository, Disposable {
+final class SampleDataResourceRepository extends LocalResourceRepository<VirtualFile> implements SingleNamespaceResourceRepository, Disposable {
   private static final Logger LOG = Logger.getInstance(SampleDataResourceRepository.class);
 
   @NotNull private final AndroidFacet myAndroidFacet;
   @NotNull private final ResourceNamespace myNamespace;
   @NotNull private final Map<ResourceType, ListMultimap<String, ResourceItem>> myResourceTable = new EnumMap<>(ResourceType.class);
 
-  @NotNull
-  public static SampleDataResourceRepository getInstance(@NotNull AndroidFacet facet) {
-    return SampleDataRepositoryManager.getInstance(facet).getRepository();
-  }
-
-  private SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
+  public SampleDataResourceRepository(@NotNull AndroidFacet androidFacet) {
     super("Sample Data");
     myAndroidFacet = androidFacet;
 
@@ -89,7 +80,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
   }
 
   @Override
-  public void addParent(@NotNull MultiResourceRepository parent) {
+  public void addParent(@NotNull MultiResourceRepository<VirtualFile> parent) {
     if (!myAndroidFacet.isDisposed()) {
       super.addParent(parent);
     }
@@ -172,7 +163,7 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       .map((sampleDataDir) -> sampleDataDir.isDirectory() ? psiManager.findDirectory(sampleDataDir) : psiManager.findFile(sampleDataDir))
       .filter(Objects::nonNull)
       .flatMap((psiElement) -> loadItemsFromFile(psiElement).stream())
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
 
     synchronized (ITEM_MAP_LOCK) {
       myResourceTable.clear();
@@ -200,71 +191,6 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
     catch (IOException e) {
       LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);
       return Collections.emptyList();
-    }
-  }
-
-  /**
-   * Service which caches instances of {@link SampleDataResourceRepository} by their associated {@link AndroidFacet}.
-   */
-  static class SampleDataRepositoryManager extends AndroidFacetScopedService {
-    private static final Key<SampleDataRepositoryManager> KEY = Key.create(SampleDataRepositoryManager.class.getName());
-    private final Object repositoryLock = new Object();
-    @GuardedBy("repositoryLock")
-    private SampleDataResourceRepository repository;
-
-    @NotNull
-    public static SampleDataRepositoryManager getInstance(@NotNull AndroidFacet facet) {
-      SampleDataRepositoryManager manager = facet.getUserData(KEY);
-
-      if (manager == null) {
-        manager = new SampleDataRepositoryManager(facet);
-        facet.putUserData(KEY, manager);
-      }
-
-      return manager;
-    }
-
-    private SampleDataRepositoryManager(@NotNull AndroidFacet facet) {
-      super(facet);
-    }
-
-    @Override
-    protected void onServiceDisposal(@NotNull AndroidFacet facet) {
-      // No additional logic needed, the repository is registered with Disposer as a child of this object.
-    }
-
-    @NotNull
-    public SampleDataResourceRepository getRepository() {
-      if (isDisposed()) {
-        throw new IllegalStateException(getClass().getSimpleName() + " is disposed");
-      }
-      synchronized (repositoryLock) {
-        if (repository == null) {
-          repository = new SampleDataResourceRepository(getFacet());
-          Disposer.register(this, repository);
-        }
-        return repository;
-      }
-    }
-
-    public boolean hasRepository() {
-      synchronized (repositoryLock) {
-        return repository != null;
-      }
-    }
-
-    /**
-     * Drops the existing repository, forcing it to be recreated next time it's needed.
-     */
-    public void reset() {
-      SampleDataResourceRepository localRepository;
-      synchronized (repositoryLock) {
-        localRepository = repository;
-        repository = null;
-      }
-      if (localRepository != null) {
-        Disposer.dispose(localRepository);
-      }
     }
   }
 }

@@ -32,14 +32,15 @@ import org.junit.rules.RuleChain
 @RunsInEdt
 class ViewBindingShortNameCacheTest {
   private val projectRule =
-    AndroidProjectRule.withAndroidModel(AndroidProjectBuilder(
-      namespace = { "test.db" },
-      viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
-    ))
+    AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder(
+        namespace = { "test.db" },
+        viewBindingOptions = { IdeViewBindingOptionsImpl(enabled = true) }
+      )
+    )
 
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   private val facet
     get() = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
@@ -49,12 +50,16 @@ class ViewBindingShortNameCacheTest {
 
   @Test
   fun shortNameCacheContainsViewBindingClassesAndFields() {
-    fixture.addFileToProject("src/main/res/layout/activity_main.xml", """
+    fixture.addFileToProject(
+      "src/main/res/layout/activity_main.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
         <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android">
             <TextView android:id="@+id/testId"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     // initialize module resources
     StudioResourceRepositoryManager.getInstance(facet).moduleResources

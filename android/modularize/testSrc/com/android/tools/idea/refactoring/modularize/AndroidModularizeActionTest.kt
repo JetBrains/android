@@ -32,7 +32,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.refactoring.actions.BaseRefactoringAction
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.base.util.letIf
 import org.junit.Rule
 import org.junit.Test
 import org.junit.experimental.runners.Enclosed

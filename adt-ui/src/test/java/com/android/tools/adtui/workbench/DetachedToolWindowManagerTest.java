@@ -15,12 +15,16 @@
  */
 package com.android.tools.adtui.workbench;
 
+import static com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow;
+import static com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.MovedOrResized;
+import static com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.SetToolWindowType;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.mockito.MockitoAnnotations.openMocks;
 
 import com.android.tools.adtui.workbench.DetachedToolWindowManager.DetachedToolWindowFactory;
 import com.google.common.collect.ImmutableList;
@@ -31,7 +35,9 @@ import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.util.ui.UIUtil;
 import java.awt.KeyboardFocusManager;
 import java.util.Collections;
@@ -42,7 +48,7 @@ import org.mockito.Mock;
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   // Hack to avoid: "java.lang.Error: Cannot load com.apple.laf.AquaLookAndFeel"
   @SuppressWarnings("unused")
-  private static volatile boolean DARK = StartupUiUtil.isUnderDarcula();
+  private static volatile boolean DARK = UIUtil.isUnderDarcula();
   private static final String WORKBENCH_NAME1 = "NELE_EDITOR";
   private static final String WORKBENCH_TITLE1 = "Designer";
   private static final String WORKBENCH_NAME2 = "Layout Inspector";
@@ -55,27 +61,27 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   @Mock
   private FileEditor myFileEditor2;
   @Mock
-  private WorkBench myWorkBench1;
+  private WorkBench<String> myWorkBench1;
   @Mock
-  private WorkBench myWorkBench2;
+  private WorkBench<String> myWorkBench2;
   @Mock
-  private AttachedToolWindow myAttachedToolWindow1a;
+  private AttachedToolWindow<String> myAttachedToolWindow1a;
   @Mock
-  private AttachedToolWindow myAttachedToolWindow1b;
+  private AttachedToolWindow<String> myAttachedToolWindow1b;
   @Mock
-  private AttachedToolWindow myAttachedToolWindow2a;
+  private AttachedToolWindow<String> myAttachedToolWindow2a;
   @Mock
-  private AttachedToolWindow myAttachedToolWindow2b;
+  private AttachedToolWindow<String> myAttachedToolWindow2b;
   @Mock
   private VirtualFile myVirtualFile;
   @Mock
-  private DetachedToolWindow myDetachedToolWindow1a;
+  private DetachedToolWindow<String> myDetachedToolWindow1a;
   @Mock
-  private DetachedToolWindow myDetachedToolWindow1b;
+  private DetachedToolWindow<String> myDetachedToolWindow1b;
   @Mock
-  private DetachedToolWindow myDetachedToolWindow2a;
+  private DetachedToolWindow<String> myDetachedToolWindow2a;
   @Mock
-  private DetachedToolWindow myDetachedToolWindow2b;
+  private DetachedToolWindow<String> myDetachedToolWindow2b;
   @Mock
   private DetachedToolWindowFactory myDetachedToolWindowFactory;
   @Mock
@@ -87,7 +93,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    initMocks(this);
+    openMocks(this).close();
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
     when(myWorkBench1.getName()).thenReturn(WORKBENCH_NAME1);
     when(myWorkBench2.getName()).thenReturn(WORKBENCH_NAME2);
@@ -120,6 +126,7 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     when(myFileEditor2.getComponent()).thenReturn(new JPanel());
     myManager.register(myFileEditor1, myWorkBench1);
     myManager.register(myFileEditor2, myWorkBench2);
+    Disposer.register(getTestRootDisposable(), myManager);
   }
 
   @Override
@@ -216,5 +223,24 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     myListener.fileClosed(myEditorManager, myVirtualFile);
     UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1a).hide();
+  }
+
+  public void testMinimizeRestoreAndDockFloatingToolWindow() {
+    when(myEditorManager.getSelectedEditors()).thenReturn(new FileEditor[]{myFileEditor1});
+    myListener.fileOpened(myEditorManager, myVirtualFile);
+    UIUtil.dispatchAllInvocationEvents();
+
+    ToolWindowManager tm = ToolWindowManager.getInstance(getProject());
+    ToolWindow tw1 = mock(ToolWindow.class);
+    String id1a = DetachedToolWindow.idOf(WORKBENCH_TITLE1, PalettePanelToolContent.getDefinition());
+    when(tw1.getId()).thenReturn(id1a);
+    getProject().getMessageBus().syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(tm, tw1, HideToolWindow);
+    verify(myDetachedToolWindow1a).setMinimized(eq(true));
+
+    getProject().getMessageBus().syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(tm, tw1, MovedOrResized);
+    verify(myDetachedToolWindow1a).setMinimized(eq(false));
+
+    getProject().getMessageBus().syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(tm, tw1, SetToolWindowType);
+    verify(myDetachedToolWindow1a).updateSettingsInAttachedToolWindow();
   }
 }

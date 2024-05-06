@@ -18,7 +18,9 @@ package com.android.tools.profilers.performance
 import com.android.tools.datastore.database.MemoryStatsTable
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.MemoryProfiler
+
 import java.sql.Connection
+import java.util.ArrayList
 
 class MemoryGenerator(connection: Connection) : DataGenerator(connection) {
 

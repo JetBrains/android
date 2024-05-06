@@ -22,11 +22,15 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.text.StringUtil;
-import java.util.Collection;
-import java.util.Objects;
-import javax.swing.event.HyperlinkListener;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.event.HyperlinkListener;
+import java.util.Collection;
+import java.util.Objects;
 
 public class RenderErrorModel {
 
@@ -71,9 +75,10 @@ public class RenderErrorModel {
   /**
    * Holder for issues contained in {@link RenderErrorModel}. An issue has the following fields:
    * <ul>
-   * <li><b>Severity</b>: Indicates the severity of the issue.
-   * <li><b>Summary</b>: A brief description of the issue.
-   * <li><b>HTML content</b>: A detailed description of the issue that can contain HTML, including links.
+   * <li><b>Severity</b>: Indicates the severity of the issue.</li>
+   * <li><b>Summary</b>: A brief description of the issue.</li>
+   * <li><b>HTML content</b>: A detailed description of the issue that can contain HTML, including links.</li>
+   * <li><b>Message tip</b>: containing a message with possible solution that could solve an issue.</li>
    * <li><b>Link handler</b>: An {@link HyperlinkListener} to handle any links on the HTML content. It can be null.</li>
    * </ui>
    */
@@ -81,6 +86,7 @@ public class RenderErrorModel {
     private HighlightSeverity mySeverity = HighlightSeverity.INFORMATION;
     private String mySummary;
     private String myHtmlContent;
+    private List<MessageTip> myMessageTips = new ArrayList<>();
     private HyperlinkListener myHyperlinkListener;
     // myHtmlContent with HTML tags stripped. Used for comparisons
     private String myCachedPlainContent;
@@ -106,6 +112,11 @@ public class RenderErrorModel {
     @NotNull
     public String getHtmlContent() {
       return StringUtil.notNullize(myHtmlContent);
+    }
+
+    @NotNull
+    public List<MessageTip> getMessageTip() {
+      return myMessageTips;
     }
 
     /**
@@ -155,6 +166,7 @@ public class RenderErrorModel {
         .add("summary", mySummary)
         .add("htmlContent", myHtmlContent)
         .add("hasHyperlinkListener", myHyperlinkListener != null)
+        .add("messageTips", myMessageTips)
         .toString();
     }
 
@@ -203,6 +215,17 @@ public class RenderErrorModel {
       public Builder setLinkHandler(@NotNull HyperlinkListener listener) {
         myIssue.myHyperlinkListener = listener;
 
+        return this;
+      }
+
+      @NotNull
+      public Builder addMessageTip(@Nullable Icon icon, HtmlBuilder message) {
+        return addMessageTip(new MessageTip(icon, message.getStringBuilder().toString()));
+      }
+
+      @NotNull
+      public Builder addMessageTip(MessageTip messageTip) {
+        myIssue.myMessageTips.add(messageTip);
         return this;
       }
 

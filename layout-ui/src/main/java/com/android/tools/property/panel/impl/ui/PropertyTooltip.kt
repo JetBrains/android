@@ -21,6 +21,8 @@ import com.intellij.ide.HelpTooltip
 import com.intellij.util.text.nullize
 import javax.swing.JComponent
 
+private const val MAX_TOOLTIP_TEXT_LENGTH = 1000
+
 /** Implementation of custom tool tips for displaying errors and warnings. */
 object PropertyTooltip {
 
@@ -57,7 +59,8 @@ object PropertyTooltip {
       when (validation.first) {
         EditingErrorCategory.ERROR -> Pair("Error", validation.second)
         EditingErrorCategory.WARNING -> Pair("Warning", validation.second)
-        else -> property.tooltipForValue.nullize()?.let { Pair(null, it) }
+        else ->
+          property.tooltipForValue.nullize()?.let { Pair(null, it) }
             ?: return hideTooltip(component)
       }
     createTooltipWithContent(component, text, title)
@@ -68,6 +71,9 @@ object PropertyTooltip {
   }
 
   private fun createTooltipWithContent(component: JComponent, text: String, title: String? = null) {
-    HelpTooltip().setTitle(title).setDescription(text).installOn(component)
+    val truncatedText =
+      if (text.length > MAX_TOOLTIP_TEXT_LENGTH) text.substring(0, MAX_TOOLTIP_TEXT_LENGTH) + "..."
+      else text
+    HelpTooltip().setTitle(title).setDescription(truncatedText).installOn(component)
   }
 }

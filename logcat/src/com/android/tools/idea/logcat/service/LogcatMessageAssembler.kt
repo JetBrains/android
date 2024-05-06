@@ -32,23 +32,25 @@ import kotlin.coroutines.CoroutineContext
 private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
 
 /**
- * Receives batches of lines from an `adb logcat -v long` process and assembles them into complete [LogcatMessage]'s.
+ * Receives batches of lines from an `adb logcat -v long` process and assembles them into complete
+ * [LogcatMessage]'s.
  *
  * A logcat entry starts with a header:
  *
- * `[          1650901603.644  1505: 1539 W/BroadcastQueue ]`
+ * `[ 1650901603.644 1505: 1539 W/BroadcastQueue ]`
  *
- * And is followed by one or more lines. The entry is terminated by an empty line but there is nothing preventing users from including an
- * empty line in a proper message so there is no reliable way to determine the end of a Logcat entry. The only reliable trigger that an
- * entry has ended is when a new header is parsed.
+ * And is followed by one or more lines. The entry is terminated by an empty line but there is
+ * nothing preventing users from including an empty line in a proper message so there is no reliable
+ * way to determine the end of a Logcat entry. The only reliable trigger that an entry has ended is
+ * when a new header is parsed.
  *
- * This means that the last entry cannot be assembled until the next entry is emitted, which could cause an unwanted delay.
+ * This means that the last entry cannot be assembled until the next entry is emitted, which could
+ * cause an unwanted delay.
  *
- * To avoid this delay, after finishing precessing a batch of lines, we schedule a delayed task to flush the last message if nothing arrives
- * in time.
+ * To avoid this delay, after finishing precessing a batch of lines, we schedule a delayed task to
+ * flush the last message if nothing arrives in time.
  *
- * Note:
- * This is flaky by definition but given the Logcat ambiguous format, it's the best we can do.
+ * Note: This is flaky by definition but given the Logcat ambiguous format, it's the best we can do.
  *
  * This class is derived from [com.android.tools.idea.logcat.AndroidLogcatReceiver]
  */
@@ -83,12 +85,13 @@ internal class LogcatMessageAssembler(
    *   ...
    * ```
    *
-   * There seems to be no way to deterministically detect the end of a log entry because the EOM is indicated by an empty line but an empty
-   * line can be also be a valid part of a log entry. A valid header is a good indication that the previous entry has ended, but we can't
-   * just hold on to an entry until we get a new header because there could be a long pause between entries.
+   * There seems to be no way to deterministically detect the end of a log entry because the EOM is
+   * indicated by an empty line but an empty line can be also be a valid part of a log entry. A
+   * valid header is a good indication that the previous entry has ended, but we can't just hold on
+   * to an entry until we get a new header because there could be a long pause between entries.
    *
-   * We address this issue by posting a delayed job that will flush the last entry in a batch. If we get another batch before the delayed
-   * job executes, we cancel it.
+   * We address this issue by posting a delayed job that will flush the last entry in a batch. If we
+   * get another batch before the delayed job executes, we cancel it.
    */
   suspend fun processNewLines(newLines: List<String>) {
     // New batch has arrived so effectively cancel the pending job by resetting previousState
@@ -97,9 +100,13 @@ internal class LogcatMessageAssembler(
     // Parse new lines and send log messages
     val batch: Batch = parseNewLines(state, newLines)
     if (batch.messages.isNotEmpty()) {
-      // Use the timestamp of the last message in the batch. We might end up sending a few older messages but not by much. There's no
+      // Use the timestamp of the last message in the batch. We might end up sending a few older
+      // messages but not by much. There's no
       // need to be super precise.
-      if (cutoffTimeSeconds == null || batch.messages.last().header.timestamp.epochSecond >= cutoffTimeSeconds) {
+      if (
+        cutoffTimeSeconds == null ||
+          batch.messages.last().header.timestamp.epochSecond >= cutoffTimeSeconds
+      ) {
         channel.send(batch.messages)
       }
     }
@@ -108,14 +115,18 @@ internal class LogcatMessageAssembler(
     val partialMessage = PartialMessage(batch.lastHeader, batch.lastLines)
     previousState.set(partialMessage)
 
-    // If there is a valid last message in the batch, queue it for sending in case there is no imminent next batch coming
+    // If there is a valid last message in the batch, queue it for sending in case there is no
+    // imminent next batch coming
     if (batch.lastHeader != null && batch.lastLines.isNotEmpty()) {
       coroutineScope.launch {
-        // This is flaky by definition but given the Logcat ambiguous format, it's the best we can do. See class KDoc
+        // This is flaky by definition but given the Logcat ambiguous format, it's the best we can
+        // do. See class KDoc
         delay(lastMessageDelayMs)
         val message = getAndResetPendingMessage(partialMessage)
         if (message != null) {
-          if (cutoffTimeSeconds == null || message.header.timestamp.epochSecond >= cutoffTimeSeconds) {
+          if (
+            cutoffTimeSeconds == null || message.header.timestamp.epochSecond >= cutoffTimeSeconds
+          ) {
             channel.send(listOf(message))
           }
         }
@@ -125,10 +136,10 @@ internal class LogcatMessageAssembler(
 
   fun getAndResetLastMessage(): LogcatMessage? = previousState.getAndReset()?.toLogcatMessage()
 
-  private fun getAndResetPendingMessage(expected: PartialMessage): LogcatMessage? = previousState.getAndResetIf(expected)?.toLogcatMessage()
+  private fun getAndResetPendingMessage(expected: PartialMessage): LogcatMessage? =
+    previousState.getAndResetIf(expected)?.toLogcatMessage()
 
-  private fun parseNewLines(
-    state: PartialMessage?, newLines: List<String>): Batch {
+  private fun parseNewLines(state: PartialMessage?, newLines: List<String>): Batch {
 
     var lastHeader = state?.header
     val lastLines = state?.lines?.toMutableList() ?: mutableListOf()
@@ -148,8 +159,7 @@ internal class LogcatMessageAssembler(
         // previous lines without a previous header are discarded
         lastLines.clear()
         lastHeader = header
-      }
-      else {
+      } else {
         lastLines.add(line)
       }
     }
@@ -157,14 +167,16 @@ internal class LogcatMessageAssembler(
   }
 
   /**
-   * A batch consists of the first n-1 log entries in a batch. The last entry can be incomplete and is stored as a header and a list of
-   * lines.
+   * A batch consists of the first n-1 log entries in a batch. The last entry can be incomplete and
+   * is stored as a header and a list of lines.
    */
-  private class Batch(val messages: List<LogcatMessage>, val lastHeader: LogcatHeader?, val lastLines: List<String>)
+  private class Batch(
+    val messages: List<LogcatMessage>,
+    val lastHeader: LogcatHeader?,
+    val lastLines: List<String>
+  )
 
-  /**
-   * A header and lines of a possibly unfinished message.
-   */
+  /** A header and lines of a possibly unfinished message. */
   private class PartialMessage(val header: LogcatHeader?, val lines: List<String>) {
     fun toLogcatMessage() = header?.let { LogcatMessage(header, lines.toMessage()) }
   }
@@ -189,24 +201,24 @@ internal class LogcatMessageAssembler(
 
 private fun String.isSystemLine(): Boolean {
   return startsWith(SYSTEM_LINE_PREFIX)
-
 }
 
 /**
- * Really, the user's log should never put any system characters in it ever - that will cause
- * it to get filtered by our strict regex patterns (see AndroidLogcatFormatter). The reason
- * this might happen in practice is due to a bug where either adb or logcat (not sure which)
- * is too aggressive about converting \n's to \r\n's, including those that are quoted. This
- * means that a user's log, if it uses \r\n itself, is converted to \r\r\n. Then, when
- * MultiLineReceiver, which expects valid input, strips out \r\n, it leaves behind an extra \r.
+ * Really, the user's log should never put any system characters in it ever - that will cause it to
+ * get filtered by our strict regex patterns (see AndroidLogcatFormatter). The reason this might
+ * happen in practice is due to a bug where either adb or logcat (not sure which) is too aggressive
+ * about converting \n's to \r\n's, including those that are quoted. This means that a user's log,
+ * if it uses \r\n itself, is converted to \r\r\n. Then, when MultiLineReceiver, which expects valid
+ * input, strips out \r\n, it leaves behind an extra \r.
  *
- * Unfortunately this isn't a case where we can fix the root cause because adb and logcat are
- * both external to Android Studio. In fact, the latest adb/logcat versions have already fixed
- * this issue! But we still need to run properly with older versions. Also, putting this fix in
+ * Unfortunately this isn't a case where we can fix the root cause because adb and logcat are both
+ * external to Android Studio. In fact, the latest adb/logcat versions have already fixed this
+ * issue! But we still need to run properly with older versions. Also, putting this fix in
  * MultiLineReceiver isn't right either because it is used for more than just receiving logcat.
  */
 private fun String.fixLine(): String {
   return replace("\r", "")
 }
 
-private fun List<String>.toMessage(): String = StackTraceExpander.process(this).joinToString("\n").trimEnd('\n')
+private fun List<String>.toMessage(): String =
+  StackTraceExpander.process(this).joinToString("\n").trimEnd('\n')

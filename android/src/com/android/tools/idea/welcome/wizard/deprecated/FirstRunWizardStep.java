@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.welcome.wizard.deprecated;
 
-import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardStep;
+import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.util.IJSwingUtilities;
-import java.awt.Component;
-import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 
 /**
  * Base class for the first run wizard steps. Ensures consistent look and

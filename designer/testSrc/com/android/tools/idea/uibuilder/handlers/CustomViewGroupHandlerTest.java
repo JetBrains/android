@@ -13,10 +13,6 @@
 // limitations under the License.
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.testutils.AsyncTestUtils.waitForCondition;
-import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.emptyList;
-
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -26,6 +22,10 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.testutils.AsyncTestUtils.waitForCondition;
+import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
 
 public class CustomViewGroupHandlerTest extends AndroidTestCase {
   private static final String MY_ABSOLUTE_LAYOUT = "p1.p2.MyAbsoluteLayout";
@@ -72,7 +72,7 @@ public class CustomViewGroupHandlerTest extends AndroidTestCase {
   public void testGetXml() throws Exception {
     setUpMyClasses(MY_ABSOLUTE_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                     null, null, "", null, emptyList(), emptyList());
+                                                     null, null, null, emptyList(), emptyList());
     @Language("XML")
     String expected =
       "<p1.p2.MyAbsoluteLayout\n" +
@@ -86,14 +86,14 @@ public class CustomViewGroupHandlerTest extends AndroidTestCase {
   public void testGetSpecifiedXml() throws Exception {
     setUpMyClasses(MY_LINEAR_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                     "<myxml/>", null, "", null, emptyList(), emptyList());
+                                                     "<myxml/>", null, null, emptyList(), emptyList());
     assertThat(handler.getXml(myTagName, XmlType.COMPONENT_CREATION)).isEqualTo("<myxml/>");
   }
 
   public void testGetXmlOfInnerClass() throws Exception {
     setUpMyClasses(MY_LINEAR_LAYOUT);
     ViewHandler handler = new CustomViewGroupHandler(myDefaultHandler, null, myTagName, myClassName,
-                                                     null, null, "", null, emptyList(), emptyList());
+                                                     null, null, null, emptyList(), emptyList());
 
     @Language("XML")
     String expected =

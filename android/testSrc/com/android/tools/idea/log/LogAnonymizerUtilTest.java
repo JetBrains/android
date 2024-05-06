@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.log;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.log.LogAnonymizerUtil;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class LogAnonymizerUtilTest {
   @Test

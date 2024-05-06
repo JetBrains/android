@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
 import com.android.tools.idea.gradle.project.GradleProjectInfo
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -200,12 +201,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
   ) {
     GradleProjectInfo.getInstance(project).isNewProject = false
 
-    if (imported.isEmpty() && !IdeInfo.getInstance().isAndroidStudio){
-      // in IDEA Android Plugin should not do anything, if there are no Android Modules in the project.
-      // not sure why Android Studio wants to do something (maybe it's OK to skip the remaining in Android Studio as well).
-      return
-    }
-    
     // TODO(b/200268010): this only triggers when we have actually run sync, as opposed to having loaded models from cache.  That means
     //  that we should be able to move this to some kind of sync listener.
     if (projectData != null) {
@@ -217,6 +212,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
           AndroidPluginInfo.findFromModel(project)?.let { info ->
             project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
           }
+          GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)
         }
       }
     }
@@ -235,7 +231,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     if (ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.get()) {
       val serverFlag = ServerFlagService.instance.getProtoOrNull(
         "feature/studio_api_level_support", AndroidSdkSupportConfiguration.getDefaultInstance()
-      )?.androidApiStudioVersionMappingMap
+      )?.androidApiStudioMappingMap
 
       AndroidSdkCompatibilityChecker.getInstance().checkAndroidSdkVersion(
         imported,
@@ -300,6 +296,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
 private fun createAndroidFacet(module: Module, facetModel: ModifiableFacetModel): AndroidFacet {
   val facetType = AndroidFacet.getFacetType()
   val facet = facetType.createFacet(module, AndroidFacet.NAME, facetType.createDefaultConfiguration(), null)
+  @Suppress("UnstableApiUsage")
   facetModel.addFacet(facet, ExternalSystemApiUtil.toExternalSource(SYSTEM_ID))
   return facet
 }

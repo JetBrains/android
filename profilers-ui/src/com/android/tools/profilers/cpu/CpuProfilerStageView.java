@@ -22,10 +22,9 @@ import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.stdui.StreamingScrollbar;
+import com.android.tools.adtui.stdui.TimelineScrollbar;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.DismissibleMessage;
-import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.RecordingOption;
@@ -43,7 +42,6 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
-import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.UIUtilities;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -56,63 +54,24 @@ import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 
 public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
-  private enum PanelSizing {
-    /**
-     * Sizing string for the CPU graph.
-     */
-    MONITOR("140px", 0),
-
-    /**
-     * Sizing string for the threads / kernel view.
-     */
-    DETAILS("*", 1),
-
-    /**
-     * Sizing string for the threads portion of the details view.
-     */
-    THREADS("*", 0);
-
-    @NotNull private final String myRowRule;
-    private final int myRow;
-
-    PanelSizing(@NotNull String rowRule, int row) {
-      myRowRule = rowRule;
-      myRow = row;
-    }
-
-    @NotNull
-    public String getRowRule() {
-      return myRowRule;
-    }
-
-    public int getRow() {
-      return myRow;
-    }
-  }
 
   /**
    * Default ratio of splitter. The splitter ratio adjust the first elements size relative to the bottom elements size.
    * A ratio of 1 means only the first element is shown, while a ratio of 0 means only the bottom element is shown.
    */
   private static final float SPLITTER_DEFAULT_RATIO = 0.2f;
-
   private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.cpu.message";
-
   private final CpuProfilerStage myStage;
-
-  @NotNull private final CpuThreadsView myThreads;
-
   @NotNull private final RecordingOptionsView myRecordingOptionsView;
-
   @NotNull private final RangeTooltipComponent myTooltipComponent;
+
+  @NotNull private final DetailedCpuChart myDetailedCpuChart;
 
   public CpuProfilerStageView(@NotNull StudioProfilersView profilersView, @NotNull CpuProfilerStage stage) {
     super(profilersView, stage);
     myStage = stage;
-    myThreads = new CpuThreadsView(myStage);
-    myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(),
-                                                   getTooltipPanel(),
-                                                   getProfilersView().getComponent(),
+    myDetailedCpuChart = new DetailedCpuChart(profilersView, myStage);
+    myTooltipComponent = new RangeTooltipComponent(getStage().getTimeline(), getTooltipPanel(), getProfilersView().getComponent(),
                                                    this::shouldShowTooltipSeekComponent);
 
     getTooltipBinder().bind(CpuProfilerStageCpuUsageTooltip.class, CpuProfilerStageCpuUsageTooltipView::new);
@@ -121,36 +80,19 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     getTooltipBinder().bind(UserEventTooltip.class, (stageView, tooltip) -> new UserEventTooltipView(stageView.getComponent(), tooltip));
     getTooltipPanel().setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    CpuUsageView usageView = new CpuUsageView(myStage);
+    CpuUsageView usageView = myDetailedCpuChart.getUsageView();
     myTooltipComponent.registerListenersOn(usageView);
     MouseListener listener = new ProfilerTooltipMouseAdapter(myStage, () -> new CpuProfilerStageCpuUsageTooltip(myStage));
     usageView.addMouseListener(listener);
 
-    // "Fit" for the event profiler, "*" for everything else.
-    final JPanel details = new JPanel(new TabularLayout("*", "Fit-,*"));
-    details.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    // Order matters as such our tooltip component should be first so it draws on top of all elements.
-    details.add(myTooltipComponent, new TabularLayout.Constraint(0, 0, 3, 1));
-
+    final JPanel details = myDetailedCpuChart.createCpuDetailsPanel(3, myTooltipComponent);
     if (stage.getStudioProfilers().getSelectedSessionSupportLevel() == SupportLevel.DEBUGGABLE) {
       final EventMonitorView eventsView = new EventMonitorView(profilersView, stage.getEventMonitor());
       eventsView.registerTooltip(myTooltipComponent, getStage());
       details.add(eventsView.getComponent(), new TabularLayout.Constraint(0, 0));
     }
-
-    TabularLayout mainLayout = new TabularLayout("*");
-    mainLayout.setRowSizing(PanelSizing.MONITOR.getRow(), PanelSizing.MONITOR.getRowRule());
-    mainLayout.setRowSizing(PanelSizing.DETAILS.getRow(), PanelSizing.DETAILS.getRowRule());
-    final JPanel mainPanel = new JBPanel<>(mainLayout);
-    mainPanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-
-    mainPanel.add(usageView, new TabularLayout.Constraint(PanelSizing.MONITOR.getRow(), 0));
-    mainPanel.add(createCpuStatePanel(), new TabularLayout.Constraint(PanelSizing.DETAILS.getRow(), 0));
-
-    // Panel that represents all of L2
-    details.add(mainPanel, new TabularLayout.Constraint(1, 0));
     details.add(buildTimeAxis(myStage.getStudioProfilers()), new TabularLayout.Constraint(3, 0));
-    details.add(new StreamingScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
+    details.add(new TimelineScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the recording options, the 2nd component is the L2 components.
     myRecordingOptionsView = new RecordingOptionsView(getStage().getRecordingModel(), this::editConfigurations);
@@ -199,25 +141,10 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     };
     Common.Device selectedDevice = myStage.getStudioProfilers().getDevice();
     int deviceFeatureLevel = selectedDevice != null ? selectedDevice.getFeatureLevel() : 0;
-    getIdeComponents().openCpuProfilingConfigurationsDialog(myStage.getProfilerConfigModel(), deviceFeatureLevel, dialogCallback);
+    getIdeComponents().openCpuProfilingConfigurationsDialog(myStage.getProfilerConfigModel(), deviceFeatureLevel, dialogCallback,
+                                                            getProfilersView().getStudioProfilers().getIdeServices());
     myStage.getStudioProfilers().getIdeServices().getFeatureTracker().trackOpenProfilingConfigDialog();
     return Unit.INSTANCE;
-  }
-
-  @NotNull
-  private JPanel createCpuStatePanel() {
-    TabularLayout cpuStateLayout = new TabularLayout("*");
-    JPanel cpuStatePanel = new JBPanel<>(cpuStateLayout);
-
-    cpuStatePanel.setBackground(ProfilerColors.DEFAULT_STAGE_BACKGROUND);
-    cpuStateLayout.setRowSizing(PanelSizing.THREADS.getRow(), PanelSizing.THREADS.getRowRule());
-
-    //region CpuThreadsView
-    myTooltipComponent.registerListenersOn(myThreads.getComponent());
-    cpuStatePanel.add(myThreads.getComponent(), new TabularLayout.Constraint(PanelSizing.THREADS.getRow(), 0));
-    //endregion
-
-    return cpuStatePanel;
   }
 
   private void installProfilingInstructions(@NotNull JPanel parent) {

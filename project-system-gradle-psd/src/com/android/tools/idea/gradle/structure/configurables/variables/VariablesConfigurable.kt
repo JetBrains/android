@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.AndroidGradlePsdBundle
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
+import com.android.tools.idea.structure.dialog.ValidationAggregateDisplayConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.BaseConfigurable
@@ -26,6 +27,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.ToolbarDecorator
+import com.intellij.util.EventDispatcher
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -36,15 +38,17 @@ const val VARIABLES_VIEW = "VariablesView"
  * Configurable defining the Variables panel in the Project Structure Dialog
  */
 class VariablesConfigurable(private val project: Project, private val context: PsContext)
-  : BaseConfigurable(), TrackedConfigurable, Disposable {
+  : BaseConfigurable(), ValidationAggregateDisplayConfigurable, ValidationResultsKeeper, TrackedConfigurable, Disposable {
   private var uiDisposed = true
   override fun getDisplayName(): String = AndroidGradlePsdBundle.message("android.variables.configurable.display.name")
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_VARIABLES
+  private val myEventDispatcher = EventDispatcher.create(ValidationAggregateDisplayConfigurable.ValidationChangeListener::class.java)
+  private var myHasValidationErrors = false
 
   override fun createComponent(): JComponent {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
-    val table = VariablesTable(project, context, context.project, this)
+    val table = VariablesTable(project, context, context.project, this, this)
     panel.add(
       ToolbarDecorator
         .createDecorator(table)
@@ -86,5 +90,18 @@ class VariablesConfigurable(private val project: Project, private val context: P
 
   class AddAction(val text: String, val type: GradlePropertyModel.ValueType) {
     override fun toString() = text
+  }
+
+  override fun add(listener: ValidationAggregateDisplayConfigurable.ValidationChangeListener, parentDisposable: Disposable) {
+    myEventDispatcher.addListener(listener, parentDisposable)
+  }
+
+  override fun hasValidationErrors(): Boolean = myHasValidationErrors ?: false
+
+  override fun updateValidationResult(hasValidationErrors: Boolean) {
+    if(myHasValidationErrors != hasValidationErrors){
+      myHasValidationErrors = hasValidationErrors
+      myEventDispatcher.multicaster.validationResultChanges()
+    }
   }
 }

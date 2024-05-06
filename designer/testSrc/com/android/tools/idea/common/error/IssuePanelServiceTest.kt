@@ -16,16 +16,16 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.TestToolWindow
+import com.android.tools.idea.util.TestToolWindowManager
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
@@ -33,17 +33,14 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import org.junit.After
+import javax.swing.JComponent
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 class IssuePanelServiceTest {
 
@@ -54,8 +51,6 @@ class IssuePanelServiceTest {
 
   @Before
   fun setup() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
-
     rule.projectRule.replaceProjectService(
       ToolWindowManager::class.java,
       TestToolWindowManager(rule.project)
@@ -76,11 +71,6 @@ class IssuePanelServiceTest {
     }
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.clearOverride()
-  }
-
   @Test
   fun testInitWithOtherFile() {
     val file = rule.fixture.addFileToProject("/src/file.kt", "")
@@ -95,10 +85,10 @@ class IssuePanelServiceTest {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     ProblemsView.getToolWindow(rule.project)!!.show()
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
 
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
   }
 
   @Test
@@ -113,27 +103,38 @@ class IssuePanelServiceTest {
     }
     // Force select "current file" tab.
     contentManager.setSelectedContent(contentManager.contents[0])
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
 
     // Switching to layout file. The selected tab should still be "current file" tab.
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     assertEquals(contentManager.selectedContent, contentManager.contents[0])
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
   }
 
   @Test
   fun testOpeningFileDoesNotOpenSharedIssuePanel() {
     val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
+    val window = toolWindow as TestToolWindow
+    val contentManager = window.contentManager
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertNull(service.getSelectedSharedIssuePanel())
+    assertFalse(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.DESIGN_TOOLS
+    )
 
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertNull(service.getSelectedSharedIssuePanel())
+    assertFalse(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.DESIGN_TOOLS
+    )
 
     runInEdtAndWait { rule.fixture.openFileInEditor(ktFile.virtualFile) }
-    assertNull(service.getSelectedSharedIssuePanel())
+    assertFalse(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.DESIGN_TOOLS
+    )
   }
 
   @Test
@@ -149,8 +150,10 @@ class IssuePanelServiceTest {
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
     toolWindow.contentManager.let {
       it.setSelectedContent(it.contents[0])
+      assertTrue(
+        service.getTabCategory(it.selectedContent!!) == IssuePanelService.TabCategory.CURRENT_FILE
+      )
     } // select current file tab.
-    assertNull(service.getSelectedSharedIssuePanel())
 
     runInEdtAndWait { service.setSharedIssuePanelVisibility(true) }
     assertTrue(toolWindow.isVisible)
@@ -305,7 +308,7 @@ class IssuePanelServiceTest {
     val window = toolWindow as TestToolWindow
     val contentManager = window.contentManager
     val additionalContent =
-      contentManager.factory.createContent(null, "Additional Content", false).apply {
+      contentManager.factory.createContent(mock(), "Additional Content", false).apply {
         tabName = "Additional Content"
         isCloseable = false
       }
@@ -320,9 +323,12 @@ class IssuePanelServiceTest {
     assertFalse(window.isVisible)
     assertEquals(additionalContent, window.contentManager.selectedContent)
 
-    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    service.setIssuePanelVisibility(true, IssuePanelService.TabCategory.CURRENT_FILE)
     assertTrue(window.isVisible)
-    assertTrue(contentManager.selectedContent?.isTab(IssuePanelService.Tab.CURRENT_FILE) ?: false)
+    assertTrue(
+      service.getTabCategory(contentManager.selectedContent!!) ==
+        IssuePanelService.TabCategory.CURRENT_FILE
+    )
   }
 
   @RunsInEdt
@@ -344,83 +350,10 @@ class IssuePanelServiceTest {
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
     ProblemsView.getToolWindow(rule.project)!!.show()
     runInEdtAndWait { rule.fixture.openFileInEditor(layoutFile.virtualFile) }
-    assertFalse(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible())
 
-    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
-    assertFalse(service.isIssuePanelVisible(mock()))
-  }
-}
-
-class TestToolWindowManager(private val project: Project) : ToolWindowHeadlessManagerImpl(project) {
-  private val idToToolWindow = mutableMapOf<String, ToolWindow>()
-
-  override fun doRegisterToolWindow(id: String): ToolWindow {
-    val window = TestToolWindow(project)
-    idToToolWindow[id] = window
-    return window
-  }
-
-  override fun getToolWindow(id: String?): ToolWindow? {
-    return idToToolWindow[id]
-  }
-}
-
-/** This window is used to test the change of availability. */
-class TestToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-  private var _isAvailable = false
-  private var _isVisible = false
-  private var _isFocused = false
-  private var _isActivated = false
-
-  override fun setAvailable(available: Boolean, runnable: Runnable?) {
-    _isAvailable = available
-  }
-
-  override fun setAvailable(value: Boolean) {
-    setAvailable(value, null)
-  }
-
-  override fun isAvailable() = _isAvailable
-
-  override fun isVisible() = _isVisible
-
-  override fun isActive(): Boolean {
-    return _isActivated
-  }
-
-  override fun show() {
-    show(null)
-  }
-
-  override fun activate(runnable: Runnable?, autoFocusContents: Boolean) {
-    _isActivated = true
-    runnable?.run()
-    _isFocused = autoFocusContents
-  }
-
-  override fun activate(runnable: Runnable?, autoFocusContents: Boolean, forced: Boolean) =
-    activate(runnable, autoFocusContents)
-
-  override fun show(runnable: Runnable?) {
-    _isVisible = true
-    runnable?.run()
-  }
-
-  override fun hide() {
-    hide(null)
-  }
-
-  override fun hide(runnable: Runnable?) {
-    _isVisible = false
-    runnable?.run()
-  }
-
-  fun isFocused(): Boolean {
-    return isVisible && _isFocused
-  }
-
-  override fun isDisposed(): Boolean {
-    return contentManager.isDisposed
+    service.setIssuePanelVisibility(true, IssuePanelService.TabCategory.CURRENT_FILE)
+    assertFalse(service.isIssuePanelVisible())
   }
 }
 

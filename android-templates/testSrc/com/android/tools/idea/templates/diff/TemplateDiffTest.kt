@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.templates.diff
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.templates.ProjectStateCustomizer
-import com.android.tools.idea.templates.TemplateStateCustomizer
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -35,14 +33,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import org.junit.runners.Parameterized.*
+import org.junit.runners.Parameterized.Parameters
 import kotlin.system.measureTimeMillis
 
 /**
@@ -96,6 +95,12 @@ class TemplateDiffTest(private val testMode: TestMode) {
 
   @Before
   fun setUp() {
+    // This is to enforce that new or changed dependencies are added to the BUILD file
+    assertNotNull(
+      "TemplateDiffTest golden file generator must be run from Bazel! See go/template-diff-tests",
+      System.getenv("TEST_UNDECLARED_OUTPUTS_DIR")
+    )
+
     assertFalse("Previous validation failed", validationFailed)
 
     println("Current test mode: $testMode")
@@ -208,7 +213,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     }
 
   private val withSpecificKotlin: ProjectStateCustomizer =
-    withKotlin(RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true))
+    withKotlin(RenderTemplateModel.getComposeKotlinVersion())
 
   @Suppress("SameParameterValue")
   private fun withApplicationId(applicationId: String): ProjectStateCustomizer =
@@ -469,6 +474,11 @@ class TemplateDiffTest(private val testMode: TestMode) {
   }
 
   @Test
+  fun testNewEmptyComposeForTvActivity() {
+    checkCreateTemplate("Empty Activity", withSpecificKotlin, formFactor = FormFactor.Tv)
+  }
+
+  @Test
   fun testNewNativeCppActivity() {
     checkCreateTemplate("Native C++")
   }
@@ -698,3 +708,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate("Media Service", withKotlin())
   }
 }
+
+typealias TemplateStateCustomizer = Map<String, String>
+
+typealias ProjectStateCustomizer = (ModuleTemplateDataBuilder, ProjectTemplateDataBuilder) -> Unit

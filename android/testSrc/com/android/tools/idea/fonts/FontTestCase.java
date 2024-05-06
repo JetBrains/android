@@ -19,11 +19,12 @@ import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.FontDownloader;
 import com.intellij.openapi.util.io.FileUtil;
-import java.io.File;
-import java.io.IOException;
 import java.util.function.Supplier;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.io.IOException;
 
 public abstract class FontTestCase extends AndroidTestCase {
   protected File myFontPath;

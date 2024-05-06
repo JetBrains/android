@@ -45,7 +45,7 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * Tests for {@link DependenciesModelImpl} and {@link FileDependencyModelImpl}.
+ * Tests for subclasses of {@link AbstractDependenciesModel} and {@link FileDependencyModelImpl}.
  */
 public class FileDependencyTest extends GradleFileModelTestCase {
   @Test

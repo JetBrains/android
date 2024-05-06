@@ -16,9 +16,14 @@
 package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
 
 interface ChangeEvent {
-  fun transition(state: AppInsightsState, tracker: AppInsightsTracker): StateTransition<Action>
+  fun transition(
+    state: AppInsightsState,
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
+  ): StateTransition<Action>
 }

@@ -1,0 +1,8 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message HeapReportConfig {
+  optional int64 min_used_memory_mb = 1;
+}

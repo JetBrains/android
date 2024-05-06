@@ -75,7 +75,7 @@ fun getLlvmSymbolizerPath(): String {
     throw IllegalStateException("Unknown operating system")
   }
 
-  val result = if (IdeInfo.getInstance().isAndroidStudio && StudioPathManager.isRunningFromSources()) {
+  val result = if (StudioPathManager.isRunningFromSources()) {
     StudioPathManager.resolvePathFromSourcesRoot("prebuilts/tools/$os/lldb/bin/$exe")
   } else {
     if (IdeInfo.getInstance().isAndroidStudio) {

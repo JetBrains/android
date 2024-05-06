@@ -37,8 +37,10 @@ import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.SupportLevel;
+import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
+import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
 import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.sessions.SessionAspect;
@@ -50,11 +52,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import javax.swing.SwingUtilities;
+import kotlin.Lazy;
+import kotlin.LazyKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import perfetto.protos.PerfettoConfig;
 
-public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
+public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements InterimStage {
   private static final String HEAP_DUMP_TOOLTIP = "View objects in your app that are using memory at a specific point in time";
   private static final String CAPTURE_HEAP_DUMP_TEXT = "Capture heap dump";
   private static final String RECORD_JAVA_TEXT = "Record Java / Kotlin allocations";
@@ -82,18 +86,69 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
   private final RecordingOptionsModel myRecordingOptionsModel;
 
+  @NotNull
+  private final Runnable myStopAction;
+
+  @VisibleForTesting
+  public Lazy<RecordingOption> lazyHeapDumpRecordingOption =
+    LazyKt.lazyOf(new RecordingOption(CAPTURE_HEAP_DUMP_TEXT, HEAP_DUMP_TOOLTIP, () -> {
+      requestHeapDump();
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
+    }));
+
+  @VisibleForTesting
+  public Lazy<RecordingOption> lazyNativeRecordingOption =
+    LazyKt.lazyOf(makeToggleOption(RECORD_NATIVE_TEXT, RECORD_NATIVE_DESC, this::toggleNativeAllocationTracking));
+
+  @VisibleForTesting
+  public Lazy<RecordingOption> lazyJavaKotlinAllocationsRecordingOption =
+    LazyKt.lazyOf(makeToggleOption(RECORD_JAVA_TEXT, RECORD_JAVA_TOOLTIP,
+                                   isLiveAllocationTrackingSupported() ?
+                                   // post-O
+                                   () -> getStudioProfilers().setStage(
+                                     AllocationStage.makeLiveStage(
+                                       getStudioProfilers())) :
+                                   // legacy
+                                   () -> {
+                                     if (isTrackingAllocations()) {
+                                       getStudioProfilers().getIdeServices()
+                                         .getFeatureTracker()
+                                         .trackRecordAllocations();
+                                     }
+                                     trackAllocations(
+                                       !isTrackingAllocations());
+                                   }
+    ));
+
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers) {
-    this(profilers, new CaptureObjectLoader());
+    this(profilers, new CaptureObjectLoader(), () -> {});
   }
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
+    this(profilers, loader, () -> {});
+  }
+
+  /**
+   * This constructor is utilized to create instances of MainMemoryProfilerStage that allow the owning class to supply a custom runnable
+   * called stopAction. This enables the bound view to invoke this custom behavior on stoppage of whatever flow this stage is facilitating
+   * (e.g. if this stage is facilitating a recording, this can serve as the handler for the "Stop Recording" button).
+   */
+  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull Runnable stopAction) {
+    this(profilers, new CaptureObjectLoader(), stopAction);
+  }
+
+  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers,
+                                 @NotNull CaptureObjectLoader loader,
+                                 @NotNull Runnable stopAction) {
     super(profilers, loader);
     myIsMemoryCaptureOnly =
       profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
 
     // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
     myHeapDumpDurations = makeModel(CaptureDataSeries::ofHeapDumpSamples);
-    myAllocationDurations = makeModel(CaptureDataSeries::ofAllocationInfos);
+    myAllocationDurations = isLiveAllocationTrackingSupported()
+                            ? makeModel(CaptureDataSeries::ofAllocationInfos)
+                            : makeModel(CaptureDataSeries::ofLegacyAllocationInfos);
     myNativeAllocationDurations = makeModel(CaptureDataSeries::ofNativeAllocationSamples);
 
     myHeapDumpDurations.setRenderSeriesPredicate((data, series) ->
@@ -109,6 +164,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
       .onChange(SessionAspect.SELECTED_SESSION, this::stopRecordingOnSessionStop);
 
     myRecordingOptionsModel = new RecordingOptionsModel();
+    myStopAction = stopAction;
   }
 
   public RecordingOptionsModel getRecordingOptionsModel() {
@@ -137,12 +193,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
         myRecordingOptionsModel.setOptionNotReady(option, feature.getTitle() + " is not supported for profileable processes");
       }
     };
-    adder.accept(SupportLevel.Feature.MEMORY_HEAP_DUMP, makeHeapDumpOption());
+    adder.accept(SupportLevel.Feature.MEMORY_HEAP_DUMP, lazyHeapDumpRecordingOption.getValue());
     if (isNativeAllocationSamplingEnabled()) {
-      adder.accept(SupportLevel.Feature.MEMORY_NATIVE_RECORDING, makeNativeRecordingOption());
+      adder.accept(SupportLevel.Feature.MEMORY_NATIVE_RECORDING, lazyNativeRecordingOption.getValue());
     }
-    RecordingOption javaRecordingOption = makeJavaRecodingOption();
-    adder.accept(SupportLevel.Feature.MEMORY_JVM_RECORDING, javaRecordingOption);
+    adder.accept(SupportLevel.Feature.MEMORY_JVM_RECORDING, lazyJavaKotlinAllocationsRecordingOption.getValue());
 
     // Update statuses after recording options model has been initialized
     updateAllocationTrackingStatus();
@@ -195,6 +250,27 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     super.setPendingCaptureStartTime(pendingCaptureStartTime);
   }
 
+  public void startHeapDumpCapture() {
+    startMemoryRecording(lazyHeapDumpRecordingOption.getValue());
+  }
+
+  public void startNativeAllocationCapture() {
+    startMemoryRecording(lazyNativeRecordingOption.getValue());
+  }
+
+  public void startJavaKotlinAllocationCapture() {
+    startMemoryRecording(lazyJavaKotlinAllocationsRecordingOption.getValue());
+  }
+
+  private void startMemoryRecording(RecordingOption recordingOption) {
+    getRecordingOptionsModel().selectBuiltInOption(recordingOption);
+    getRecordingOptionsModel().start();
+  }
+
+  public void stopMemoryRecording() {
+    getRecordingOptionsModel().stop();
+  }
+
   private void startNativeAllocationTracking() {
     IdeProfilerServices ide = getStudioProfilers().getIdeServices();
     ide.getFeatureTracker().trackRecordAllocations();
@@ -206,8 +282,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
         TransportFileManager.getShortAbiName(getStudioProfilers().getDevice().getCpuAbi()))
       .setTempPath(traceFilePath)
       .setAppName(process.getName())
-      .setPerfettoOptions(PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(process.getName(),
-                                                                                    ide.getNativeMemorySamplingRateForCurrentConfig()))
+      .setPerfettoOptions(
+        PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(process.getName(), ide.getNativeAllocationsMemorySamplingRate()))
       .build();
 
     Commands.Command dumpCommand = Commands.Command.newBuilder()
@@ -257,6 +333,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
+      .setSessionId(getSessionData().getSessionId())
       .setType(Commands.Command.CommandType.STOP_TRACE)
       .setStopTrace(Trace.StopTrace.newBuilder()
                       .setProfilerType(Trace.ProfilerType.MEMORY)
@@ -287,6 +364,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
       }, getStudioProfilers().getIdeServices().getPoolExecutor());
   }
 
+  @VisibleForTesting
   public void toggleNativeAllocationTracking() {
     if (!myNativeAllocationTracking) {
       assert getStudioProfilers().getProcess() != null;
@@ -387,6 +465,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     Commands.Command dumpCommand = Commands.Command.newBuilder()
       .setStreamId(getSessionData().getStreamId())
       .setPid(getSessionData().getPid())
+      .setSessionId(getSessionData().getSessionId())
       .setType(Commands.Command.CommandType.HEAP_DUMP)
       .build();
     CompletableFuture.runAsync(() -> {
@@ -435,7 +514,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
    * @return the actual status, which may be different from the input
    */
   public void trackAllocations(boolean enable) {
-    MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, status -> {
+    MemoryProfiler.trackAllocations(getStudioProfilers(), getSessionData(), enable, true, status -> {
       switch (status.getStatus()) {
         case SUCCESS:
           setTrackingAllocations(enable);
@@ -492,6 +571,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     return myNativeAllocationDurations;
   }
 
+  @Override
+  @NotNull
+  public Runnable getStopAction() {
+    return myStopAction;
+  }
+
   @VisibleForTesting
   public void selectCaptureDuration(@Nullable CaptureDurationData<? extends CaptureObject> durationData,
                                     @Nullable Executor joiner) {
@@ -503,7 +588,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     }
     else if (durationData != null &&
              (HeapDumpCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
-              NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()))) {
+              NativeAllocationSampleCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()) ||
+              LegacyAllocationCaptureObject.class.isAssignableFrom(durationData.getCaptureObjectType()))) {
       profilers.setStage(new MemoryCaptureStage(profilers, getLoader(), durationData, joiner));
     }
     else {
@@ -539,32 +625,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     if (lastStartStatus.getStatus() == Trace.TraceStartStatus.Status.SUCCESS) {
       nativeAllocationTrackingStart(lastStartStatus);
     }
-  }
-
-  private RecordingOption makeHeapDumpOption() {
-    return new RecordingOption(CAPTURE_HEAP_DUMP_TEXT, HEAP_DUMP_TOOLTIP, () -> {
-      requestHeapDump();
-      getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
-    });
-  }
-
-  private RecordingOption makeNativeRecordingOption() {
-    return makeToggleOption(RECORD_NATIVE_TEXT, RECORD_NATIVE_DESC, this::toggleNativeAllocationTracking);
-  }
-
-  private RecordingOption makeJavaRecodingOption() {
-    Runnable toggle =
-      isLiveAllocationTrackingSupported() ?
-      // post-O
-      () -> getStudioProfilers().setStage(AllocationStage.makeLiveStage(getStudioProfilers())) :
-      // legacy
-      () -> {
-        if (isTrackingAllocations()) {
-          getStudioProfilers().getIdeServices().getFeatureTracker().trackRecordAllocations();
-        }
-        trackAllocations(!isTrackingAllocations());
-      };
-    return makeToggleOption(RECORD_JAVA_TEXT, RECORD_JAVA_TOOLTIP, toggle);
   }
 
   private static RecordingOption makeToggleOption(String title, String desc, Runnable toggle) {

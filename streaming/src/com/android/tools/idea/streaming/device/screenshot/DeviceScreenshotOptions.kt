@@ -183,7 +183,7 @@ internal class DeviceScreenshotOptions(
   private val Device.skinFolder: Path?
     get() {
       var skinFolder = defaultHardware.skinFile?.toPath() ?: return null
-      if (skinFolder.toString() == SkinUtils.NO_SKIN) {
+      if (skinFolder == SkinUtils.noSkin()) {
         return null
       }
       if (!skinFolder.isAbsolute) {

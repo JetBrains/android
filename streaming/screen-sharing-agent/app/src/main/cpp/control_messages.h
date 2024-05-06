@@ -21,8 +21,10 @@
 #include <map>
 #include <memory>
 #include <vector>
+
 #include <android/input.h>
 
+#include "accessors/display_info.h"
 #include "base128_input_stream.h"
 #include "base128_output_stream.h"
 #include "common.h"
@@ -48,6 +50,27 @@ protected:
 
   int32_t type_;
 };
+
+// Common base class of all request and response control messages.
+class CorrelatedMessage : public ControlMessage {
+public:
+  int32_t request_id() const { return request_id_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+protected:
+  CorrelatedMessage(int32_t type, int32_t request_id)
+      : ControlMessage(type),
+        request_id_(request_id) {
+  }
+
+private:
+  int32_t request_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(CorrelatedMessage);
+};
+
+// Messages received from the host.
 
 // Represents an Android MotionEvent.
 class MotionEventMessage : ControlMessage {
@@ -200,13 +223,15 @@ private:
 // Sets maximum display streaming resolution.
 class SetMaxVideoResolutionMessage : ControlMessage {
 public:
-  SetMaxVideoResolutionMessage(Size size)
+  SetMaxVideoResolutionMessage(int32_t display_id, Size max_video_size)
       : ControlMessage(TYPE),
-        size_(size) {
+        display_id_(display_id),
+        max_video_size_(max_video_size) {
   }
   virtual ~SetMaxVideoResolutionMessage() {};
 
-  const Size& size() const { return size_; }
+  int32_t display_id() const { return display_id_; }
+  const Size& max_video_size() const { return max_video_size_; }
 
   static constexpr int TYPE = 5;
 
@@ -215,7 +240,8 @@ private:
 
   static SetMaxVideoResolutionMessage* Deserialize(Base128InputStream& stream);
 
-  Size size_;
+  int32_t display_id_;
+  Size max_video_size_;
 
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
 };
@@ -223,10 +249,15 @@ private:
 // Starts video stream if it was stopped, otherwise has no effect.
 class StartVideoStreamMessage : ControlMessage {
 public:
-  StartVideoStreamMessage()
-      : ControlMessage(TYPE) {
+  StartVideoStreamMessage(int32_t display_id, Size max_video_size)
+      : ControlMessage(TYPE),
+        display_id_(display_id),
+        max_video_size_(max_video_size) {
   }
   virtual ~StartVideoStreamMessage() {};
+
+  int32_t display_id() const { return display_id_; }
+  const Size& max_video_size() const { return max_video_size_; }
 
   static constexpr int TYPE = 6;
 
@@ -235,16 +266,22 @@ private:
 
   static StartVideoStreamMessage* Deserialize(Base128InputStream& stream);
 
+  int32_t display_id_;
+  Size max_video_size_;
+
   DISALLOW_COPY_AND_ASSIGN(StartVideoStreamMessage);
 };
 
 // Stops video stream if it was started, otherwise has no effect.
 class StopVideoStreamMessage : ControlMessage {
 public:
-  StopVideoStreamMessage()
-      : ControlMessage(TYPE) {
+  StopVideoStreamMessage(int32_t display_id)
+      : ControlMessage(TYPE),
+        display_id_(display_id) {
   }
   virtual ~StopVideoStreamMessage() {};
+
+  int32_t display_id() const { return display_id_; }
 
   static constexpr int TYPE = 7;
 
@@ -252,6 +289,8 @@ private:
   friend class ControlMessage;
 
   static StopVideoStreamMessage* Deserialize(Base128InputStream& stream);
+
+  int32_t display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(StopVideoStreamMessage);
 };
@@ -327,6 +366,76 @@ private:
   DISALLOW_COPY_AND_ASSIGN(RequestDeviceStateMessage);
 };
 
+// Asks the agent to send back configurations of all displays.
+class DisplayConfigurationRequest : public CorrelatedMessage {
+public:
+  DisplayConfigurationRequest(int32_t request_id)
+      : CorrelatedMessage(TYPE, request_id) {
+  }
+  virtual ~DisplayConfigurationRequest() {};
+
+  static constexpr int TYPE = 11;
+
+private:
+  friend class ControlMessage;
+
+  static DisplayConfigurationRequest* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayConfigurationRequest);
+};
+
+// Messages sent to the host.
+
+// Error response to a request message.
+class ErrorResponse : public CorrelatedMessage {
+public:
+  ErrorResponse(int32_t request_id, const std::string& error_message)
+      : CorrelatedMessage(TYPE, request_id),
+        error_message_(error_message) {
+  }
+  ErrorResponse(int32_t request_id, std::string&& error_message)
+      : CorrelatedMessage(TYPE, request_id),
+        error_message_(error_message) {
+  }
+  virtual ~ErrorResponse() {};
+
+  const std::string& error_message() const { return error_message_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 12;
+
+private:
+  friend class ControlMessage;
+
+  std::string error_message_;
+
+  DISALLOW_COPY_AND_ASSIGN(ErrorResponse);
+};
+
+// Parameters of all device displays. Sent in response to DisplayConfigurationRequest.
+class DisplayConfigurationResponse : public CorrelatedMessage {
+public:
+  DisplayConfigurationResponse(int32_t request_id, std::vector<std::pair<int32_t, DisplayInfo>>&& displays)
+      : CorrelatedMessage(TYPE, request_id),
+        displays_(displays) {
+  }
+  virtual ~DisplayConfigurationResponse() {}
+
+  const std::vector<std::pair<int32_t, DisplayInfo>>& displays() const { return displays_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 13;
+
+private:
+  friend class ControlMessage;
+
+  std::vector<std::pair<int32_t, DisplayInfo>> displays_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayConfigurationResponse);
+};
+
 // Notification of clipboard content change.
 class ClipboardChangedNotification : ControlMessage {
 public:
@@ -344,7 +453,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 11;
+  static constexpr int TYPE = 14;
 
 private:
   friend class ControlMessage;
@@ -371,7 +480,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 12;
+  static constexpr int TYPE = 15;
 
 private:
   friend class ControlMessage;
@@ -382,7 +491,7 @@ private:
 };
 
 // Notification of a device state change. One such notification is always sent when the screen
-// sharing agent starts on a foldable device,
+// sharing agent starts on a foldable device.
 class DeviceStateNotification : ControlMessage {
 public:
   DeviceStateNotification(int32_t device_state)
@@ -395,7 +504,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 13;
+  static constexpr int TYPE = 16;
 
 private:
   friend class ControlMessage;
@@ -403,6 +512,123 @@ private:
   int32_t device_state_;
 
   DISALLOW_COPY_AND_ASSIGN(DeviceStateNotification);
+};
+
+// Notification of an added display.
+class DisplayAddedNotification : ControlMessage {
+public:
+  DisplayAddedNotification(int32_t display_id)
+      : ControlMessage(TYPE),
+        display_id_(display_id) {
+  }
+  virtual ~DisplayAddedNotification() = default;
+
+  int32_t display_id() const { return display_id_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 17;
+
+private:
+  friend class ControlMessage;
+
+  int32_t display_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayAddedNotification);
+};
+
+// Notification of a removed display.
+class DisplayRemovedNotification : ControlMessage {
+public:
+  DisplayRemovedNotification(int32_t display_id)
+      : ControlMessage(TYPE),
+        display_id_(display_id) {
+  }
+  virtual ~DisplayRemovedNotification() = default;
+
+  int32_t display_id() const { return display_id_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 18;
+
+private:
+  friend class ControlMessage;
+
+  int32_t display_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayRemovedNotification);
+};
+
+// Queries the current UI settings from the device.
+class UiSettingsRequest : public CorrelatedMessage {
+public:
+  UiSettingsRequest(int32_t request_id)
+      : CorrelatedMessage(TYPE, request_id) {
+  }
+  virtual ~UiSettingsRequest() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 19;
+
+private:
+  friend class ControlMessage;
+
+  static UiSettingsRequest* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(UiSettingsRequest);
+};
+
+// The current UI settings read from the device.
+class UiSettingsResponse : public CorrelatedMessage {
+public:
+  UiSettingsResponse(int32_t request_id)
+      : CorrelatedMessage(TYPE, request_id) {
+  }
+  virtual ~UiSettingsResponse() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  void set_dark_mode(bool dark_mode) {
+    dark_mode_ = dark_mode;
+  }
+
+  static constexpr int TYPE = 20;
+
+private:
+  friend class ControlMessage;
+
+  bool dark_mode_;
+
+  DISALLOW_COPY_AND_ASSIGN(UiSettingsResponse);
+};
+
+// Changes the DarkMode setting on the device.
+class SetDarkModeMessage : ControlMessage {
+public:
+  SetDarkModeMessage(bool dark_mode)
+      : ControlMessage(TYPE),
+        dark_mode_(dark_mode) {
+  }
+  virtual ~SetDarkModeMessage() = default;
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  bool dark_mode() const {
+    return dark_mode_;
+  }
+
+  static constexpr int TYPE = 21;
+
+private:
+  friend class ControlMessage;
+
+  static SetDarkModeMessage* Deserialize(Base128InputStream& stream);
+
+  bool dark_mode_;
+
+  DISALLOW_COPY_AND_ASSIGN(SetDarkModeMessage);
 };
 
 }  // namespace screensharing

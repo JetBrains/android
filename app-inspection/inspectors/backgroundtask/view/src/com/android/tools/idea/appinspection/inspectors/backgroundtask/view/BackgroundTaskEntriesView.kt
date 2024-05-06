@@ -39,10 +39,6 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
@@ -51,6 +47,10 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 private const val MINIMUM_ENTRIES_VIEW_WIDTH = 400
@@ -74,6 +74,8 @@ class BackgroundTaskEntriesView(
       "",
       AllIcons.Actions.Suspend
     ) {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = selectionModel.selectedWork?.state?.isFinished() == false
@@ -99,7 +101,9 @@ class BackgroundTaskEntriesView(
       null
     ) {
     private var selectedTag: String? = null
-    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun update(event: AnActionEvent) {
       if (selectedTag != tableView.treeModel.filterTag) {
         selectedTag = tableView.treeModel.filterTag
@@ -126,7 +130,9 @@ class BackgroundTaskEntriesView(
   /** ToggleAction that filters works with a specific [tag]. */
   private inner class FilterWithTagToggleAction(private val tag: String?) :
     ToggleAction(tag ?: "All tags") {
-    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun isSelected(event: AnActionEvent): Boolean {
       return tag == tableView.treeModel.filterTag
     }
@@ -138,15 +144,19 @@ class BackgroundTaskEntriesView(
 
   private inner class TableViewAction :
     AnAction(BackgroundTaskInspectorBundle.message("action.show.list"), "", AllIcons.Graph.Grid) {
-    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun actionPerformed(e: AnActionEvent) {
       if (contentMode == Mode.GRAPH) {
         contentMode = Mode.TABLE
         tableView.component.requestFocusInWindow()
+        client.tracker.trackTableModeSelected()
       }
     }
 
     override fun update(e: AnActionEvent) {
+      super.update(e)
       e.presentation.isEnabled = contentMode == Mode.GRAPH
     }
   }
@@ -158,15 +168,22 @@ class BackgroundTaskEntriesView(
       AllIcons.Graph.Layout
     ) {
 
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
     override fun actionPerformed(e: AnActionEvent) {
       val selectedWork = selectionModel.selectedEntry
       if (contentMode == Mode.TABLE && selectedWork != null) {
         contentMode = Mode.GRAPH
         graphView.requestFocusInWindow()
+        client.tracker.trackGraphModeSelected(
+          AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+          client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo()
+        )
       }
     }
 
     override fun update(e: AnActionEvent) {
+      super.update(e)
       e.presentation.isEnabled =
         contentMode == Mode.TABLE && selectionModel.selectedEntry is WorkEntry
     }
@@ -184,13 +201,14 @@ class BackgroundTaskEntriesView(
   private val cardLayout: CardLayout
   private val contentPanel: JPanel
 
-  @VisibleForTesting val tableView: BackgroundTaskTreeTableView =
-    BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
+  @VisibleForTesting val tableView: BackgroundTaskTreeTableView
 
-  @VisibleForTesting val graphView: WorkDependencyGraphView =
-    WorkDependencyGraphView(tab, client, selectionModel, scope, uiDispatcher)
+  @VisibleForTesting val graphView: WorkDependencyGraphView
 
   init {
+    tableView = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
+    graphView = WorkDependencyGraphView(tab, client, selectionModel, scope, uiDispatcher)
+
     layout = TabularLayout("*", "Fit,*")
     minimumSize = Dimension(MINIMUM_ENTRIES_VIEW_WIDTH, minimumSize.height)
     add(buildActionBar(), TabularLayout.Constraint(0, 0))
@@ -217,17 +235,6 @@ class BackgroundTaskEntriesView(
     addContentModeChangedListener {
       ActivityTracker.getInstance().inc()
       cardLayout.show(contentPanel, contentMode.name)
-      when (contentMode) {
-        Mode.TABLE -> {
-          client.tracker.trackTableModeSelected()
-        }
-        Mode.GRAPH -> {
-          client.tracker.trackGraphModeSelected(
-            AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-            client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo()
-          )
-        }
-      }
       contentPanel.revalidate()
     }
   }
@@ -247,7 +254,7 @@ class BackgroundTaskEntriesView(
       }
     val leftToolbar =
       ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
-    leftToolbar.setTargetComponent(this)
+    leftToolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(leftToolbar)
     toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
 
@@ -258,14 +265,14 @@ class BackgroundTaskEntriesView(
       }
     val rightToolbar =
       ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
-    rightToolbar.setTargetComponent(this)
+    rightToolbar.targetComponent = this
     ActionToolbarUtil.makeToolbarNavigable(rightToolbar)
     toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)
 
     return toolbarPanel
   }
 
-  /** @return a list of actions from the drop down menu that filter works with a tag. */
+  /** @return a list of actions from the drop-down menu that filter works with a tag. */
   @TestOnly
   fun getFilterActionList(): List<ToggleAction> {
     val toolbar =

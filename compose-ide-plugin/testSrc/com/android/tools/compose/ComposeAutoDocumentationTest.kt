@@ -34,8 +34,7 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class ComposeAutoDocumentationTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.onDisk().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.onDisk().onEdt()
 
   private val fixture by lazy { projectRule.fixture as JavaCodeInsightTestFixture }
 
@@ -50,10 +49,11 @@ class ComposeAutoDocumentationTest {
   fun documentationForComposables() {
     (fixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     fixture.stubComposableAnnotation()
-    val file = fixture.addFileToProject(
-      "/src/the/hold/steady/Albums.kt",
-      // language=kotlin
-      """
+    val file =
+      fixture.addFileToProject(
+        "/src/the/hold/steady/Albums.kt",
+        // language=kotlin
+        """
       package the.hold.steady
 
       import androidx.compose.runtime.Composable
@@ -68,8 +68,9 @@ class ComposeAutoDocumentationTest {
       fun ThePriceOfProgress(optional: Int = 42, children: @Composable() () -> Unit) {}
 
       fun OpenDoorPolicy() {}
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     fixture.openFileInEditor(file.virtualFile)
 
@@ -79,7 +80,8 @@ class ComposeAutoDocumentationTest {
       assertThat(fixture.findParentElement<KtNamedFunction>(it).shouldShowDocumentation()).isTrue()
     }
 
-    assertThat(fixture.findParentElement<KtNamedFunction>("Open|Door").shouldShowDocumentation()).isFalse()
+    assertThat(fixture.findParentElement<KtNamedFunction>("Open|Door").shouldShowDocumentation())
+      .isFalse()
   }
 
   @RunsInEdt
@@ -91,19 +93,22 @@ class ComposeAutoDocumentationTest {
       """
       package androidx.compose.ui
       interface Modifier
-      """.trimIndent()
-    )
-    val file = fixture.addFileToProject(
-      "/src/metric/Albums.kt",
-      // language=kotlin
       """
+        .trimIndent()
+    )
+    val file =
+      fixture.addFileToProject(
+        "/src/metric/Albums.kt",
+        // language=kotlin
+        """
       package metric
       // For whatever reason, these don't come back qualified in the test, so fully qualify here.
       fun androidx.compose.ui.Modifier.artOfDoubt(): Modifier = this
       fun androidx.compose.ui.Modifier.formentera(): Modifier = this
       fun String.growUpAndBlowAway(): Int = 8675309
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
     fixture.openFileInEditor(file.virtualFile)
 
     val windows = listOf("artOf|Doubt", "formen|tera")
@@ -112,16 +117,18 @@ class ComposeAutoDocumentationTest {
       assertThat(fixture.findParentElement<KtNamedFunction>(it).shouldShowDocumentation()).isTrue()
     }
 
-    assertThat(fixture.findParentElement<KtNamedFunction>("Blow|Away").shouldShowDocumentation()).isFalse()
+    assertThat(fixture.findParentElement<KtNamedFunction>("Blow|Away").shouldShowDocumentation())
+      .isFalse()
   }
 
   @RunsInEdt
   @Test
   fun documentationForModifierBlahBlah() {
-    val file = fixture.addFileToProject(
-    "/src/androidx/compose/ui/Modifier.kt",
-    // language=kotlin
-    """
+    val file =
+      fixture.addFileToProject(
+        "/src/androidx/compose/ui/Modifier.kt",
+        // language=kotlin
+        """
       package androidx.compose.ui
       interface Modifier {
         fun fantasies() {}
@@ -130,8 +137,9 @@ class ComposeAutoDocumentationTest {
           fun pagansInVegas() = 42L
         }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     fixture.openFileInEditor(file.virtualFile)
 

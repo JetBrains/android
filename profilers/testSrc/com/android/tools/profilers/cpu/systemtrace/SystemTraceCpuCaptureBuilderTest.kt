@@ -17,13 +17,15 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.google.common.annotations.VisibleForTesting
 
 class SystemTraceCpuCaptureBuilderTest {
 

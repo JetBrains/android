@@ -23,12 +23,13 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 
-/**
- * An action that selects a preset style of Logcat format.
- */
-sealed class LogcatFormatPresetAction(private val style: FormattingOptions.Style, private val logcatPresenter: LogcatPresenter)
-  : SelectableAction(
-  LogcatBundle.message("logcat.format.preset.action.text", style.displayName)), DumbAware {
+/** An action that selects a preset style of Logcat format. */
+sealed class LogcatFormatPresetAction(
+  private val style: FormattingOptions.Style,
+  private val logcatPresenter: LogcatPresenter
+) :
+  SelectableAction(LogcatBundle.message("logcat.format.preset.action.text", style.displayName)),
+  DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
     if (!isSelected()) {
       logcatPresenter.formattingOptions = style.formattingOptions
@@ -37,6 +38,9 @@ sealed class LogcatFormatPresetAction(private val style: FormattingOptions.Style
 
   override fun isSelected(): Boolean = logcatPresenter.formattingOptions.getStyle() == style
 
-  internal class Standard(logcatPresenter: LogcatPresenter) : LogcatFormatPresetAction(STANDARD, logcatPresenter)
-  internal class Compact(logcatPresenter: LogcatPresenter) : LogcatFormatPresetAction(COMPACT, logcatPresenter)
+  internal class Standard(logcatPresenter: LogcatPresenter) :
+    LogcatFormatPresetAction(STANDARD, logcatPresenter)
+
+  internal class Compact(logcatPresenter: LogcatPresenter) :
+    LogcatFormatPresetAction(COMPACT, logcatPresenter)
 }

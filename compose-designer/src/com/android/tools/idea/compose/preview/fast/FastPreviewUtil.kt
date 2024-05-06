@@ -116,6 +116,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
       private var compilationDurationMs: Long = -1
       private var compiledFiles: Int = -1
       private var compilationSuccess: Boolean? = null
+
       override fun compilationSucceeded(
         compilationDurationMs: Long,
         compiledFiles: Int,

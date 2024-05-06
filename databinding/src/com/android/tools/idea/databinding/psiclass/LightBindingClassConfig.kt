@@ -28,17 +28,13 @@ import com.android.tools.idea.databinding.util.getViewBindingClassName
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
-/**
- * All values needed to generate a specific [LightBindingClass]
- */
+/** All values needed to generate a specific [LightBindingClass] */
 interface LightBindingClassConfig {
   val facet: AndroidFacet
 
   val targetLayout: BindingLayout
 
-  /**
-   * The fully-qualified name of the class which this class inherits from.
-   */
+  /** The fully-qualified name of the class which this class inherits from. */
   val superName: String
 
   /**
@@ -53,9 +49,7 @@ interface LightBindingClassConfig {
    */
   val qualifiedName: String
 
-  /**
-   * The (unqualified) view type that this binding's `getRoot` method should return.
-   */
+  /** The (unqualified) view type that this binding's `getRoot` method should return. */
   val rootType: String
 
   /**
@@ -68,23 +62,23 @@ interface LightBindingClassConfig {
   val variableTags: List<Pair<VariableData, XmlTag>>
 
   /**
-   * Returns a list of all views with IDs that fields should be created for,
-   * e.g. `<Button android:id="@+id/example_button">` -> "exampleButton",
-   * scoped by the binding layout they were defined in.
+   * Returns a list of all views with IDs that fields should be created for, e.g. `<Button
+   * android:id="@+id/example_button">` -> "exampleButton", scoped by the binding layout they were
+   * defined in.
    *
    * Note: These fields should only get generated for the base "Binding" class.
    */
   val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
 
   /**
-   * Returns `true` if the generated light binding class should have a full method API, e.g.
-   * getters for its `<variable>` fields and other static methods.
+   * Returns `true` if the generated light binding class should have a full method API, e.g. getters
+   * for its `<variable>` fields and other static methods.
    */
   fun shouldGenerateGettersAndStaticMethods(): Boolean
 
   /**
-   * Returns `true` if we generate setters for a base class that should delegate to
-   * child implementation classes.
+   * Returns `true` if we generate setters for a base class that should delegate to child
+   * implementation classes.
    */
   fun settersShouldBeAbstract(): Boolean
 }
@@ -109,10 +103,11 @@ private fun BindingLayoutGroup.getAggregatedVariables(): List<Pair<VariableData,
 /**
  * Used to generate a "Binding" class.
  *
- * A "Binding" class should always be created. "BindingImpl"s should only be created if there
- * are multiple layout configurations.
+ * A "Binding" class should always be created. "BindingImpl"s should only be created if there are
+ * multiple layout configurations.
  */
-class BindingClassConfig(override val facet: AndroidFacet, private val group: BindingLayoutGroup) : LightBindingClassConfig {
+class BindingClassConfig(override val facet: AndroidFacet, private val group: BindingLayoutGroup) :
+  LightBindingClassConfig {
   override val targetLayout: BindingLayout
     get() = group.mainLayout
 
@@ -121,8 +116,7 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
       // Main layout generates a binding class that inherits from the ViewDataBinding classes.
       return if (targetLayout.data.layoutType === DATA_BINDING_LAYOUT) {
         LayoutBindingModuleCache.getInstance(facet).dataBindingMode.viewDataBinding
-      }
-      else {
+      } else {
         facet.module.project.getViewBindingClassName()
       }
     }
@@ -131,16 +125,15 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
   override val qualifiedName = group.mainLayout.qualifiedClassName
 
   /**
-   * Returns the specialized root type if set consistently across all layout configurations,
-   * e.g. "LinearLayout", or "View" otherwise.
+   * Returns the specialized root type if set consistently across all layout configurations, e.g.
+   * "LinearLayout", or "View" otherwise.
    */
   override val rootType: String
     get() {
       val mainTag = group.mainLayout.data.rootTag
       if (group.layouts.all { it.data.rootTag == mainTag }) {
         return mainTag
-      }
-      else {
+      } else {
         return SdkConstants.VIEW
       }
     }
@@ -172,9 +165,11 @@ class BindingClassConfig(override val facet: AndroidFacet, private val group: Bi
  * This config should only be used when there are alternate layouts defined in addition to the main
  * one; otherwise, just use [BindingClassConfig].
  */
-class BindingImplClassConfig(override val facet: AndroidFacet,
-                             private val group: BindingLayoutGroup,
-                             private val layoutIndex: Int) : LightBindingClassConfig {
+class BindingImplClassConfig(
+  override val facet: AndroidFacet,
+  private val group: BindingLayoutGroup,
+  private val layoutIndex: Int
+) : LightBindingClassConfig {
   override val targetLayout: BindingLayout
     get() = group.layouts[layoutIndex]
 
@@ -197,5 +192,6 @@ class BindingImplClassConfig(override val facet: AndroidFacet,
     get() = mapOf() // Only provided by base "Binding" class.
 
   override fun shouldGenerateGettersAndStaticMethods() = false
+
   override fun settersShouldBeAbstract() = false
 }

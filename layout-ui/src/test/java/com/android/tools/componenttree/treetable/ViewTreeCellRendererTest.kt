@@ -29,7 +29,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.runInEdtAndGet
-import com.intellij.ui.NewUiValue
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
@@ -46,6 +46,7 @@ import javax.swing.SwingUtilities
 import javax.swing.tree.TreeSelectionModel
 
 private const val TEST_ROW = 1
+private val LONG_TEXT_VALUE = "1234567890".repeat(1000)
 
 class ViewTreeCellRendererTest {
 
@@ -385,13 +386,37 @@ class ViewTreeCellRendererTest {
   }
 
   @Test
+  fun testLongTextValue() {
+    val item = Item(FQCN_TEXT_VIEW, "@+id/text", LONG_TEXT_VALUE, Palette.TEXT_VIEW)
+    item.enabled = false
+    val component =
+      renderAndCheckFragments(
+        item,
+        Fragment("text", strikeout),
+        Fragment(" $LONG_TEXT_VALUE", greyStrikeout)
+      )
+    assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
+    assertThat(component.toolTipText)
+      .isEqualTo(
+        """
+      <html>
+        TextView<br/>
+        text: ${LONG_TEXT_VALUE.substring(0, 1000)}...
+      </html>"""
+          .trimIndent()
+      )
+    assertThat(ViewTreeCellRenderer.computeSearchString(type, item))
+      .isEqualTo("text ${LONG_TEXT_VALUE.substring(0, 1000)}...")
+  }
+
+  @Test
   fun testIcon() {
     val normal = Palette.TEXT_VIEW
     val white = ColoredIconGenerator.generateWhiteIcon(Palette.TEXT_VIEW)
     val faint = ColoredIconGenerator.generateDeEmphasizedIcon(Palette.TEXT_VIEW)
     assertThat(hasNonWhiteColors(white)).isFalse()
     IconLoader.activate()
-    val selectedWithFocus = if (NewUiValue.isEnabled()) normal else white
+    val selectedWithFocus = if (ExperimentalUI.isNewUI()) normal else white
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(
         getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)

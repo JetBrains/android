@@ -81,7 +81,7 @@ fun RecipeExecutor.generateAndroidModule(
   }
   // TODO(qumeric): currently only works for a new project
   if (formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear)) {
-    addDependency("com.google.android.gms:play-services-wearable:+", "compile")
+    addDependency("com.google.android.gms:play-services-wearable:+", "implementation")
   }
 
   if (addBackupRules) {

@@ -54,19 +54,20 @@
            text="Extend Reservation"
            description="Extend device reservation"
            popup="true">
+      <separator text="Current Session" />
+      <action id="android.device.reservation.extend.status"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Status" />
+      <separator text="Extend Session" />
       <action id="android.device.reservation.extend.half.hour"
-              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$HalfHour"
-              text="Extend Reservation by 30 Minutes"
-              description="Extend device reservation by 30 minutes"/>
-      <action id="android.device.reservation.extend.one.hour"
-              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$OneHour"
-              text="Extend Reservation by 1 Hour"
-              description="Extend device reservation by 1 hour"/>
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$Extend30MinOrLessAction" />
+      <action id="android.device.reservation.extend.max"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$ExtendMaxDurationAction"
+              description="Reserve device for the maximum 180 minutes duration" />
     </group>
 
     <action id="android.device.reservation.end"
             class="com.android.tools.idea.deviceprovisioner.EndReservationAction"
-            text="Force Check-in"
+            text="Return and Erase Device"
             description="End reservation and return device"/>
   </actions>
 </idea-plugin>

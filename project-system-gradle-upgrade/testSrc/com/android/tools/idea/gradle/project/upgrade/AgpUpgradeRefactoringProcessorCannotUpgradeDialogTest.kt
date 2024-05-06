@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.plugin.AgpVersions
+import com.intellij.openapi.projectRoots.impl.JavaAwareProjectJdkTableImpl
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
 import org.junit.Test
@@ -25,6 +26,7 @@ import javax.swing.JEditorPane
 class AgpUpgradeRefactoringProcessorCannotUpgradeDialogTest : HeavyPlatformTestCase() {
 
   override fun tearDown() {
+    JavaAwareProjectJdkTableImpl.removeInternalJdkInTests()
     super.tearDown()
     checkNoUndisposedDialogs()
   }

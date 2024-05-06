@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exa
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
@@ -30,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
@@ -39,7 +41,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class SourceSetDslElement extends GradleDslBlockElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<SourceSetDslElement> SOURCE_SET =
-    new PropertiesElementDescription<>(null, SourceSetDslElement.class, SourceSetDslElement::new);
+    new PropertiesElementDescription<>(null,
+                                       SourceSetDslElement.class,
+                                       SourceSetDslElement::new,
+                                       SourceSetDslElementSchema::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aidl", SourceDirectoryDslElement.AIDL},
@@ -65,6 +70,10 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
     {"root", exactly(1), ROOT, SET}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"root", property, ROOT, VAR},
+  }).collect(toModelMap());
+
   @Override
   @NotNull
   protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
@@ -73,7 +82,7 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public SourceSetDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
@@ -92,5 +101,25 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
   @Override
   public void setMethodName(@Nullable String value) {
     methodName = value;
+  }
+
+  public static final class SourceSetDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @NotNull
+    @Override
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
+    @NotNull
+    @Override
+    public String getAgpDocClass() {
+      return "com.android.build.api.dsl.AndroidSourceSet";
+    }
   }
 }

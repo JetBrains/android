@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.TABLE_ROW;
-
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
+import com.android.tools.idea.common.model.NlComponent;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.SdkConstants.TABLE_ROW;
 
 /**
  * Handler for the {@code <TableRow>} widget

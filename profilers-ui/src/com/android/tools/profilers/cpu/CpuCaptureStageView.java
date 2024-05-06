@@ -246,7 +246,11 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     if (getStage().getCapture().getRange().isEmpty()) {
       // If the capture range is empty, it means the capture doesn't contain any data.
       JPanel container = new JPanel(new BorderLayout());
-      JLabel label = new JLabel("This trace doesn't contain any data. Please record a new one and interact with the app to generate data.");
+      JLabel label = new JLabel(
+        "<html><div style='text-align: center;'>" +
+        "This trace was recorded successfully but it doesn't contain any CPU usage data.<br>" +
+        "Please interact with the app to generate data while recording a trace." +
+        "</div></html>");
       label.setFont(ProfilerFonts.H3_FONT);
       label.setHorizontalAlignment(SwingConstants.CENTER);
       label.setVerticalAlignment(SwingConstants.CENTER);
@@ -367,7 +371,18 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       @Override
       public void mouseWheelMoved(MouseWheelEvent e) {
         if (AdtUiUtils.isActionKeyDown(e)) {
-          if (e.getWheelRotation() > 0) {
+          if (e.isShiftDown()) {
+            // Horizontal scrolling. Ignore the event. On a trackpad, it's very easy to mix a slight
+            // horizontal scroll while scrolling vertically. If not filtered out, these extra events
+            // cause unexpected zoom in/out/in/out flakiness in the UI.
+            return;
+          }
+
+          int wheelRotation = e.getWheelRotation();
+          if (wheelRotation == 0) {
+            // Ignore wheelRotation == 0. For partial rotations, the getWheelRotation() API returns 0
+            // until the sum of fractional rotations reaches a full rotation.
+          } else if (wheelRotation > 0) {
             getStage().getTimeline().zoomOut();
             getProfilersView().getStudioProfilers().getIdeServices().getFeatureTracker().trackZoomOut();
           }

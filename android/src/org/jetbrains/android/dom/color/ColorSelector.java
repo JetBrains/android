@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.color;
 
 import com.intellij.util.xml.DefinesXml;
+
 import java.util.List;
 import org.jetbrains.android.dom.color.fileDescriptions.ColorStateListDomFileDescription;
 

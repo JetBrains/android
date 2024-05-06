@@ -15,23 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_HINT;
-import static com.android.SdkConstants.ATTR_INPUT_TYPE;
-import static com.android.SdkConstants.ATTR_SELECT_ALL_ON_FOCUS;
-import static com.android.SdkConstants.ATTR_SINGLE_LINE;
-import static com.android.SdkConstants.ATTR_STYLE;
-import static com.android.SdkConstants.EDIT_TEXT;
-
 import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.text.StringUtil;
 import icons.StudioIcons;
-import java.util.Arrays;
-import java.util.List;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 public class EditTextHandler extends TextViewHandler {
 

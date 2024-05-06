@@ -23,7 +23,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.components.StoragePathMacros;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +60,6 @@ public class AndroidGradleBuildConfiguration implements PersistentStateComponent
     if (CONTINUE_FAILED_BUILD && !options.contains(CONTINUE_BUILD_OPTION)) {
       options.add(CONTINUE_BUILD_OPTION);
     }
-    return ArrayUtilRt.toStringArray(options);
+    return ArrayUtil.toStringArray(options);
   }
 }

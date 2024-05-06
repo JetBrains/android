@@ -32,6 +32,9 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
@@ -86,11 +89,9 @@ class ComponentAndModuleDaggerConceptTest {
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     val expectedModuleIndexValue =
-      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShop"))
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, COFFEE_SHOP_ID))
     val expectedDependencyIndexValue =
-      setOf(
-        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, "com.example.CoffeeShop")
-      )
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, COFFEE_SHOP_ID))
 
     assertThat(entries)
       .containsExactly(
@@ -178,11 +179,9 @@ class ComponentAndModuleDaggerConceptTest {
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     val expectedModuleIndexValue =
-      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShop"))
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, COFFEE_SHOP_ID))
     val expectedDependencyIndexValue =
-      setOf(
-        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, "com.example.CoffeeShop")
-      )
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, COFFEE_SHOP_ID))
 
     assertThat(entries)
       .containsExactly(
@@ -221,11 +220,9 @@ class ComponentAndModuleDaggerConceptTest {
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     val expectedModuleIndexValue =
-      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShop"))
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, COFFEE_SHOP_ID))
     val expectedDependencyIndexValue =
-      setOf(
-        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, "com.example.CoffeeShop")
-      )
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, COFFEE_SHOP_ID))
 
     assertThat(entries)
       .containsExactly(
@@ -309,7 +306,7 @@ class ComponentAndModuleDaggerConceptTest {
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     val expectedIndexValue =
-      setOf(ClassIndexValue(IndexValue.DataType.SUBCOMPONENT_WITH_MODULE, "com.example.CoffeeShop"))
+      setOf(ClassIndexValue(IndexValue.DataType.SUBCOMPONENT_WITH_MODULE, COFFEE_SHOP_ID))
 
     assertThat(entries)
       .containsExactly(
@@ -344,9 +341,9 @@ class ComponentAndModuleDaggerConceptTest {
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     val expectedIncludesIndexValue =
-      setOf(ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, "com.example.CoffeeShop"))
+      setOf(ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, COFFEE_SHOP_ID))
     val expectedSubcomponentsIndexValue =
-      setOf(ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, "com.example.CoffeeShop"))
+      setOf(ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, COFFEE_SHOP_ID))
 
     assertThat(entries)
       .containsExactly(
@@ -365,11 +362,11 @@ class ComponentAndModuleDaggerConceptTest {
   fun classIndexValue_serialization() {
     val indexValues =
       setOf(
-        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "abc"),
-        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, "def"),
-        ClassIndexValue(IndexValue.DataType.SUBCOMPONENT_WITH_MODULE, "ghi"),
-        ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, "jkl"),
-        ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, "mno"),
+        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, ClassId.fromString("a/b.c")),
+        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, ClassId.fromString("d/e.f")),
+        ClassIndexValue(IndexValue.DataType.SUBCOMPONENT_WITH_MODULE, ClassId.fromString("g/h.i")),
+        ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, ClassId.fromString("j/k.l")),
+        ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, ClassId.fromString("m/n.o")),
       )
     assertThat(serializeAndDeserializeIndexValues(indexValues))
       .containsExactlyElementsIn(indexValues)
@@ -423,13 +420,13 @@ class ComponentAndModuleDaggerConceptTest {
       )
     for (component in components) {
       val componentElement = myFixture.findParentElement<KtClassOrObject>("|$component")
-      val fqName = "com.example.$component"
+      val classId = ClassId(FqName("com.example"), Name.identifier(component))
 
-      val moduleIndexValue = ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, fqName)
+      val moduleIndexValue = ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, classId)
       val dependencyIndexValue =
-        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, fqName)
+        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, classId)
 
-      assertWithMessage("$fqName - module")
+      assertWithMessage("${classId.asString()} - module")
         .that(
           moduleIndexValue
             .resolveToDaggerElements(myProject, myProject.projectScope())
@@ -437,7 +434,7 @@ class ComponentAndModuleDaggerConceptTest {
         )
         .isEqualTo(ComponentDaggerElement(componentElement))
 
-      assertWithMessage("$fqName - dependency")
+      assertWithMessage("${classId.asString()} - dependency")
         .that(
           dependencyIndexValue
             .resolveToDaggerElements(myProject, myProject.projectScope())
@@ -473,10 +470,7 @@ class ComponentAndModuleDaggerConceptTest {
       myFixture.findParentElement("interface CoffeeShop|Subcomponent")
 
     val indexValue =
-      ClassIndexValue(
-        IndexValue.DataType.SUBCOMPONENT_WITH_MODULE,
-        "com.example.CoffeeShopSubcomponent"
-      )
+      ClassIndexValue(IndexValue.DataType.SUBCOMPONENT_WITH_MODULE, COFFEE_SHOP_SUBCOMPONENT_ID)
 
     assertThat(indexValue.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(SubcomponentDaggerElement(subcomponentClass))
@@ -513,9 +507,9 @@ class ComponentAndModuleDaggerConceptTest {
     val moduleClass: KtClass = myFixture.findParentElement("interface CoffeeShop|Module")
 
     val includeIndexValue =
-      ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, "com.example.CoffeeShopModule")
+      ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, COFFEE_SHOP_MODULE_ID)
     val subcomponentIndexValue =
-      ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, "com.example.CoffeeShopModule")
+      ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, COFFEE_SHOP_MODULE_ID)
 
     assertThat(
         includeIndexValue.resolveToDaggerElements(myProject, myProject.projectScope()).single()
@@ -559,12 +553,9 @@ class ComponentAndModuleDaggerConceptTest {
     val componentClass: PsiClass = myFixture.findParentElement("interface CoffeeShop|Component")
 
     val moduleIndexValue =
-      ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShopComponent")
+      ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, COFFEE_SHOP_COMPONENT_ID)
     val dependencyIndexValue =
-      ClassIndexValue(
-        IndexValue.DataType.COMPONENT_WITH_DEPENDENCY,
-        "com.example.CoffeeShopComponent"
-      )
+      ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, COFFEE_SHOP_COMPONENT_ID)
 
     assertThat(
         moduleIndexValue.resolveToDaggerElements(myProject, myProject.projectScope()).single()
@@ -603,10 +594,7 @@ class ComponentAndModuleDaggerConceptTest {
       myFixture.findParentElement("interface CoffeeShop|Subcomponent")
 
     val indexValue =
-      ClassIndexValue(
-        IndexValue.DataType.SUBCOMPONENT_WITH_MODULE,
-        "com.example.CoffeeShopSubcomponent"
-      )
+      ClassIndexValue(IndexValue.DataType.SUBCOMPONENT_WITH_MODULE, COFFEE_SHOP_SUBCOMPONENT_ID)
 
     assertThat(indexValue.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(SubcomponentDaggerElement(subcomponentClass))
@@ -643,9 +631,9 @@ class ComponentAndModuleDaggerConceptTest {
     val moduleClass: PsiClass = myFixture.findParentElement("interface CoffeeShop|Module")
 
     val includeIndexValue =
-      ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, "com.example.CoffeeShopModule")
+      ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, COFFEE_SHOP_MODULE_ID)
     val subcomponentIndexValue =
-      ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, "com.example.CoffeeShopModule")
+      ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, COFFEE_SHOP_MODULE_ID)
 
     assertThat(
         includeIndexValue.resolveToDaggerElements(myProject, myProject.projectScope()).single()
@@ -1381,5 +1369,13 @@ class ComponentAndModuleDaggerConceptTest {
           "navigate.to.parent.component"
         ),
       )
+  }
+
+  companion object {
+    private val COFFEE_SHOP_ID = ClassId.fromString("com/example/CoffeeShop")
+    private val COFFEE_SHOP_MODULE_ID = ClassId.fromString("com/example/CoffeeShopModule")
+    private val COFFEE_SHOP_COMPONENT_ID = ClassId.fromString("com/example/CoffeeShopComponent")
+    private val COFFEE_SHOP_SUBCOMPONENT_ID =
+      ClassId.fromString("com/example/CoffeeShopSubcomponent")
   }
 }

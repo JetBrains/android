@@ -25,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
  * Action that allows users to edit libraries and dependencies for the selected module, if the module is a Gradle module.
  */
 public class EditLibraryAndDependenciesAction extends AbstractProjectStructureAction {
+  public EditLibraryAndDependenciesAction() {
+    super("Edit Libraries and Dependencies...");
+  }
 
   @Override
   protected Module getTargetModule(@NotNull AnActionEvent e) {

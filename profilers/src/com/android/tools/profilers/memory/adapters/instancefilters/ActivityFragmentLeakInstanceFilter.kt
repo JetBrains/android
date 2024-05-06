@@ -16,8 +16,12 @@
 package com.android.tools.profilers.memory.adapters.instancefilters
 
 import com.android.tools.profilers.memory.adapters.ClassDb
+import com.android.tools.profilers.memory.adapters.FieldObject
 import com.android.tools.profilers.memory.adapters.InstanceObject
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableSet
+import java.util.function.Predicate
+import java.util.stream.Collectors
 
 /**
  * A filter to locate possible leaked activity/fragment instances.

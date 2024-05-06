@@ -26,26 +26,33 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 
-/**
- * An annotator that searches for Kotlin-specific issues in data binding source files.
- */
+/** An annotator that searches for Kotlin-specific issues in data binding source files. */
 class DataBindingKotlinAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     val facet = AndroidFacet.getInstance(element) ?: return
     if (!DataBindingUtil.isDataBindingEnabled(facet)) return
 
-    if (element is KtAnnotationEntry && DATA_BINDING_ANNOTATIONS.any { annotation -> element.text.startsWith("@$annotation") }) {
+    if (
+      element is KtAnnotationEntry &&
+        DATA_BINDING_ANNOTATIONS.any { annotation -> element.text.startsWith("@$annotation") }
+    ) {
       highlightIfGradleKotlinKaptPluginNotApplied(element, holder)
     }
   }
 
-  private fun highlightIfGradleKotlinKaptPluginNotApplied(element: PsiElement,
-                                                          holder: AnnotationHolder) {
+  private fun highlightIfGradleKotlinKaptPluginNotApplied(
+    element: PsiElement,
+    holder: AnnotationHolder
+  ) {
     val module = element.module ?: return
 
     if (!module.getModuleSystem().isKaptEnabled) {
-      holder.newAnnotation(HighlightSeverity.ERROR,
-                           "To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle").create()
+      holder
+        .newAnnotation(
+          HighlightSeverity.ERROR,
+          "To use data binding annotations in Kotlin, apply the 'kotlin-kapt' plugin in your module's build.gradle"
+        )
+        .create()
     }
   }
 }

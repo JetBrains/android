@@ -36,10 +36,10 @@ import com.intellij.ui.IdeUICustomization
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito.eq
 import org.mockito.Mock
 import org.mockito.Mockito.any
 import org.mockito.Mockito.atLeast
-import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
@@ -65,8 +65,8 @@ class DeployTaskTest {
     application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
     application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
-    whenever(deployer.install(any(), any(), any(), any())).thenReturn(
-      Deployer.Result(false, false, false, App("id", emptyList(), device, logger))
+    whenever(deployer.install(any(), any(), any())).thenReturn(
+      Deployer.Result(false, false, false, App.fromApks("id", emptyList()))
     )
     whenever(canceller.cancelled()).thenReturn(false)
   }
@@ -84,7 +84,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller )
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -95,7 +95,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -106,7 +106,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -117,7 +117,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -128,7 +128,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -140,7 +140,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -151,7 +151,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, false, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -186,7 +186,7 @@ class DeployTaskTest {
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.R)
 
-    verify(deployer).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -200,7 +200,7 @@ class DeployTaskTest {
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.Q)
 
-    verify(deployer).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -211,7 +211,7 @@ class DeployTaskTest {
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.LOLLIPOP_MR1)
 
-    verify(deployer).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer).install(any(), eq(expectedOptions), any())
   }
 
   private fun deployApkWithRequiredInstallOptions(deviceApiLevel: Int) {

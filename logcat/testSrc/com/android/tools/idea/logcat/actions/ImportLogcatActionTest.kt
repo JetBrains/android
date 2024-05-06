@@ -20,8 +20,6 @@ import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -29,6 +27,7 @@ import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
@@ -40,17 +39,17 @@ import java.nio.file.Path
 import kotlin.io.path.name
 import kotlin.io.path.writeText
 
-/**
- * Tests for [ImportLogcatAction]
- */
+/** Tests for [ImportLogcatAction] */
 class ImportLogcatActionTest {
   private val projectRule = ProjectRule()
   private val fakeFileChooserFactory = FakeFileChooserFactory()
 
   @get:Rule
-  val rule = RuleChain(
-    projectRule,
-    ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory))
+  val rule =
+    RuleChain(
+      projectRule,
+      ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory)
+    )
 
   @Test
   fun actionPerformed() {
@@ -62,23 +61,30 @@ class ImportLogcatActionTest {
     verify(mockLogcatPresenter).openLogcatFile(fakeFileChooserFactory.virtualFile.toNioPath())
   }
 
-  private fun testEvent(logcatPresenter: LogcatPresenter) = TestActionEvent.createTestEvent(
-    SimpleDataContext.builder()
-      .setParent(DataContext.EMPTY_CONTEXT)
-      .add(CommonDataKeys.PROJECT, projectRule.project)
-      .add(LogcatPresenter.LOGCAT_PRESENTER_ACTION, logcatPresenter)
-      .build())
+  private fun testEvent(logcatPresenter: LogcatPresenter) =
+    TestActionEvent.createTestEvent(
+      MapDataContext(
+        mapOf(
+          CommonDataKeys.PROJECT to projectRule.project,
+          LogcatPresenter.LOGCAT_PRESENTER_ACTION to logcatPresenter,
+        )
+      )
+    )
 
   private class FakeFileChooserFactory : FileChooserFactoryImpl() {
     private val fileSystem = createInMemoryFileSystem()
-    private val path = this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply {
-      writeText("")
-    }
-    val virtualFile = object : LightVirtualFile(path.name) {
-      override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
-    }
+    private val path =
+      this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply { writeText("") }
+    val virtualFile =
+      object : LightVirtualFile(path.name) {
+        override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
+      }
 
-    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog =
+    override fun createFileChooser(
+      descriptor: FileChooserDescriptor,
+      project: Project?,
+      parent: Component?
+    ): FileChooserDialog =
       object : FileChooserDialog {
         override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> = arrayOf(virtualFile)
       }

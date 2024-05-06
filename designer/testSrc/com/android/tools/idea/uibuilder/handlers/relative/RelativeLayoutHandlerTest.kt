@@ -15,10 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative
 
-import com.android.SdkConstants.BUTTON
-import com.android.SdkConstants.CHECK_BOX
-import com.android.SdkConstants.RELATIVE_LAYOUT
-import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.*
 import com.android.tools.idea.common.LayoutTestUtilities.mockViewWithBaseline
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.target.AnchorTarget

@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.events
 
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.FailureType
+import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
@@ -26,7 +27,8 @@ import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 data class FatalityToggleChanged(val fatality: FailureType) : ChangeEvent {
   override fun transition(
     state: AppInsightsState,
-    tracker: AppInsightsTracker
+    tracker: AppInsightsTracker,
+    key: InsightsProviderKey
   ): StateTransition<Action> {
     val newState = state.toggleFatality(fatality)
 
@@ -34,7 +36,12 @@ data class FatalityToggleChanged(val fatality: FailureType) : ChangeEvent {
       return StateTransition(newState, Action.NONE)
     }
     return StateTransition(
-      newState.copy(issues = LoadingState.Loading),
+      newState.copy(
+        issues = LoadingState.Loading,
+        currentIssueVariants = LoadingState.Ready(null),
+        currentIssueDetails = LoadingState.Ready(null),
+        currentNotes = LoadingState.Ready(null)
+      ),
       action =
         Action.Fetch(AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource.FILTER)
     )

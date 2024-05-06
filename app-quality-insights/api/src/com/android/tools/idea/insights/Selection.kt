@@ -70,6 +70,7 @@ data class MultiSelection<T>(val selected: Set<T>, val items: List<T>) {
     val newItems = items.filter(predicate)
     return if (newItems == selected) this else MultiSelection(newItems.toSet(), items)
   }
+
   fun deselect(item: T): MultiSelection<T> = MultiSelection(selected - item, this.items)
 
   fun allSelected() = items.toSet() == selected

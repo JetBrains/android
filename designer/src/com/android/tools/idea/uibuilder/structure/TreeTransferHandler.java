@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.structure;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
-import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.application.ApplicationManager;
 import java.awt.AlphaComposite;
 import java.awt.Component;
@@ -104,9 +103,6 @@ public final class TreeTransferHandler extends TransferHandler {
       Dimension size = component.getPreferredSize();
       component.setSize(size);
       g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-      if (!StudioFlags.NELE_DRAG_PLACEHOLDER.get()) {
-        component.paint(g2);
-      }
       g2.translate(0, size.height);
     }
     g2.dispose();

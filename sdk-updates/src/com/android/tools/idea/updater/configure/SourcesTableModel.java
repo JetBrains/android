@@ -28,6 +28,7 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
 import com.intellij.credentialStore.CredentialAttributes;
 import com.intellij.credentialStore.Credentials;
 import com.intellij.icons.AllIcons;
@@ -46,7 +47,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import javax.swing.Icon;
 import javax.swing.JTable;
@@ -199,7 +199,7 @@ class SourcesTableModel extends ListTableModel<SourcesTableModel.Row> implements
     Application application = ApplicationManager.getApplication();
     application.executeOnPooledThread(() -> {
       final ArrayList<Row> items = new ArrayList<>();
-      final Set<RepositorySource> initial = new HashSet<>();
+      final Set<RepositorySource> initial = Sets.newHashSet();
       for (RepositorySource source : myConfigurable.getRepoManager().getSources(new StudioDownloader(), myLogger, force)) {
         items.add(new Row(source));
         initial.add(source);

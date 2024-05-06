@@ -72,9 +72,9 @@ object BottomNavAnalyzer : VisualLintAnalyzer() {
         .add(" for breakpoints >= 600dp.")
     }
     return VisualLintIssueContent(
-      view,
-      "Bottom navigation bar is not recommended for breakpoints over 600dp",
-      content
+      view = view,
+      message = "Bottom navigation bar is not recommended for breakpoints over 600dp",
+      descriptionProvider = content
     )
   }
 }

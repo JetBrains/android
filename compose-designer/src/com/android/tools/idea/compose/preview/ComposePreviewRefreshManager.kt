@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PreviewRefreshRequest
 import com.android.tools.idea.preview.RefreshResult
+import com.android.tools.idea.preview.RefreshType
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.rendering.RenderService
 import com.intellij.openapi.Disposable
@@ -32,7 +33,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import java.util.UUID
 
-enum class RefreshType(internal val priority: Int) {
+enum class ComposePreviewRefreshType(override val priority: Int) : RefreshType {
   /** Previews are inflated and rendered. */
   NORMAL(3),
 
@@ -61,19 +62,18 @@ enum class RefreshType(internal val priority: Int) {
  *   completed. If the request is skipped and replaced with another one, then this completable will
  *   be completed when the other one is completed. If the refresh gets cancelled, this completable
  *   will be completed exceptionally.
- * @param type a [RefreshType] value used for prioritizing the requests and that could influence the
- *   logic in [delegateRefresh].
+ * @param refreshType a [ComposePreviewRefreshType] value used for prioritizing the requests and
+ *   that could influence the logic in [delegateRefresh].
  * @param requestId identifier used for testing and logging/debugging.
  */
 class ComposePreviewRefreshRequest(
   override val clientId: String,
   private val delegateRefresh: (ComposePreviewRefreshRequest) -> Job,
   private var completableDeferred: CompletableDeferred<Unit>?,
-  val type: RefreshType,
+  override val refreshType: ComposePreviewRefreshType,
   val requestId: String = UUID.randomUUID().toString().substring(0, 5)
 ) : PreviewRefreshRequest {
 
-  override val priority: Int = type.priority
   var requestSources: List<Throwable> = listOf(Throwable())
     private set
 
@@ -127,7 +127,7 @@ class ComposePreviewRefreshManager private constructor() : Disposable {
 
   private val refreshManager = PreviewRefreshManager(scope)
 
-  val isRefreshingFlow: StateFlow<Boolean> = refreshManager.isRefreshingFlow
+  val refreshingTypeFlow: StateFlow<RefreshType?> = refreshManager.refreshingTypeFlow
 
   fun requestRefresh(request: ComposePreviewRefreshRequest) {
     refreshManager.requestRefresh(request)

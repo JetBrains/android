@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.android.tools.idea.run.deployment.liveedit.ErrorReporterKt.errorMessage;
 import static com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.createRecomposeErrorStatus;
 import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.PrebuildChecks;
@@ -22,44 +23,39 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
+import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
+import com.android.tools.analytics.UsageTrackerUtils;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.util.Ref;
+import com.intellij.psi.PsiDocumentManager;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.analytics.UsageTrackerUtils;
 import com.android.tools.deploy.proto.Deploy;
 import com.android.tools.deployer.AdbClient;
 import com.android.tools.deployer.AdbInstaller;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
 import com.android.tools.deployer.tasks.LiveUpdateDeployer;
-import com.android.tools.idea.editors.literals.LiveEditService;
+import com.android.tools.idea.editors.liveedit.LiveEditService;
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass;
-import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
-import com.android.tools.idea.util.StudioPathManager;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LiveEditEvent;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.ide.ActivityTracker;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.util.ThreeState;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -79,7 +75,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.KotlinFileType;
+import org.jetbrains.kotlin.psi.KtFile;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -182,10 +178,11 @@ public class LiveEditProjectMonitor implements Disposable {
   // LE status remains in Paused state.
   private final Set<String> filesWithCompilationErrors = new HashSet<>();
 
-  private AtomicReference<Long> gradleTimeSync = new AtomicReference<>(Integer.toUnsignedLong(0));
+  private final AtomicReference<Boolean> intermediateSyncs = new AtomicReference<>(Boolean.FALSE);
 
   private final LiveEditCompiler compiler;
-  private final Precompiler precompiler;
+
+  private final PsiValidator psiValidator;
 
   // We want to log only a percentage of LE events, but we also always want to log the *first* event after a deployment.
   private final double LE_LOG_FRACTION = 0.1;
@@ -203,16 +200,16 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private final MutableIrClassCache irClassCache = new MutableIrClassCache();
 
-  private final Set<VirtualFile> precompiledFiles = new HashSet<>();
-
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
-    this.compiler = new LiveEditCompiler(project, irClassCache);
-    this.precompiler = new Precompiler(project, compiler.getInlineCandidateCache());
+    this.compiler = new LiveEditCompiler(project, irClassCache, new DefaultApkClassProvider());
     this.adbEventsListener = liveEditService.getAdbEventsListener();
+    this.psiValidator = new PsiValidator();
 
-    gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
+    project.getMessageBus().connect(this)
+      .subscribe(PROJECT_SYSTEM_SYNC_TOPIC,
+                 (ProjectSystemSyncManager.SyncResultListener)result -> intermediateSyncs.set(Boolean.TRUE));
 
     // TODO: This maze of listeners is complicated. LiveEditDevices should directly implement LiveEditAdbEventsListener.
     deviceWatcher.addListener(liveEditDevices::handleDeviceLifecycleEvents);
@@ -233,6 +230,11 @@ public class LiveEditProjectMonitor implements Disposable {
     return filesWithCompilationErrors.size();
   }
 
+  @VisibleForTesting
+  IrClassCache getIrClassCache() {
+    return irClassCache;
+  }
+
   @NotNull
   public Set<IDevice> devices() {
     return liveEditDevices.devices();
@@ -250,7 +252,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    if (!hasAppBeenDeployed()) {
+    if (StringUtil.isEmpty(applicationId)) {
       return;
     }
 
@@ -258,8 +260,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    if (GradleSyncState.getInstance(project).isSyncNeeded() != ThreeState.NO ||
-        gradleTimeSync.get().compareTo(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp()) != 0) {
+    if (isGradleSyncNeeded()) {
       updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
       return;
     }
@@ -365,79 +366,49 @@ public class LiveEditProjectMonitor implements Disposable {
 
     // This method (notifyAppDeploy) is called from Studio on a random Worker thread. We schedule the data update on the same Executor
     // we process our keystrokes {@link #methodChangesExecutor}
-    mainThreadExecutor.schedule(
-      () -> {
-        this.applicationId = applicationId;
-        this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
-        resetState();
-        deviceWatcher.setApplicationId(applicationId);
+    mainThreadExecutor.submit(() -> {
+      this.applicationId = applicationId;
+      intermediateSyncs.set(Boolean.FALSE);
+      resetState();
+      deviceWatcher.setApplicationId(applicationId);
 
-        irClassCache.clear();
-        precompiledFiles.clear();
-        for (VirtualFile file : FileEditorManager.getInstance(project).getOpenFiles()) {
-          precompileFile(file);
-        }
-      },
-      0L,
-      TimeUnit.NANOSECONDS).get();
+      irClassCache.clear();
+    }).get();
 
     return true;
   }
 
-  private boolean hasAppBeenDeployed() {
-    return StringUtil.isNotEmpty(applicationId);
+  // Called before an edit to a Kotlin file is made. Only called on the class-differ code path.
+  public void beforeFileChanged(KtFile ktFile) {
+    if (shouldLiveEdit()) {
+      psiValidator.beforeChanges(ktFile);
+    }
   }
 
-  public void notifyFileOpen(VirtualFile file) {
-    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
+  // Called when a Kotlin file is modified. Only called on the class-differ code path.
+  public void fileChanged(KtFile ktFile) {
+    if (!shouldLiveEdit()) {
       return;
     }
 
-    if (!hasAppBeenDeployed()) {
-      return;
-    }
+    // Add this while we're still inside a write action, so that no compile can be running while we queue this. This minimizes the risk of a
+    // race condition between any retried compilations and this newly queued event.
+    changedMethodQueue.add(new EditEvent(ktFile, ktFile, new ArrayList<>(), new ArrayList<>()));
 
-    // Precompile should only run the first time a file is opened after a deployment. Running precompile every time a given file opens may
-    // cause changes to be missed when running in MANUAL mode: user makes changes -> closes file -> re-opens file -> precompile incorrectly
-    // updates the IR cache with the new changes.
-    if (precompiledFiles.contains(file)) {
-      return;
-    }
     mainThreadExecutor.schedule(() -> {
-      precompileFile(file);
-    }, 0L, TimeUnit.NANOSECONDS);
+      if (ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get()) {
+        updateEditStatus(LiveEditStatus.SyncNeeded.INSTANCE);
+        return;
+      }
+      processQueuedChanges();
+    }, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(), TimeUnit.MILLISECONDS);
   }
 
-  private void precompileFile(VirtualFile file) {
-    long startTimeNs = System.nanoTime();
-
-    if (!FileTypeRegistry.getInstance().isFileOfType(file, KotlinFileType.INSTANCE)) {
-      return;
-    }
-
-    List<byte[]> outputs;
-    try {
-      outputs = precompiler.compile(file);
-    } catch (Exception e) {
-      // TODO: handle compile failure
-      LOGGER.error(e, "Live Edit precompile of %s failed", file.getPath());
-      return;
-    }
-
-    for (byte[] output : outputs) {
-      try {
-        IrClass irClass = new IrClass(output);
-        irClassCache.update(irClass);
-        LOGGER.info("\tCached precompiled class %s", irClass.getName());
-      } catch (Exception e) {
-        // TODO: handle parse failure
-      }
-    }
-
-    precompiledFiles.add(file);
-
-    long durationNs = System.nanoTime() - startTimeNs;
-    LOGGER.info("Live Edit precompiled %s in %dms", file.getPath(), TimeUnit.NANOSECONDS.toMillis(durationNs));
+  private boolean shouldLiveEdit() {
+    return LiveEditApplicationConfiguration.getInstance().isLiveEdit() &&
+           StringUtil.isNotEmpty(applicationId) &&
+           !liveEditDevices.isUnrecoverable() &&
+           !liveEditDevices.isDisabled();
   }
 
   @VisibleForTesting
@@ -477,7 +448,6 @@ public class LiveEditProjectMonitor implements Disposable {
     // In manual mode, we store changes and update status but defer processing.
     if (LiveEditService.Companion.isLeTriggerManual()) {
       updateEditableStatus(LiveEditStatus.OutOfDate.INSTANCE);
-
       if (bufferedEvents.size() < 2000) {
         bufferedEvents.addAll(changes);
       } else {
@@ -522,7 +492,7 @@ public class LiveEditProjectMonitor implements Disposable {
         .collect(Collectors.toList());
 
       Set<Integer> minApis = getDevicesApiLevels();
-      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), minApis);
+      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), minApis, psiValidator);
       if (compiled.isEmpty()) {
         return false;
       }
@@ -531,6 +501,9 @@ public class LiveEditProjectMonitor implements Disposable {
       for (EditEvent change : changes) {
         filesWithCompilationErrors.remove(change.getFile().getName());
       }
+
+      // Mark validation as finished only if the compilation doesn't need to be retried, either because it succeeded or an error occurred.
+      changes.stream().filter(e -> e.getFile() instanceof KtFile).map(e -> (KtFile) e.getFile()).forEach(psiValidator::validationFinished);
     } catch (LiveEditUpdateException e) {
       boolean recoverable = e.getError().getRecoverable();
 
@@ -555,14 +528,21 @@ public class LiveEditProjectMonitor implements Disposable {
         logLiveEditEvent(event);
       }
 
+      // Mark validation as finished only if the compilation doesn't need to be retried, either because it succeeded or an error occurred.
+      changes.stream().filter(v -> v.getFile() instanceof KtFile).map(v -> (KtFile) v.getFile()).forEach(psiValidator::validationFinished);
       return true;
     }
 
     if (mode == LiveEditEvent.Mode.AUTO && !filesWithCompilationErrors.isEmpty()) {
-      Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
-      String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
-      updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
-      return true;
+
+      // When we are only confined to the current file, we are not going to check of there
+      // are errors in other files.
+      if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get()) {
+        Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
+        String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
+        updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
+        return true;
+      }
     }
 
     final LiveEditDesugarResponse desugaredResponse = compiled.get();
@@ -693,7 +673,7 @@ public class LiveEditProjectMonitor implements Disposable {
   private static Installer newInstaller(IDevice device) {
     MetricsRecorder metrics = new MetricsRecorder();
     AdbClient adb = new AdbClient(device, LOGGER);
-    return  new AdbInstaller(getLocalInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
+    return  new AdbInstaller(EmbeddedDistributionPaths.getInstance().findEmbeddedInstaller(), adb, metrics.getDeployMetrics(), LOGGER, AdbInstaller.Mode.DAEMON);
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(
@@ -714,9 +694,18 @@ public class LiveEditProjectMonitor implements Disposable {
         !resetState,
         useDebugMode);
 
-    LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
+    LiveUpdateDeployer.UpdateLiveEditResult result = null;
 
-    if (filesWithCompilationErrors.isEmpty()) {
+    // Sometimes we get a PSI event for a top-level file when no top-level class exists. In this
+    // case, just treat it as a no-op success. This isn't an issue with the class differ
+    // as we would no longer get spurious PSI update events anymore.
+    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get() && param.classes.isEmpty()) {
+      result = new LiveUpdateDeployer.UpdateLiveEditResult();
+    } else {
+      result = deployer.updateLiveEdit(installer, adb, applicationId, param);
+    }
+
+    if (filesWithCompilationErrors.isEmpty() || StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS.get()) {
       updateEditStatus(device, LiveEditStatus.UpToDate.INSTANCE);
     } else {
       Optional<String> errorFilename = filesWithCompilationErrors.stream().sequential().findFirst();
@@ -736,21 +725,14 @@ public class LiveEditProjectMonitor implements Disposable {
     return result;
   }
 
+  @VisibleForTesting
+  boolean isGradleSyncNeeded(){
+    return ProjectSystemUtil.getProjectSystem(project).getSyncManager().isSyncNeeded() || intermediateSyncs.get();
+  }
+
 
 
   public static boolean supportLiveEdits(IDevice device) {
     return device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R);
-  }
-
-  // TODO: Unify this part.
-  private static String getLocalInstaller() {
-    Path path;
-    if (StudioPathManager.isRunningFromSources()) {
-      // Development mode
-      path = StudioPathManager.resolvePathFromSourcesRoot("bazel-bin/tools/base/deploy/installer/android-installer");
-    } else {
-      path = Paths.get(PathManager.getHomePath(), "plugins/android/resources/installer");
-    }
-    return path.toString();
   }
 }

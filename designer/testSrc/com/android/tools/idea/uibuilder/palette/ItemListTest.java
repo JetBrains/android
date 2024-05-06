@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.intellij.openapi.util.IconLoader;
+import java.awt.Component;
 import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;

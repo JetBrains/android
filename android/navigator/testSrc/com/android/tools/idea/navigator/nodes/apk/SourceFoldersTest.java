@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link SourceFolders}.
  */
-public class SourceFoldersTest extends HeavyPlatformTestCase {
+public class SourceFoldersTest extends PlatformTestCase {
   private Module myAppModule;
   private VirtualFile mySrcFolder;
   private VirtualFile myMypackageFolder;

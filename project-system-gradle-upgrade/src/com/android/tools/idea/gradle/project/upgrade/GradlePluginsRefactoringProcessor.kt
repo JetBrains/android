@@ -23,8 +23,25 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNam
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion
-import com.android.tools.idea.gradle.util.CompatibleGradleVersion.*
 import com.android.tools.idea.gradle.util.CompatibleGradleVersion.Companion.getCompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_4_10_1
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_4_4
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_4_6
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_5_1_1
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_5_4_1
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_5_6_4
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_6_1_1
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_6_5
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_6_7_1
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_0_2
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_2
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_3_3
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_4
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_7_5
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_8_0
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_8_2
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_FOR_DEV
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion.VERSION_MIN
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -142,6 +159,8 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_7_3_3 -> Version.parse("1.3.40")
         VERSION_7_4 -> Version.parse("1.6.21")
         VERSION_7_5 -> Version.parse("1.6.21")
+        VERSION_8_0 -> Version.parse("1.6.21")
+        VERSION_8_2 -> Version.parse("1.6.21")
         VERSION_FOR_DEV -> Version.parse("1.6.21")
       }
 
@@ -151,7 +170,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 ->
           Version.parse("2.0.0")
         // AGP 7.1 removed an incubating API used by safeargs.
-        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.4.1")
+        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("2.4.1")
       }
 
     // compatibility information from b/174686925 and https://github.com/mannodermaus/android-junit5/releases
@@ -160,14 +179,15 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1 -> Version.parse("1.3.1.0")
         VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1 -> Version.parse("1.4.2.1")
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3,
-        VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("1.6.1.0")
+        VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("1.6.1.0")
       }
 
     fun `com-google-firebase-crashlytics-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1 -> Version.parse("2.0.0")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.5.2")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5,
+        VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("2.5.2")
       }
 
     fun `com-google-firebase-appdistribution-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
@@ -175,28 +195,30 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_4_4, VERSION_4_6, VERSION_MIN -> Version.parse("1.0.0")
         VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4 -> Version.parse("1.1.0")
         VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> Version.parse("1.4.0")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.1.1")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5,
+        VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("2.1.1")
       }
 
     fun `com-google-firebase-perf-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> Version.parse("1.2.1")
-        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("1.4.1")
+        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("1.4.1")
       }
 
     fun `com-google-android-gms-oss-licenses-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1 -> Version.parse("0.9.3")
         VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1, VERSION_6_5, VERSION_6_7_1 -> Version.parse("0.10.1")
-        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("0.10.4")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5,
+        VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("0.10.4")
       }
 
     fun `com-google-gms-google-services-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
       when (compatibleGradleVersion) {
         VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1, VERSION_5_6_4, VERSION_6_1_1,
         VERSION_6_5, VERSION_6_7_1, VERSION_7_0_2 -> Version.parse("4.0.1")
-        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("4.3.10")
+        VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("4.3.10")
       }
 
     fun `com-google-dagger-hilt-android-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
@@ -205,7 +227,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_6_5 -> Version.parse("2.0")
         VERSION_6_7_1 -> Version.parse("2.32")
         VERSION_7_0_2, VERSION_7_2 -> Version.parse("2.38")
-        VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.40.1")
+        VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("2.40.1")
       }
 
     fun `com-google-protobuf-protobuf-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
@@ -215,7 +237,7 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_6_1_1, VERSION_6_5, -> Version.parse("0.8.12")
         VERSION_6_7_1 -> Version.parse("0.8.13")
         VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5 -> Version.parse("0.8.16")
-        VERSION_FOR_DEV -> Version.parse("0.9.0")
+        VERSION_8_0, VERSION_8_2, VERSION_FOR_DEV -> Version.parse("0.9.0")
       }
 
     /**

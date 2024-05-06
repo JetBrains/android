@@ -16,9 +16,10 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 import java.util.function.Supplier;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A wrapper class to compare two capture info objects from perfd.

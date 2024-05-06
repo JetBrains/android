@@ -24,8 +24,10 @@ internal class RenderXmlAttributeImpl(
 ) : RenderXmlAttribute {
   override val isNamespaceDeclaration: Boolean
     get() = name.startsWith("xmlns") && (name.length == 5 || name[5] == ':')
+
   override val bindingExprDefault: String?
     get() = null
+
   override val name: String =
     if (namespacePrefix.isEmpty()) localName else "$namespacePrefix:$localName"
 }

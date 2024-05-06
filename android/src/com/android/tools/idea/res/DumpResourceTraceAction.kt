@@ -15,29 +15,23 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.IdeInfo
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.DumbAware
-import org.jetbrains.android.util.AndroidUtils
 
-/**
- * Dumps resource trace to idea.log.
- */
-class DumpResourceTraceAction : AnAction(), DumbAware {
-
-  override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
+/** Dumps resource trace to idea.log. */
+class DumpResourceTraceAction : AnAction("Dump Resource Trace"), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
     ResourceUpdateTracer.dumpTrace(null)
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
-    val project = event.project
-    event.presentation.isVisible = ApplicationInfo.getInstance().isEAP && project != null
-                                   && (IdeInfo.getInstance().isAndroidStudio || AndroidUtils.hasAndroidFacets(project))
+    super.update(event)
+    event.presentation.isVisible = ApplicationInfo.getInstance().isEAP
     event.presentation.isEnabled = ResourceUpdateTracer.isTracingActive()
   }
 }

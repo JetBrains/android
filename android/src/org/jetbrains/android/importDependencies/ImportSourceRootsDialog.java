@@ -6,12 +6,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.JBUI;
-import java.awt.BorderLayout;
-import java.util.List;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 class ImportSourceRootsDialog extends DialogWrapper {
   private final ElementsChooser<JavaModuleSourceRoot> mySourcePathsChooser;

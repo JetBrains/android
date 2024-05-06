@@ -16,7 +16,7 @@
 package com.android.tools.idea.device.explorer.files.options;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.device.explorer.common.DeviceFileExplorerSettings;
+import com.android.tools.idea.device.explorer.common.DeviceExplorerSettings;
 import com.android.tools.idea.device.explorer.files.DeviceExplorerBundle;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.ConfigurationException;
@@ -55,7 +55,7 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
 
   @Override
   public boolean isModified() {
-    return !DeviceFileExplorerSettings.getInstance().getDownloadLocation().equals(myDownloadLocation.getText());
+    return !DeviceExplorerSettings.getInstance().getDownloadLocation().equals(myDownloadLocation.getText());
   }
 
   @Override
@@ -63,7 +63,7 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
     // Validate the path for download location
     Path path = Paths.get(getDownloadLocation());
     if (Files.isDirectory(path)) {
-      DeviceFileExplorerSettings.getInstance().setDownloadLocation(path.toString());
+      DeviceExplorerSettings.getInstance().setDownloadLocation(path.toString());
     } else {
       throw new ConfigurationException(DeviceExplorerBundle.message("dialog.message.path.must.be.existing.directory"),
                                        DeviceExplorerBundle.message("dialog.title.invalid.path"));
@@ -72,7 +72,7 @@ final class DeviceFileExplorerConfigurable implements SearchableConfigurable {
 
   @Override
   public void reset() {
-    myDownloadLocation.setText(DeviceFileExplorerSettings.getInstance().getDownloadLocation());
+    myDownloadLocation.setText(DeviceExplorerSettings.getInstance().getDownloadLocation());
   }
 
   @NlsContexts.ConfigurableName

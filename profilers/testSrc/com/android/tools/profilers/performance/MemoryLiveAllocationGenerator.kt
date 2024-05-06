@@ -82,10 +82,10 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
       methodIds.add(random.nextLong())
       method.add(Memory.AllocationStack.StackFrame.newBuilder()
                    .setClassName("Test")
-                   .setFileName("SomeFile$i")
+                   .setFileName("SomeFile" + i)
                    .setLineNumber(random.nextInt())
                    .setMethodId(methodIds[i])
-                   .setMethodName("Some Name$i")
+                   .setMethodName("Some Name" + i)
                    .build())
     }
 
@@ -110,7 +110,7 @@ class MemoryLiveAllocationGenerator(connection: Connection) : DataGenerator(conn
       threadIds.add(random.nextInt())
       info.add(Memory.ThreadInfo.newBuilder()
                  .setThreadId(threadIds[i])
-                 .setThreadName("Some Name $i")
+                 .setThreadName("Some Name " + i)
                  .build())
     }
 

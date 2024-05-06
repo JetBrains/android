@@ -19,11 +19,10 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.intellij.execution.ConsoleFolding
 import com.intellij.openapi.project.Project
 
-/**
- * Folds stack traces that were elided by "(...N more)" and expanded [StackTraceExpander].
- */
+/** Folds stack traces that were elided by "(...N more)" and expanded [StackTraceExpander]. */
 internal class ExceptionFolding : ConsoleFolding() {
-  override fun shouldFoldLine(project: Project, line: String) = StackTraceExpander.wasLineExpanded(line)
+  override fun shouldFoldLine(project: Project, line: String) =
+    StackTraceExpander.wasLineExpanded(line)
 
   override fun getPlaceholderText(project: Project, lines: List<String>) =
     LogcatBundle.message("logcat.stacktrace.folding.hint", lines.size.toString())

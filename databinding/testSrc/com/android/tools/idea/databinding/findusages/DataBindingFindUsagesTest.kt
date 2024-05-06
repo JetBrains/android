@@ -35,12 +35,12 @@ import org.junit.Test
 /**
  * Checking that DataBinding elements appear in Android Resource Usages.
  *
- * Currently we only support Android Resources usages including DataBinding elements, and not the other way around.
+ * Currently we only support Android Resources usages including DataBinding elements, and not the
+ * other way around.
  */
 class DataBindingFindUsagesTest() {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   private val fixture by lazy { projectRule.fixture }
 
@@ -51,18 +51,23 @@ class DataBindingFindUsagesTest() {
   fun setUp() {
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT + "/databinding"
 
-    fixture.addFileToProject("AndroidManifest.xml", """
+    fixture.addFileToProject(
+      "AndroidManifest.xml",
+      """
       <?xml version="1.0" encoding="utf-8"?>
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
         <application />
       </manifest>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
     LayoutBindingModuleCache.getInstance(facet).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
   /**
-   * Checks that calling find usages of a layout element will find the equivalent DataBinding classes.
+   * Checks that calling find usages of a layout element will find the equivalent DataBinding
+   * classes.
    */
   @Test
   fun assertDataBindingAppearsInLayoutResourceUsages() {
@@ -81,12 +86,15 @@ class DataBindingFindUsagesTest() {
                 android:layout_height="fill_parent" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
 
-    val classFile = fixture.addFileToProject(
-      "src/java/test/db/MainActivity.java",
-      // language=JAVA
-      """
+    val classFile =
+      fixture.addFileToProject(
+        "src/java/test/db/MainActivity.java",
+        // language=JAVA
+        """
       package test.db;
 
       import android.app.Activity;
@@ -104,13 +112,16 @@ class DataBindingFindUsagesTest() {
               int value = R.layout.activity_m${caret}ain;
           }
       }
-    """.trimIndent()
-    )
+    """
+          .trimIndent()
+      )
 
     fixture.configureFromExistingVirtualFile(classFile.virtualFile)
     val presentation = getUsagePresentationAtCursor()
 
-    assertThat(presentation).isEqualTo("""
+    assertThat(presentation)
+      .isEqualTo(
+        """
       <root> (5)
        Layout Resource
         @layout/activity_main
@@ -144,18 +155,19 @@ class DataBindingFindUsagesTest() {
            MainActivity (1)
             6import test.db.databinding.ActivityMainBinding;
 
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
-  /**
-   * Checks calling find usages on an ID resource will find any relevant DataBinding fields.
-   */
+  /** Checks calling find usages on an ID resource will find any relevant DataBinding fields. */
   @Test
   fun assertRenameFieldDerivedFromResourceId() {
-    val layoutFile = fixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      // language=XML
-      """
+    val layoutFile =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -167,7 +179,9 @@ class DataBindingFindUsagesTest() {
                 android:layout_height="fill_parent" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     fixture.addFileToProject(
       "src/java/test/db/MainActivity.java",
@@ -189,13 +203,16 @@ class DataBindingFindUsagesTest() {
               setContentView(binding.getRoot());
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     fixture.configureFromExistingVirtualFile(layoutFile.virtualFile)
     val presentation = getUsagePresentationAtCursor()
 
-    assertThat(presentation).isEqualTo("""
+    assertThat(presentation)
+      .isEqualTo(
+        """
       <root> (2)
        ID Resource
         @id/button
@@ -212,15 +229,18 @@ class DataBindingFindUsagesTest() {
             onCreate(Bundle) (1)
              13System.out.println(binding.button.getId());
 
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
   }
 
   @Test
   fun duplicateIdInTwoLayoutFiles() {
-    val layoutFile1 = fixture.addFileToProject(
-      "res/layout/activity_main.xml",
-      // language=XML
-      """
+    val layoutFile1 =
+      fixture.addFileToProject(
+        "res/layout/activity_main.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -232,12 +252,15 @@ class DataBindingFindUsagesTest() {
                 android:layout_height="fill_parent" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
-    val layoutFile2 = fixture.addFileToProject(
-      "res/layout/activity_main2.xml",
-      // language=XML
-      """
+    val layoutFile2 =
+      fixture.addFileToProject(
+        "res/layout/activity_main2.xml",
+        // language=XML
+        """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout
@@ -249,7 +272,9 @@ class DataBindingFindUsagesTest() {
                 android:layout_height="fill_parent" />
         </LinearLayout>
       </layout>
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     fixture.addFileToProject(
       "src/java/test/db/MainActivity.java",
@@ -271,17 +296,20 @@ class DataBindingFindUsagesTest() {
               setContentView(binding.getRoot());
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
-    // Find usages for layout 1 should have three; both xml files (because they both reference the same id), and the binding class usage.
+    // Find usages for layout 1 should have three; both xml files (because they both reference the
+    // same id), and the binding class usage.
     fixture.configureFromExistingVirtualFile(layoutFile1.virtualFile)
     ApplicationManager.getApplication().invokeAndWait { fixture.moveCaret("@+id/but|ton") }
     val presentationLayout1 = getUsagePresentationAtCursor()
 
     assertThat(presentationLayout1).contains("<root> (3)")
-    assertThat(presentationLayout1).contains(
-      """
+    assertThat(presentationLayout1)
+      .contains(
+        """
       |  Resource declaration in Android resources XML (2)
       |   app (2)
       |    res/layout (2)
@@ -289,18 +317,21 @@ class DataBindingFindUsagesTest() {
       |      7android:id="@+id/button"
       |     activity_main2.xml (1)
       |      7android:id="@+id/button"
-      """.trimMargin()
-    )
-    assertThat(presentationLayout1).contains(
       """
+          .trimMargin()
+      )
+    assertThat(presentationLayout1)
+      .contains(
+        """
       |  Unclassified (1)
       |   app (1)
       |    java.test.db (1)
       |     MainActivity (1)
       |      onCreate(Bundle) (1)
       |       13System.out.println(binding.button.getId());
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
 
     // Find usages for layout 2 should not include the binding class reference
     fixture.configureFromExistingVirtualFile(layoutFile2.virtualFile)
@@ -308,8 +339,9 @@ class DataBindingFindUsagesTest() {
     val presentationLayout2 = getUsagePresentationAtCursor()
 
     assertThat(presentationLayout2).contains("<root> (2)")
-    assertThat(presentationLayout2).contains(
-      """
+    assertThat(presentationLayout2)
+      .contains(
+        """
       |  Resource declaration in Android resources XML (2)
       |   app (2)
       |    res/layout (2)
@@ -317,8 +349,9 @@ class DataBindingFindUsagesTest() {
       |      7android:id="@+id/button"
       |     activity_main2.xml (1)
       |      7android:id="@+id/button"
-      """.trimMargin()
-    )
+      """
+          .trimMargin()
+      )
     assertThat(presentationLayout2).doesNotContain("binding.button")
   }
 
@@ -331,7 +364,10 @@ class DataBindingFindUsagesTest() {
 
     var presentation: String? = null
     ApplicationManager.getApplication().invokeAndWait {
-      presentation = fixture.getUsageViewTreeTextRepresentation((targets.first() as PsiElementUsageTarget).element)
+      presentation =
+        fixture.getUsageViewTreeTextRepresentation(
+          (targets.first() as PsiElementUsageTarget).element
+        )
     }
 
     return presentation!!

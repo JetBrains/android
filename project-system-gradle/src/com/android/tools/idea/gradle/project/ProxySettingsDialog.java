@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.project;
 
 import static com.android.tools.adtui.HtmlLabel.setUpAsHtmlLabel;
-import static com.android.tools.idea.gradle.util.ParametersListUtil.COMMA_LINE_JOINER;
-import static com.android.tools.idea.gradle.util.ParametersListUtil.COMMA_LINE_PARSER;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTPS_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.HTTP_PROXY_TYPE;
 import static com.android.tools.idea.gradle.util.ProxySettings.replaceCommasWithPipesAndClean;
@@ -30,10 +28,15 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.PortField;
 import com.intellij.ui.RawCommandLineEditor;
+import com.intellij.util.Function;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.function.Predicate;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -166,6 +169,11 @@ public class ProxySettingsDialog extends DialogWrapper {
     }
     return needsPassword;
   }
+
+  private static final Function<String, List<String>> COMMA_LINE_PARSER = text ->
+    Arrays.stream(text.split(",")).map(String::trim).filter(Predicate.not(String::isEmpty)).toList();
+  private static final Function<List<String>, String> COMMA_LINE_JOINER = list ->
+    StringUtil.join(list, ", ");
 
   private void createUIComponents() {
     myHttpProxyExceptions = new RawCommandLineEditor(COMMA_LINE_PARSER, COMMA_LINE_JOINER);

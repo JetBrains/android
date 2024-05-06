@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.wizard
 
 import com.android.repository.api.License
 import com.android.repository.api.RepoManager
+import com.android.repository.impl.meta.CommonFactory
 
 /**
  * This class will only exist until we get full SDK manager integration

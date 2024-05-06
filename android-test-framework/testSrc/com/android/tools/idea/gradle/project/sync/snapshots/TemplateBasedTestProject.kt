@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.IntegrationTestEnvironment
@@ -301,7 +301,8 @@ private fun <T : Any> updateXmlDoc(manifestPath: Path, transform: (Document) -> 
 }
 
 private fun TemplateBasedTestProject.resolveTestDataPath(testDataPath: @SystemIndependent String): File {
-  val testDataDirectory = TestUtils.resolveWorkspacePath(FileUtilRt.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
+  val testDataDirectory = TestUtils.resolveWorkspacePath(
+    FileUtilRt.toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
   return testDataDirectory.resolve(FileUtilRt.toSystemDependentName(testDataPath)).toFile()
 }
 

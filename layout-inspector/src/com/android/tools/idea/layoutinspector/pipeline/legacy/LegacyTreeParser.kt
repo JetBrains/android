@@ -103,7 +103,9 @@ object LegacyTreeParser {
     }
 
     override fun supplier() = Supplier<MutableList<String>> { mutableListOf() }
+
     override fun finisher() = Function<MutableList<String>, List<String>> { it.toList() }
+
     override fun combiner() = BinaryOperator<MutableList<String>> { t, u -> t.apply { addAll(u) } }
 
     override fun accumulator() =

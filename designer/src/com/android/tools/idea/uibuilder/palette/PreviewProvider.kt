@@ -17,17 +17,16 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.ide.common.rendering.api.SessionParams
 import com.android.resources.ResourceFolderType
+import com.android.sdklib.AndroidCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
-import com.android.tools.idea.rendering.taskBuilder
+import com.android.tools.idea.rendering.taskBuilderWithHtmlLogger
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.android.tools.rendering.RenderResult
 import com.android.tools.rendering.RenderTask
@@ -44,7 +43,6 @@ import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.StartupUiUtil
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
@@ -55,6 +53,7 @@ import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 import javax.swing.JComponent
 import kotlin.math.min
+import org.jetbrains.android.facet.AndroidFacet
 
 @AndroidCoordinate private const val SHADOW_SIZE = 6
 private const val PREVIEW_PLACEHOLDER_FILE = "preview.xml"
@@ -164,7 +163,7 @@ class PreviewProvider(
     val module = configuration.module ?: return CompletableFuture.completedFuture(null)
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
-    return renderService.taskBuilder(facet, configuration).build()
+    return renderService.taskBuilderWithHtmlLogger(facet, configuration).build()
   }
 
   private fun extractImage(result: RenderResult): BufferedImage? {
@@ -200,12 +199,8 @@ class PreviewProvider(
   private val currentScale: Double?
     get() =
       myDesignSurfaceSupplier.get()?.let {
-        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-          val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
-          return it.scale * it.screenScalingFactor / sceneScale
-        } else {
-          return it.scale * it.screenScalingFactor
-        }
+        val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
+        return it.scale * it.screenScalingFactor / sceneScale
       }
 
   private val sceneView: SceneView?

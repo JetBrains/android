@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.common.scene
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlAttributesHolder
-import com.android.tools.idea.common.scene.target.Target
 import java.awt.Point
 
 /**
@@ -119,9 +118,3 @@ class SnappingInfo(
   /** Helper function for getting centerY */
   @AndroidDpCoordinate val centerY: Int = (top + bottom) / 2
 }
-
-/**
- * This is an interface for marking the Target which is not part of Placeholder architecture. Should
- * be removed after [com.android.tools.idea.flags.StudioFlags.NELE_DRAG_PLACEHOLDER] are removed.
- */
-interface NonPlaceholderDragTarget : Target

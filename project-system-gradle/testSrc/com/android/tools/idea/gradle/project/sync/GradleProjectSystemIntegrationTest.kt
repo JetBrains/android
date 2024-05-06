@@ -219,6 +219,55 @@ data class GradleProjectSystemIntegrationTest(
           )
         },
         GradleProjectSystemIntegrationTest(
+          name = "knownApplicationIds",
+          testProject = TestProject.PSD_SAMPLE_GROOVY
+        ) { project, expect ->
+          val appIds = project.getProjectSystem().getKnownApplicationIds(project)
+          expect.that(appIds).containsExactly(
+            "com.example.dyn_feature.test",
+            "com.example.nested1.deep.test",
+            "com.example.nested1.test",
+            "com.example.nested2.deep.test",
+            "com.example.nested2.test",
+            "com.example.nested2.trans.deep2.test",
+            "com.example.projectwithappandlib.lib.test",
+            "com.example.psd.sample.app.default.test",
+            "com.example.psd.sample.app.defaultSuffix",
+            "com.example.psd.sample.app.defaultSuffix.barSuffix",
+            "com.example.psd.sample.app.defaultSuffix.barSuffix.suffix",
+            "com.example.psd.sample.app.defaultSuffix.suffix",
+            "com.example.psd.sample.app.paid.test",
+            "com.example.psd.sample.app.paid.defaultSuffix",
+            "com.example.psd.sample.app.paid.defaultSuffix.barSuffix",
+            "com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix",
+            "com.example.psd.sample.app.paid.defaultSuffix.suffix",
+          )
+        },
+        GradleProjectSystemIntegrationTest(
+          name = "findModulesWithApplicationId",
+          testProject = TestProject.PSD_SAMPLE_GROOVY
+        ) { project, expect ->
+          fun doLookup(applicationId: String) =
+            project.getProjectSystem().findModulesWithApplicationId(applicationId).map { it.name }
+          expect.that(doLookup("com.example.dyn_feature.test")).containsExactly("project.dyn_feature.androidTest")
+          expect.that(doLookup("com.example.nested1.deep.test")).containsExactly("project.nested1.deep.androidTest")
+          expect.that(doLookup("com.example.nested1.test")).containsExactly("project.nested1.androidTest")
+          expect.that(doLookup("com.example.nested2.deep.test")).containsExactly("project.nested2.deep.androidTest")
+          expect.that(doLookup("com.example.nested2.test")).containsExactly("project.nested2.androidTest")
+          expect.that(doLookup("com.example.nested2.trans.deep2.test")).containsExactly("project.nested2.trans.deep2.androidTest")
+          expect.that(doLookup("com.example.projectwithappandlib.lib.test")).containsExactly("project.lib.androidTest")
+          expect.that(doLookup("com.example.psd.sample.app.default.test")).containsExactly("project.app.androidTest")
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix")).containsExactly("project.app.main")
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix.barSuffix")).containsExactly("project.app.main")
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix.barSuffix.suffix")).containsExactly("project.app.main")
+          expect.that(doLookup("com.example.psd.sample.app.defaultSuffix.suffix")).containsExactly("project.app.main")
+          expect.that(doLookup("com.example.psd.sample.app.paid.test")).containsExactly("project.app.androidTest")
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix")).containsExactly("project.app.main")
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.barSuffix")).containsExactly("project.app.main")
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.barSuffix.suffix")).containsExactly("project.app.main")
+          expect.that(doLookup("com.example.psd.sample.app.paid.defaultSuffix.suffix")).containsExactly("project.app.main")
+        },
+        GradleProjectSystemIntegrationTest(
           name = "getResolvedDependency",
           testProject = TestProject.SIMPLE_APPLICATION
         ) { project, expect ->

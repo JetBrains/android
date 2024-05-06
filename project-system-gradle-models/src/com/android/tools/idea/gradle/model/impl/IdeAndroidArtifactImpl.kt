@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeArtifactName
+import com.android.tools.idea.gradle.model.IdeBytecodeTransformation
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import java.io.File
@@ -45,10 +46,10 @@ data class IdeAndroidArtifactCoreImpl(
   override val abiFilters: Set<String>,
   override val buildInformation: IdeBuildTasksAndOutputInformationImpl,
   override val codeShrinker: CodeShrinker?,
-  override val modelSyncFiles: Collection<IdeModelSyncFileImpl>,
   override val privacySandboxSdkInfo: IdePrivacySandboxSdkInfoImpl?,
   override val desugaredMethodsFiles: Collection<File>,
-  override val generatedClassPaths: Map<String, File>
+  override val generatedClassPaths: Map<String, File>,
+  override val bytecodeTransforms: Collection<IdeBytecodeTransformation>?,
 ) : IdeAndroidArtifactCore
 
 data class IdeAndroidArtifactImpl(

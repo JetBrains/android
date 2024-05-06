@@ -60,8 +60,7 @@ class AppInsightsToolWindowFactoryTest {
     val toolWindow =
       LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
         it.id == "App Quality Insights"
-      }
-        ?: throw AssertionError("Tool window not found")
+      } ?: throw AssertionError("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass)
       .isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)

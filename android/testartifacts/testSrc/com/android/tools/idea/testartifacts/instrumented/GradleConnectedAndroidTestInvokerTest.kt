@@ -39,7 +39,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
@@ -495,7 +495,7 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
-      val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
       listener.onEnd(externalTaskId)
       null
     }
@@ -644,7 +644,7 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
-      val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
       listener.onEnd(externalTaskId)
       null
     }
@@ -674,7 +674,7 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
-      val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
       listener.onEnd(externalTaskId)
       null
     }
@@ -706,7 +706,7 @@ class GradleConnectedAndroidTestInvokerTest {
       any()
     )).then {
       val externalTaskId: ExternalSystemTaskId = it.getArgument(0)
-      val listener: ExternalSystemTaskNotificationListener = it.getArgument(5)
+      val listener: ExternalSystemTaskNotificationListenerAdapter = it.getArgument(5)
       listener.onCancel(externalTaskId)
       listener.onEnd(externalTaskId)
       null

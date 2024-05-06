@@ -28,7 +28,7 @@ import com.android.tools.idea.gradle.run.createSpec
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
-import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.gradle.util.GradleProjectSystemUtil
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.configuration.execution.printlnError
@@ -53,7 +53,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListener
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -122,7 +122,7 @@ class GradleConnectedAndroidTestInvoker(
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
     val executionId = executionEnvironment.executionId
-    val listener = object : ExternalSystemTaskNotificationListener {
+    val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
       val outputLineProcessor = TaskOutputLineProcessor(object : TaskOutputLineProcessor.LineProcessor {
         override fun processLine(line: String) {
           val processedText = taskOutputProcessor.process(line)
@@ -144,8 +144,7 @@ class GradleConnectedAndroidTestInvoker(
         super.onTaskOutput(id, text, stdOut)
         if (stdOut) {
           outputLineProcessor.append(text)
-        }
-        else {
+        } else {
           androidTestSuiteView.printlnError(text)
         }
       }
@@ -202,8 +201,7 @@ class GradleConnectedAndroidTestInvoker(
             retentionConfiguration,
             extraInstrumentationOptions
           )
-        }
-        else {
+        } else {
           // If Gradle task run finished before the test suite starts, show error
           // in the Build output tool window.
           if (!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
@@ -262,15 +260,13 @@ class GradleConnectedAndroidTestInvoker(
           gradleExecutionSettings,
           null,
           listener)
-      }
-      catch (e: ExternalSystemException) {
+      } catch (e: ExternalSystemException) {
         // No-op.
         // If there is a failing test case, the test task finished in failed state
         // that ends up with ExternalSystemException to be thrown on Windows.
         // On Linux and Mac OS, GradleTaskManager doesn't throw ExternalSystemException
         // for failed task and it calls listener.onFailure() callback instead.
-      }
-      finally {
+      } finally {
         // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
         // an ExternalSystemException without calling onEnd() or onFailure() callback.
         // This often happens on Windows.
@@ -290,7 +286,7 @@ class GradleConnectedAndroidTestInvoker(
     retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ): GradleExecutionSettings {
-    return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
+    return GradleProjectSystemUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
       val deviceSerials = devices.joinToString(",") { device ->
         device.serialNumber
@@ -305,21 +301,18 @@ class GradleConnectedAndroidTestInvoker(
       if (retentionConfiguration.enabled == EnableRetention.YES) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=${retentionConfiguration.maxSnapshots}")
         withArgument("-P$RETENTION_COMPRESS_SNAPSHOT_PROPERTY=${retentionConfiguration.compressSnapshots}")
-      }
-      else if (retentionConfiguration.enabled == EnableRetention.NO) {
+      } else if (retentionConfiguration.enabled == EnableRetention.NO) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=0")
       }
 
       // Add a test filter.
       if (testRegex.isNotBlank()) {
         withArgument("-Pandroid.testInstrumentationRunnerArguments.tests_regex=$testRegex")
-      }
-      else if (testPackageName != "" || testClassName != "") {
+      } else if (testPackageName != "" || testClassName != "") {
         var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
         if (testPackageName != "") {
           testTypeArgs += ".package=$testPackageName"
-        }
-        else {
+        } else if (testClassName != "") {
           testTypeArgs += ".class=$testClassName"
           if (testMethodName != "") {
             testTypeArgs += "#$testMethodName"

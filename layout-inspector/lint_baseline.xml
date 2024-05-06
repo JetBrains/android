@@ -1,68 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="5" by="lint 8.1.0-dev">
+<issues format="6" by="lint 8.3.0-dev" type="baseline" client="" dependencies="true" name="" variant="all" version="8.3.0-dev">
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        renderModel.hitRects.firstOrNull()?.bounds?.bounds?.location ?: return null"
+        errorLine2="                    ~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="105"/>
+            line="114"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        renderModel.hitRects.filter { it.node.findFilteredOwner(treeSettings) == selection }"
+        errorLine2="                    ~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/DeviceViewContentPanel.kt"
-            line="333"/>
+            line="396"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="      &quot;layout_flags_DIM_BEHIND&quot; to PropertyDefinition(ATTR_DIM_BEHIND, PropertyType.INT32),"
+        errorLine2="                                                      ~~~~~~~~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/pipeline/legacy/PropertyMapper.kt"
-            line="222"/>
+            line="258"
+            column="55"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    renderModel.hitRects.forEach { renderImages(g, it) }"
+        errorLine2="                ~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
-            line="56"/>
+            line="56"
+            column="17"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    renderModel.hitRects.forEach { viewDrawInfo ->"
+        errorLine2="                ~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
-            line="63"/>
+            line="61"
+            column="17"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="    val bounds = renderModel.hitRects[0].bounds.bounds"
+        errorLine2="                             ~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
-            line="75"/>
+            line="73"
+            column="30"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="        renderModel.hitRects.isNotEmpty() &amp;&amp;"
+        errorLine2="                    ~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
-            line="108"/>
+            line="124"
+            column="21"/>
     </issue>
 
     <issue
         id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
+        message="This method should only be accessed from tests or within private scope"
+        errorLine1="          drawInfo == renderModel.hitRects.first()) ||"
+        errorLine2="                                  ~~~~~~~~">
         <location
             file="src/com/android/tools/idea/layoutinspector/ui/RenderLogic.kt"
-            line="110"/>
+            line="129"
+            column="35"/>
     </issue>
 
 </issues>

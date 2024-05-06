@@ -19,17 +19,21 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import java.util.Collections
 
 /**
- * Manages a cyclic collection of [LogcatMessage]s that is limited by the size in bytes of the payload.
+ * Manages a cyclic collection of [LogcatMessage]s that is limited by the size in bytes of the
+ * payload.
  *
- * The purpose of this backlog is to allow for filtering and re-rendering of the Logcat when needed, for example, when formatting changes
- * are made.
+ * The purpose of this backlog is to allow for filtering and re-rendering of the Logcat when needed,
+ * for example, when formatting changes are made.
  *
- * The goal is to have this backlog contain at least as many messages as there are displayed in the Logcat window which is also governed by
- * a cyclic buffer size. In order to achieve this, the size of a LogcatMessage is 'rounded down' to [LogcatMessage.message] which is less
- * than the minimal size required to render a message. Therefore, the backlog will contain more messages than the actual displayed window,
- * even if no filters are applied and the formatting options are at their minimum.
+ * The goal is to have this backlog contain at least as many messages as there are displayed in the
+ * Logcat window which is also governed by a cyclic buffer size. In order to achieve this, the size
+ * of a LogcatMessage is 'rounded down' to [LogcatMessage.message] which is less than the minimal
+ * size required to render a message. Therefore, the backlog will contain more messages than the
+ * actual displayed window, even if no filters are applied and the formatting options are at their
+ * minimum.
  *
- * TODO(aalbert): Maybe pass in the current formatting options setting and calculate the size more accurately.
+ * TODO(aalbert): Maybe pass in the current formatting options setting and calculate the size more
+ *   accurately.
  */
 internal class MessageBacklog(private var maxSize: Int) {
 
@@ -48,20 +52,22 @@ internal class MessageBacklog(private var maxSize: Int) {
     val addedSize = collection.sumOf { it.message.length }
 
     // We split into 2 flows.
-    //  If the new messages are larger than maxSize already, we clear the backlog and only add the messages that will fit using a sublist.
+    //  If the new messages are larger than maxSize already, we clear the backlog and only add the
+    // messages that will fit using a sublist.
     //  Otherwise, we first remove the messages that would overflow and then add the new ones.
-    // It would be simpler to just add the messages and then remove the overflowing ones but this way is slightly more efficient in terms of
+    // It would be simpler to just add the messages and then remove the overflowing ones but this
+    // way is slightly more efficient in terms of
     // memory thrashing.
     if (addedSize >= maxSize) {
       _messages.clear()
       size = addedSize
-      val i = collection.indexOfFirst {
-        size -= it.message.length
-        size <= maxSize
-      }
+      val i =
+        collection.indexOfFirst {
+          size -= it.message.length
+          size <= maxSize
+        }
       _messages.addAll(collection.subList(i + 1, collection.size))
-    }
-    else {
+    } else {
       size += addedSize
       while (size > maxSize) {
         size -= _messages.removeFirst().message.length
@@ -77,7 +83,6 @@ internal class MessageBacklog(private var maxSize: Int) {
       }
     }
     maxSize = newSize
-
   }
 
   fun clear() {

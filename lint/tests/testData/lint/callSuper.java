@@ -2,6 +2,9 @@ package p1.p2;
 
 import android.support.annotation.CallSuper;
 
+import java.util.List;
+import java.util.Map;
+
 @SuppressWarnings("UnusedDeclaration")
 public class CallSuperTest {
   private static class Child extends Parent {

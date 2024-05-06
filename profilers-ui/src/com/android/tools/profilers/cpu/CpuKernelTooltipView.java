@@ -22,7 +22,7 @@ import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -48,13 +48,13 @@ public class CpuKernelTooltipView extends TooltipView {
     super(tooltip.getTimeline());
     myTooltip = tooltip;
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    myContent = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(8)));
+    myContent = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(8)));
     myThread = createTooltipLabel();
     myProcess = createTooltipLabel();
     myDuration = createTooltipLabel();
     myCpu = createTooltipLabel();
     // TODO(b/109661512): Move vgap scale into TabularLayout
-    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUIScale.scale(1)));
+    myUnavailableDetails = new JPanel(new TabularLayout("*").setVGap(JBUI.scale(1)));
     tooltip.addDependency(this).onChange(CpuKernelTooltip.Aspect.CPU_KERNEL_THREAD_SLICE_INFO, this::threadSliceInfoChanged);
   }
 

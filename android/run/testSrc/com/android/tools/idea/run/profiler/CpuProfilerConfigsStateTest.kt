@@ -33,6 +33,113 @@ class CpuProfilerConfigsStateTest {
   }
 
   @Test
+  fun testTaskConfigWhenItsEmpty() {
+    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
+    // Default task configs added when task config is empty
+    assertThat(result.size).isEqualTo(5)
+    assertThat(result[0].name).isEqualTo("Callstack Sample")
+    assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
+    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+    assertThat(result[3].name).isEqualTo("Native Allocations")
+    assertThat(result[4].name).isEqualTo("System Trace")
+  }
+
+  @Test
+  fun testTaskConfigWhenNotEmpty() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
+    myConfigsState.taskConfigs = configsToSave
+    // Verify set task configs
+    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault;
+    assertThat(result.size).isEqualTo(3)
+    assertThat(result[0].name).isEqualTo("HelloTest1")
+    assertThat(result[1].name).isEqualTo("HelloTest2")
+    assertThat(result[2].name).isEqualTo("HelloTest3")
+  }
+
+  @Test
+  fun testTaskConfigAfterEmptyAssign() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    // Set task configs to be empty
+    myConfigsState.taskConfigs = configsToSave
+    // Verify task config
+    val result = myConfigsState.savedTaskConfigsIfPresentOrDefault
+    assertThat(result.size).isEqualTo(5)
+    assertThat(result[0].name).isEqualTo("Callstack Sample")
+    assertThat(result[1].name).isEqualTo("Java/Kotlin Method Trace")
+    assertThat(result[2].name).isEqualTo("Java/Kotlin Method Sample (legacy)")
+    assertThat(result[3].name).isEqualTo("Native Allocations")
+    assertThat(result[4].name).isEqualTo("System Trace")
+  }
+
+  @Test
+  fun testTaskConfigSaveWillSetNewValues() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
+    configsToSave.add(CpuProfilerConfig("HelloTest5", CpuProfilerConfig.Technology.SYSTEM_TRACE))
+    myConfigsState.taskConfigs = configsToSave
+    var result = myConfigsState.savedTaskConfigsIfPresentOrDefault
+    assertThat(result.size).isEqualTo(5)
+    assertThat(result[0].name).isEqualTo("HelloTest1")
+    assertThat(result[1].name).isEqualTo("HelloTest2")
+    assertThat(result[2].name).isEqualTo("HelloTest3")
+    assertThat(result[3].name).isEqualTo("HelloTest4")
+    assertThat(result[4].name).isEqualTo("HelloTest5")
+
+    val configsToSaveNew: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSaveNew.add(CpuProfilerConfig("HelloTest10", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    // Task config is reassigned
+    myConfigsState.taskConfigs = configsToSaveNew
+    result = myConfigsState.savedTaskConfigsIfPresentOrDefault
+    // Config reflects latest update
+    assertThat(result.size).isEqualTo(1)
+    assertThat(result[0].name).isEqualTo("HelloTest10")
+  }
+
+  @Test
+  fun testRetrieveTaskConfigNativeAllocationUpdatedValue() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig(CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.SAMPLED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest4", CpuProfilerConfig.Technology.SYSTEM_TRACE))
+    myConfigsState.taskConfigs = configsToSave
+    myConfigsState.taskConfigs[2].samplingRateBytes = 99912
+    var result = myConfigsState.savedTaskConfigsIfPresentOrDefault
+    assertThat(result.size).isEqualTo(5)
+    assertThat(result[0].name).isEqualTo("HelloTest1")
+    assertThat(result[1].name).isEqualTo("HelloTest2")
+    assertThat(result[2].name).isEqualTo("Native Allocations")
+    assertThat(result[3].name).isEqualTo("HelloTest3")
+    assertThat(result[4].name).isEqualTo("HelloTest4")
+
+    assertThat(myConfigsState.nativeAllocationsConfigForTaskConfig.samplingRateBytes).isEqualTo(99912)
+  }
+
+  @Test
+  fun testRetrieveTaskConfigNativeAllocationDefaultValue() {
+    val configsToSave: ArrayList<CpuProfilerConfig> = ArrayList()
+    configsToSave.add(CpuProfilerConfig("HelloTest1", CpuProfilerConfig.Technology.INSTRUMENTED_JAVA))
+    configsToSave.add(CpuProfilerConfig("HelloTest2", CpuProfilerConfig.Technology.SAMPLED_NATIVE))
+    configsToSave.add(CpuProfilerConfig("HelloTest3", CpuProfilerConfig.Technology.NATIVE_ALLOCATIONS))
+    myConfigsState.taskConfigs = configsToSave
+    var result = myConfigsState.savedTaskConfigsIfPresentOrDefault
+    assertThat(result.size).isEqualTo(3)
+    assertThat(result[0].name).isEqualTo("HelloTest1")
+    assertThat(result[1].name).isEqualTo("HelloTest2")
+    assertThat(result[2].name).isEqualTo("HelloTest3")
+
+    // 2048 is the default samplingRateBytes value for native memory
+    assertThat(myConfigsState.nativeAllocationsConfigForTaskConfig.samplingRateBytes).isEqualTo(2048)
+  }
+
+  @Test
   fun getConfigByNameFromDefaultConfigs() {
     assertThat(myConfigsState.getConfigByName(CpuProfilerConfig.Technology.SAMPLED_JAVA.getName())?.technology)
       .isEqualTo(CpuProfilerConfig.Technology.SAMPLED_JAVA)

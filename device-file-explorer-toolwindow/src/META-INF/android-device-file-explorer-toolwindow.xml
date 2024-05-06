@@ -28,6 +28,7 @@
   </actions>
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device File Explorer" displayType="BALLOON"/>
+    <applicationService serviceImplementation="com.android.tools.idea.file.explorer.toolwindow.options.DeviceFileExplorerSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemService"/>
     <projectService serviceInterface="com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerFileManager"
                     serviceImplementation="com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerFileManagerImpl" />

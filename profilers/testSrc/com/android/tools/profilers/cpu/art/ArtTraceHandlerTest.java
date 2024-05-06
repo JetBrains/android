@@ -15,19 +15,19 @@
  */
 package com.android.tools.profilers.cpu.art;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils;
 import com.android.tools.profilers.cpu.CpuThreadInfo;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class ArtTraceHandlerTest {
   @Test

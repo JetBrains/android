@@ -13,6 +13,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+        "//tools/base/environment-services:studio.intellij.android.environment-services[module]",
     ],
 )
 
@@ -22,11 +23,12 @@ java_library(
     srcs = glob(
         ["src/**/*.java"],
     ),
+    resource_strip_prefix = "tools/adt/idea/layoutlib-loader/resources",
     resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/base/common:tools.common",
+        "//tools/base/environment-services:tools.environment-services",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/sdklib:tools.sdklib",

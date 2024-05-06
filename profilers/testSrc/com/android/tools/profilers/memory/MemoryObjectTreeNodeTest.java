@@ -15,18 +15,16 @@
  */
 package com.android.tools.profilers.memory;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import com.android.tools.profilers.memory.adapters.MemoryObject;
-import java.util.Comparator;
-import java.util.Enumeration;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
+import java.util.Comparator;
+import java.util.Enumeration;
+
+import static org.junit.Assert.*;
 
 public class MemoryObjectTreeNodeTest {
 

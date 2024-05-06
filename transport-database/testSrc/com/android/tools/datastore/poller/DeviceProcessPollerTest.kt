@@ -15,7 +15,7 @@
  */
 package com.android.tools.datastore.poller
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.datastore.DataStoreDatabase
 import com.android.tools.datastore.DataStorePollerTest
 import com.android.tools.datastore.DataStoreService

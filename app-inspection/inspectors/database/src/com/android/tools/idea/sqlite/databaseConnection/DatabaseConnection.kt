@@ -28,6 +28,7 @@ import com.intellij.openapi.Disposable
  */
 interface DatabaseConnection : Disposable {
   fun close(): ListenableFuture<Unit>
+
   fun readSchema(): ListenableFuture<SqliteSchema>
 
   /**

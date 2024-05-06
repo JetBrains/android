@@ -25,8 +25,8 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
-import kotlin.io.path.inputStream
 import kotlin.io.path.name
+import kotlin.io.path.inputStream
 import kotlin.io.path.outputStream
 
 private val eof = LogcatMessage(SYSTEM_HEADER, "EOF")
@@ -35,8 +35,9 @@ private val logger = Logger.getInstance(MessagesFile::class.java)
 /**
  * Manages a temporary file of [LogcatMessage]s
  *
- * The amount of data stored in the file(s) is capped by [maxSizeBytes]. To make things simple, rather than deleting entries from the start of
- * the file when the size is exceeded, we keep a rolling set of 2 files. This results in us actually keeping up to `2*maxSize` which is OK.
+ * The amount of data stored in the file(s) is capped by [maxSizeBytes]. To make things simple,
+ * rather than deleting entries from the start of the file when the size is exceeded, we keep a
+ * rolling set of 2 files. This results in us actually keeping up to `2*maxSize` which is OK.
  */
 internal class MessagesFile(
   private val name: String,
@@ -48,13 +49,12 @@ internal class MessagesFile(
   private var outputStream: ObjectOutputStream? = null
   private var sizeBytes = 0
 
-  /**
-   * Initialize the temporary file
-   */
+  /** Initialize the temporary file */
   fun initialize() {
-    file = tempFileFactory.createTempFile("studio-$name", ".bin").also {
-      outputStream = ObjectOutputStream(it.outputStream())
-    }
+    file =
+      tempFileFactory.createTempFile("studio-$name", ".bin").also {
+        outputStream = ObjectOutputStream(it.outputStream())
+      }
     sizeBytes = 0
     logger.debug { "Created message file ${file?.name}" }
   }
@@ -62,7 +62,8 @@ internal class MessagesFile(
   /**
    * Write messages to the tmp file.
    *
-   * When the file exceeds a certain size, close it and create a new one. We always keep the last 2 files and delete the rest.
+   * When the file exceeds a certain size, close it and create a new one. We always keep the last 2
+   * files and delete the rest.
    */
   fun appendMessages(messages: List<LogcatMessage>) {
     if (sizeBytes > maxSizeBytes) {
@@ -73,7 +74,8 @@ internal class MessagesFile(
       initialize()
     }
 
-    val stream = outputStream ?: throw IllegalStateException("message file for $name is not initialized")
+    val stream =
+      outputStream ?: throw IllegalStateException("message file for $name is not initialized")
     logger.trace { "Appending ${messages.size} messages to file ${file?.name}" }
     messages.forEach {
       sizeBytes += it.message.length
@@ -81,21 +83,20 @@ internal class MessagesFile(
     }
   }
 
-  /**
-   * Load messages from the 2 files and delete them.
-   */
+  /** Load messages from the 2 files and delete them. */
   fun loadMessagesAndDelete(): List<LogcatMessage> {
     outputStream?.writeEofAndClose()
     return buildList {
       addAll(previousFile?.readMessages() ?: emptyList())
-      addAll(file?.readMessages() ?: throw IllegalStateException("message file for $name is not initialized"))
+      addAll(
+        file?.readMessages()
+          ?: throw IllegalStateException("message file for $name is not initialized")
+      )
       delete()
     }
   }
 
-  /**
-   * Delete all files and clean up
-   */
+  /** Delete all files and clean up */
   fun delete() {
     file.delete()
     previousFile.delete()
@@ -107,7 +108,7 @@ internal class MessagesFile(
 }
 
 private fun Path.readMessages(): List<LogcatMessage> {
-  ObjectInputStream(inputStream()).use {
+  ObjectInputStream(this.inputStream()).use {
     val messages = buildList {
       while (true) {
         val item = it.readLogcatMessage()

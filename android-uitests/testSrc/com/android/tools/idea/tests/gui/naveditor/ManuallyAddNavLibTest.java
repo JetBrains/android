@@ -15,28 +15,51 @@
  */
 package com.android.tools.idea.tests.gui.naveditor;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.FailedToAddDependencyDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
 import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import static com.google.common.truth.Truth.assertThat;
 
 
 @RunWith(GuiTestRemoteRunner.class)
 public class ManuallyAddNavLibTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
+  protected static final String BASIC_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  protected static final String APP_NAME = "App";
+  protected static final String PACKAGE_NAME = "android.com.app";
+  protected static final int MIN_SDK_API = SdkVersionInfo.RECOMMENDED_MIN_SDK_VERSION;
+  private IdeFrameFixture ideFrame;
+  private EditorFixture myEditorFixture;
 
+  private final static String ADD_DEPENDENCIES = "    implementation(\"androidx.navigation:navigation-fragment-ktx:2.6.0\")\n" +
+                                                 "    implementation(\"androidx.navigation:navigation-ui-ktx:2.6.0\")\n" +
+                                                 "    implementation(platform(\"org.jetbrains.kotlin:kotlin-bom:1.8.0\"))\n";
+  @Before
+  public void setUp() throws Exception {
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
+    WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame = guiTest.ideFrame();
+    myEditorFixture = ideFrame.getEditor();
+  }
   /**
    * Verifies Creating Navigation Graph
    * <p>
@@ -69,8 +92,7 @@ public class ManuallyAddNavLibTest {
   @Test
   @RunIn(TestGroup.FAST_BAZEL)
   public void manuallyAddNavLibrary() throws Exception {
-    guiTest.importSimpleApplication()
-      .getProjectView()
+    ideFrame.getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromContextualMenu(CreateResourceFileDialogFixture::find, "New", "Android Resource File")
@@ -82,20 +104,17 @@ public class ManuallyAddNavLibTest {
     FailedToAddDependencyDialogFixture failedToAddDependency = FailedToAddDependencyDialogFixture.find(guiTest.ideFrame());
     failedToAddDependency.clickOk();
 
-    String contents = guiTest.ideFrame().getEditor()
-      .open("app/build.gradle")
-      .getCurrentFileContents();
-
+    String contents = guiTest.getProjectFileText("app/build.gradle.kts");
     assertThat(contents.contains("androidx.navigation:navigation-fragment")).isFalse();
 
-    guiTest.ideFrame().getEditor()
-      .open("app/build.gradle")
-      .moveBetween("dependencies {", "")
-      .enterText("\n    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'\n")
-      .enterText("\n    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'\n");
 
-    guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(120));
+    myEditorFixture.open("app/build.gradle.kts");
+    myEditorFixture.moveBetween("dependencies {\n\n", "    ");
+    myEditorFixture.moveBetween("dependencies {\n\n", "    "); //Performing twice to reduce the flakiness
+    myEditorFixture.pasteText(ADD_DEPENDENCIES);
 
-    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(300));
+
+    assertThat(ideFrame.invokeProjectMake(Wait.seconds(360)).isBuildSuccessful()).isTrue();
   }
 }

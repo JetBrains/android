@@ -26,6 +26,9 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
   var isRecording = false
     private set
 
+  var isLoading = false
+    private set
+
   var selectedOption: RecordingOption? = null
     @VisibleForTesting set(newOption) {
       if (newOption != field) {
@@ -35,6 +38,7 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
       }
     }
 
+  // 'builtInOptionList' contains task configurations when task-based ux is enabled and default configurations when disabled.
   private val builtInOptionList = mutableListOf<RecordingOption>()
   val builtInOptions: List<RecordingOption> get() = Collections.unmodifiableList(builtInOptionList)
   val customConfigurationModel: MutableComboBoxModel<RecordingOption> = ConfigModel(emptyArray())
@@ -107,6 +111,11 @@ class RecordingOptionsModel: AspectModel<RecordingOptionsModel.Aspect>() {
       isRecording = false
       changed(Aspect.RECORDING_CHANGED)
     }
+  }
+
+  fun setLoading(value: Boolean) {
+    isLoading = value
+    changed(Aspect.RECORDING_CHANGED)
   }
 
   fun addBuiltInOptions(vararg options: RecordingOption) {

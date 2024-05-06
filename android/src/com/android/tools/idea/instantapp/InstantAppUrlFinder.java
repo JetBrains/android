@@ -15,15 +15,7 @@
  */
 package com.android.tools.idea.instantapp;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_LITERAL;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_PREFIX;
-import static com.android.tools.lint.checks.AndroidPatternMatcher.PATTERN_SIMPLE_GLOB;
-import static com.android.xml.AndroidManifest.NODE_DATA;
-import static com.android.xml.AndroidManifest.NODE_INTENT;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
@@ -32,19 +24,26 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.lint.checks.AndroidPatternMatcher;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.TreeMultimap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.tools.lint.checks.AndroidPatternMatcher.*;
+import static com.android.xml.AndroidManifest.NODE_DATA;
+import static com.android.xml.AndroidManifest.NODE_INTENT;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 public final class InstantAppUrlFinder {
 
@@ -323,7 +322,7 @@ public final class InstantAppUrlFinder {
 
     private AttributesResolver(@NotNull Module module) {
       List<VirtualFile> manifestFiles = MergedManifestManager.getSnapshot(module).getManifestFiles();
-      myResourceResolver = manifestFiles == null || manifestFiles.isEmpty()
+      myResourceResolver = manifestFiles.isEmpty()
                            ? null
                            : ConfigurationManager.getOrCreateInstance(module).getConfiguration(manifestFiles.get(0)).getResourceResolver();
     }

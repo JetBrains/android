@@ -19,17 +19,18 @@
 package com.android.tools.idea.welcome.config
 
 import com.android.io.CancellableFileIo
+import com.google.common.annotations.VisibleForTesting
 import com.android.prefs.AndroidLocationsException
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.ui.validation.validators.PathValidator
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
 import com.google.common.base.MoreObjects
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.io.FileUtil
+
 import java.io.File
 import java.io.IOException
 

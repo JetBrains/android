@@ -58,7 +58,7 @@ class NoncacheableTasksAnalyzerTest {
   }
 
   @Test
-  @Ignore("b/144419681")
+  @Ignore("b/303118112")
   fun testNoncacheableTasksAnalyzer() {
     runTest {
       invokeTasks("assembleDebug")
@@ -76,7 +76,7 @@ class NoncacheableTasksAnalyzerTest {
   }
 
   @Test
-  @Ignore("b/144419681, b/179137380")
+  @Ignore("b/303118112")
   fun testNoncacheableTasksAnalyzerWithSuppressedWarning() {
     runTest {
       BuildAttributionWarningsFilter.getInstance(project).suppressNoncacheableTaskWarning("org.gradle.api.DefaultTask",

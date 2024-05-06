@@ -28,8 +28,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.projectsystem.ProjectSystemToken
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
+import com.android.tools.idea.projectsystem.Token
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
@@ -57,6 +59,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
@@ -69,7 +73,7 @@ import java.util.IdentityHashMap
  * This implementation of AndroidProjectSystem is used for projects where the build system is not
  * recognized. It provides a minimal set of capabilities and opts out of most optional behaviors.
  */
-class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
+class DefaultProjectSystem(override val project: Project) : AndroidProjectSystem, AndroidProjectSystemProvider {
 
   override fun getBootClasspath(module: Module): Collection<String> {
     throw IllegalStateException("Not implemented")
@@ -134,7 +138,7 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     }
   }
 
-  override fun validateRunConfiguration(runConfiguration: RunConfiguration): List<ValidationError> {
+  override fun validateRunConfiguration(runConfiguration: RunConfiguration, quickFixCallback: Runnable?): List<ValidationError> {
     return emptyList()
   }
 
@@ -191,4 +195,24 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     }
     return false
   }
+
+  private val AndroidFacet.applicationId: String?
+    get() = if (properties.USE_CUSTOM_MANIFEST_PACKAGE) {
+      properties.CUSTOM_MANIFEST_PACKAGE
+    } else {
+      getModuleSystem().getPackageName()?.takeIf { it.isNotEmpty() }
+    }
+
+  override fun getKnownApplicationIds(): Set<String> =
+    ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence().mapNotNull { it.applicationId }.toImmutableSet()
+
+  override fun findModulesWithApplicationId(applicationId: String): Collection<Module> =
+    ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence()
+      .filter { applicationId == it.applicationId }
+      .map { it.module }
+      .toImmutableList()
+}
+
+interface DefaultToken: ProjectSystemToken {
+  override fun isApplicable(projectSystem: AndroidProjectSystem): Boolean = projectSystem is DefaultProjectSystem
 }

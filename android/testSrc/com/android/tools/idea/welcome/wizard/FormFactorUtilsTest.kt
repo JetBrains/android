@@ -17,8 +17,9 @@ package com.android.tools.idea.welcome.wizard
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBLabel
-import org.junit.Assert.assertNotNull
 import org.junit.Test
+
+import org.junit.Assert.assertNotNull
 
 class FormFactorUtilsTest {
   @Test

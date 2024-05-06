@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutlib;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
-import com.intellij.openapi.diagnostic.Logger;
+import com.android.tools.environment.Logger;
 
 public class LayoutLogWrapper implements ILayoutLog {
   private final Logger myLog;

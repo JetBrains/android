@@ -530,8 +530,21 @@ def _stamp(ctx, args, srcs, src, out):
         outputs = [out],
         executable = ctx.executable._stamper,
         arguments = [args],
-        progress_message = "Stamping %s " % src.basename,
+        progress_message = "Stamping %s" % src.basename,
         mnemonic = "stamper",
+    )
+
+def _stamp_exe(ctx, extra, srcs, src, out):
+    args = ctx.actions.args()
+    args.add(src)
+    args.add(out)
+    ctx.actions.run(
+        inputs = srcs + [src],
+        outputs = [out],
+        executable = ctx.executable._patch_exe,
+        arguments = [args, extra],
+        progress_message = "Patching exe %s" % src.basename,
+        mnemonic = "patchexe",
     )
 
 def _declare_stamped_file(ctx, files, platform, path):
@@ -602,20 +615,58 @@ def _stamp_platform(ctx, platform, platform_files):
     args.add("--stamp_app_info")
     _stamp(ctx, args, [ctx.version_file, stamped_build_txt], resources_jar, stamped_resources_jar)
 
+    idea_properties, stamped_idea_properties = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/idea.properties")
+    args = ctx.actions.args()
+    args.add("--replace_selector", ctx.attr.selector)
+    _stamp(ctx, args, [], idea_properties, stamped_idea_properties)
+
+    if platform == LINUX:
+        studio_sh, stamped_studio_sh = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/studio.sh")
+        args = ctx.actions.args()
+        args.add("--replace_selector", ctx.attr.selector)
+        _stamp(ctx, args, [], studio_sh, stamped_studio_sh)
+
+        game_tools_sh, stamped_game_tools_sh = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/game-tools.sh")
+        args = ctx.actions.args()
+        args.add("--replace_selector", ctx.attr.selector)
+        _stamp(ctx, args, [], game_tools_sh, stamped_game_tools_sh)
+
+        install_txt, stamped_install_txt = _declare_stamped_file(ctx, ret, platform, platform.base_path + "Install-Linux-tar.txt")
+        args = ctx.actions.args()
+        args.add("--replace_selector", ctx.attr.selector)
+        _stamp(ctx, args, [], install_txt, stamped_install_txt)
+
     if platform == MAC or platform == MAC_ARM:
         info_plist, stamped_info_plist = _declare_stamped_file(ctx, ret, platform, platform.base_path + "Info.plist")
         args = ctx.actions.args()
         args.add("--info_file", ctx.info_file)
         args.add("--replace_build_number")
+        args.add("--replace_selector", ctx.attr.selector)
         _stamp(ctx, args, [ctx.info_file], info_plist, stamped_info_plist)
 
-    if platform != WIN:
-        product_info_json, stamped_product_info_json = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "product-info.json")
+    if platform == WIN:
+        studio_exe, stamped_studio_exe = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/studio64.exe")
         args = ctx.actions.args()
-        args.add("--info_file", ctx.info_file)
-        args.add("--build_txt", stamped_build_txt)
-        args.add("--stamp_product_info")
-        _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
+        args.add_all(["--replace_resource", "_ANDROID_STUDIO_SYSTEM_SELECTOR_", ctx.attr.selector])
+        _stamp_exe(ctx, args, [], studio_exe, stamped_studio_exe)
+
+        studio_bat, stamped_studio_bat = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/studio.bat")
+        args = ctx.actions.args()
+        args.add("--replace_selector", ctx.attr.selector)
+        _stamp(ctx, args, [], studio_bat, stamped_studio_bat)
+
+        game_tools_bat, stamped_game_tools_bat = _declare_stamped_file(ctx, ret, platform, platform.base_path + "bin/game-tools.bat")
+        args = ctx.actions.args()
+        args.add("--replace_selector", ctx.attr.selector)
+        _stamp(ctx, args, [], game_tools_bat, stamped_game_tools_bat)
+
+    product_info_json, stamped_product_info_json = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "product-info.json")
+    args = ctx.actions.args()
+    args.add("--info_file", ctx.info_file)
+    args.add("--build_txt", stamped_build_txt)
+    args.add("--stamp_product_info")
+    args.add("--replace_selector", ctx.attr.selector)
+    _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
 
     return ret
 
@@ -655,6 +706,12 @@ def _get_external_attributes(all_files):
             attrs[zip_path] = "644"
         if zip_path.endswith(".app/Contents/Info.plist"):
             attrs[zip_path] = "664"
+        if (zip_path.endswith("/bin/studio.sh") or
+            zip_path.endswith("/bin/game-tools.sh") or
+            zip_path.endswith("/bin/studio64.exe") or
+            zip_path.endswith("/bin/studio.bat") or
+            zip_path.endswith("/bin/game-tools.bat")):
+            attrs[zip_path] = "775"
     return attrs
 
 def _android_studio_os(ctx, platform, out):
@@ -814,6 +871,7 @@ _android_studio = rule(
         "plugins": attr.label_list(providers = [PluginInfo]),
         "vm_options": attr.string_list(),
         "properties": attr.string_list(),
+        "selector": attr.string(mandatory = True),
         "application_icon": attr.label(providers = [AppIconInfo]),
         "searchable_options": attr.label(),
         "version_code_name": attr.string(),
@@ -854,8 +912,13 @@ _android_studio = rule(
             cfg = "host",
             executable = True,
         ),
-        "_replace_exe_icon": attr.label(
-            default = Label("//tools/vendor/google/windows-exe-patcher:replace-exe-icon"),
+        "_patch_exe": attr.label(
+            default = Label("//tools/vendor/google/windows-exe-patcher:patch-exe"),
+            cfg = "exec",
+            executable = True,
+        ),
+        "_update_resources_jar": attr.label(
+            default = Label("//tools/adt/idea/studio/rules:update_resources_jar"),
             cfg = "exec",
             executable = True,
         ),

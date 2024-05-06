@@ -78,6 +78,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Before
   public void setUp() {
+    myServices.enableTaskBasedUx(false);
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
@@ -121,6 +122,24 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getRecordingModel().getBuiltInOptions()).hasSize(defaultConfigurations.size());
     for (int i = 0; i < defaultConfigurations.size(); i++) {
       assertThat(myStage.getRecordingModel().getBuiltInOptions().get(i).getTitle()).isEqualTo(defaultConfigurations.get(i).getName());
+    }
+  }
+
+  @Test
+  public void recordingPanelHasTaskConfigurations() {
+    myServices.enableTaskBasedUx(true);
+    StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myServices, myTimer);
+    profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
+    myStage = new CpuProfilerStage(profilers);
+    myStage.getStudioProfilers().setStage(myStage);
+    assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
+    // Get task configurations (configurations for task-based ux).
+    List<ProfilingConfiguration> taskProfilingConfigurations = myStage.getProfilerConfigModel().getTaskProfilingConfigurations();
+    // Check if recording options size is equal to size of task configurations.
+    // 'builtInOptionList' contains task configurations when task-based ux is enabled and default configurations when disabled.
+    assertThat(myStage.getRecordingModel().getBuiltInOptions()).hasSize(taskProfilingConfigurations.size());
+    for (int i = 0; i < taskProfilingConfigurations.size(); i++) {
+      assertThat(myStage.getRecordingModel().getBuiltInOptions().get(i).getTitle()).isEqualTo(taskProfilingConfigurations.get(i).getName());
     }
   }
 
@@ -526,7 +545,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(newStage.getProfilerConfigModel().getProfilingConfiguration()).isEqualTo(testConfig);
   }
 
-  @Ignore
+  @Ignore("b/303111904")
   @Test
   public void setCaptureWhileCapturingShouldParseAndContinueInCapturingState() throws InterruptedException, IOException {
     // First generate a finished capture that we can select
@@ -548,7 +567,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureParser().isParsing()).isFalse();
   }
 
-  @Ignore
+  @Ignore("b/303111904")
   @Test
   public void setCaptureWhileIdleShouldParseAndStayInIdleState() throws InterruptedException, IOException {
     // First generate a finished capture that we can select
@@ -734,10 +753,10 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void testHasUserUsedCapture() throws InterruptedException {
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(0);
+    assertThat(myStage.getInstructionsEaseOutModel().getRatioComplete()).isWithin(0).of(0);
     assertThat(myStage.hasUserUsedCpuCapture()).isFalse();
     CpuProfilerTestUtils.startCapturing(myStage, myTransportService, true);
-    assertThat(myStage.getInstructionsEaseOutModel().getPercentageComplete()).isWithin(0).of(1);
+    assertThat(myStage.getInstructionsEaseOutModel().getRatioComplete()).isWithin(0).of(1);
     assertThat(myStage.hasUserUsedCpuCapture()).isTrue();
   }
 
@@ -760,7 +779,26 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore("b/209673164")
+  public void testStartCpuRecording() {
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+    myStage.startCpuRecording();
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStopCpuRecording() throws InterruptedException {
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+    // We use the CpuProfilerTestUtils.startCapturing() method because it generates a successful trace start event for us, allowing us
+    // to test the stop of the CPU recording.
+    CpuProfilerTestUtils.startCapturing(myStage, myTransportService, true);
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+    myStage.stopCpuRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+  }
+
+  @Test
+  @Ignore("b/303111904")
   public void captureParsingFailureShowsErrorBalloon() throws InterruptedException, IOException {
     ProfilingConfiguration config = new ArtSampledConfiguration("My Config");
     myStage.getProfilerConfigModel().setProfilingConfiguration(config);

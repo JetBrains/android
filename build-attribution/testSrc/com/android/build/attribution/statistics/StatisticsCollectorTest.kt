@@ -15,9 +15,9 @@
  */
 package com.android.build.attribution.statistics
 
-import com.android.build.attribution.BuildAnalysisResults
 import com.android.build.attribution.BuildAnalyzerSettings
 import com.android.build.attribution.BuildAnalyzerStorageManager
+import com.android.build.attribution.HistoricBuildAnalysisResults
 import com.android.build.attribution.storeBuildAnalyzerResultData
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -62,7 +62,7 @@ class StatisticsCollectorTest {
 
 class SimpleSingleStatisticsCollector : SingleStatisticsCollector() {
   val resultsIds = mutableListOf<String>()
-  override fun accept(t: BuildAnalysisResults) {
-    resultsIds.add(t.getBuildSessionID())
+  override fun accept(t: HistoricBuildAnalysisResults) {
+    resultsIds.add(t.buildSessionID)
   }
 }

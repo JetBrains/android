@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
+import static com.android.tools.idea.smali.SmaliIcons.SmaliFile;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 

@@ -18,13 +18,14 @@ package com.android.tools.idea.adb
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.ShellCollector
 import com.android.adblib.TextShellCollector
+import com.android.adblib.ddmlibcompatibility.debugging.executeShellCommand
 import com.android.adblib.selector
 import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.ddmlib.TimeoutException
+import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.adblib.ddmlibcompatibility.defaultDdmTimeoutMillis
-import com.android.tools.idea.adblib.ddmlibcompatibility.executeShellCommand
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.flow.Flow
@@ -97,7 +98,7 @@ abstract class AdbShellCommandsUtil {
     @JvmStatic
     fun create(device: IDevice) = object : AdbShellCommandsUtil() {
       override fun <T> executeCommandImpl(command: String, receiver: ShellCollector<T>): Flow<T> =
-        executeShellCommand(device, command, receiver)
+        executeShellCommand(AdbLibApplicationService.instance.session, device, command, receiver)
     }
 
     @JvmStatic

@@ -40,10 +40,6 @@ Task                          : :app:createDebugCompatibleScreenManifests
     PrimaryTaskCategory           : MANIFEST
     SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
-Task                          : :app:createDebugVariantModel
-    TaskType                      : com.android.build.gradle.tasks.sync.LibraryVariantModelTask
-    PrimaryTaskCategory           : SYNC
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:expandDebugArtProfileWildcards
     TaskType                      : com.android.build.gradle.internal.tasks.ExpandArtProfileWildcardsTask
     PrimaryTaskCategory           : ART_PROFILE
@@ -66,8 +62,8 @@ Task                          : :app:generateDebugResValues
     SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:generateDebugResources
-    TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : UNCATEGORIZED
+    TaskType                      : com.android.build.gradle.internal.tasks.ValidateResourcesTask
+    PrimaryTaskCategory           : VERIFICATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:javaPreCompileDebug
     TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask
@@ -208,6 +204,10 @@ Task                          : :lib:bundleLibRuntimeToJarDebug
     PrimaryTaskCategory           : COMPILED_CLASSES
     SecondaryTaskCategories       : ZIPPING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:checkKotlinGradlePluginConfigurationErrors
+    TaskType                      : org.jetbrains.kotlin.gradle.plugin.diagnostics.CheckKotlinGradlePluginConfigurationErrors
+    PrimaryTaskCategory           : KOTLIN
+    Plugin                        : binary plugin org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 Task                          : :lib:compileDebugJavaWithJavac
     TaskType                      : org.gradle.api.tasks.compile.JavaCompile
     PrimaryTaskCategory           : JAVA
@@ -225,10 +225,6 @@ Task                          : :lib:copyDebugJniLibsProjectAndLocalJars
 Task                          : :lib:copyDebugJniLibsProjectOnly
     TaskType                      : com.android.build.gradle.internal.tasks.LibraryJniLibsTask
     PrimaryTaskCategory           : NATIVE
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:createDebugVariantModel
-    TaskType                      : com.android.build.gradle.tasks.sync.LibraryVariantModelTask
-    PrimaryTaskCategory           : SYNC
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:exportDebugConsumerProguardFiles
     TaskType                      : com.android.build.gradle.internal.tasks.ExportConsumerProguardFilesTask
@@ -261,8 +257,8 @@ Task                          : :lib:generateDebugResValues
     SecondaryTaskCategories       : SOURCE_GENERATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:generateDebugResources
-    TaskType                      : org.gradle.api.DefaultTask
-    PrimaryTaskCategory           : UNCATEGORIZED
+    TaskType                      : com.android.build.gradle.internal.tasks.ValidateResourcesTask
+    PrimaryTaskCategory           : VERIFICATION
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:javaPreCompileDebug
     TaskType                      : com.android.build.gradle.tasks.JavaPreCompileTask

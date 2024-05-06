@@ -22,11 +22,16 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.Project
 
-/**
- * An action that opens a popup menu with Logcat format-related actions
- */
-internal class LogcatFormatAction(private val project: Project, private val logcatPresenter: LogcatPresenter)
-  : PopupActionGroupAction(LogcatBundle.message("logcat.format.action.text"), null, AllIcons.Actions.Properties) {
+/** An action that opens a popup menu with Logcat format-related actions */
+internal class LogcatFormatAction(
+  private val project: Project,
+  private val logcatPresenter: LogcatPresenter
+) :
+  PopupActionGroupAction(
+    LogcatBundle.message("logcat.format.action.text"),
+    null,
+    AllIcons.Actions.Properties
+  ) {
 
   override fun getPopupActions(): List<AnAction> {
     val actions = mutableListOf<AnAction>()

@@ -1,21 +1,15 @@
 package org.jetbrains.android.database;
 
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.FileListingService;
 import com.android.ddmlib.IDevice;
+import com.android.ddmlib.MultiLineReceiver;
 import com.android.tools.idea.ddms.DeviceNameProperties;
-import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceNamePropertiesProvider;
 import com.android.tools.idea.ddms.DeviceRenderer;
-import com.android.tools.idea.explorer.adbimpl.AdbDeviceFileSystem;
-import com.android.tools.idea.explorer.fs.DeviceFileEntry;
-import com.android.tools.idea.gradle.model.IdeVariant;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.database.dataSource.AbstractDataSourceConfigurable;
 import com.intellij.database.dataSource.DatabaseNameComponent;
-import com.intellij.database.util.DbImplUtilCore;
+import com.intellij.database.util.DbImplUtil;
 import com.intellij.database.view.ui.DsUiDefaults;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
@@ -26,44 +20,37 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBRadioButton;
-import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.concurrency.EdtExecutorService;
-import com.intellij.util.concurrency.annotations.RequiresEdt;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
 
-public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDataSourceManager, AndroidDataSource>
-  implements Disposable {
-  private static final Logger LOG = Logger.getInstance(AndroidDataSourceConfigurable.class);
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurable<AndroidDataSourceManager, AndroidDataSource> implements Disposable {
+  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.database.AndroidDataSourcePropertiesDialog");
   private static final String[] DEFAULT_EXTERNAL_DB_PATTERNS = new String[]{"files/"};
 
-  private DefaultComboBoxModel<AndroidSourceDevice> myDeviceComboBoxModel;
+  private DefaultComboBoxModel<Object> myDeviceComboBoxModel = new DefaultComboBoxModel<>();
+  private String myMissingDeviceIds;
+
   private DatabaseNameComponent myNameComponent;
 
-  private ComboBox<AndroidSourceDevice> myDeviceComboBox;
+  private ComboBox myDeviceComboBox;
   private ComboBox<String> myPackageNameComboBox;
   private ComboBox<String> myDataBaseComboBox;
   private JPanel myPanel;
@@ -71,15 +58,13 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   private JBRadioButton myExternalStorageRadioButton;
   private JBRadioButton myInternalStorageRadioButton;
 
+  private IDevice mySelectedDevice = null;
+  private final Map<String, List<String>> myDatabaseMap = ContainerUtil.newLinkedHashMap();
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceListener;
 
   private final AndroidDataSource myTempDataSource;
 
-  private volatile ListenableFuture<?> latestDbListRequest;
-
-  protected AndroidDataSourceConfigurable(@NotNull AndroidDataSourceManager manager,
-                                          @NotNull Project project,
-                                          @NotNull AndroidDataSource dataSource) {
+  protected AndroidDataSourceConfigurable(@NotNull AndroidDataSourceManager manager, @NotNull Project project, @NotNull AndroidDataSource dataSource) {
     super(manager, dataSource, project);
     myTempDataSource = dataSource.copy(true);
     myDeviceListener = new AndroidDebugBridge.IDeviceChangeListener() {
@@ -90,7 +75,6 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
       @Override
       public void deviceDisconnected(IDevice device) {
-        myDeviceComboBox.repaint();
       }
 
       @Override
@@ -102,62 +86,6 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     };
   }
 
-  private static class AndroidSourceDevice {
-    @NotNull final String deviceId;
-    @Nullable IDevice device;
-
-    AndroidSourceDevice(@NotNull String deviceId) {
-      this.deviceId = deviceId;
-      device = null;
-    }
-
-    AndroidSourceDevice(@NotNull IDevice device, @NotNull String deviceId) {
-      this.device = device;
-      this.deviceId = deviceId;
-    }
-
-    public boolean deviceIdEquals(String otherDeviceId) {
-      return deviceId.equals(otherDeviceId);
-    }
-
-    public void updateDevice(IDevice device) {
-      this.device = device;
-    }
-  }
-
-  private class DeviceCellRenderer extends ColoredListCellRenderer<AndroidSourceDevice> {
-    private static final boolean SHOW_SERIAL = false;
-    private static final String EMPTY_TEXT = "No Connected Devices";
-    private final DeviceNamePropertiesProvider deviceNamePropertiesProvider;
-
-    DeviceCellRenderer(Disposable parent) {
-      deviceNamePropertiesProvider = new DeviceNamePropertiesFetcher(parent, new FutureCallback<DeviceNameProperties>() {
-        @Override
-        public void onSuccess(DeviceNameProperties result) {
-          myDeviceComboBox.repaint();
-        }
-
-        @Override
-        public void onFailure(@NotNull Throwable t) {
-
-        }
-      });
-    }
-
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, AndroidSourceDevice value, int index, boolean selected, boolean hasFocus) {
-      if (value == null) {
-        append(EMPTY_TEXT, SimpleTextAttributes.ERROR_ATTRIBUTES);
-      }
-      else if (value.device != null) {
-        DeviceRenderer.renderDeviceName(value.device, deviceNamePropertiesProvider.get(value.device), this, SHOW_SERIAL);
-      }
-      else {
-        append(value.deviceId, SimpleTextAttributes.GRAY_ATTRIBUTES);
-      }
-    }
-  }
-
   @Nullable
   @Override
   public JComponent createComponent() {
@@ -165,19 +93,38 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     myPanel.add(myNameComponent.getComponent(), BorderLayout.NORTH);
     myConfigurationPanel.setBorder(DsUiDefaults.DEFAULT_PANEL_BORDER);
 
-    myDeviceComboBox.setRenderer(new DeviceCellRenderer(this));
-    myDeviceComboBox.setPreferredSize(new Dimension(JBUIScale.scale(300), myDeviceComboBox.getPreferredSize().height));
-    myDeviceComboBox.addActionListener(e -> updateDbCombo());
+    myDeviceComboBox.setRenderer(new DeviceRenderer.DeviceComboBoxRenderer("No Connected Devices", false,
+                                                                           new DeviceNamePropertiesProvider() {
+                                                                             @NotNull
+                                                                             @Override
+                                                                             public DeviceNameProperties get(@NotNull IDevice device) {
+                                                                               return new DeviceNameProperties(null, null, null, null);
+                                                                             }
+                                                                           }));
+    myDeviceComboBox.setPreferredSize(new Dimension(JBUI.scale(300), myDeviceComboBox.getPreferredSize().height));
+    myDeviceComboBox.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        updateDataBases();
+      }
+    });
 
-    myPackageNameComboBox.addActionListener(e -> updateDbCombo());
-    myExternalStorageRadioButton.addActionListener(e -> updateDbCombo());
-    myInternalStorageRadioButton.addActionListener(e -> updateDbCombo());
+    ActionListener l = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        updateDbCombo();
+      }
+    };
+    myPackageNameComboBox.addActionListener(l);
+    myExternalStorageRadioButton.addActionListener(l);
+    myInternalStorageRadioButton.addActionListener(l);
 
-    new UiNotifyConnector.Once(myPanel, new Activatable() {
+    new UiNotifyConnector.Once(myPanel, new Activatable.Adapter() {
       @Override
       public void showNotify() {
         loadDevices();
-        updatePackageCombo();
+        updateDataBases();
+        updateDbCombo();
         registerDeviceListener();
       }
     });
@@ -204,37 +151,41 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
           return;
         }
         for (int i = 0; i < myDeviceComboBoxModel.getSize(); i++) {
-          final AndroidSourceDevice element = myDeviceComboBoxModel.getElementAt(i);
+          final Object element = myDeviceComboBoxModel.getElementAt(i);
 
-          if (element.deviceIdEquals(deviceId)) {
-            element.updateDevice(device);
-            myDeviceComboBox.repaint();
+          if (device.equals(element)) {
             return;
           }
         }
-        myDeviceComboBoxModel.addElement(new AndroidSourceDevice(device, deviceId));
+        myDeviceComboBoxModel.addElement(device);
+
+        if (myMissingDeviceIds != null && myMissingDeviceIds.equals(deviceId)) {
+          myDeviceComboBoxModel.removeElement(myMissingDeviceIds);
+          myMissingDeviceIds = null;
+        }
       }
     }, ModalityState.stateForComponent(myPanel));
   }
 
   private void loadDevices() {
     final AndroidDebugBridge bridge = AndroidSdkUtils.getDebugBridge(myProject);
-    final AndroidSourceDevice[] devices = bridge != null ? getDevicesWithValidDeviceId(bridge) : new AndroidSourceDevice[0];
+    final IDevice[] devices = bridge != null ? getDevicesWithValidDeviceId(bridge) : new IDevice[0];
     final String deviceId = myDataSource.getState().deviceId;
-    final DefaultComboBoxModel<AndroidSourceDevice> model = new DefaultComboBoxModel<>(devices);
-    AndroidSourceDevice selectedItem = null;
+    final DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<>(devices);
+    Object selectedItem = null;
 
     if (deviceId != null && deviceId.length() > 0) {
-      for (AndroidSourceDevice device : devices) {
-        if (device.deviceIdEquals(deviceId)) {
+      for (IDevice device : devices) {
+        if (deviceId.equals(AndroidDbUtil.getDeviceId(device))) {
           selectedItem = device;
           break;
         }
       }
 
       if (selectedItem == null) {
-        selectedItem = new AndroidSourceDevice(deviceId);
-        model.addElement(selectedItem);
+        model.addElement(deviceId);
+        myMissingDeviceIds = deviceId;
+        selectedItem = deviceId;
       }
     }
     myDeviceComboBoxModel = model;
@@ -246,86 +197,55 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   }
 
   @NotNull
-  private static AndroidSourceDevice[] getDevicesWithValidDeviceId(@NotNull AndroidDebugBridge bridge) {
-    final List<AndroidSourceDevice> result = new ArrayList<>();
+  private static IDevice[] getDevicesWithValidDeviceId(@NotNull AndroidDebugBridge bridge) {
+    final List<IDevice> result = new ArrayList<>();
 
     for (IDevice device : bridge.getDevices()) {
       if (device.isOnline()) {
         final String deviceId = AndroidDbUtil.getDeviceId(device);
 
         if (deviceId != null && deviceId.length() > 0) {
-          result.add(new AndroidSourceDevice(device, deviceId));
+          result.add(device);
         }
       }
     }
-    return result.toArray(new AndroidSourceDevice[0]);
+    return result.toArray(new IDevice[0]);
   }
 
-  @RequiresEdt
+  private void updateDataBases() {
+    if (!myPanel.isShowing()) return;
+    final Object selectedItem = myDeviceComboBox.getSelectedItem();
+    IDevice selectedDevice = selectedItem instanceof IDevice ? (IDevice)selectedItem : null;
+
+    if (selectedDevice == null) {
+      myDatabaseMap.clear();
+      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>());
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>());
+    }
+    else if (!selectedDevice.equals(mySelectedDevice)) {
+      loadDatabases(selectedDevice);
+      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(myDatabaseMap.keySet())));
+      updateDbCombo();
+    }
+    mySelectedDevice = selectedDevice;
+  }
+
   private void updateDbCombo() {
     if (!myPanel.isShowing()) return; // comboboxes do weird stuff when loosing focus
-    IDevice selectedDevice = getSelectedDevice();
     String selectedPackage = getSelectedPackage();
-    boolean wasSelectedFromList = isSelectedFromList(myDataBaseComboBox);
+    String selectedDatabase = getSelectedDatabase();
+    boolean databaseIsCustom = StringUtil.isNotEmpty(selectedDatabase) && ((DefaultComboBoxModel)myDataBaseComboBox.getModel()).getIndexOf(selectedDatabase) < 0;
 
-    if (latestDbListRequest != null && !latestDbListRequest.isDone()) {
-      latestDbListRequest.cancel(false);
-    }
-    ListenableFuture<List<String>> futureDatabases = loadDatabases(selectedDevice, selectedPackage);
-    latestDbListRequest = futureDatabases;
-
-    Futures.addCallback(futureDatabases, new FutureCallback<List<String>>() {
-      @Override
-      public void onSuccess(List<String> resultList) {
-        if (latestDbListRequest != futureDatabases) {
-          return; // newer request is in progress
-        }
-        String newSelectedDatabase = getSelectedDatabase(); // user might have changed the value while the list was preparing in background
-        String selectedItem = !wasSelectedFromList ? newSelectedDatabase : null;
-
-        setComboItemsAndSelection(resultList, selectedItem, myDataBaseComboBox);
-      }
-
-      @Override
-      public void onFailure(@NotNull Throwable t) {
-        String newSelectedDatabase = getSelectedDatabase(); // user might have changed the value while the list was preparing in background
-        setComboItemsAndSelection(Collections.emptyList(), newSelectedDatabase, myDataBaseComboBox);
-        LOG.debug(t);
-      }
-    }, EdtExecutorService.getInstance());
-  }
-
-  private void setComboItemsAndSelection(List<String> resultList, String selectedItem, ComboBox<String> comboBox) {
-    DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)comboBox.getModel();
-    model.removeAllElements(); // this will also clear selected item
-    if (selectedItem != null) {
-      // set selection before adding elements to avoid redundant "selectionChanged" event
-      model.setSelectedItem(selectedItem);
-    }
-    // this will select the first element, if selected item not set yet
-    resultList.forEach(model::addElement); // Don't do "setModel" in order to prevent DropDownList closing (if it was opened)
-  }
-
-  @NotNull
-  private ListenableFuture<List<String>> loadDatabases(IDevice selectedDevice, String selectedPackage) {
-    ListenableFuture<List<String>> futureDatabases;
     if (myInternalStorageRadioButton.isSelected()) {
-      if (selectedDevice == null) {
-        futureDatabases = Futures.immediateFuture(Collections.emptyList());
-      }
-      else {
-        futureDatabases = loadDatabasesFromInternalStorage(selectedDevice, selectedPackage);
-      }
+      List<String> dbList = myDatabaseMap.get(selectedPackage);
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(dbList)));
     }
     else {
-      futureDatabases = Futures.immediateFuture(Arrays.asList(DEFAULT_EXTERNAL_DB_PATTERNS));
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(DEFAULT_EXTERNAL_DB_PATTERNS));
     }
-    return futureDatabases;
-  }
-
-  private boolean isSelectedFromList(@NotNull ComboBox<String> comboBox) {
-    String currentValue = (String)comboBox.getEditor().getItem();
-    return StringUtil.isEmpty(currentValue) || ((DefaultComboBoxModel<?>)comboBox.getModel()).getIndexOf(currentValue) >= 0;
+    if (databaseIsCustom) {
+      myDataBaseComboBox.getEditor().setItem(selectedDatabase);
+    }
   }
 
   @NotNull
@@ -338,91 +258,75 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     return (String)myDataBaseComboBox.getEditor().getItem();
   }
 
-  @RequiresEdt
-  private void updatePackageCombo() {
-    if (!myPanel.isShowing()) return; // comboboxes do weird stuff when loosing focus
-    String selectedPackage = getSelectedPackage();
-    boolean wasSelectedFromList = isSelectedFromList(myPackageNameComboBox);
+  private void loadDatabases(@NotNull IDevice device) {
+    myDatabaseMap.clear();
 
-    List<String> packages = loadPackageList();
+    final FileListingService service = device.getFileListingService();
+    if (service == null) return;
 
-    String selectedItem = !wasSelectedFromList ? selectedPackage : null;
-    setComboItemsAndSelection(packages, selectedItem, myPackageNameComboBox);
-  }
-
-  private List<String> loadPackageList() {
-    final Set<String> mainPackages = new HashSet<>();
-    final Set<String> extraPackages = new HashSet<>();
+    final Set<String> packages = new HashSet<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
-      AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-      if (androidModuleModel != null) {
-        for (IdeVariant variant : androidModuleModel.getVariants()) {
-          mainPackages.add(variant.getMainArtifact().getApplicationId());
-        // FIXME-ank5: use VariantBuildInformation
-        //  if (variant.getExtraAndroidArtifacts() != null) {
-        //    variant.getExtraAndroidArtifacts().forEach(artifact -> extraPackages.add(artifact.getApplicationId()));
-        //  }
-        }
-      }
-      else {
-        // Non-Gradle Android modules do not have AndroidModuleModel. Use manifest directly.
-        final Manifest manifest = Manifest.getMainManifest(facet);
+      final Manifest manifest = facet.getManifest();
 
-        if (manifest != null) {
-          final String aPackage = manifest.getPackage().getStringValue();
+      if (manifest != null) {
+        final String aPackage = manifest.getPackage().getStringValue();
 
-          if (aPackage != null && aPackage.length() > 0) {
-            mainPackages.add(aPackage);
-          }
+        if (aPackage != null && aPackage.length() > 0) {
+          packages.add(aPackage);
         }
       }
     }
-    if (mainPackages.isEmpty() && extraPackages.isEmpty()) return Collections.emptyList();
+    if (packages.isEmpty()) return;
 
-    extraPackages.removeAll(mainPackages);
-    List<String> packages = new ArrayList<>(mainPackages.size() + extraPackages.size());
-    packages.addAll(mainPackages);
-    packages.addAll(extraPackages);
-    return packages;
+    final long startTime = System.currentTimeMillis();
+    boolean tooLong = false;
+
+    for (String aPackage : packages) {
+      myDatabaseMap.put(aPackage, tooLong ? Collections.emptyList() : loadDatabases(device, aPackage));
+
+      if (System.currentTimeMillis() - startTime > 4000) {
+        tooLong = true;
+      }
+    }
   }
 
   @NotNull
-  private ListenableFuture<List<String>> loadDatabasesFromInternalStorage(@NotNull IDevice device, @NotNull final String packageName) {
-    AdbDeviceFileSystem remoteFileSystem = new AdbDeviceFileSystem(device, EdtExecutorService.getInstance(), PooledThreadExecutor.INSTANCE);
+  private static List<String> loadDatabases(@NotNull IDevice device, @NotNull final String packageName) {
+    final List<String> result = new ArrayList<>();
 
-    String dbPath = AndroidDbUtil.getInternalDatabasesRemoteDirPath(packageName);
-    ListenableFuture<DeviceFileEntry> remoteDatabasesPath = remoteFileSystem.getEntry(dbPath);
+    try {
+      device.executeShellCommand("run-as " + packageName + " ls " + AndroidDbUtil.getInternalDatabasesRemoteDirPath(packageName), new MultiLineReceiver() {
+        @Override
+        public void processNewLines(String[] lines) {
+          for (String line : lines) {
+            if (line.length() > 0 && !line.contains(" ")) {
+              result.add(line);
+            }
+          }
+        }
 
-    ListenableFuture<List<DeviceFileEntry>> remoteFiles = Futures.transformAsync(remoteDatabasesPath,
-                                                                                 p -> p.getEntries(),
-                                                                                 PooledThreadExecutor.INSTANCE
-    );
-
-    return Futures.transform(remoteFiles,
-                             l -> l.stream()
-                               .map(DeviceFileEntry::getName)
-                               .filter(name -> !name.endsWith("-journal"))
-                               .collect(Collectors.toList()),
-                             PooledThreadExecutor.INSTANCE
-    );
-  }
-
-  @Nullable
-  private IDevice getSelectedDevice() {
-    AndroidSourceDevice item = (AndroidSourceDevice)myDeviceComboBox.getSelectedItem();
-    if (item == null || item.device == null) {
-      return null;
+        @Override
+        public boolean isCancelled() {
+          return false;
+        }
+      }, 2, TimeUnit.SECONDS);
     }
-    return item.device;
+    catch (Exception e) {
+      LOG.debug(e);
+    }
+    return result;
   }
 
   private String getSelectedDeviceId() {
     Object item = myDeviceComboBox.getSelectedItem();
     if (item == null) return null; // "no devices" case should not throw AE
 
-    assert item instanceof AndroidSourceDevice;
-    return ((AndroidSourceDevice)item).deviceId;
+    if (item instanceof String) return (String)item;
+
+    assert item instanceof IDevice;
+    final String deviceId = AndroidDbUtil.getDeviceId((IDevice)item);
+    return deviceId != null ? deviceId : "";
   }
 
   public void saveData(@NotNull AndroidDataSource dataSource) {
@@ -440,18 +344,13 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     saveData(myDataSource);
     myNameComponent.apply(myDataSource);
 
-    if (DbImplUtilCore.canConnectTo(myDataSource)) {
+    if (DbImplUtil.canConnectTo(myDataSource)) {
       AndroidSynchronizeHandler.doSynchronize(myProject, Collections.singletonList(myDataSource));
     }
 
     if (isNewDataSource()) {
       myManager.addDataSource(myDataSource);
     }
-  }
-
-  @Override
-  protected JComponent getComponent() {
-    return myPanel;
   }
 
   @Override
@@ -466,22 +365,18 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     myDataBaseComboBox.getEditor().setItem(StringUtil.notNullize(state.databaseName));
   }
 
-  @Override
-  public JComponent getCommonBar() {
-    return null;
-  }
-
   private void registerDeviceListener() {
     AndroidDebugBridge.addDeviceChangeListener(myDeviceListener);
+    Disposer.register(this, new Disposable() {
+      @Override
+      public void dispose() {
+        AndroidDebugBridge.removeDeviceChangeListener(myDeviceListener);
+      }
+    });
   }
 
   @Override
   public void dispose() {
-    if (latestDbListRequest != null && !latestDbListRequest.isDone()) {
-      latestDbListRequest.cancel(false);
-    }
-
-    AndroidDebugBridge.removeDeviceChangeListener(myDeviceListener);
   }
 
   @Override

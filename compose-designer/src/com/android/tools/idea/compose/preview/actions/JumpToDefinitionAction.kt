@@ -17,10 +17,10 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -34,7 +34,7 @@ import javax.swing.SwingUtilities
  */
 class JumpToDefinitionAction(
   surface: DesignSurface<LayoutlibSceneManager>,
-  private val composePreviewNavigationHandler: ComposePreviewNavigationHandler,
+  private val navigationHandler: NavigationHandler,
   private val sceneView: SceneView,
   title: String = message("action.jump.to.definition")
 ) : AnAction(title) {
@@ -63,8 +63,6 @@ class JumpToDefinitionAction(
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    scope.launch {
-      composePreviewNavigationHandler.handleNavigateWithCoordinates(sceneView, x, y, true)
-    }
+    scope.launch { navigationHandler.handleNavigateWithCoordinates(sceneView, x, y, true) }
   }
 }

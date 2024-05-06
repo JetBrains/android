@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.profilers.commands
 
-import androidx.tracing.perfetto.PerfettoHandshake
-import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE_ALREADY_ENABLED
-import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE_ERROR_BINARY_MISSING
-import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE_ERROR_BINARY_VERIFICATION_ERROR
-import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE_ERROR_BINARY_VERSION_MISMATCH
-import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE_ERROR_OTHER
-import androidx.tracing.perfetto.PerfettoHandshake.ResponseExitCodes.RESULT_CODE_SUCCESS
+import androidx.tracing.perfetto.handshake.PerfettoSdkHandshake
+import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes.RESULT_CODE_ALREADY_ENABLED
+import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes.RESULT_CODE_ERROR_BINARY_MISSING
+import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes.RESULT_CODE_ERROR_BINARY_VERIFICATION_ERROR
+import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes.RESULT_CODE_ERROR_BINARY_VERSION_MISMATCH
+import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes.RESULT_CODE_ERROR_OTHER
+import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes.RESULT_CODE_SUCCESS
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.ide.common.repository.GMAVEN_BASE_URL
@@ -32,6 +32,7 @@ import com.android.tools.idea.io.IdeFileService
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
@@ -95,17 +96,17 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
     assert(command.type == Commands.Command.CommandType.START_TRACE)
-    enableTrackingCompose(command)
+    setUpComposeTracing(command)
     return transportStub.execute(Transport.ExecuteRequest.newBuilder()
                                    .setCommand(command)
                                    .build())
   }
 
-  private fun enableTrackingCompose(command: Commands.Command) {
+  private fun setUpComposeTracing(command: Commands.Command) {
     var handshakeResult = HandshakeResult.UNKNOWN_RESULT
 
     try {
-      val handshake = PerfettoHandshake(
+      val handshake = PerfettoSdkHandshake(
         targetPackage = command.startTrace.configuration.appName,
         // Kotlin doesn't have a native json parser. As such a handler needs to be created to
         // map the broadcast output to a key/value pair for the library.
@@ -127,31 +128,28 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
           latch.await(5, TimeUnit.SECONDS)
           receiver.output
         })
-      // Try to enable the perfetto library using a built-in binary
+      // Try to enable the perfetto library using the app's built-in binary
       // If that fails try to download the requested version and
       // enable tracing using that library
-      val response = handshake.enableTracing(null).let {
-        if (it.exitCode == RESULT_CODE_ERROR_BINARY_MISSING) {
-          val path = resolveArtifact(it.requiredVersion)
-          if (path == null) {
-            handshakeResult = HandshakeResult.ERROR_BINARY_UNAVAILABLE
-            log.warn("Failed to download tracing-perfetto-binary ")
-            return
-          }
+      val isStartupTracing = command.startTrace.configuration.initiationType == Trace.TraceInitiationType.INITIATED_BY_STARTUP
+      var response = enableTracing(handshake, isStartupTracing, null)
+      if (response.resultCode == RESULT_CODE_ERROR_BINARY_MISSING) {
+        // note: requiredVersion (below) is guaranteed to be non-null for resultCode == RESULT_CODE_ERROR_BINARY_MISSING
+        val path = resolveArtifact(checkNotNull(response.requiredVersion))
+        if (path != null) {
           val baseApk = File(path.toUri())
-          val libraryProvider = PerfettoHandshake.ExternalLibraryProvider(baseApk, File(FileUtilRt.getTempDirectory())
+          val libraryProvider = PerfettoSdkHandshake.LibrarySource.aarLibrarySource(baseApk, File(FileUtilRt.getTempDirectory())
           ) { tmpFile, dstFile ->
             device.pushFile(tmpFile.absolutePath, dstFile.absolutePath)
           }
-          handshake.enableTracing(libraryProvider)
-        } // provide binaries and retry
-        else
-          it // no retry
+          // provide binaries and retry
+          response = enableTracing(handshake, isStartupTracing, libraryProvider)
+        }
       }
 
       // process the response
-      lastResponseCode = response.exitCode
-      val error = when (response.exitCode) {
+      lastResponseCode = response.resultCode
+      val error = when (response.resultCode) {
         0 -> "The broadcast to enable tracing was not received. This most likely means " +
              "that the app does not contain the `androidx.tracing.tracing-perfetto` " +
              "library as its dependency."
@@ -172,16 +170,17 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
           "If working with an unreleased snapshot, ensure all modules are built " +
           "against the same snapshot (e.g. clear caches and rebuild)."
         RESULT_CODE_ERROR_OTHER -> "Error: ${response.message}."
-        else -> throw RuntimeException("Unrecognized exit code: ${response.exitCode}.")
+        else -> throw RuntimeException("Unrecognized exit code: ${response.resultCode}.")
       }
       if (error != null) {
         log.warn(error)
       }
 
-      when (response.exitCode) {
+      when (response.resultCode) {
         0 -> handshakeResult = HandshakeResult.UNSUPPORTED
         RESULT_CODE_SUCCESS -> handshakeResult = HandshakeResult.SUCCESS
         RESULT_CODE_ALREADY_ENABLED -> handshakeResult = HandshakeResult.ALREADY_ENABLED
+        RESULT_CODE_ERROR_BINARY_MISSING -> handshakeResult = HandshakeResult.ERROR_BINARY_UNAVAILABLE
         RESULT_CODE_ERROR_BINARY_VERSION_MISMATCH -> handshakeResult = HandshakeResult.ERROR_BINARY_VERSION_MISMATCH
         RESULT_CODE_ERROR_BINARY_VERIFICATION_ERROR -> handshakeResult = HandshakeResult.ERROR_BINARY_VERIFICATION_ERROR
         RESULT_CODE_ERROR_OTHER -> handshakeResult = HandshakeResult.ERROR_OTHER
@@ -204,6 +203,15 @@ class CpuTraceInterceptCommandHandler(val device: IDevice,
           ).also { lastMetricsEvent = it }
       )
     }
+  }
+
+  private fun enableTracing(
+    handshake: PerfettoSdkHandshake,
+    isStartupTracing: Boolean,
+    libraryProvider: PerfettoSdkHandshake.LibrarySource?
+  ) = when {
+    isStartupTracing -> handshake.enableTracingColdStart(persistent = false, libraryProvider)
+    else -> handshake.enableTracingImmediate(libraryProvider)
   }
 
   private fun resolveArtifact(artifactVersion: String): Path? {

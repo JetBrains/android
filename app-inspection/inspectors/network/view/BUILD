@@ -5,6 +5,7 @@ iml_module(
     name = "app-inspection.inspectors.network.view",
     srcs = ["src"],
     iml_files = ["app-inspection.inspectors.network.view.iml"],
+    lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -31,7 +32,8 @@ iml_module(
 iml_module(
     name = "app-inspection.inspectors.network.view.tests",
     iml_files = ["app-inspection.inspectors.network.view.tests.iml"],
-    test_class = "com.android.tools.idea.appinspection.inspectors.network.view.NetworkViewTestSuite",
+    test_class = "com.android.tools.idea.appinspection.inspectors.network.NetworkViewTestSuite",
+    test_friends = ["//tools/adt/idea/app-inspection/inspectors/network/view:app-inspection.inspectors.network.view"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -58,5 +60,6 @@ iml_module(
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
     ],
 )

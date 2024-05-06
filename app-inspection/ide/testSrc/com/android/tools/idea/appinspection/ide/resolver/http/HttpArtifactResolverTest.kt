@@ -18,10 +18,11 @@ package com.android.tools.idea.appinspection.ide.resolver.http
 import com.android.repository.api.Checksum
 import com.android.repository.api.Downloader
 import com.android.repository.api.ProgressIndicator
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
+import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.runBlocking
@@ -42,13 +43,16 @@ class HttpArtifactResolverTest {
   private val fakeDownloader =
     object : Downloader {
       override fun downloadAndStream(url: URL, indicator: ProgressIndicator): InputStream? = null
+
       override fun downloadFully(url: URL, indicator: ProgressIndicator): Path? = null
+
       override fun downloadFully(
         url: URL,
         target: Path,
         checksum: Checksum?,
         indicator: ProgressIndicator
       ) {}
+
       override fun setDownloadIntermediatesLocation(intermediatesLocation: Path) {}
 
       override fun downloadFullyWithCaching(
@@ -65,17 +69,15 @@ class HttpArtifactResolverTest {
 
   @Test
   fun downloadAndCacheArtifact() =
-    runBlocking {
+    runBlocking<Unit> {
       val fileService = TestFileService()
 
       val resolver =
         HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService), fakeDownloader)
       val request =
-        ArtifactCoordinate(
-          "androidx.work",
-          "work-runtime",
-          "2.5.0-beta01",
-          ArtifactCoordinate.Type.AAR
+        RunningArtifactCoordinate(
+          mockMinimumArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"),
+          "2.5.0-beta01"
         )
       val jar = resolver.resolveArtifact(request)
 

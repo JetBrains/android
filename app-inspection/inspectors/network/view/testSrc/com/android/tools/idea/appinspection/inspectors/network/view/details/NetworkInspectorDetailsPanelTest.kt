@@ -25,8 +25,8 @@ import com.android.tools.idea.appinspection.inspectors.network.model.FakeNetwork
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorClient
 import com.android.tools.idea.appinspection.inspectors.network.model.NetworkInspectorModel
 import com.android.tools.idea.appinspection.inspectors.network.model.TestNetworkInspectorServices
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpData
-import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.HttpDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.ConnectionDataModel
+import com.android.tools.idea.appinspection.inspectors.network.model.connections.HttpData
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
@@ -38,14 +38,14 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Component
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
-import java.awt.Component
-import javax.swing.JPanel
 
 @RunsInEdt
 class NetworkInspectorDetailsPanelTest {
@@ -87,8 +87,9 @@ class NetworkInspectorDetailsPanelTest {
         services,
         FakeNetworkInspectorDataSource(),
         scope,
-        object : HttpDataModel {
+        object : ConnectionDataModel {
           private val dataList = listOf(DEFAULT_DATA)
+
           override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
             return dataList.filter {
               it.requestStartTimeUs >= timeCurrentRangeUs.min &&
@@ -119,11 +120,11 @@ class NetworkInspectorDetailsPanelTest {
     model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
     model.setSelectedConnection(DEFAULT_DATA)
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isTrue()
     // Setting a null rule does not matter when we have a non-null connection data.
     model.setSelectedRule(null)
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isFalse()
     model.setSelectedConnection(null)
     assertThat(detailsPanel.isVisible).isFalse()
@@ -132,7 +133,7 @@ class NetworkInspectorDetailsPanelTest {
     model.setSelectedRule(RuleData(1, "NewRule", true))
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isFalse()
     // Setting a null connection does not matter when we have a non-null rule data.
     model.setSelectedConnection(null)
     assertThat(detailsPanel.isVisible).isTrue()
@@ -149,12 +150,12 @@ class NetworkInspectorDetailsPanelTest {
     model.detailContent = NetworkInspectorModel.DetailContent.CONNECTION
     model.setSelectedConnection(DEFAULT_DATA)
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isTrue()
 
     // Switching between connection and threads view does not change details panel.
     tabs.selectedIndex = 1
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isTrue()
 
     // Switch to Rules tab
     tabs.selectedIndex = 2
@@ -165,18 +166,18 @@ class NetworkInspectorDetailsPanelTest {
     model.setSelectedRule(RuleData(1, "NewRule", true))
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isFalse()
 
     // Switching back to connections tab opens the selected connection.
     tabs.selectedIndex = 0
     assertThat(detailsPanel.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isTrue()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isTrue()
 
     // Switching back to rule tab opens the selected rule.
     tabs.selectedIndex = 2
     assertThat(detailsPanel.isVisible).isTrue()
     assertThat(detailsPanel.ruleDetailsView.isVisible).isTrue()
-    assertThat(detailsPanel.connectionDetailsView.isVisible).isFalse()
+    assertThat(detailsPanel.connectionDataDetailsView.isVisible).isFalse()
   }
 
   private inline fun <reified R : Component> Component.findParentIsInstance(): R {

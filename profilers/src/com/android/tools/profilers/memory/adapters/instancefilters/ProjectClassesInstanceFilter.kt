@@ -17,6 +17,7 @@ package com.android.tools.profilers.memory.adapters.instancefilters
 
 import com.android.tools.profilers.IdeProfilerServices
 import com.android.tools.profilers.memory.adapters.InstanceObject
+import java.util.function.Predicate
 
 /**
  * A filter to locate all instances of classes that directly belong to the currently opened project (excluding dependent libraries).

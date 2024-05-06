@@ -37,7 +37,6 @@ import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -47,7 +46,6 @@ import com.intellij.openapi.progress.util.ProgressIndicatorUtils
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -391,9 +389,8 @@ class AndroidTestSuiteViewTest {
     view.onTestCaseFinished(device2, testsuiteOnDevice2, testcase2OnDevice2)
     view.onTestSuiteFinished(device2, testsuiteOnDevice2)
 
-    val actionManager = ActionManager.getInstance()
     // Select "API 29" in the API level filter ComboBox.
-    view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().getChildren(actionManager)
+    view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().getChildren(null)
     val selectApi29Action = view.myDeviceAndApiLevelFilterComboBoxAction.createActionGroup().flattenedActions().find {
       it.templateText == "API 29"
     }
@@ -678,9 +675,9 @@ class AndroidTestSuiteViewTest {
   fun actionButtonsAreFocusable() {
     val view = AndroidTestSuiteView(disposableRule.disposable, projectRule.project, null)
 
-    for (toolbar in UIUtil.uiTraverser(view.component).filter(ActionToolbarImpl::class.java)) {
-      PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync());
-    }
+    UIUtil.uiTraverser(view.component)
+      .filter(ActionToolbarImpl::class.java)
+      .forEach(ActionToolbarImpl::updateActionsImmediately)
 
     val actionButtons = UIUtil.uiTraverser(view.component)
       .filter(ActionButton::class.java)

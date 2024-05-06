@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.annotator.check.device
 
 import com.android.tools.idea.compose.annotator.check.common.MultipleChoiceValueType
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.Orientation
-import com.android.tools.idea.compose.pickers.preview.property.Shape
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.Shape
 
 /** Expected the value to be an Integer. */
 internal val ExpectedInteger = OpenEndedValueType("Integer")

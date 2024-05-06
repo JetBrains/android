@@ -39,6 +39,7 @@ public class AndroidStudioUpdateStrategyCustomizationTest {
     assertThat(updateStrategyCustomization.versionNameToChannelStatus("Arctic Fox | 2020.3.1 Patch 3")).isEqualTo(ChannelStatus.RELEASE);
     assertThat(updateStrategyCustomization.versionNameToChannelStatus("Bumblebee | 2021.1.1 Beta 3")).isEqualTo(ChannelStatus.BETA);
     assertThat(updateStrategyCustomization.versionNameToChannelStatus("Chipmunk | 2021.2.1 Canary 4")).isEqualTo(ChannelStatus.EAP);
+    assertThat(updateStrategyCustomization.versionNameToChannelStatus("dev build")).isEqualTo(ChannelStatus.MILESTONE);
     assertThat(updateStrategyCustomization.versionNameToChannelStatus("Flamingo | Nightly 2023-04-25")).isEqualTo(ChannelStatus.MILESTONE);
 
     assertThat(updateStrategyCustomization.versionNameToChannelStatus("Foobar Canary 1")).isEqualTo(ChannelStatus.EAP);

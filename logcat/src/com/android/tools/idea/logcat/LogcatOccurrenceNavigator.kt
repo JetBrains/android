@@ -43,17 +43,21 @@ import org.jetbrains.annotations.VisibleForTesting
 private val EXCEPTION_LINE_PATTERN = Regex("^\\s*at .+\\(.+\\)$")
 
 @VisibleForTesting
-internal val ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES = Key.create<TextAttributes>("ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES")
+internal val ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES =
+  Key.create<TextAttributes>("ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES")
 
 /**
  * A [OccurenceNavigator] for navigating stack trace frames.
  *
  * Based on ConsoleViewImpl and EditorHyperlinkSupport.getHyperlinkInfo() but improved:
  * 1. Does not navigate to random hyperlinks, only stack frames.
- * 2. hasNextOccurence & hasPreviousOccurence are optimized by not having to find all stack traces, just the existence of at least one.
- * 3. Navigation is based on the current caret position. Wraps around if caret is at the start or end of the document.
+ * 2. hasNextOccurence & hasPreviousOccurence are optimized by not having to find all stack traces,
+ *    just the existence of at least one.
+ * 3. Navigation is based on the current caret position. Wraps around if caret is at the start or
+ *    end of the document.
  */
-internal class LogcatOccurrenceNavigator(private val project: Project, private val editor: Editor) : OccurenceNavigator {
+internal class LogcatOccurrenceNavigator(private val project: Project, private val editor: Editor) :
+  OccurenceNavigator {
   private enum class Direction {
     DOWN,
     UP,
@@ -62,33 +66,28 @@ internal class LogcatOccurrenceNavigator(private val project: Project, private v
   private val document = editor.document
   private val markupModel = editor.markupModel as MarkupModelEx
 
-  /**
-   * Returns true if the editor contains any stack trace hyperlinks, regardless of position.
-   */
+  /** Returns true if the editor contains any stack trace hyperlinks, regardless of position. */
   override fun hasNextOccurence(): Boolean = hasOccurrences()
 
-  /**
-   * Returns true if the editor contains any stack trace hyperlinks, regardless of position.
-   */
+  /** Returns true if the editor contains any stack trace hyperlinks, regardless of position. */
   override fun hasPreviousOccurence(): Boolean = hasOccurrences()
 
-  /**
-   * Go to the next stack frame starting from the line below the caret
-   */
+  /** Go to the next stack frame starting from the line below the caret */
   override fun goNextOccurence(): OccurenceInfo? = goOccurrence(DOWN)
 
-  /**
-   * Go to the previous stack frame starting from the line above the caret
-   */
+  /** Go to the previous stack frame starting from the line above the caret */
   override fun goPreviousOccurence(): OccurenceInfo? = goOccurrence(UP)
 
-  override fun getNextOccurenceActionName(): String = ExecutionBundle.message("down.the.stack.trace")
+  override fun getNextOccurenceActionName(): String =
+    ExecutionBundle.message("down.the.stack.trace")
 
-  override fun getPreviousOccurenceActionName(): String = ExecutionBundle.message("up.the.stack.trace")
+  override fun getPreviousOccurenceActionName(): String =
+    ExecutionBundle.message("up.the.stack.trace")
 
   private fun goOccurrence(direction: Direction): OccurenceInfo? {
     val line = document.getLineNumber(editor.caretModel.offset)
-    val pos = if (direction == DOWN) document.getLineEndOffset(line) else document.getLineStartOffset(line)
+    val pos =
+      if (direction == DOWN) document.getLineEndOffset(line) else document.getLineStartOffset(line)
     val framesUp = getStackFrameHyperlinks(0, pos)
     val framesDown = getStackFrameHyperlinks(pos, editor.document.textLength - 1)
 
@@ -96,13 +95,18 @@ internal class LogcatOccurrenceNavigator(private val project: Project, private v
     if (numOccurrences == 0) {
       return null
     }
-    val (occurrenceRange, index) = when {
-      direction == DOWN && framesDown.isEmpty() -> framesUp.first() to 1
-      direction == DOWN -> framesDown.first() to framesUp.size + 1
-      framesUp.isEmpty() -> framesDown.last() to framesDown.size
-      else -> framesUp.last() to framesUp.size
-    }
-    return OccurenceInfo(LogcatNavigatableAdapter(project, editor, occurrenceRange, framesUp + framesDown), index, numOccurrences)
+    val (occurrenceRange, index) =
+      when {
+        direction == DOWN && framesDown.isEmpty() -> framesUp.first() to 1
+        direction == DOWN -> framesDown.first() to framesUp.size + 1
+        framesUp.isEmpty() -> framesDown.last() to framesDown.size
+        else -> framesUp.last() to framesUp.size
+      }
+    return OccurenceInfo(
+      LogcatNavigatableAdapter(project, editor, occurrenceRange, framesUp + framesDown),
+      index,
+      numOccurrences
+    )
   }
 
   private fun hasOccurrences(): Boolean {
@@ -120,13 +124,14 @@ internal class LogcatOccurrenceNavigator(private val project: Project, private v
   companion object {
     @VisibleForTesting
     internal val FOLLOWED_HYPERLINK_ATTRIBUTES =
-      EditorColorsManager.getInstance().globalScheme.getAttributes(CodeInsightColors.FOLLOWED_HYPERLINK_ATTRIBUTES)
+      EditorColorsManager.getInstance()
+        .globalScheme
+        .getAttributes(CodeInsightColors.FOLLOWED_HYPERLINK_ATTRIBUTES)
   }
 }
 
 /**
  * To be a stack frame hyperlink, the range must:
- *
  * 1. be valid
  * 2. Be of type FileHyperlinkInfo
  * 3. Contain exactly one line of text
@@ -169,10 +174,10 @@ internal class LogcatNavigatableAdapter(
     val hyperlinkInfo = EditorHyperlinkSupport.getHyperlinkInfo(occurrenceRange)
     if (hyperlinkInfo is HyperlinkInfoBase) {
       val position = editor.offsetToVisualPosition(offset)
-      val point = editor.visualPositionToXY(VisualPosition(position.getLine() + 1, position.getColumn()))
+      val point =
+        editor.visualPositionToXY(VisualPosition(position.getLine() + 1, position.getColumn()))
       hyperlinkInfo.navigate(project, RelativePoint(editor.contentComponent, point))
-    }
-    else {
+    } else {
       hyperlinkInfo?.navigate(project)
     }
     val markupModel = editor.markupModel as MarkupModelEx
@@ -183,15 +188,20 @@ internal class LogcatNavigatableAdapter(
         range.putUserData(ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES, null)
       }
     }
-    occurrenceRange.putUserData(ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES, occurrenceRange.getTextAttributes(editor.colorsScheme))
+    occurrenceRange.putUserData(
+      ORIGINAL_HYPERLINK_TEXT_ATTRIBUTES,
+      occurrenceRange.getTextAttributes(editor.colorsScheme)
+    )
     markupModel.setRangeHighlighterAttributes(occurrenceRange, FOLLOWED_HYPERLINK_ATTRIBUTES)
   }
 }
 
-private class CollectStackFrameRanges(private val editor: Editor) : CollectProcessor<RangeHighlighter>() {
+private class CollectStackFrameRanges(private val editor: Editor) :
+  CollectProcessor<RangeHighlighter>() {
   override fun accept(range: RangeHighlighter?): Boolean = range?.isStackTraceLink(editor) == true
 }
 
-private class FindFirstStackFrameRange(private val editor: Editor) : FindFirstProcessor<RangeHighlighter>() {
+private class FindFirstStackFrameRange(private val editor: Editor) :
+  FindFirstProcessor<RangeHighlighter>() {
   override fun accept(range: RangeHighlighter?): Boolean = range?.isStackTraceLink(editor) == true
 }

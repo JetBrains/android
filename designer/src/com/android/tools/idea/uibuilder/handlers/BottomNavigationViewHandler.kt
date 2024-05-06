@@ -15,14 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.SdkConstants.ATTR_ELEVATION
-import com.android.SdkConstants.ATTR_ITEM_BACKGROUND
-import com.android.SdkConstants.ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED
-import com.android.SdkConstants.ATTR_ITEM_ICON_TINT
-import com.android.SdkConstants.ATTR_ITEM_TEXT_COLOR
-import com.android.SdkConstants.ATTR_LABEL_VISIBILITY_MODE
-import com.android.SdkConstants.ATTR_MENU
-import com.android.SdkConstants.ATTR_STYLE
+import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
 
 class BottomNavigationViewHandler : FrameLayoutHandler() {

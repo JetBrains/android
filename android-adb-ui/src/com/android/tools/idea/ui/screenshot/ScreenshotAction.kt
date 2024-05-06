@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.io.writeImage
 import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.diagnostic.thisLogger
@@ -39,6 +40,8 @@ class ScreenshotAction : DumbAwareAction(
   AndroidAdbUiBundle.message("screenshot.action.description"),
   StudioIcons.Common.SCREENSHOT,
 ) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(event: AnActionEvent) {
     event.presentation.isEnabled = event.getData(SCREENSHOT_OPTIONS_KEY) != null

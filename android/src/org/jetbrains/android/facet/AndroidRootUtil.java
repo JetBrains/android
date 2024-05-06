@@ -16,20 +16,16 @@
 
 package org.jetbrains.android.facet;
 
-import static com.android.tools.idea.gradle.util.PropertiesFiles.getProperties;
 import static com.intellij.openapi.util.io.FileUtil.getRelativePath;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.toVirtualFileArray;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.CLASSES_JAR_FILE_NAME;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.sdk.AndroidPlatform;
 import com.intellij.ide.highlighter.ArchiveFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -44,28 +40,24 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PathUtil;
 import com.intellij.util.containers.OrderedSet;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
 
 public class AndroidRootUtil {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.facet.AndroidRootUtil");
-  @NonNls public static final String DEFAULT_PROPERTIES_FILE_NAME = "default.properties";
 
   private AndroidRootUtil() {
   }
@@ -293,84 +285,6 @@ public class AndroidRootUtil {
       }
     }
     return contentRoots[0];
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
-  @Nullable
-  public static Pair<Properties, VirtualFile> readPropertyFile(@NotNull Module module, @NotNull String propertyFileName) {
-    for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
-      Pair<Properties, VirtualFile> result = readPropertyFile(contentRoot, propertyFileName);
-      if (result != null) {
-        return result;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull Module module) {
-    Pair<Properties, VirtualFile> pair = readPropertyFile(module, SdkConstants.FN_PROJECT_PROPERTIES);
-    return pair != null ? pair : readPropertyFile(module, DEFAULT_PROPERTIES_FILE_NAME);
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
-  @Nullable
-  private static Pair<Properties, VirtualFile> readPropertyFile(@NotNull VirtualFile contentRoot, @NotNull String propertyFileName) {
-    VirtualFile vFile = contentRoot.findChild(propertyFileName);
-    if (vFile != null) {
-      try {
-        File file = virtualToIoFile(vFile);
-        Properties properties = getProperties(file);
-        return Pair.create(properties, vFile);
-      }
-      catch (IOException e) {
-        LOG.info(e);
-      }
-    }
-    return null;
-  }
-
-  /**
-   * @deprecated Do not use. JPS project specific.
-   */
-  @Deprecated
-  @Nullable
-  public static Pair<Properties, VirtualFile> readProjectPropertyFile(@NotNull VirtualFile contentRoot) {
-    Pair<Properties, VirtualFile> pair = readPropertyFile(contentRoot, SdkConstants.FN_PROJECT_PROPERTIES);
-    return pair != null ? pair : readPropertyFile(contentRoot, DEFAULT_PROPERTIES_FILE_NAME);
-  }
-
-  @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
-  @Nullable
-  public static Pair<String, VirtualFile> getPropertyValue(@NotNull Module module,
-                                                           @NotNull String propertyFileName,
-                                                           @NotNull String propertyKey) {
-    Pair<Properties, VirtualFile> pair = readPropertyFile(module, propertyFileName);
-    if (pair != null) {
-      String value = pair.first.getProperty(propertyKey);
-      if (value != null) {
-        return Pair.create(value, pair.second);
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  public static Pair<String, VirtualFile> getProjectPropertyValue(@NotNull Module module, @NotNull String propertyName) {
-    Pair<String, VirtualFile> result = getPropertyValue(module, SdkConstants.FN_PROJECT_PROPERTIES, propertyName);
-    return result != null ? result : getPropertyValue(module, DEFAULT_PROPERTIES_FILE_NAME, propertyName);
   }
 
   /**

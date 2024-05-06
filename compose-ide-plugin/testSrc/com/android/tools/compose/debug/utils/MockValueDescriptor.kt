@@ -27,8 +27,11 @@ class MockValueDescriptor(project: Project, value: Value) : ValueDescriptorImpl(
   var myValueText: String = value.toString()
 
   override fun getType(): Type = value.type()
+
   override fun getDescriptorEvaluation(context: DebuggerContext?): PsiExpression? = null
+
   override fun calcValue(evaluationContext: EvaluationContextImpl?): Value = value
+
   override fun getValueText(): String = myValueText
 
   override fun setValueLabel(label: String) {

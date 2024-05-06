@@ -129,11 +129,11 @@ class EnergyProfilerStageTest {
 
   @Test
   fun hasUserUsedSelection() {
-    assertThat(stage.instructionsEaseOutModel.percentageComplete).isWithin(0f).of(0f)
+    assertThat(stage.instructionsEaseOutModel.ratioComplete).isWithin(0f).of(0f)
     assertThat(stage.hasUserUsedEnergySelection()).isFalse()
     stage.rangeSelectionModel.setSelectionEnabled(true)
     stage.rangeSelectionModel.set(0.0, 100.0)
-    assertThat(stage.instructionsEaseOutModel.percentageComplete).isWithin(0f).of(1f)
+    assertThat(stage.instructionsEaseOutModel.ratioComplete).isWithin(0f).of(1f)
     assertThat(stage.hasUserUsedEnergySelection()).isTrue()
   }
 

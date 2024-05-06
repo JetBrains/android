@@ -16,10 +16,11 @@
 package com.android.tools.profilers.cpu.systemtrace;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.MainProcessSelector;
 import com.android.tools.profilers.cpu.TraceParser;
-import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import java.io.File;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import trebuchet.model.Model;
 import trebuchet.task.ImportTask;
 import trebuchet.util.PrintlnImportFeedback;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 /**
  * AtraceParser is a minimal implementation parsing the atrace file.

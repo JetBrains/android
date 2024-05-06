@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.adtui.TabularLayout
-import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.projectsystem.getAndroidModulesForDisplay
 import com.android.tools.idea.run.editor.AndroidDebuggerPanel
 import com.intellij.application.options.ModulesComboBox

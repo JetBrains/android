@@ -17,7 +17,6 @@ package com.android.tools.idea.databinding.analytics
 
 import com.intellij.openapi.project.Project
 
-
 /**
  * Overwrites methods in [LayoutBindingTracker] so it can be run in unit tests.
  *
@@ -29,4 +28,3 @@ class TestLayoutBindingTracker constructor(project: Project) : LayoutBindingTrac
     runnable.run()
   }
 }
-

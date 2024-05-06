@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.devicemanager.physicaltab;
 
+import com.android.tools.adtui.table.Tables;
 import com.android.tools.idea.devicemanager.ConnectionType;
-import com.android.tools.idea.devicemanager.Tables;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.components.JBPanel;
 import icons.StudioIcons;

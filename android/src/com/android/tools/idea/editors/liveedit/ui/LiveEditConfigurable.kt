@@ -15,23 +15,20 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.idea.editors.literals.LiveEditAnActionListener
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
-import com.android.tools.idea.editors.literals.LiveLiteralsService
+import com.android.tools.idea.editors.liveedit.LiveEditAnActionListener
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
-import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.dsl.builder.Cell
@@ -104,16 +101,6 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
 
   override fun apply() {
     super.apply()
-
-    if (!LiveEditApplicationConfiguration.getInstance().isLiveLiterals) {
-      // Make sure we disable all the live literals services
-      ProjectManager.getInstance().openProjects
-        .forEach {
-          LiveLiteralsService.getInstance(it).onAvailabilityChange()
-          ProjectConstantRemapper.getInstance(it).clearConstants(null)
-        }
-    }
-
     ActivityTracker.getInstance().inc()
   }
 }

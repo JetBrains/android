@@ -82,7 +82,9 @@ class ClassTransform(
         transforms.fold(it) { acc, visitor -> visitor.apply(acc) }
       }
       .apply(visitor)
+
   operator fun plus(f2: ClassTransform) = ClassTransform(transforms + f2.transforms)
+
   operator fun plus(f2: List<java.util.function.Function<ClassVisitor, ClassVisitor>>) =
     ClassTransform(transforms + f2)
 

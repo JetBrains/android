@@ -33,10 +33,10 @@ const val SEPARATOR_TEXT = "----------------------------------------------------
  */
 @JvmOverloads
 fun prettyPrintActions(
-  action: AnAction, filter: (action: AnAction) -> Boolean = { true }, presentationFactory: PresentationFactory? = null
+  action: AnAction, filter: (action: AnAction) -> Boolean = { true }, presentationFactory: PresentationFactory? = null, dataContext: DataContext = DataContext.EMPTY_CONTEXT
 ): String {
   val stringBuilder = StringBuilder()
-  prettyPrintActions(action, stringBuilder, 0, filter, presentationFactory)
+  prettyPrintActions(action, stringBuilder, 0, filter, presentationFactory, dataContext)
   return stringBuilder.toString()
 }
 
@@ -44,14 +44,14 @@ fun prettyPrintActions(
  * Run [prettyPrintActions] recursively.
  */
 private fun prettyPrintActions(
-  action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, presentationFactory: PresentationFactory?
+  action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, presentationFactory: PresentationFactory?, dataContext: DataContext
 ) {
-  appendActionText(sb, action, presentationFactory, depth)
+  appendActionText(sb, action, presentationFactory, depth, dataContext)
   (action as? DefaultActionGroup)?.let { group ->
     if (!group.isPopup) {
       // If it is not a popup, the actions in the group would be flatted.
-      for (child in group.getChildren(ActionManager.getInstance())) {
-        appendActionText(sb, child, presentationFactory, depth)
+      for (child in group.getChildren(null)) {
+        appendActionText(sb, child, presentationFactory, depth, dataContext)
       }
     }
     else {
@@ -59,27 +59,25 @@ private fun prettyPrintActions(
         if (!filter(child)) {
           continue
         }
-        prettyPrintActions(child, sb, depth + 1, filter, presentationFactory)
+        prettyPrintActions(child, sb, depth + 1, filter, presentationFactory, dataContext)
       }
     }
   }
 }
 
-private fun appendActionText(sb: StringBuilder, action: AnAction, presentationFactory: PresentationFactory?, depth: Int) {
-  val text = action.toText(presentationFactory)
-  if (text != null) {
-    for (i in 0 until depth) {
-      sb.append("    ")
-    }
-    sb.append(text).append("\n")
+private fun appendActionText(sb: StringBuilder, action: AnAction, presentationFactory: PresentationFactory?, depth: Int, dataContext: DataContext) {
+  val text = action.toText(presentationFactory, dataContext)
+  for (i in 0 until depth) {
+    sb.append("    ")
   }
+  sb.append(text).append("\n")
 }
 
-private fun AnAction.toText(presentationFactory: PresentationFactory?): String? {
+private fun AnAction.toText(presentationFactory: PresentationFactory?, dataContext: DataContext): String {
   if (this is Separator) {
     return SEPARATOR_TEXT
   }
-  val event = createTestActionEvent(this, presentationFactory = presentationFactory)
+  val event = createTestActionEvent(this, presentationFactory = presentationFactory, dataContext = dataContext)
   update(event)
   // Add a visual representation to selected actions.
   return "${if (Toggleable.isSelected(event.presentation)) "✔ " else ""}${event.presentation.text}"

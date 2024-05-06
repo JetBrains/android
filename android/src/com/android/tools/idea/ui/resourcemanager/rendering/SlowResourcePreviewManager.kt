@@ -85,38 +85,46 @@ class SlowResourcePreviewManager(
                        component: Component,
                        refreshCallback: () -> Unit,
                        shouldBeRendered: () -> Boolean): ImageIcon {
-    if (height > 0 && width > 0) {
-      val targetSize = Dimension(width, height)
-      var image = fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, component)
-      // If an image is cached but does not fit into the content (i.e the list cell size was changed)
-      // we do a fast rescaling in place and request a higher quality scaled image in the background
-      val imageWidth = image.getWidth(null)
-      val imageHeight = image.getHeight(null)
-      val scale = getScale(targetSize, Dimension(imageWidth, imageHeight))
-      if (image != PLACEHOLDER_IMAGE && image != ERROR_IMAGE && shouldScale(scale)) {
-        if (scale < 1) {
-          // Prefer to scale down a high quality image.
-          image = ImageUtil.scaleImage(image, scale)
-        }
-        else {
+    if (height < 1 || width < 1) {
+      imageIcon.image = PLACEHOLDER_IMAGE
+      return imageIcon
+    }
+
+    val targetSize = Dimension(width, height)
+    var image = fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, component)
+    // If an image is cached but does not fit into the content (i.e the list cell size was changed)
+    // we do a fast rescaling in place and request a higher quality scaled image in the background
+    val imageWidth = image.getWidth(null)
+    val imageHeight = image.getHeight(null)
+    val scale = getScale(targetSize, Dimension(imageWidth, imageHeight))
+    if (image != PLACEHOLDER_IMAGE && image != ERROR_IMAGE && shouldScale(scale)) {
+      if (scale < 1) {
+        // Prefer to scale down a high quality image.
+        image = ImageUtil.scaleImage(image, scale)
+      }
+      else {
+        try {
           // Return a low quality scaled version, then trigger a callback to request high quality version.
           val bufferedImage = ImageUtil.toBufferedImage(image)
           image = ImageUtils.lowQualityFastScale(bufferedImage, scale, scale)
           fetchImage(assetToRender, refreshCallback, shouldBeRendered, targetSize, component, true)
+        } catch (t: Throwable) {
+          LOG.warn(
+            "Unable to scale image (scale=$scale, source=${imageWidth}x${imageHeight}"
+            + ",target=${width}x${height}, asset=${assetToRender.name})", t
+          )
+          imageIcon.image = ERROR_IMAGE
         }
       }
-      imageIcon.image = when (image) {
-        // Create the actual error icon for the desired size, ERROR_IMAGE it's just used as a placeholder to know there was an error.
-        ERROR_IMAGE -> createFailedIcon(targetSize)
-        // Scale the placeholder image.
-        PLACEHOLDER_IMAGE -> if (shouldScale(scale)) ImageUtils.lowQualityFastScale(PLACEHOLDER_IMAGE, scale, scale) else PLACEHOLDER_IMAGE
-        else -> image
-      }
-      supportsTransparency = image != ERROR_IMAGE
     }
-    else {
-      imageIcon.image = PLACEHOLDER_IMAGE
+    imageIcon.image = when (image) {
+      // Create the actual error icon for the desired size, ERROR_IMAGE it's just used as a placeholder to know there was an error.
+      ERROR_IMAGE -> createFailedIcon(targetSize)
+      // Scale the placeholder image.
+      PLACEHOLDER_IMAGE -> if (shouldScale(scale)) ImageUtils.lowQualityFastScale(PLACEHOLDER_IMAGE, scale, scale) else PLACEHOLDER_IMAGE
+      else -> image
     }
+    supportsTransparency = image != ERROR_IMAGE
     return imageIcon
   }
 

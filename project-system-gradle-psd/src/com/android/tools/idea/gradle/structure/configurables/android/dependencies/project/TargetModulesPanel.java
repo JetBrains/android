@@ -21,7 +21,7 @@ import static java.awt.event.MouseEvent.MOUSE_PRESSED;
 import com.android.tools.idea.gradle.AndroidGradlePsdBundle;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetAndroidModuleNode;
-import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModulesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.android.dependencies.project.treeview.TargetModulesTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
@@ -38,30 +38,32 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.ui.tree.AsyncTreeModel;
+import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.Tree;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.tree.TreeUtil;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JScrollPane;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 
 class TargetModulesPanel extends ToolWindowPanel {
   @NotNull private final PsContext myContext;
   @NotNull private final Tree myTree;
-  @NotNull private final TargetModulesTreeBuilder myTreeBuilder;
+  @NotNull private final StructureTreeModel<TargetModulesTreeStructure> structureTreeModel;
   @NotNull private final NodeHyperlinkSupport<TargetAndroidModuleNode> myHyperlinkSupport;
 
   TargetModulesPanel(@NotNull PsContext context) {
     super(AndroidGradlePsdBundle.message("tab.title.target.modules.artifacts"), AllIcons.Nodes.ModuleGroup, ToolWindowAnchor.RIGHT);
     myContext = context;
 
-    DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-    myTree = new Tree(treeModel) {
+    TargetModulesTreeStructure treeStructure = new TargetModulesTreeStructure(context.getUiSettings());
+    structureTreeModel = new StructureTreeModel<>(treeStructure, this);
+    myTree = new Tree(new AsyncTreeModel(structureTreeModel, this)) {
       @Override
       protected void processMouseEvent(MouseEvent e) {
         int id = e.getID();
@@ -78,7 +80,7 @@ class TargetModulesPanel extends ToolWindowPanel {
         super.processMouseEvent(e);
       }
     };
-    myTree.setRowHeight(JBUIScale.scale(24));
+    myTree.setRowHeight(JBUI.scale(24));
     myTree.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(Component comp, int x, int y) {
@@ -89,9 +91,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
 
-    myTreeBuilder = new TargetModulesTreeBuilder(myTree, treeModel, context.getUiSettings());
-
-    JScrollPane scrollPane = setUp(myTreeBuilder, "targetModules");
+    JScrollPane scrollPane = setUp(myTree, "targetModules");
     add(scrollPane, BorderLayout.CENTER);
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, TargetAndroidModuleNode.class, myContext, false);
@@ -103,7 +103,7 @@ class TargetModulesPanel extends ToolWindowPanel {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         myTree.requestFocusInWindow();
-        myTreeBuilder.collapseAllNodes();
+        TreeUtil.collapseAll(myTree, -1);
       }
     });
 
@@ -125,13 +125,13 @@ class TargetModulesPanel extends ToolWindowPanel {
   }
 
   void displayTargetModules(@NotNull List<AbstractDependencyNode<?, ? extends PsBaseDependency>> dependencyNodes) {
-    myTreeBuilder.displayTargetModules(dependencyNodes);
+    structureTreeModel.getTreeStructure().displayTargetModules(dependencyNodes.stream().map(AbstractDependencyNode::getModels).toList());
+    structureTreeModel.invalidateAsync();
   }
 
   @Override
   public void dispose() {
     super.dispose();
-    Disposer.dispose(myTreeBuilder);
     Disposer.dispose(myHyperlinkSupport);
   }
 }

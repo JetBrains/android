@@ -28,4 +28,15 @@ interface DeviceFileSystem {
    * can be used to traverse the file system recursively.
    */
   suspend fun rootDirectory(): DeviceFileEntry
+
+  suspend fun dataDirectory(): DeviceFileEntry
+
+  /**
+   * Returns the [DeviceFileEntry] corresponding to the given `path`
+   * The path follows the Unix syntax, i.e. starts with `/` and uses `/`
+   * as name separator.
+   *
+   * @throws IllegalArgumentException if the path is not found
+   */
+  suspend fun getEntry(path: String): DeviceFileEntry
 }

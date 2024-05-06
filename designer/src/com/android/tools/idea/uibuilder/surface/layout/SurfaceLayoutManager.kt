@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
@@ -33,7 +33,7 @@ internal fun Collection<PositionableContent>.sortByPosition() =
  */
 interface PositionableContent {
 
-  val groupId: String?
+  val organizationGroup: String?
 
   /** The current scale value of this [PositionableContent]. */
   @SurfaceScale val scale: Double
@@ -44,8 +44,6 @@ interface PositionableContent {
   @get:SwingCoordinate val x: Int
 
   @get:SwingCoordinate val y: Int
-
-  val isVisible: Boolean
 
   /**
    * Returns the current size of the view content, excluding margins. This doesn't account the

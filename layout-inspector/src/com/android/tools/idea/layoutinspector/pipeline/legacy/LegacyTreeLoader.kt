@@ -154,7 +154,8 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
       client.model.project.modules.find { it.isAndroidModule() && it.isMainModule() } ?: return null
     val themeString =
       activity?.let { module.getThemeNameForActivity(it) }
-        ?: module.getAppThemeName() ?: return null
+        ?: module.getAppThemeName()
+        ?: return null
     client.latestTheme = themeString
     return createReference(themeString, client.process.packageName)
   }

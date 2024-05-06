@@ -15,35 +15,33 @@
  */
 package com.android.tools.idea.gradle.completion
 
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.AndroidTestCase
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class DeclarativeCompletionContributorTest : AndroidTestCase() {
+class DeclarativeCompletionContributorTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  private val fixture by lazy { projectRule.fixture }
+
   @Before
-  public override fun setUp() {
-    super.setUp()
+  fun setUp() {
     Registry.get("android.gradle.declarative.plugin.studio.support").setValue(true)
   }
 
   @After
-  public override fun tearDown() {
-    try {
-      Registry.get("android.gradle.declarative.plugin.studio.support").setValue(false)
-    }
-    catch (e: Throwable) {
-      addSuppressedException(e)
-    }
-    finally {
-      super.tearDown()
-    }
+  fun tearDown() {
+    Registry.get("android.gradle.declarative.plugin.studio.support").resetToDefault()
   }
 
   @Test
@@ -51,6 +49,14 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
     doTest("a$caret") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(
         "android" to "Block element", "configurations" to "Block element", "crashlytics" to "Block element", "java" to "Block element"
+      )
+    }
+
+  @Test
+  fun testExtExcludedFromSuggestions() =
+    doTest("$caret") { suggestions ->
+      Truth.assertThat(suggestions.toList()).doesNotContain(
+        "ext" to "Block element"
       )
     }
 
@@ -204,6 +210,106 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
     }
 
   @Test
+  fun testSuggestionsForAaptOptions() =
+    doTest("android.aaptOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "additionalParameters",
+        "cruncherEnabled",
+        "cruncherProcesses",
+      )
+    }
+
+  @Test
+  fun testSuggestionsForAdbOptions() =
+    doTest("android.adbOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "installOptions",
+        "timeOutInMs",
+      )
+    }
+
+  @Test
+  fun testSuggestionsForAndroidResources() =
+    doTest("android.androidResources.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "additionalParameters",
+        "cruncherEnabled"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForBuildFeatures() =
+    doTest("android.buildFeatures.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "compose",
+        "dataBinding"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForCompileOptions() =
+    doTest("android.compileOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "encoding",
+        "incremental"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForComposeOptions() =
+    doTest("android.composeOptions.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).contains(
+        "kotlinCompilerExtensionVersion"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForLint() =
+    doTest("android.lint.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "abortOnError",
+        "absolutePaths"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForProductFlavor() =
+    doTest("android.productFlavors.main.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "applicationId",
+        "isDefault"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForCmakeBuild() =
+    doTest("android.externalNativeBuild.cmake.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "path",
+        "version"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForFlavoredNdkBuild() =
+    doTest("android.productFlavors.main.externalNativeBuild.ndkBuild.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "abiFilters",
+        "arguments"
+      )
+    }
+
+  @Test
+  fun testSuggestionsForSourceSets() =
+    doTest("android.sourceSets.main.java.$caret") { suggestions ->
+      Truth.assertThat(suggestions.keys).containsAllOf(
+        "srcDirs",
+        "includes",
+        "excludes"
+      )
+    }
+
+  @Test
   fun testCompletionTableArray() =
     doCompletionTest(
       "plugi$caret",
@@ -253,6 +359,7 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       " [   plugin$caret]   ",
       " [[   plugins]]   \n$caret")
 
+  @Test
   fun testCompletionTableArray6() =
     doCompletionTest(
       """[[plu$caret # This is a [[comment]]""",
@@ -268,6 +375,7 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       "$caret"
      )
 
+  @Test
   fun testSuggestionsWithinArrayTable() =
     doTest("""
       [[plugins]]
@@ -281,11 +389,11 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
     }
 
   private fun doTest(declarativeFile: String, check: (Map<String, String>) -> Unit) {
-    val buildFile = myFixture.addFileToProject(
+    val buildFile = fixture.addFileToProject(
       "build.gradle.toml", declarativeFile)
-    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
-    myFixture.completeBasic()
-    val map: Map<String, String> = myFixture.lookupElements!!.associate {
+    fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.completeBasic()
+    val map: Map<String, String> = fixture.lookupElements!!.associate {
       val presentation = LookupElementPresentation()
       it.renderElement(presentation)
       it.lookupString to (presentation.typeText ?: "")
@@ -295,16 +403,16 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
   }
 
   private fun doCompletionTest(declarativeFile: String, fileAfter: String) {
-    val buildFile = myFixture.addFileToProject(
+    val buildFile = fixture.addFileToProject(
       "build.gradle.toml", declarativeFile)
-    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
-    myFixture.completeBasic()
+    fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.completeBasic()
 
     val caretOffset = fileAfter.indexOf(caret)
     val cleanFileAfter = fileAfter.replace(caret, "")
 
     Truth.assertThat(buildFile.text).isEqualTo(cleanFileAfter)
-    Truth.assertThat(myFixture.editor.caretModel.offset).isEqualTo(caretOffset)
+    Truth.assertThat(fixture.editor.caretModel.offset).isEqualTo(caretOffset)
   }
 
 }

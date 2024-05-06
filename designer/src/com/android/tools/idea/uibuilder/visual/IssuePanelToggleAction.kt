@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssuePanelService
-import com.android.tools.idea.common.error.setIssuePanelVisibilityNoTracking
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.analytics.trackLayoutValidationToggleIssuePanel
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -27,23 +26,20 @@ import icons.StudioIcons
 
 private const val BUTTON_TEXT = "Toggle visibility of issue panel"
 
-class IssuePanelToggleAction(val surface: NlDesignSurface) :
+class IssuePanelToggleAction :
   ToggleAction(BUTTON_TEXT, BUTTON_TEXT, StudioIcons.Common.WARNING_INLINE) {
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return IssuePanelService.getInstance(surface.project).isShowingIssuePanel(surface)
+    val project = e.project ?: return false
+    return IssuePanelService.getInstance(project).isIssuePanelVisible()
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    // Do not track as Layout Editor event.
-    surface.setIssuePanelVisibilityNoTracking(state, true) {
-      if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-        e.getData(PlatformDataKeys.PROJECT)?.let { project ->
-          IssuePanelService.getInstance(project).focusIssuePanelIfVisible()
-        }
-        // Track as Layout Validation Too event.
-        trackLayoutValidationToggleIssuePanel(surface, state)
-      }
+    val issuePanelService = e.project?.let { IssuePanelService.getInstance(it) } ?: return
+    issuePanelService.setSharedIssuePanelVisibility(state) {
+      issuePanelService.focusIssuePanelIfVisible()
+      // Track as Layout Validation Too event.
+      e.getData(DESIGN_SURFACE)?.let { trackLayoutValidationToggleIssuePanel(it, state) }
     }
   }
 
@@ -54,4 +50,6 @@ class IssuePanelToggleAction(val surface: NlDesignSurface) :
         IssuePanelService.getInstance(project).getSharedPanelIssues()?.size != 0
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

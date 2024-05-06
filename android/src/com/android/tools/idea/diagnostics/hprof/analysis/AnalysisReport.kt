@@ -15,4 +15,4 @@
  */
 package com.android.tools.idea.diagnostics.hprof.analysis
 
-class AnalysisReport(val mainReport: StringBuilder = StringBuilder(), val metaInfo: StringBuilder = StringBuilder())
+class AnalysisReport(val mainReport: StringBuilder = StringBuilder(), val metaInfo: StringBuilder = StringBuilder(), val summary: StringBuilder = StringBuilder())

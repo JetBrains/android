@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_HOME_ENV
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.google.common.base.Splitter
 import com.intellij.openapi.diagnostic.thisLogger
@@ -36,8 +37,6 @@ class EmulatorConfiguration private constructor(
   val displaySize: Dimension,
   val density: Int,
   val skinFolder: Path?,
-  val isFoldable: Boolean,
-  val isRollable: Boolean,
   val isWearOs: Boolean,
   val hasOrientationSensors: Boolean,
   val hasAudioOutput: Boolean,
@@ -61,7 +60,7 @@ class EmulatorConfiguration private constructor(
     fun readAvdDefinition(avdId: String, avdFolder: Path): EmulatorConfiguration? {
       val hardwareIniFile = avdFolder.resolve("hardware-qemu.ini")
       val keysToExtract1 = setOf("android.sdk.root", "hw.audioOutput", "hw.lcd.height", "hw.lcd.width", "hw.lcd.density",
-                                 "hw.sensor.hinge.count", "hw.sensor.roll.count")
+                                 "hw.sensor.hinge.resizable.config")
       val hardwareIni = readKeyValueFile(hardwareIniFile, keysToExtract1) ?: return null
 
       val sdkPath = hardwareIni["android.sdk.root"] ?: System.getenv(ANDROID_HOME_ENV) ?: ""
@@ -73,20 +72,22 @@ class EmulatorConfiguration private constructor(
       }
       val density = parseInt(hardwareIni["hw.lcd.density"], 0)
       val hasAudioOutput = hardwareIni["hw.audioOutput"]?.toBoolean() ?: true
-      val isFoldable = parseInt(hardwareIni["hw.sensor.hinge.count"], 0) > 0
-      val isRollable = parseInt(hardwareIni["hw.sensor.roll.count"], 0) > 0
 
       val configIniFile = avdFolder.resolve("config.ini")
       val configIni = readKeyValueFile(configIniFile) ?: return null
 
       val avdName = configIni["avd.ini.displayname"] ?: avdId.replace('_', ' ')
-      val initialOrientation = if ("landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true))
-          SkinRotation.LANDSCAPE else SkinRotation.PORTRAIT
+      val initialOrientation = when {
+        "landscape".equals(configIni["hw.initialOrientation"], ignoreCase = true) -> SkinRotation.LANDSCAPE
+        else -> SkinRotation.PORTRAIT
+      }
       val skinPath = getSkinPath(configIni, androidSdkRoot)
       val isWearOs = configIni["tag.id"]?.equals("android-wear", ignoreCase = true) ?: false
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
+      val postureMode = if (StudioFlags.EMBEDDED_EMULATOR_RESIZABLE_FOLDING.get())
+          parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1) else -1
       val displayModes = try {
-        configIni["hw.resizable.configs"]?.let(::parseDisplayModes) ?: emptyList()
+        configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
       }
       catch (e: Exception) {
         thisLogger().warn("Unrecognized value of the hw.resizable.configs property, \"${configIni["hw.resizable.configs"]}\"," +
@@ -102,20 +103,27 @@ class EmulatorConfiguration private constructor(
                           " in $configIniFile")
         emptyList()
       }
-      val postureRanges = try {
-        val ranges = configIni["hw.sensor.hinge_angles_posture_definitions"] ?: configIni["hw.sensor.roll_percentages_posture_definitions"]
-        ranges?.let(::parseRanges) ?: emptyList()
-      }
-      catch (e: Exception) {
-        thisLogger().warn("Unrecognized value of the hw.sensor.hinge_angles_posture_definitions property," +
-                          " \"${configIni["hw.sensor.hinge_angles_posture_definitions"]}\", in $configIniFile")
-        emptyList()
-      }
-      val postures = if (postureValues.size == postureRanges.size) {
-        List(postureValues.size) { i -> PostureDescriptor(postureValues[i], postureRanges[i].first, postureRanges[i].second) }
-      }
-      else {
-        emptyList()
+      var postures = emptyList<PostureDescriptor>()
+      for (type in PostureDescriptor.ValueType.values()) {
+        val key = when (type) {
+          PostureDescriptor.ValueType.HINGE_ANGLE -> "hw.sensor.hinge_angles_posture_definitions"
+          else -> "hw.sensor.roll_percentages_posture_definitions"
+        }
+        val ranges = configIni[key]
+        if (ranges != null) {
+          try {
+            val postureRanges = parseRanges(ranges)
+            if (postureValues.size == postureRanges.size) {
+              postures = List(postureValues.size) { i ->
+                PostureDescriptor(postureValues[i], type, postureRanges[i].first, postureRanges[i].second)
+              }
+            }
+          }
+          catch (e: Exception) {
+            thisLogger().warn("Unrecognized value of the $key property, \"$ranges\", in $configIniFile")
+          }
+          break
+        }
       }
 
       val api = configIni["image.sysdir.1"]?.let { systemImage ->
@@ -129,8 +137,6 @@ class EmulatorConfiguration private constructor(
                                    displaySize = Dimension(displayWidth, displayHeight),
                                    density = density,
                                    skinFolder = skinPath,
-                                   isFoldable = isFoldable,
-                                   isRollable = isRollable,
                                    isWearOs = isWearOs,
                                    hasOrientationSensors = hasOrientationSensors,
                                    hasAudioOutput = hasAudioOutput,
@@ -152,10 +158,10 @@ class EmulatorConfiguration private constructor(
      * Parses a value of the "hw.resizable.configs" parameter that has the following format:
      * "phone-0-1080-2340-420, unfolded-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160".
      */
-    private fun parseDisplayModes(modes: String): List<DisplayMode> =
-        Splitter.on(',').trimResults().splitToList(modes).map(::parseDisplayMode)
+    private fun parseDisplayModes(modes: String, postureMode: Int): List<DisplayMode> =
+        Splitter.on(',').trimResults().splitToList(modes).map { parseDisplayMode(it, postureMode) }
 
-    private fun parseDisplayMode(mode: String): DisplayMode {
+    private fun parseDisplayMode(mode: String, postureMode: Int): DisplayMode {
       val segments = Splitter.on('-').splitToList(mode)
       val displayModeId = DisplayModeValue.values()[segments[1].toInt()]
       val width = segments[2].toInt()
@@ -163,7 +169,7 @@ class EmulatorConfiguration private constructor(
       if (width <= 0 || height <= 0) {
         throw IllegalArgumentException()
       }
-      return DisplayMode(displayModeId, width, height)
+      return DisplayMode(displayModeId, width, height, displayModeId.number == postureMode)
     }
 
     private fun parsePostures(postures: String): List<PostureValue> =
@@ -188,9 +194,10 @@ class EmulatorConfiguration private constructor(
     }
   }
 
-  data class DisplayMode(val displayModeId: DisplayModeValue, val displaySize: Dimension) {
+  data class DisplayMode(val displayModeId: DisplayModeValue, val displaySize: Dimension, val hasPostures: Boolean) {
 
-    constructor(displayModeId: DisplayModeValue, width: Int, height: Int) : this(displayModeId, Dimension(width, height))
+    constructor(displayModeId: DisplayModeValue, width: Int, height: Int, hasPostures: Boolean) :
+        this(displayModeId, Dimension(width, height), hasPostures)
 
     val width
       get() = displaySize.width
@@ -202,7 +209,7 @@ class EmulatorConfiguration private constructor(
   /**
    * [minValue] and [maxValue] are hinge angles for foldables and roll percentages for rollables.
    */
-  data class PostureDescriptor(val posture: PostureValue, val minValue: Double, val maxValue: Double) {
+  data class PostureDescriptor(val posture: PostureValue, val valueType: ValueType, val minValue: Double, val maxValue: Double) {
 
     val displayName: String = when (posture) {
       PostureValue.POSTURE_CLOSED -> "Closed"
@@ -214,5 +221,7 @@ class EmulatorConfiguration private constructor(
     }
 
     val icon: Icon? = FOLDING_STATE_ICONS[displayName]
+
+    enum class ValueType { HINGE_ANGLE, ROLL_PERCENTAGE }
   }
 }

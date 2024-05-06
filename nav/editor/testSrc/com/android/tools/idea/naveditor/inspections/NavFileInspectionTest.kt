@@ -57,7 +57,10 @@ class NavFileInspectionTest {
         <fragment
             android:id="@+id/fragment1"
             android:name=<error descr="'' is not a valid destination for tag 'fragment'">""</error>
-            android:label="lbl1" />
+            android:label="lbl1">
+            <argument android:name="fragmentName"
+              app:argType="string[]" />
+        </fragment>
         <activity
             android:id="@+id/mainActivity"
             android:name=<error descr="'' is not a valid destination for tag 'activity'">""</error>

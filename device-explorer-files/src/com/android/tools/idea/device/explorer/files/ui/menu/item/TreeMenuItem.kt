@@ -20,6 +20,8 @@ import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionL
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.Toggleable
 import java.util.stream.Collectors
 import javax.swing.Icon
 
@@ -51,17 +53,27 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
       return isVisible(nodes)
     }
 
-  override val action: AnAction = object : AnAction() {
+  override val action: AnAction = object : ToggleAction() {
     override fun update(e: AnActionEvent) {
       val presentation = e.presentation
       presentation.text = text
       presentation.isEnabled = isEnabled
       presentation.isVisible = isVisible
       presentation.icon = icon
+      Toggleable.setSelected(presentation, isSelected(e))
     }
 
     override fun actionPerformed(e: AnActionEvent) {
       run()
+      setSelected(e, !isSelected())
+    }
+
+    override fun isSelected(e: AnActionEvent): Boolean {
+      return isSelected()
+    }
+
+    override fun setSelected(e: AnActionEvent, state: Boolean) {
+      setSelected(state)
     }
 
     override fun getActionUpdateThread() = ActionUpdateThread.EDT
@@ -90,4 +102,7 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
   abstract fun getText(nodes: List<DeviceFileEntryNode>): String
 
   abstract fun run(nodes: List<DeviceFileEntryNode>)
+
+  abstract fun isSelected():Boolean
+  abstract fun setSelected(selected: Boolean)
 }

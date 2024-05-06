@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleDslVersionLiteral
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 
@@ -102,6 +103,20 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
         declaration.getMapValue("version").setValue(version)
         return MapDependencyDeclarationModel(declaration.element as GradleDslExpressionMap)
       }
+
+      /**
+       * For special cases when version is missed in declaration and will be taken from BOM
+       */
+      @JvmStatic
+      fun createNew(parent: GradlePropertiesDslElement,
+                    alias: String,
+                    name: String,
+                    group: String): MapDependencyDeclarationModel {
+        val declaration = GradleVersionCatalogPropertyModel(parent, PropertyType.REGULAR, alias)
+        declaration.getMapValue("group").setValue(group)
+        declaration.getMapValue("name").setValue(name)
+        return MapDependencyDeclarationModel(declaration.element as GradleDslExpressionMap)
+      }
     }
 
     override fun name(): ResolvedPropertyModel =
@@ -131,6 +146,26 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
     override fun version(): VersionDeclarationModel =
       createVersionDeclarationModel(dslElement.getPropertyElement("version"), dslElement, "version")
 
+    override fun updateVersion(compactNotation: String) {
+      dslElement.removeProperty("version")
+      dslElement.addNewLiteral("version", compactNotation)
+    }
+
+    override fun updateVersion(versionReference: VersionDeclarationModel) {
+      val oldVersion = dslElement.getPropertyElement("version")
+      val reference = ReferenceTo(versionReference)
+      val newVersion = GradleDslVersionLiteral(dslElement,
+                                               GradleNameElement.create("version"),
+                                               reference.javaClass)
+
+      if (oldVersion == null)
+        dslElement.addParsedElement(newVersion)
+      else{
+        dslElement.removeProperty(oldVersion)
+        dslElement.setNewElement(newVersion)
+        newVersion.setValue(reference)
+      }
+    }
 
     override fun completeModel(): ResolvedPropertyModel? =
       GradlePropertyModelBuilder.create(dslElement).buildResolved()
@@ -172,15 +207,26 @@ abstract class LibraryDeclarationModelImpl(open val dslElement: GradleDslElement
       createModelFor("group", LibraryDeclarationSpec::getGroup, LibraryDeclarationSpecImpl::setGroup)
 
     override fun version(): VersionDeclarationModel {
-      val element = dslElement
-      assert(element.parent != null)
-      val fakeElement: FakeElement = FakeDependencyDeclarationElement(element.parent!!,
-                                                                      GradleNameElement.fake("version"),
-                                                                      element,
-                                                                      { spec: LibraryDeclarationSpec -> spec.getVersion()?.compactNotation() },
-                                                                      LibraryDeclarationSpecImpl::setStringVersion,
-                                                                      false)
-      return createVersionDeclarationModel(fakeElement)
+      return createVersionDeclarationModel(createVersionElement())
+    }
+
+    private fun createVersionElement(): FakeDependencyDeclarationElement {
+      assert(dslElement.parent != null) // parent cannot be null as library declaration is always under libraries table
+      return FakeDependencyDeclarationElement(
+        dslElement.parent!!,
+        GradleNameElement.fake("version"),
+        dslElement,
+        { spec: LibraryDeclarationSpec -> spec.getVersion()?.compactNotation() },
+        LibraryDeclarationSpecImpl::setStringVersion,
+        false)
+    }
+
+    override fun updateVersion(compactNotation: String) {
+      createVersionElement().setValue(compactNotation)
+    }
+
+    override fun updateVersion(version: VersionDeclarationModel) {
+      createVersionElement().setValue(version.getSpec())
     }
 
     override fun completeModel(): ResolvedPropertyModel? =

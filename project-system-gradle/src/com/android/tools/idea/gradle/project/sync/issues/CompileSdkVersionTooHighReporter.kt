@@ -15,12 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUpgradeAssistantHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SuppressUnsupportedSdkVersionHyperlink
-import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -49,7 +46,6 @@ class CompileSdkVersionTooHighReporter : SimpleDeduplicatingSyncIssueReporter() 
   @VisibleForTesting
   fun createQuickFixes(project: Project, syncIssues: MutableList<IdeSyncIssue>): List<SyncIssueNotificationHyperlink> {
     return listOfNotNull(
-      upgradeAssistantQuickFix(project),
       suppressSdkQuickFix(project, syncIssues),
     )
   }
@@ -75,14 +71,6 @@ class CompileSdkVersionTooHighReporter : SimpleDeduplicatingSyncIssueReporter() 
     val message = syncIssues[0].message
     val matchResult = PATTERN.find(message)
     return matchResult?.value
-  }
-
-  private fun upgradeAssistantQuickFix(project: Project): OpenUpgradeAssistantHyperlink? {
-    val shouldRecommendPluginUpgrade = project.getService(AssistantInvoker::class.java).shouldRecommendPluginUpgradeToLatest(project)
-
-    return if (shouldRecommendPluginUpgrade && StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.get()) {
-      OpenUpgradeAssistantHyperlink()
-    } else null
   }
 
   companion object {

@@ -23,6 +23,9 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.testFramework.TestActionEvent
+import java.awt.datatransfer.DataFlavor
+import javax.swing.JTree
+import javax.swing.tree.TreePath
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -30,9 +33,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
-import java.awt.datatransfer.DataFlavor
-import javax.swing.JTree
-import javax.swing.tree.TreePath
 
 class CopyIssueDescriptionActionTest {
 

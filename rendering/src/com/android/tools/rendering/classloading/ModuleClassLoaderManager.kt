@@ -58,6 +58,7 @@ interface ModuleClassLoaderManager<T : ModuleClassLoader> {
     fun get(): ModuleClassLoaderManager<*> =
       ApplicationManager.getApplication().getService(ModuleClassLoaderManager::class.java)
   }
+
   fun getShared(
     parent: ClassLoader?,
     moduleRenderContext: ModuleRenderContext,
@@ -68,7 +69,8 @@ interface ModuleClassLoaderManager<T : ModuleClassLoader> {
 
   // Workaround for interfaces not currently supporting @JvmOverloads
   // (https://youtrack.jetbrains.com/issue/KT-36102)
-  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext): Reference<T>
+  fun getShared(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext): Reference<T> =
+    getShared(parent, moduleRenderContext, ClassTransform.identity, ClassTransform.identity) {}
 
   fun getPrivate(
     parent: ClassLoader?,
@@ -77,7 +79,8 @@ interface ModuleClassLoaderManager<T : ModuleClassLoader> {
     additionalNonProjectTransformation: ClassTransform = ClassTransform.identity
   ): Reference<T>
 
-  fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext): Reference<T>
+  fun getPrivate(parent: ClassLoader?, moduleRenderContext: ModuleRenderContext): Reference<T> =
+    getPrivate(parent, moduleRenderContext, ClassTransform.identity, ClassTransform.identity)
 
   fun release(moduleClassLoaderReference: Reference<*>)
 

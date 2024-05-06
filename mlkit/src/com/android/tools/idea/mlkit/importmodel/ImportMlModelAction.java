@@ -29,7 +29,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.Collections;
 import java.util.List;
@@ -119,10 +118,9 @@ public class ImportMlModelAction extends AnAction {
       return Collections.emptyList();
     }
     Module module = PlatformCoreDataKeys.MODULE.getData(e.getDataContext());
-    VirtualFile virtualFile = e.getProject().getProjectFile();
-    if (module == null || virtualFile == null) {
+    if (module == null) {
       return Collections.emptyList();
     }
-    return ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(virtualFile);
+    return ProjectSystemUtil.getModuleSystem(module).getModuleTemplates(null);
   }
 }

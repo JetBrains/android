@@ -31,16 +31,18 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbSession]
- */
-internal class DeviceComboBoxDeviceTracker @VisibleForTesting constructor(
+/** An implementation of IDeviceComboBoxDeviceTracker that uses an [AdbSession] */
+internal class DeviceComboBoxDeviceTracker
+@VisibleForTesting
+constructor(
   private val deviceProvisioner: DeviceProvisioner,
   private val preexistingDevice: Device?,
 ) : IDeviceComboBoxDeviceTracker {
 
-  constructor(project: Project, preexistingDevice: Device?) :
-    this(project.service<DeviceProvisionerService>().deviceProvisioner, preexistingDevice)
+  constructor(
+    project: Project,
+    preexistingDevice: Device?
+  ) : this(project.service<DeviceProvisionerService>().deviceProvisioner, preexistingDevice)
 
   override suspend fun trackDevices(): Flow<DeviceEvent> {
     val onlineDevicesBySerial = mutableMapOf<String, Device>()
@@ -48,50 +50,57 @@ internal class DeviceComboBoxDeviceTracker @VisibleForTesting constructor(
 
     // Initialize state by reading all current devices
     return flow {
-      val initialDevices = deviceProvisioner.devices.value
-      initialDevices.filter { it.state.isOnline() }.mapNotNull { it.state.toDevice() }.forEach { device ->
-        onlineDevicesBySerial[device.serialNumber] = device
-        allDevicesById[device.deviceId] = device
-        emit(Added(device))
-      }
-
-      // Add the preexisting device.
-      if (preexistingDevice != null && !allDevicesById.containsKey(preexistingDevice.deviceId)) {
-        allDevicesById[preexistingDevice.deviceId] = preexistingDevice
-        emit(Added(preexistingDevice))
-      }
-
-      // Track devices changes:
-      // We only care about devices that are online.
-      // If a previously unknown device comes online, we emit Added
-      // If a previously known device comes online, we emit StateChanged
-      // If previously online device is missing from the list, we emit a StateChanged.
-      deviceProvisioner.mapStateNotNull {_, state -> state.asOnline()}.collect {states ->
-        val onlineStatesBySerial = states.associateBy { it.connectedDevice.serialNumber }
-        onlineStatesBySerial.values.forEach { state ->
-          val device = state.toDevice() ?: return@forEach
-          if (!onlineDevicesBySerial.containsKey(device.serialNumber)) {
-            if (allDevicesById.containsKey(device.deviceId)) {
-              emit(StateChanged(device))
-            }
-            else {
-              emit(Added(device))
-            }
+        val initialDevices = deviceProvisioner.devices.value
+        initialDevices
+          .filter { it.state.isOnline() }
+          .mapNotNull { it.state.toDevice() }
+          .forEach { device ->
             onlineDevicesBySerial[device.serialNumber] = device
             allDevicesById[device.deviceId] = device
+            emit(Added(device))
           }
+
+        // Add the preexisting device.
+        if (preexistingDevice != null && !allDevicesById.containsKey(preexistingDevice.deviceId)) {
+          allDevicesById[preexistingDevice.deviceId] = preexistingDevice
+          emit(Added(preexistingDevice))
         }
 
-        // Find devices that were online and are not anymore, then remove them.
-        onlineDevicesBySerial.keys.filter { !onlineStatesBySerial.containsKey(it) }.forEach {
-          val device = onlineDevicesBySerial[it] ?: return@forEach
-          val deviceOffline = device.copy(isOnline = false)
-          emit(StateChanged(deviceOffline))
-          onlineDevicesBySerial.remove(it)
-          allDevicesById[device.deviceId] = deviceOffline
-        }
+        // Track devices changes:
+        // We only care about devices that are online.
+        // If a previously unknown device comes online, we emit Added
+        // If a previously known device comes online, we emit StateChanged
+        // If previously online device is missing from the list, we emit a StateChanged.
+        deviceProvisioner
+          .mapStateNotNull { _, state -> state.asOnline() }
+          .collect { states ->
+            val onlineStatesBySerial = states.associateBy { it.connectedDevice.serialNumber }
+            onlineStatesBySerial.values.forEach { state ->
+              val device = state.toDevice() ?: return@forEach
+              if (!onlineDevicesBySerial.containsKey(device.serialNumber)) {
+                if (allDevicesById.containsKey(device.deviceId)) {
+                  emit(StateChanged(device))
+                } else {
+                  emit(Added(device))
+                }
+                onlineDevicesBySerial[device.serialNumber] = device
+                allDevicesById[device.deviceId] = device
+              }
+            }
+
+            // Find devices that were online and are not anymore, then remove them.
+            onlineDevicesBySerial.keys
+              .filter { !onlineStatesBySerial.containsKey(it) }
+              .forEach {
+                val device = onlineDevicesBySerial[it] ?: return@forEach
+                val deviceOffline = device.copy(isOnline = false)
+                emit(StateChanged(deviceOffline))
+                onlineDevicesBySerial.remove(it)
+                allDevicesById[device.deviceId] = deviceOffline
+              }
+          }
       }
-    }.flowOn(Dispatchers.IO)
+      .flowOn(Dispatchers.IO)
   }
 }
 

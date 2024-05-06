@@ -24,13 +24,13 @@ import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
-import javax.swing.JComponent
 import kotlin.reflect.KMutableProperty1
 
 const val HIGHLIGHT_COLOR_RED = 0xFF0000
@@ -80,16 +80,12 @@ class RenderSettingsAction(
     add(HighlightColorAction(renderSettingsProvider))
   }
 
-  override fun getActionUpdateThread() = ActionUpdateThread.EDT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     val enabled = renderModelProvider().isActive
-    e.presentation.isEnabled = enabled
-    e.presentation.isPerformGroup = enabled
-  }
-
-  override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
-    component.isEnabled = presentation.isEnabled
+    e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY)?.isEnabled = enabled
+    e.presentation.isPerformGroup = renderModelProvider().isActive
   }
 }
 
@@ -98,7 +94,6 @@ private class ToggleRenderSettingsAction(
   private val renderSettingsProvider: () -> RenderSettings,
   private val property: KMutableProperty1<RenderSettings, Boolean>
 ) : ToggleAction(actionName) {
-  override fun getActionUpdateThread() = ActionUpdateThread.EDT
   override fun isSelected(event: AnActionEvent): Boolean {
     return property.get(renderSettingsProvider())
   }
@@ -112,7 +107,8 @@ private class ToggleRenderSettingsAction(
 class HighlightColorAction(renderSettingsProvider: () -> RenderSettings) :
   DefaultActionGroup("Recomposition Highlight Color", true) {
 
-  override fun getActionUpdateThread() = ActionUpdateThread.EDT
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     val layoutInspector = LayoutInspector.get(event)
@@ -140,7 +136,6 @@ private class ColorSettingAction(
   private val color: Int,
   private val renderSettingsProvider: () -> RenderSettings
 ) : CheckboxAction(actionName, null, null) {
-  override fun getActionUpdateThread() = ActionUpdateThread.EDT
   override fun isSelected(event: AnActionEvent): Boolean =
     renderSettingsProvider().highlightColor == color
 
@@ -148,4 +143,6 @@ private class ColorSettingAction(
     renderSettingsProvider().highlightColor = color
     LayoutInspector.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

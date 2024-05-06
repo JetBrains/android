@@ -84,8 +84,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
 
     run {
       val firstModel =
-        NlModel.builder(facet, defaultFile, defaultLocaleConfig)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, defaultFile, defaultLocaleConfig)
           .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
@@ -113,8 +112,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
       config.locale = locale
       val label = Locale.getLocaleLabel(locale, false)
       val model =
-        NlModel.builder(facet, betterFile, config)
-          .withParentDisposable(parentDisposable)
+        NlModel.builder(parentDisposable, facet, betterFile, config)
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

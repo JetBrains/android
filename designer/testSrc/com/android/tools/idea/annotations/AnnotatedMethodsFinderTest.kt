@@ -18,8 +18,7 @@ package com.android.tools.idea.annotations
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.project.DumbService
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.DumbModeTestUtils
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
@@ -41,6 +40,7 @@ class AnnotatedMethodsFinderTest {
 
   private val project
     get() = projectRule.project
+
   private val fixture
     get() = projectRule.fixture
 
@@ -132,19 +132,16 @@ class AnnotatedMethodsFinderTest {
           .trimIndent()
       )
 
-    val testDumbService = TestDumbService(fixture.project)
-    fixture.project.replaceService(DumbService::class.java, testDumbService, project)
-
-    assertFalse(
-      hasAnnotation(
-        project,
-        sourceFile.virtualFile,
-        "com.android.annotations.MyAnnotation",
-        "MyAnnotation"
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
+      assertFalse(
+        hasAnnotation(
+          project,
+          sourceFile.virtualFile,
+          "com.android.annotations.MyAnnotation",
+          "MyAnnotation"
+        )
       )
-    )
-
-    testDumbService.dumbMode = false
+    }
 
     assertTrue(
       hasAnnotation(

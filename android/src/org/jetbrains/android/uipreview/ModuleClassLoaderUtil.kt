@@ -28,10 +28,12 @@ import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
 import com.android.tools.idea.rendering.classloading.loaders.NameRemapperLoader
-import com.android.tools.idea.rendering.classloading.loaders.ProjectSystemClassLoader
 import com.android.tools.idea.rendering.classloading.loaders.RecyclerViewAdapterLoader
+import com.android.tools.rendering.classloading.ClassBinaryCache
+import com.android.tools.rendering.classloading.ClassLoaderOverlays
 import com.android.tools.rendering.classloading.ClassTransform
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsWrite
+import com.android.tools.rendering.classloading.loaders.CachingClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.intellij.openapi.Disposable
@@ -43,14 +45,16 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.File
+import java.lang.ref.WeakReference
 import java.net.URL
 import java.nio.file.Path
 import java.util.Collections
@@ -130,7 +134,7 @@ private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(n
  * [DelegatingClassLoader.Loader] providing the implementation to load classes from a project. This loader can load user defined classes
  * from the given [Module] and classes from the libraries that the [Module] depends on.
  *
- * The [projectSystemLoader] provides a [DelegatingClassLoader.Loader] responsible to load classes from the user defined classes.
+ * The [projectSystemLoader] provides a [CachingClassLoaderLoader] responsible to load classes from the user defined classes.
  *
  * The transformation for the user defined classes are given in [projectTransforms] while the ones to apply to the classes coming from
  * libraries are given in [nonProjectTransforms].
@@ -141,12 +145,12 @@ private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(n
  * The passed [ModuleClassLoaderDiagnosticsWrite] will be used to report class rewrites.
  */
 internal class ModuleClassLoaderImpl(module: Module,
-                                     private val projectSystemLoader: ProjectSystemClassLoader,
+                                     private val projectSystemLoader: CachingClassLoaderLoader,
                                      private val parentClassLoader: ClassLoader?,
                                      val projectTransforms: ClassTransform,
                                      val nonProjectTransforms: ClassTransform,
                                      private val binaryCache: ClassBinaryCache,
-                                     private val diagnostics: ModuleClassLoaderDiagnosticsWrite) : UserDataHolderBase(), DelegatingClassLoader.Loader, Disposable {
+                                     private val diagnostics: ModuleClassLoaderDiagnosticsWrite) : DelegatingClassLoader.Loader, Disposable {
   private val loader: DelegatingClassLoader.Loader
   private val parentLoader = parentClassLoader?.let { ClassLoaderLoader(it) }
 
@@ -155,6 +159,8 @@ internal class ModuleClassLoaderImpl(module: Module,
   private val _projectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _nonProjectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _projectOverlayLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
+
+  private val holder = UserDataHolderBase()
 
 
   /**
@@ -183,21 +189,16 @@ internal class ModuleClassLoaderImpl(module: Module,
   internal val projectOverlayLoadedClassNames: Set<String> get() = _projectOverlayLoadedClassNames
 
   /**
-   * List of the [VirtualFile] of the `.class` files loaded from the project.
-   */
-  val projectLoadedClassVirtualFiles get() = projectSystemLoader.loadedVirtualFiles
-
-  /**
    * [ModificationTracker] that changes every time the classes overlay has changed.
    */
-  private val overlayManager: ModuleClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(module)
+  private val overlayManager: ClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(module)
 
   /**
    * Modification count for the overlay when the first overlay class was loaded. Used to detect if this [ModuleClassLoaderImpl] is up to
    * date or if the overlay has changed.
    */
   @GuardedBy("overlayManager")
-  private var overlayFirstLoadModificationCount = -1L
+  private var overlayModificationStamp = -1L
 
   private fun createProjectLoader(loader: DelegatingClassLoader.Loader,
                                   dependenciesLoader: DelegatingClassLoader.Loader?,
@@ -217,7 +218,7 @@ internal class ModuleClassLoaderImpl(module: Module,
     if (!hasLoadedAnyUserCode) {
       // First class being added, record the current overlay status
       synchronized(overlayManager) {
-        overlayFirstLoadModificationCount = overlayManager.modificationCount
+        overlayModificationStamp = overlayManager.modificationStamp
       }
     }
   }
@@ -327,29 +328,6 @@ internal class ModuleClassLoaderImpl(module: Module,
   fun getResources(name: String): Enumeration<URL> = externalLibrariesClassLoader.getResources(name)
   fun getResource(name: String): URL? = externalLibrariesClassLoader.getResource(name)
 
-  /**
-   * Finds the [VirtualFile] for the `.class` associated to the given [fqcn].
-   */
-  fun findClassVirtualFile(fqcn: String): VirtualFile? = projectSystemLoader.findClassVirtualFile(fqcn)
-
-  /**
-   * Injects the given [virtualFile] with the passed [fqcn] so it looks like loaded from the project. Only for testing.
-   */
-  @TestOnly
-  fun injectProjectClassFile(fqcn: String, virtualFile: VirtualFile) {
-    recordFirstLoadModificationCount()
-    _projectLoadedClassNames.add(fqcn)
-    projectSystemLoader.injectClassFile(fqcn, virtualFile)
-  }
-
-  /**
-   * Injects the given [fqcn] as if it had been loaded by the overlay loader. Only for testing.
-   */
-  @TestOnly
-  fun injectProjectOvelaryLoadedClass(fqcn: String) {
-    recordOverlayLoadedClass(fqcn)
-  }
-
   override fun dispose() {
     projectSystemLoader.invalidateCaches()
   }
@@ -357,20 +335,39 @@ internal class ModuleClassLoaderImpl(module: Module,
   /**
    * Returns if the overlay is up-to-date.
    */
-  internal fun isOverlayUpToDate() = synchronized(overlayManager) {
-                                       overlayManager.modificationCount == overlayFirstLoadModificationCount
-                                     }
+  private fun isOverlayUpToDate() = synchronized(overlayManager) {
+    overlayManager.modificationStamp == overlayModificationStamp
+  }
+
+  /**
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
+   */
+  fun isUserCodeUpToDate(module: Module?): Boolean {
+    return if (module == null) {
+      true
+    }
+    // Cache the result of isUserCodeUpToDateNonCached until any PSI modifications have happened.
+    else {
+      val overlayModificationTracker = ModuleClassLoaderOverlays.getInstance(module).modificationTracker
+      // Avoid the cached value holding "this"
+      val thisReference = WeakReference(this)
+      CachedValuesManager.getManager(module.project).getCachedValue(holder) {
+        CachedValueProvider.Result.create(
+          thisReference.get()?.isUserCodeUpToDateNonCached() ?: false,
+          PsiModificationTracker.MODIFICATION_COUNT,
+          overlayModificationTracker
+        )
+      }
+    }
+  }
+
+  /**
+   * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
+   * This method just provides the non-cached version of {@link #isUserCodeUpToDate}. {@link #isUserCodeUpToDate} will cache
+   * the result of this call until a PSI modification happens.
+   */
+  private fun isUserCodeUpToDateNonCached() = !hasLoadedAnyUserCode || (projectSystemLoader.isUpToDate() && isOverlayUpToDate())
 }
 
 private val ModuleClassLoaderImpl.hasLoadedAnyUserCode: Boolean
   get() = projectLoadedClassNames.isNotEmpty() || projectOverlayLoadedClassNames.isNotEmpty()
-
-/**
- * Checks whether any of the .class files loaded by this loader have changed since the creation of this class loader.
- */
-internal val ModuleClassLoaderImpl.isUserCodeUpToDate: Boolean
-  get() = !hasLoadedAnyUserCode ||
-          (projectLoadedClassVirtualFiles
-             .all { (_, virtualFile, modificationTimestamp) ->
-               virtualFile.isValid && modificationTimestamp.isUpToDate(virtualFile)
-             } && isOverlayUpToDate())

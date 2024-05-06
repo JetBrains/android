@@ -16,7 +16,6 @@
 package com.android.tools.idea.file.explorer.toolwindow.options;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.device.explorer.common.DeviceFileExplorerSettings;
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorerBundle;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.options.ConfigurationException;

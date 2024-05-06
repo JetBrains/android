@@ -15,23 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_CHECKED_BUTTON;
-import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
-import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.SdkConstants.ATTR_ORIENTATION;
-import static com.android.SdkConstants.RADIO_GROUP;
-import static com.android.SdkConstants.VALUE_HORIZONTAL;
-import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
-
-import com.android.tools.idea.common.model.NlComponent;
+import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.XmlType;
 import com.android.tools.idea.uibuilder.handlers.linear.LinearLayoutHandler;
-import com.android.xml.XmlBuilder;
+import com.android.tools.idea.common.model.NlComponent;
 import com.google.common.collect.ImmutableList;
-import java.util.List;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+import static com.android.SdkConstants.*;
 
 /**
  * Handler for the {@code <RadioGroup>} layout

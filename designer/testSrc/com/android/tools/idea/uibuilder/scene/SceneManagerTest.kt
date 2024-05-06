@@ -38,20 +38,20 @@ import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import java.util.concurrent.CompletableFuture
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
-import java.util.concurrent.CompletableFuture
 
 class TestSceneManager(
   model: NlModel,
   surface: DesignSurface<*>,
   sceneComponentProvider: SceneComponentHierarchyProvider? = null
 ) : SceneManager(model, surface, sceneComponentProvider, null) {
-  override fun doCreateSceneView(): SceneView = TestSceneView(100, 100)
+  override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
 
   override fun getSceneScalingFactor(): Float = 1f
 
@@ -61,9 +61,12 @@ class TestSceneManager(
 
   override fun requestRenderAsync(): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
+
   override fun requestLayoutAsync(animate: Boolean): CompletableFuture<Void> =
     CompletableFuture.completedFuture(null)
+
   override fun layout(animate: Boolean) {}
+
   override fun getSceneDecoratorFactory(): SceneDecoratorFactory =
     object : SceneDecoratorFactory() {
       override fun get(component: NlComponent): SceneDecorator = BASIC_DECORATOR
@@ -71,6 +74,7 @@ class TestSceneManager(
 
   override fun getDefaultProperties():
     MutableMap<Any, MutableMap<ResourceReference, ResourceValue>> = mutableMapOf()
+
   override fun getDefaultStyles(): MutableMap<Any, ResourceReference> = mutableMapOf()
 }
 

@@ -37,6 +37,7 @@ class MostRecentExecutor(private val wrapped: Executor) : Executor {
     var isExecuting = false
     var nextCommand: Runnable? = null
   }
+
   private val state = State()
 
   override fun execute(command: Runnable) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service

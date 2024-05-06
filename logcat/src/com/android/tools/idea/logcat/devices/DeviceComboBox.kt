@@ -67,25 +67,26 @@ import kotlin.io.path.name
 import kotlin.io.path.pathString
 
 private val DELETE_ICON = FILTER_HISTORY_DELETE
-@Suppress("UseDPIAwareInsets")
-private val COMBO_ITEM_INSETS = Insets(2, 8, 2, 4)
+@Suppress("UseDPIAwareInsets") private val COMBO_ITEM_INSETS = Insets(2, 8, 2, 4)
 private val DELETE_KEY_CODES = arrayOf(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE)
 
 /**
  * A [ComboBox] for selecting a device.
  *
- * The items are populated by devices as they come online. When a device goes offline, it's not removed from the combo, rather, it's
- * representation changes to reflect its state.
+ * The items are populated by devices as they come online. When a device goes offline, it's not
+ * removed from the combo, rather, it's representation changes to reflect its state.
  *
- * An initial device can optionally be provided. This initial device will become the selected item. If no initial device is provided, the
- * first device added will be selected.
+ * An initial device can optionally be provided. This initial device will become the selected item.
+ * If no initial device is provided, the first device added will be selected.
  */
 internal class DeviceComboBox(
   private val project: Project,
   private val initialItem: DeviceComboItem?,
 ) : ComboBox<DeviceComboItem>() {
   private val deviceTracker: IDeviceComboBoxDeviceTracker =
-    project.service<DeviceComboBoxDeviceTrackerFactory>().createDeviceComboBoxDeviceTracker((initialItem as? DeviceItem)?.device)
+    project
+      .service<DeviceComboBoxDeviceTrackerFactory>()
+      .createDeviceComboBoxDeviceTracker((initialItem as? DeviceItem)?.device)
 
   private val deviceComboModel: DeviceComboModel
     get() = model as DeviceComboModel
@@ -108,7 +109,11 @@ internal class DeviceComboBox(
     when (item) {
       is FileItem -> {
         if (!item.path.exists()) {
-          val itemRemoved = handleItemError(item, LogcatBundle.message("logcat.device.combo.error.message", item.path))
+          val itemRemoved =
+            handleItemError(
+              item,
+              LogcatBundle.message("logcat.device.combo.error.message", item.path)
+            )
           if (itemRemoved) {
             return
           }
@@ -121,35 +126,32 @@ internal class DeviceComboBox(
   /**
    * Shows a popup reporting a problem with an item.
    *
-   * The popup asks the user if they want to remove the item from the list. Returns true if the item was removed.
+   * The popup asks the user if they want to remove the item from the list. Returns true if the item
+   * was removed.
    */
   fun handleItemError(item: DeviceComboItem, message: String): Boolean {
-    val answer = MessageDialogBuilder.yesNo(
-      LogcatBundle.message("logcat.device.combo.error.title"),
-      LogcatBundle.message("logcat.device.combo.error.message", message))
-      .ask(project)
+    val answer =
+      MessageDialogBuilder.yesNo(
+          LogcatBundle.message("logcat.device.combo.error.title"),
+          LogcatBundle.message("logcat.device.combo.error.message", message)
+        )
+        .ask(project)
     if (answer) {
       deviceComboModel.remove(item)
-      selectedItem = when {
-        selectedItem != selectedItemReminder -> selectedItemReminder
-        deviceComboModel.items.count() == 1 -> null
-        else -> deviceComboModel.items.first()
-      }
+      selectedItem =
+        when {
+          selectedItem != selectedItemReminder -> selectedItemReminder
+          deviceComboModel.items.count() == 1 -> null
+          else -> deviceComboModel.items.first()
+        }
     }
     return answer
   }
 
-
   fun trackSelected(): Flow<DeviceComboItem> = callbackFlow {
     // If an item is already selected, the listener will not send it, so we send it now
-    (selectedItem as? DeviceComboItem)?.let {
-      trySendBlocking(it)
-    }
-    val listener = ActionListener {
-      item?.let {
-        trySendBlocking(it)
-      }
-    }
+    (selectedItem as? DeviceComboItem)?.let { trySendBlocking(it) }
+    val listener = ActionListener { item?.let { trySendBlocking(it) } }
     addActionListener(listener)
     launch {
       deviceTracker.trackDevices().collect {
@@ -161,9 +163,7 @@ internal class DeviceComboBox(
       }
       this@callbackFlow.close()
     }
-    awaitClose {
-      removeActionListener(listener)
-    }
+    awaitClose { removeActionListener(listener) }
   }
 
   fun getSelectedDevice(): Device? = (item as? DeviceItem)?.device
@@ -173,8 +173,7 @@ internal class DeviceComboBox(
   private fun deviceAdded(device: Device) {
     if (deviceComboModel.containsDevice(device)) {
       deviceStateChanged(device)
-    }
-    else {
+    } else {
       val item = deviceComboModel.addDevice(device)
       when {
         selectedItem != null -> return
@@ -190,13 +189,19 @@ internal class DeviceComboBox(
 
   private fun deviceStateChanged(device: Device) {
     when (deviceComboModel.containsDevice(device)) {
-      true -> deviceComboModel.replaceDevice(device, device.deviceId == (item as? DeviceItem)?.device?.deviceId)
+      true ->
+        deviceComboModel.replaceDevice(
+          device,
+          device.deviceId == (item as? DeviceItem)?.device?.deviceId
+        )
       false -> deviceAdded(device) // Device was removed manually so we re-add it
     }
   }
 
   fun addOrSelectFile(path: Path) {
-    val fileItem = deviceComboModel.items.find { it is FileItem && it.path.pathString == path.pathString } ?: deviceComboModel.addFile(path)
+    val fileItem =
+      deviceComboModel.items.find { it is FileItem && it.path.pathString == path.pathString }
+        ?: deviceComboModel.addFile(path)
     selectedItem = fileItem
   }
 
@@ -209,8 +214,10 @@ internal class DeviceComboBox(
   // Offline emulator:        "Pixel 4 API 30 Android 11, API 30 [OFFLINE]"
   //
   // Notes
-  //   Physical device name is based on the manufacturer and model while emulator name is based on the AVD name.
-  //   Offline emulator does not include the serial number because it is irrelevant while the device offline.
+  //   Physical device name is based on the manufacturer and model while emulator name is based on
+  // the AVD name.
+  //   Offline emulator does not include the serial number because it is irrelevant while the device
+  // offline.
   private class DeviceComboBoxRenderer : ColoredListCellRenderer<DeviceComboItem>() {
     private val component = BorderLayoutPanel()
     private val deleteLabel = JLabel()
@@ -227,10 +234,13 @@ internal class DeviceComboBox(
       selected: Boolean,
       hasFocus: Boolean,
     ): Component {
-      val deviceComponent = super.getListCellRendererComponent(list, value, index, selected, hasFocus)
+      val deviceComponent =
+        super.getListCellRendererComponent(list, value, index, selected, hasFocus)
       component.addToLeft(deviceComponent)
-      deleteLabel.icon = if (selected && value != null && value.isDeletable()) IconUtil.colorize(DELETE_ICON, list.selectionForeground)
-      else null
+      deleteLabel.icon =
+        if (selected && value != null && value.isDeletable())
+          IconUtil.colorize(DELETE_ICON, list.selectionForeground)
+        else null
 
       return component
     }
@@ -240,7 +250,8 @@ internal class DeviceComboBox(
       item: DeviceComboItem?,
       index: Int,
       selected: Boolean,
-      hasFocus: Boolean) {
+      hasFocus: Boolean
+    ) {
       if (item == null) {
         append(LogcatBundle.message("logcat.device.combo.no.connected.devices"), ERROR_ATTRIBUTES)
         return
@@ -258,7 +269,10 @@ internal class DeviceComboBox(
       if (device.isOnline) {
         append(" (${device.serialNumber})", REGULAR_ATTRIBUTES)
       }
-      append(LogcatBundle.message("logcat.device.combo.version", device.release, device.sdk.toString()), GRAY_ATTRIBUTES)
+      append(
+        LogcatBundle.message("logcat.device.combo.version", device.release, device.sdk.toString()),
+        GRAY_ATTRIBUTES
+      )
       if (!device.isOnline) {
         append(LogcatBundle.message("logcat.device.combo.offline"), GRAYED_BOLD_ATTRIBUTES)
       }
@@ -275,15 +289,11 @@ internal class DeviceComboBox(
   private class DeviceComboModel : CollectionComboBoxModel<DeviceComboItem>() {
 
     fun addDevice(device: Device): DeviceItem {
-      return DeviceItem(device).also {
-        add(it)
-      }
+      return DeviceItem(device).also { add(it) }
     }
 
     fun addFile(path: Path): FileItem {
-      return FileItem(path).also {
-        add(it)
-      }
+      return FileItem(path).also { add(it) }
     }
 
     fun replaceDevice(device: Device, setSelected: Boolean) {
@@ -299,16 +309,19 @@ internal class DeviceComboBox(
       }
     }
 
-    fun containsDevice(device: Device): Boolean = items.find { it is DeviceItem && it.device.deviceId == device.deviceId } != null
+    fun containsDevice(device: Device): Boolean =
+      items.find { it is DeviceItem && it.device.deviceId == device.deviceId } != null
   }
 
   sealed class DeviceComboItem {
     data class DeviceItem(val device: Device) : DeviceComboItem()
+
     data class FileItem(val path: Path) : DeviceComboItem()
   }
 
   /**
-   * A custom UI based on DarculaComboBoxUI that has more control over the popup, so we can intercept mouse events.
+   * A custom UI based on DarculaComboBoxUI that has more control over the popup, so we can
+   * intercept mouse events.
    */
   private class DeviceComboBoxUi : DarculaComboBoxUI() {
     override fun installDefaults() {
@@ -318,7 +331,7 @@ internal class DeviceComboBox(
         padding = JBUI.insets(1, 6)
       }
     }
-    
+
     override fun createPopup() = DeviceComboBoxPopup(comboBox)
 
     private class DeviceComboBoxPopup(comboBox: JComboBox<Any>) : CustomComboPopup(comboBox) {
@@ -326,7 +339,8 @@ internal class DeviceComboBox(
         val mouseListener = createListMouseListener()
         val mouseMotionListener = createListMouseMotionListener()
 
-        val handler = DeviceComboBoxPopupMouseListener(comboBox, list, mouseListener, mouseMotionListener)
+        val handler =
+          DeviceComboBoxPopupMouseListener(comboBox, list, mouseListener, mouseMotionListener)
         comboBox.addKeyListener(handler)
 
         listMouseListener = handler
@@ -366,9 +380,7 @@ internal class DeviceComboBox(
     }
   }
 
-  /**
-   * A mouse & keyboard listener that handles item deletion.
-   */
+  /** A mouse & keyboard listener that handles item deletion. */
   private class DeviceComboBoxPopupMouseListener(
     private val comboBox: JComboBox<in DeviceComboItem>,
     private val list: JList<Any>,
@@ -399,7 +411,10 @@ internal class DeviceComboBox(
 
     override fun mouseMoved(e: MouseEvent) {
       val hintColor = String.format("%06x", NamedColorUtil.getInactiveTextColor().rgb and 0xffffff)
-      list.toolTipText = if (e.isOverDeleteIcon()) LogcatBundle.message("logcat.device.combo.delete.tooltip", hintColor) else null
+      list.toolTipText =
+        if (e.isOverDeleteIcon())
+          LogcatBundle.message("logcat.device.combo.delete.tooltip", hintColor)
+        else null
       mouseMotionListener.mouseMoved(e)
     }
 
@@ -412,7 +427,8 @@ internal class DeviceComboBox(
 
       // Calculate the bounds of the delete click target:
       //   The height of the target is the full height of the cell.
-      //   The width of the target is the width of the icon plus the cell right-padding applied to the left & right of the icon.
+      //   The width of the target is the width of the icon plus the cell right-padding applied to
+      // the left & right of the icon.
       val cellBounds = list.getCellBounds(index, index)
       val cellPadding = JBUI.scale(COMBO_ITEM_INSETS.right)
       val x = cellBounds.width - (2 * cellPadding) - DELETE_ICON.iconWidth
@@ -428,11 +444,12 @@ internal class DeviceComboBox(
       }
       val deviceComboModel = comboBox.model as DeviceComboModel
       deviceComboModel.remove(index)
-      deviceComboModel.selectedItem = when {
-        deviceComboModel.items.isEmpty() -> null
-        index == 0 -> deviceComboModel.items.first()
-        else -> deviceComboModel.items[index - 1]
-      }
+      deviceComboModel.selectedItem =
+        when {
+          deviceComboModel.items.isEmpty() -> null
+          index == 0 -> deviceComboModel.items.first()
+          else -> deviceComboModel.items[index - 1]
+        }
     }
   }
 }

@@ -43,7 +43,7 @@ import javax.swing.JList
 import javax.swing.JPanel
 
 /** A panel that manages complication slots selected by the user and stores them as a ComplicationsModel object. */
-class SlotsPanel : JPanel(FlowLayout(FlowLayout.LEFT)) {
+class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
   @VisibleForTesting
   lateinit var slotsUiPanel: Box
   private var currentModel = ComplicationsModel()

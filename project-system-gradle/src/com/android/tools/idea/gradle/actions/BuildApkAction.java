@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -35,16 +37,22 @@ public class BuildApkAction extends DumbAwareAction {
     super(ACTION_TEXT);
   }
 
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    e.getPresentation().setEnabledAndVisible(project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle());
+    e.getPresentation().setEnabledAndVisible(project != null && ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem);
   }
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
     Project project = e.getProject();
-    if (project != null && GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
+    if (project != null && ProjectSystemUtil.getProjectSystem(project) instanceof GradleProjectSystem) {
       List<Module> appModules = ProjectStructure.getInstance(project).getAppHolderModules().stream()
         .flatMap(module -> GradleProjectSystemUtil.getModulesToBuild(module).stream())
         .collect(Collectors.toList());

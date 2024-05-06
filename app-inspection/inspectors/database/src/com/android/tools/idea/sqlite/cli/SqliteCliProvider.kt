@@ -22,9 +22,9 @@ import com.android.tools.idea.sqlite.cli.SqliteCliProvider.Companion.SQLITE3_PAT
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.Strings
-import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.nio.file.Path
+import org.jetbrains.annotations.TestOnly
 
 /** Service locating an instance of the `sqlite3` CLI tool (from Android platform-tools) */
 interface SqliteCliProvider {

@@ -42,6 +42,7 @@
     <option name="analyze" path="ActionManager" hit="Analyze Memory Usage" />
     <option name="memory" path="ActionManager" hit="Analyze Memory Usage" />
     <option name="usage" path="ActionManager" hit="Analyze Memory Usage" />
+    <option name="android" path="ActionManager" hit="Android" />
     <option name="android" path="ActionManager" hit="Android Component" />
     <option name="component" path="ActionManager" hit="Android Component" />
     <option name="android" path="ActionManager" hit="Android Resource Directory" />
@@ -161,6 +162,9 @@
     <option name="data" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="diagnostic" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="logs" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="android" path="ActionManager" hit="Common Android Settings" />
+    <option name="common" path="ActionManager" hit="Common Android Settings" />
+    <option name="settings" path="ActionManager" hit="Common Android Settings" />
     <option name="configure" path="ActionManager" hit="Configure project structure" />
     <option name="project" path="ActionManager" hit="Configure project structure" />
     <option name="structure" path="ActionManager" hit="Configure project structure" />
@@ -297,31 +301,9 @@
     <option name="zip" path="ActionManager" hit="Export to Zip File..." />
     <option name="extend" path="ActionManager" hit="Extend Reservation" />
     <option name="reservation" path="ActionManager" hit="Extend Reservation" />
-    <option name="1" path="ActionManager" hit="Extend Reservation by 1 Hour" />
-    <option name="by" path="ActionManager" hit="Extend Reservation by 1 Hour" />
-    <option name="extend" path="ActionManager" hit="Extend Reservation by 1 Hour" />
-    <option name="hour" path="ActionManager" hit="Extend Reservation by 1 Hour" />
-    <option name="reservation" path="ActionManager" hit="Extend Reservation by 1 Hour" />
-    <option name="30" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
-    <option name="by" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
-    <option name="extend" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
-    <option name="minutes" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
-    <option name="reservation" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
     <option name="device" path="ActionManager" hit="Extend device reservation" />
     <option name="extend" path="ActionManager" hit="Extend device reservation" />
     <option name="reservation" path="ActionManager" hit="Extend device reservation" />
-    <option name="1" path="ActionManager" hit="Extend device reservation by 1 hour" />
-    <option name="by" path="ActionManager" hit="Extend device reservation by 1 hour" />
-    <option name="device" path="ActionManager" hit="Extend device reservation by 1 hour" />
-    <option name="extend" path="ActionManager" hit="Extend device reservation by 1 hour" />
-    <option name="hour" path="ActionManager" hit="Extend device reservation by 1 hour" />
-    <option name="reservation" path="ActionManager" hit="Extend device reservation by 1 hour" />
-    <option name="30" path="ActionManager" hit="Extend device reservation by 30 minutes" />
-    <option name="by" path="ActionManager" hit="Extend device reservation by 30 minutes" />
-    <option name="device" path="ActionManager" hit="Extend device reservation by 30 minutes" />
-    <option name="extend" path="ActionManager" hit="Extend device reservation by 30 minutes" />
-    <option name="minutes" path="ActionManager" hit="Extend device reservation by 30 minutes" />
-    <option name="reservation" path="ActionManager" hit="Extend device reservation by 30 minutes" />
     <option name="controls" path="ActionManager" hit="Extended Controls" />
     <option name="extended" path="ActionManager" hit="Extended Controls" />
     <option name="a" path="ActionManager" hit="Extracts one or more views into a separate layout" />
@@ -335,12 +317,38 @@
     <option name="views" path="ActionManager" hit="Extracts one or more views into a separate layout" />
     <option name="fold" path="ActionManager" hit="Fold/Unfold" />
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
-    <option name="check-in" path="ActionManager" hit="Force Check-in" />
-    <option name="force" path="ActionManager" hit="Force Check-in" />
+    <option name="foldable" path="ActionManager" hit="Foldable" />
+    <option name="app" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="baseline" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="entire" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="generate" path="ActionManager" hit="Generate Entire App Baseline Profile" />
+    <option name="profile" path="ActionManager" hit="Generate Entire App Baseline Profile" />
     <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="a" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="always" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="and" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="app" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="baseline" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="be" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="cannot" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="class" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="done" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="for" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="generate" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="generation" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="is" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="method" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="note" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="or" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="per" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="profile" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="selected" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="single" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="that" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
+    <option name="the" path="ActionManager" hit="Generate the Baseline Profile for the selected app. Note that generation is always per app and cannot be done for a single method or class." />
     <option name="hardware" path="ActionManager" hit="Hardware Input" />
     <option name="input" path="ActionManager" hit="Hardware Input" />
     <option name="help" path="ActionManager" hit="Help" />
@@ -358,10 +366,17 @@
     <option name="module" path="ActionManager" hit="Import Module..." />
     <option name="import" path="ActionManager" hit="Import Project..." />
     <option name="project" path="ActionManager" hit="Import Project..." />
+    <option name="import" path="ActionManager" hit="Import Sample..." />
+    <option name="sample" path="ActionManager" hit="Import Sample..." />
     <option name="file" path="ActionManager" hit="Import Tests from File..." />
     <option name="from" path="ActionManager" hit="Import Tests from File..." />
     <option name="import" path="ActionManager" hit="Import Tests from File..." />
     <option name="tests" path="ActionManager" hit="Import Tests from File..." />
+    <option name="an" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="android" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="code" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="import" path="ActionManager" hit="Import an Android Code Sample" />
+    <option name="sample" path="ActionManager" hit="Import an Android Code Sample" />
     <option name="a" path="ActionManager" hit="Import the results of a test execution from an XML file" />
     <option name="an" path="ActionManager" hit="Import the results of a test execution from an XML file" />
     <option name="execution" path="ActionManager" hit="Import the results of a test execution from an XML file" />
@@ -427,12 +442,6 @@
     <option name="gradle" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
     <option name="migrate" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
     <option name="to" path="ActionManager" hit="Migrate BuildConfig to Gradle Build Files" />
-    <option name="androidx" path="ActionManager" hit="Migrate to AndroidX..." />
-    <option name="migrate" path="ActionManager" hit="Migrate to AndroidX..." />
-    <option name="to" path="ActionManager" hit="Migrate to AndroidX..." />
-    <option name="appcompat" path="ActionManager" hit="Migrate to AppCompat..." />
-    <option name="migrate" path="ActionManager" hit="Migrate to AppCompat..." />
-    <option name="to" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="classes" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="migrate" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="non-transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
@@ -442,10 +451,6 @@
     <option name="namespaces" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="resource" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="to" path="ActionManager" hit="Migrate to Resource Namespaces..." />
-    <option name="app" path="ActionManager" hit="Migrates app to AppCompat" />
-    <option name="appcompat" path="ActionManager" hit="Migrates app to AppCompat" />
-    <option name="migrates" path="ActionManager" hit="Migrates app to AppCompat" />
-    <option name="to" path="ActionManager" hit="Migrates app to AppCompat" />
     <option name="classes" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="migrates" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="non-transitive" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
@@ -454,11 +459,6 @@
     <option name="the" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="to" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="use" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
-    <option name="androidx" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="migrates" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="names" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="package" path="ActionManager" hit="Migrates to AndroidX package names" />
-    <option name="to" path="ActionManager" hit="Migrates to AndroidX package names" />
     <option name="migrates" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="namespaces" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="resource" path="ActionManager" hit="Migrates to resource namespaces" />
@@ -557,6 +557,11 @@
     <option name="studio" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
     <option name="to" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
     <option name="vector" path="ActionManager" hit="Open Vector Asset Studio to create an image asset" />
+    <option name="health" path="ActionManager" hit="Open Wear Health Services panel" />
+    <option name="open" path="ActionManager" hit="Open Wear Health Services panel" />
+    <option name="panel" path="ActionManager" hit="Open Wear Health Services panel" />
+    <option name="services" path="ActionManager" hit="Open Wear Health Services panel" />
+    <option name="wear" path="ActionManager" hit="Open Wear Health Services panel" />
     <option name="open" path="ActionManager" hit="Open recent test session" />
     <option name="recent" path="ActionManager" hit="Open recent test session" />
     <option name="session" path="ActionManager" hit="Open recent test session" />
@@ -705,6 +710,19 @@
     <option name="replaces" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="style" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="where" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
+    <option name="180" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="device" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="duration" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="for" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="maximum" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="minutes" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="reserve" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="the" path="ActionManager" hit="Reserve device for the maximum 180 minutes duration" />
+    <option name="data" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="identifier" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="reset" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="sharing" path="ActionManager" hit="Reset Data Sharing User Identifier" />
+    <option name="user" path="ActionManager" hit="Reset Data Sharing User Identifier" />
     <option name="manager" path="ActionManager" hit="Resource Manager" />
     <option name="resource" path="ActionManager" hit="Resource Manager" />
     <option name="logcat" path="ActionManager" hit="Restart Logcat" />
@@ -712,6 +730,10 @@
     <option name="logcat" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="monitoring" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="restart" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="and" path="ActionManager" hit="Return and Erase Device" />
+    <option name="device" path="ActionManager" hit="Return and Erase Device" />
+    <option name="erase" path="ActionManager" hit="Return and Erase Device" />
+    <option name="return" path="ActionManager" hit="Return and Erase Device" />
     <option name="left" path="ActionManager" hit="Rotate Left" />
     <option name="rotate" path="ActionManager" hit="Rotate Left" />
     <option name="right" path="ActionManager" hit="Rotate Right" />
@@ -772,6 +794,11 @@
     <option name="set" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="test" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="up" path="ActionManager" hit="Set up Android Test Retention" />
+    <option name="android" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="common" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="settings" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="shortcuts" path="ActionManager" hit="Shortcuts to common Android settings" />
+    <option name="to" path="ActionManager" hit="Shortcuts to common Android settings" />
     <option name="in" path="ActionManager" hit="Show In Resource Manager" />
     <option name="manager" path="ActionManager" hit="Show In Resource Manager" />
     <option name="resource" path="ActionManager" hit="Show In Resource Manager" />
@@ -809,9 +836,21 @@
     <option name="tilt" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="snapshots" path="ActionManager" hit="Snapshots" />
     <option name="soft-wrap" path="ActionManager" hit="Soft-Wrap" />
+    <option name="callstack" path="ActionManager" hit="Start Callstack Sample" />
+    <option name="sample" path="ActionManager" hit="Start Callstack Sample" />
+    <option name="start" path="ActionManager" hit="Start Callstack Sample" />
     <option name="start" path="ActionManager" hit="Start System Trace" />
     <option name="system" path="ActionManager" hit="Start System Trace" />
     <option name="trace" path="ActionManager" hit="Start System Trace" />
+    <option name="a" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="callstack" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="current" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="in" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="profiling" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="sample" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="session" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="start" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
+    <option name="the" path="ActionManager" hit="Start a callstack sample in the current profiling session" />
     <option name="a" path="ActionManager" hit="Start a system trace in the current profiling session" />
     <option name="current" path="ActionManager" hit="Start a system trace in the current profiling session" />
     <option name="in" path="ActionManager" hit="Start a system trace in the current profiling session" />
@@ -874,15 +913,6 @@
     <option name="standard" path="ActionManager" hit="Toggle between Standard and Compact view" />
     <option name="toggle" path="ActionManager" hit="Toggle between Standard and Compact view" />
     <option name="view" path="ActionManager" hit="Toggle between Standard and Compact view" />
-    <option name="decorations" path="ActionManager" hit="Toggle literals decorations" />
-    <option name="literals" path="ActionManager" hit="Toggle literals decorations" />
-    <option name="toggle" path="ActionManager" hit="Toggle literals decorations" />
-    <option name="decorations" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="editor" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="in" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="literals" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="the" path="ActionManager" hit="Toggle literals decorations in the editor" />
-    <option name="toggle" path="ActionManager" hit="Toggle literals decorations in the editor" />
     <option name="current" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="editor" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="in" path="ActionManager" hit="Toggle using soft wraps in current editor" />
@@ -905,8 +935,6 @@
     <option name="connections" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="device" path="ActionManager" hit="Troubleshoot Device Connections" />
     <option name="troubleshoot" path="ActionManager" hit="Troubleshoot Device Connections" />
-    <option name="foldable" path="ActionManager" hit="Unfolded Foldable" />
-    <option name="unfolded" path="ActionManager" hit="Unfolded Foldable" />
     <option name="agp" path="ActionManager" hit="Upgrade the project's Android Gradle Plugin (AGP) dependency" />
     <option name="android" path="ActionManager" hit="Upgrade the project's Android Gradle Plugin (AGP) dependency" />
     <option name="dependency" path="ActionManager" hit="Upgrade the project's Android Gradle Plugin (AGP) dependency" />
@@ -933,6 +961,9 @@
     <option name="volume" path="ActionManager" hit="Volume Down" />
     <option name="up" path="ActionManager" hit="Volume Up" />
     <option name="volume" path="ActionManager" hit="Volume Up" />
+    <option name="health" path="ActionManager" hit="Wear Health Services" />
+    <option name="services" path="ActionManager" hit="Wear Health Services" />
+    <option name="wear" path="ActionManager" hit="Wear Health Services" />
   </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Android Logcat" configurable_name="Android Logcat">
     <option name="android" hit="Android Logcat" />
@@ -1178,10 +1209,6 @@
     <option name="android" hit="Android SDK Location:" />
     <option name="location" hit="Android SDK Location:" />
     <option name="sdk" hit="Android SDK Location:" />
-    <option name="diff" path="SDK Update Sites" hit="Disable SDK diff patching" />
-    <option name="disable" path="SDK Update Sites" hit="Disable SDK diff patching" />
-    <option name="patching" path="SDK Update Sites" hit="Disable SDK diff patching" />
-    <option name="sdk" path="SDK Update Sites" hit="Disable SDK diff patching" />
     <option name="be" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
     <option name="fetched" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
     <option name="force" path="SDK Update Sites" hit="Force https://... sources to be fetched using http://..." />
@@ -1350,31 +1377,6 @@
     <option name="turn" hit="Turn off device display while mirroring" />
     <option name="while" hit="Turn off device display while mirroring" />
   </configurable>
-  <configurable id="layout.inspector.configurable" configurable_name="Layout Inspector">
-    <option name="a" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="android" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="auto" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="connect" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="enable" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="of" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
-    <option name="a" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="android" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="embedded" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="enable" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="inspector" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="layout" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="of" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="requires" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="restart" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="studio" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
-    <option name="inspector" hit="Layout Inspector" />
-    <option name="layout" hit="Layout Inspector" />
-    <option name="learn" hit="Learn More" />
-    <option name="more" hit="Learn More" />
-  </configurable>
   <configurable id="com.android.tools.idea.logcat.settings.LogcatApplicationSettingsConfigurableProvider" configurable_name="Logcat">
     <option name="" hit=" KB" />
     <option name="kb" hit=" KB" />
@@ -1479,20 +1481,10 @@
     <option name="to" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
     <option name="using" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
     <option name="you" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
-    <option name="1024" hit="1024" />
-    <option name="1280" hit="1280" />
-    <option name="2048" hit="2048" />
-    <option name="3072" hit="3072" />
-    <option name="4096" hit="4096" />
     <option name="daemon" hit="Daemon Heap Size Settings" />
     <option name="heap" hit="Daemon Heap Size Settings" />
     <option name="settings" hit="Daemon Heap Size Settings" />
     <option name="size" hit="Daemon Heap Size Settings" />
-    <option name="daemon" hit="Gradle daemon max heap size:" />
-    <option name="gradle" hit="Gradle daemon max heap size:" />
-    <option name="heap" hit="Gradle daemon max heap size:" />
-    <option name="max" hit="Gradle daemon max heap size:" />
-    <option name="size" hit="Gradle daemon max heap size:" />
     <option name="heap" hit="IDE Heap Size Settings" />
     <option name="ide" hit="IDE Heap Size Settings" />
     <option name="settings" hit="IDE Heap Size Settings" />
@@ -1501,11 +1493,6 @@
     <option name="ide" hit="IDE max heap size:" />
     <option name="max" hit="IDE max heap size:" />
     <option name="size" hit="IDE max heap size:" />
-    <option name="daemon" hit="Kotlin daemon max heap size:" />
-    <option name="heap" hit="Kotlin daemon max heap size:" />
-    <option name="kotlin" hit="Kotlin daemon max heap size:" />
-    <option name="max" hit="Kotlin daemon max heap size:" />
-    <option name="size" hit="Kotlin daemon max heap size:" />
     <option name="label" hit="Label" />
     <option name="memory" hit="Memory Settings" />
     <option name="settings" hit="Memory Settings" />
@@ -1521,6 +1508,16 @@
     <option name="settings" hit=" Note: These settings are for features that are considered experimental." />
     <option name="that" hit=" Note: These settings are for features that are considered experimental." />
     <option name="these" hit=" Note: These settings are for features that are considered experimental." />
+    <option name="experimental" hit="Experimental" />
+    <option name="gradle" hit="Gradle" />
+    <option name="compose" hit="Jetpack Compose" />
+    <option name="jetpack" hit="Jetpack Compose" />
+    <option name="editor" hit="Layout Editor" />
+    <option name="layout" hit="Layout Editor" />
+    <option name="inspector" hit="Layout Inspector" />
+    <option name="layout" hit="Layout Inspector" />
+  </configurable>
+  <configurable id="experimental" configurable_name="Experimental">
     <option name="all" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="can" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="configure" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
@@ -1541,9 +1538,6 @@
     <option name="libraries" hit="Derive runtime classpaths for libraries from application modules" />
     <option name="modules" hit="Derive runtime classpaths for libraries from application modules" />
     <option name="runtime" hit="Derive runtime classpaths for libraries from application modules" />
-    <option name="enable" hit="Enable @Preview picker" />
-    <option name="picker" hit="Enable @Preview picker" />
-    <option name="preview" hit="Enable @Preview picker" />
     <option name="enable" hit="Enable parallel Gradle Sync" />
     <option name="gradle" hit="Enable parallel Gradle Sync" />
     <option name="parallel" hit="Enable parallel Gradle Sync" />
@@ -1555,12 +1549,6 @@
     <option name="multi-variant" hit="Enable support for multi-variant Javadocs and Sources" />
     <option name="sources" hit="Enable support for multi-variant Javadocs and Sources" />
     <option name="support" hit="Enable support for multi-variant Javadocs and Sources" />
-    <option name="experimental" hit="Experimental" />
-    <option name="gradle" hit="Gradle" />
-    <option name="compose" hit="Jetpack Compose" />
-    <option name="jetpack" hit="Jetpack Compose" />
-    <option name="editor" hit="Layout Editor" />
-    <option name="layout" hit="Layout Editor" />
     <option name="api" hit="Optimize build for target device API level only" />
     <option name="build" hit="Optimize build for target device API level only" />
     <option name="device" hit="Optimize build for target device API level only" />
@@ -1569,6 +1557,18 @@
     <option name="only" hit="Optimize build for target device API level only" />
     <option name="optimize" hit="Optimize build for target device API level only" />
     <option name="target" hit="Optimize build for target device API level only" />
+    <option name="location" hit="Specified location" />
+    <option name="specified" hit="Specified location" />
+    <option name="gradle" hit="Trace Gradle import with profile:" />
+    <option name="import" hit="Trace Gradle import with profile:" />
+    <option name="profile" hit="Trace Gradle import with profile:" />
+    <option name="trace" hit="Trace Gradle import with profile:" />
+    <option name="with" hit="Trace Gradle import with profile:" />
+  </configurable>
+  <configurable id="experimental" configurable_name="Experimental">
+    <option name="enable" hit="Enable @Preview picker" />
+    <option name="picker" hit="Enable @Preview picker" />
+    <option name="preview" hit="Enable @Preview picker" />
     <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
@@ -1580,15 +1580,33 @@
     <option name="the" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="tools" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="with" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
+  </configurable>
+  <configurable id="experimental" configurable_name="Experimental">
     <option name="quality" hit="Quality Setting" />
     <option name="setting" hit="Quality Setting" />
-    <option name="location" hit="Specified location" />
-    <option name="specified" hit="Specified location" />
-    <option name="gradle" hit="Trace Gradle import with profile:" />
-    <option name="import" hit="Trace Gradle import with profile:" />
-    <option name="profile" hit="Trace Gradle import with profile:" />
-    <option name="trace" hit="Trace Gradle import with profile:" />
-    <option name="with" hit="Trace Gradle import with profile:" />
+  </configurable>
+  <configurable id="experimental" configurable_name="Experimental">
+    <option name="a" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="auto" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="connect" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable auto connect (requires a restart of Android Studio)" />
+    <option name="a" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="android" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="embedded" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="enable" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="inspector" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="layout" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="of" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="requires" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="restart" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="studio" hit="Enable embedded Layout Inspector (requires a restart of Android Studio)" />
+    <option name="learn" hit="Learn More" />
+    <option name="more" hit="Learn More" />
   </configurable>
   <configurable id="gradle.compiler" configurable_name="Gradle-Android Compiler">
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
