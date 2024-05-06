@@ -61,12 +61,12 @@ internal class LocalVirtualDeviceSource(
   val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler().location.toString()
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
-    nextAction = WizardAction { pushPage { configurationPage(profile) } }
+    nextAction = WizardAction { pushPage { ConfigurationPage(profile) } }
     finishAction = WizardAction.Disabled
   }
 
   @Composable
-  private fun WizardPageScope.configurationPage(device: DeviceProfile) {
+  private fun WizardPageScope.ConfigurationPage(device: DeviceProfile) {
     val state =
       remember(device) { LocalAvdConfigurationState(systemImages, skins, device as VirtualDevice) }
 

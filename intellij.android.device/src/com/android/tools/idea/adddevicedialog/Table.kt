@@ -61,6 +61,7 @@ internal data class TableColumn<T>(
   val rowContent: @Composable (T) -> Unit,
 )
 
+@Suppress("ModifierFactoryExtensionFunction")
 sealed interface TableColumnWidth {
   fun RowScope.widthModifier(): Modifier
 
@@ -97,7 +98,7 @@ internal enum class SortOrder {
 }
 
 @Composable
-internal fun SortOrder.icon() =
+internal fun SortOrder.Icon() =
   when (this) {
     // In Swing, we would do `UIManager.get("Table.ascendingSortIcon", null) as Icon`; instead use
     // IJ platform icons
@@ -141,7 +142,7 @@ internal fun <T> TableHeader(
       Row(widthModifier.clickable { onClick(it) }) {
         Text(it.name, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (it == sortColumn) {
-          sortOrder.icon()
+          sortOrder.Icon()
         }
       }
     }

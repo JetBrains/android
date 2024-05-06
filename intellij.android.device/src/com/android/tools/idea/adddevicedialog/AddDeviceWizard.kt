@@ -22,12 +22,12 @@ import com.intellij.openapi.project.Project
 
 internal class AddDeviceWizard(val sources: List<DeviceSource>, val project: Project?) {
   fun createDialog(): ComposeWizard {
-    return ComposeWizard(project, "Add Device") { addDeviceInitialPage(sources) }
+    return ComposeWizard(project, "Add Device") { AddDeviceInitialPage(sources) }
   }
 }
 
 @Composable
-internal fun WizardPageScope.addDeviceInitialPage(sources: List<DeviceSource>) {
+internal fun WizardPageScope.AddDeviceInitialPage(sources: List<DeviceSource>) {
   val profiles = remember(sources) { sources.flatMap { it.profiles } }
   nextActionName = "Configure"
   finishActionName = "Add"
