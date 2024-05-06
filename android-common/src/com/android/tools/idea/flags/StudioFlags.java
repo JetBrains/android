@@ -451,6 +451,14 @@ public final class StudioFlags {
     "Note: Changing the value of this flag requires restarting Android Studio.",
     true);
 
+  public static final Flag<Boolean> ADBLIB_USE_PROCESS_INVENTORY_SERVER = new BooleanFlag(
+    RUNDEBUG,
+    "adblib.use.process.inventory.server",
+    "Use local tcp server for discovering JDWP processes",
+    "Start and/or use a local TCP server for discovering and publishing JDWP processes. " +
+    "Note: Changing the value of this flag requires restarting Android Studio.",
+    false);
+
   public static final Flag<Boolean> JDWP_TRACER = new BooleanFlag(
     RUNDEBUG,
     "adb.jdwp.tracer.enabled",
