@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,26 +73,37 @@ internal fun AdditionalSettingsPanel(
   state: AdditionalSettingsPanelState,
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE)) {
-    Row {
-      Text("Device skin", Modifier.padding(end = Padding.SMALL))
+  val scrollState = rememberScrollState()
+  Box(modifier) {
+    Column(
+      Modifier.verticalScroll(scrollState),
+      verticalArrangement = Arrangement.spacedBy(Padding.EXTRA_LARGE),
+    ) {
+      Row {
+        Text("Device skin", Modifier.padding(end = Padding.SMALL))
 
-      Dropdown(
-        device.skin,
-        skins,
-        onSelectedItemChange = { onDeviceChange(device.copy(skin = it)) },
-        Modifier.padding(end = Padding.MEDIUM),
-      )
+        Dropdown(
+          device.skin,
+          skins,
+          onSelectedItemChange = { onDeviceChange(device.copy(skin = it)) },
+          Modifier.padding(end = Padding.MEDIUM),
+        )
 
-      OutlinedButton(onImportButtonClick) { Text("Import") }
+        OutlinedButton(onImportButtonClick) { Text("Import") }
+      }
+
+      CameraGroup(device, onDeviceChange)
+      NetworkGroup(device, onDeviceChange)
+      StartupGroup(device, onDeviceChange)
+      StorageGroup(device, state.storageGroupState, onDeviceChange)
+      EmulatedPerformanceGroup(device, onDeviceChange)
     }
-
-    CameraGroup(device, onDeviceChange)
-    NetworkGroup(device, onDeviceChange)
-    StartupGroup(device, onDeviceChange)
-    StorageGroup(device, state.storageGroupState, onDeviceChange)
-    EmulatedPerformanceGroup(device, onDeviceChange)
+    VerticalScrollbar(
+      rememberScrollbarAdapter(scrollState),
+      modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+    )
   }
 }
 
