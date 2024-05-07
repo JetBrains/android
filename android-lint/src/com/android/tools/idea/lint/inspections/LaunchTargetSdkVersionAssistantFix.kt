@@ -27,7 +27,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
 private const val minSdkUpgradeAsstVersion = 26
-private const val maxSdkUpgradeAsstVersion = 33
+private const val maxSdkUpgradeAsstVersion = 34
 
 class LaunchTargetSdkVersionAssistantFix(fix: LintFix?) :
   DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
