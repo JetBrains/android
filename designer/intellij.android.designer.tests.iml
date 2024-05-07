@@ -12,7 +12,6 @@
     <orderEntry type="library" scope="TEST" name="ASM" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="XmlRPC" level="project" />
     <orderEntry type="library" scope="TEST" name="jaxb-api" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
