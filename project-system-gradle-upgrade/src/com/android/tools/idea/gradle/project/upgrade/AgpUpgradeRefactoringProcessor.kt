@@ -438,7 +438,7 @@ class AgpUpgradeRefactoringProcessor(
     val viewManager = UsageViewManager.getInstance(myProject)
 
     val initialElements = viewDescriptor.elements
-    val targets: Array<out UsageTarget> = PsiElement2UsageTargetAdapter.convert(initialElements)
+    val targets: Array<out UsageTarget> = PsiElement2UsageTargetAdapter.convert(initialElements, true)
       .map {
         when (val action = backFromPreviewAction) {
           null -> WrappedUsageTarget(it)
@@ -503,7 +503,7 @@ class AgpUpgradeRefactoringProcessor(
   fun doPreviewRefactoring(usages: Array<out UsageInfo>) {
     val viewDescriptor = createUsageViewDescriptor(usages)
     val elements = viewDescriptor.elements
-    val targets = PsiElement2UsageTargetAdapter.convert(elements)
+    val targets = PsiElement2UsageTargetAdapter.convert(elements, true)
     val factory = Factory<UsageSearcher> {
       object : UsageInfoSearcherAdapter() {
         override fun generate(
