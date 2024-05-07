@@ -72,6 +72,7 @@ private fun createCenterPanel(
   stateManager.ongoingExercise.onEach {
     elementsToDisableDuringExercise.forEach { element ->
       element.isEnabled = !it
+      element.toolTipText = if (it) WearWhsBundle.message("wear.whs.panel.disabled.during.exercise") else null
     }
     elementsToDisplayDuringExercise.forEach { element ->
       element.isVisible = it
@@ -213,6 +214,7 @@ private fun createWearHealthServicesPanelHeader(
   }.launchIn(uiScope)
   stateManager.ongoingExercise.onEach {
     capabilitiesComboBox.isEnabled = !it
+    capabilitiesComboBox.toolTipText = if (it) WearWhsBundle.message("wear.whs.panel.disabled.during.exercise") else null
   }.launchIn(uiScope)
   val eventTriggersDropDownButton = CommonDropDownButton(
     CommonAction("", AllIcons.Actions.More).apply {
