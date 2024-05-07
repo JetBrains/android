@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.getFullApiName
 import com.android.sdklib.getReleaseNameAndDetails
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
@@ -120,7 +121,11 @@ private fun SystemImageTable(images: ImmutableList<SystemImage>) {
         attribute = { it.services.toString() },
         comparator = Comparator.comparing(SystemImage::services),
       ),
-      TableTextColumn("API", attribute = { _ -> "" }),
+      TableTextColumn(
+        "API",
+        attribute = { it.androidVersion.getFullApiName() },
+        comparator = Comparator.comparing(SystemImage::androidVersion),
+      ),
       TableTextColumn("ABI", attribute = { _ -> "" }),
     )
 
