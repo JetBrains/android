@@ -116,8 +116,7 @@ fun actionLink(text: String, action: AnAction, delegateDataContext: DataContext)
   }
 
 /**
- * Action that reports the current state of the Compose subsystem. Local issues for a given Compose subsystem are reported as part of the
- * subsystem itself and not in this action.
+ * Action that reports the current [IdeStatus].
  *
  * Clicking on the action will open a pop-up with additional details and action buttons.
  * @param popupAlarm used to show and hide the popup as a hint.
