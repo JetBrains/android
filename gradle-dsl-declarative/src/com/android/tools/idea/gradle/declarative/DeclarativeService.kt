@@ -44,14 +44,14 @@ class DeclarativeService {
   }
 
   fun getSchema(module: Module): DeclarativeSchema? {
-    if(!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
+    if (!StudioFlags.GRADLE_DECLARATIVE_IDE_SUPPORT.get()) return null
     return map.getOrPut(module) {
       val parentPath = module.guessModuleDir()?.path
       val schemaFolder = File(parentPath, ".gradle/declarative-schema")
       schemaFolder.lastModified()
       val paths = schemaFolder.list { _: File?, name: String -> name.endsWith(".dcl.schema") } ?: return null
       val schemas = mutableListOf<AnalysisSchema>()
-      for(path in paths) {
+      for (path in paths) {
         try {
           val schema = File(schemaFolder, path)
           val analysisSchema = SchemaSerialization.schemaFromJsonString(schema.readText())
@@ -69,10 +69,16 @@ class DeclarativeService {
 }
 
 class DeclarativeSchema(private val schemas: List<AnalysisSchema>) {
-  fun getDataClassesByFqName(): Map<FqName, DataClass> =
-    schemas.fold(mapOf()){ acc, e -> acc + e.dataClassesByFqName}
-  fun getRootMemberFunctions(): List<SchemaMemberFunction> =
-    schemas.fold(listOf()){ acc, e -> acc + e.topLevelReceiverType.memberFunctions}
+  private val _dataClassesByFqName: Map<FqName, DataClass> by lazy {
+    schemas.fold(mapOf()) { acc, e -> acc + e.dataClassesByFqName }
+  }
+  private val _rootMemberFunctions: List<SchemaMemberFunction> by lazy {
+    schemas.fold(listOf()) { acc, e -> acc + e.topLevelReceiverType.memberFunctions }
+  }
+
+  fun getDataClassesByFqName(): Map<FqName, DataClass> = _dataClassesByFqName
+
+  fun getRootMemberFunctions(): List<SchemaMemberFunction> = _rootMemberFunctions
 }
 
 fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? =
