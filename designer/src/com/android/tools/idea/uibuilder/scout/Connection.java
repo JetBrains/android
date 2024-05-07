@@ -24,7 +24,6 @@ public class Connection {
   public final static int PARENT_CONNECTION = -1;
   public final static int NO_CONNECTION = -2;
 
-  private ConstrainedWidget myOriginWidget;
   private int myDestWidget;
   private Direction myDestAnchor;
   private int myMargin;
@@ -63,10 +62,6 @@ public class Connection {
 
   public int getAbsoluteMargin() {
     return Math.abs(myMargin);
-  }
-
-  public void setOriginWidget(ConstrainedWidget widget) {
-    myOriginWidget = widget;
   }
 
   public int destWidget() {

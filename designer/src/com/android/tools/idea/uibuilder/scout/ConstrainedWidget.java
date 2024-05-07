@@ -55,15 +55,10 @@ public class ConstrainedWidget {
     ScoutWidget sWidget) {
     myScoutWidget = sWidget;
     this.north = north;
-    this.north.setOriginWidget(this);
     this.south = south;
-    this.south.setOriginWidget(this);
     this.east = east;
-    this.east.setOriginWidget(this);
     this.west = west;
-    this.west.setOriginWidget(this);
     this.baseline = baseline;
-    this.baseline.setOriginWidget(this);
   }
 
   @Override
