@@ -53,7 +53,7 @@ import kotlin.coroutines.resumeWithException
  */
 internal class DeviceController(
   disposableParent: Disposable,
-  controlChannel: SuspendingSocketChannel
+  private val controlChannel: SuspendingSocketChannel
 ) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(javaClass.simpleName, 1)
@@ -150,6 +150,7 @@ internal class DeviceController(
   override fun dispose() {
     executor.shutdown()
     responseCallbacks.cancelAll()
+    receiverScope.launch { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
     }
