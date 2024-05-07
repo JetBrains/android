@@ -72,17 +72,17 @@ public class ConstraintSet {
             }
           }
           if (destIdx == 0) {
-            connections[dir.ordinal()] = new Connection(Connection.PARENT_CONNECTION, dir, destDir, destWid);
+            connections[dir.ordinal()] = new Connection(Connection.PARENT_CONNECTION, destDir);
           }
           else {
-            connections[dir.ordinal()] = new Connection(destIdx, dir, destDir, destWid);
+            connections[dir.ordinal()] = new Connection(destIdx, destDir);
           }
           int originLine = wid.getPos(dir);
           int destLine = destWid.getPos(destDir);
           connections[dir.ordinal()].setMargin(destLine - originLine);
         }
         else {
-          connections[dir.ordinal()] = new Connection(Connection.NO_CONNECTION, dir, dir, wid);
+          connections[dir.ordinal()] = new Connection(Connection.NO_CONNECTION, dir);
         }
       }
       temp = new ConstrainedWidget(connections[Direction.TOP.ordinal()],

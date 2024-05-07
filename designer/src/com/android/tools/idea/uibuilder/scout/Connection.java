@@ -16,8 +16,6 @@
 
 package com.android.tools.idea.uibuilder.scout;
 
-import java.util.Locale;
-
 /**
  * Represents connections between constrained widgets
  */
@@ -28,25 +26,17 @@ public class Connection {
 
   private ConstrainedWidget myOriginWidget;
   private int myDestWidget;
-  private ScoutWidget myDestRect;
-  private Direction myOriginAnchor;
   private Direction myDestAnchor;
   private int myMargin;
-  private double myDistanceX;
-  private double myDistanceY;
   private double myCost;
 
   /**
    * Constructor for a Connection
    *
    * @param destWidget   index of destination widget within the constraint set
-   * @param originAnchor the source direction of the connection
    * @param destAnchor   the destination direction of the connection
-   * @param destRect     the ScoutWidget object that represents the destination ScoutWidget
    */
-  public Connection(int destWidget, Direction originAnchor, Direction destAnchor, ScoutWidget destRect) {
-    myOriginAnchor = originAnchor;
-    myDestRect = destRect;
+  public Connection(int destWidget, Direction destAnchor) {
     myDestWidget = destWidget;
     myDestAnchor = destAnchor;
     myMargin = 0;
@@ -88,37 +78,12 @@ public class Connection {
     myOriginWidget = widget;
   }
 
-  public Direction originDirection() {
-    return myDestAnchor;
-  }
-
-  public ConstrainedWidget getOriginWidget() {
-    return myOriginWidget;
-  }
-
   public int destWidget() {
     return myDestWidget;
   }
 
   public Direction destDirection() {
     return myDestAnchor;
-  }
-
-  public void setDistanceX(double distanceX) {
-    myDistanceX = distanceX;
-  }
-
-  public void setDistanceY(double distanceY) {
-    myDistanceY = distanceY;
-  }
-
-  public double calculateCost() {
-    myCost = (myDistanceX * myDistanceX) + (myDistanceY * myDistanceY);
-    myCost += (myMargin * myMargin);
-    if (isParentConnection()) {
-      myCost += myMargin * myMargin;
-    }
-    return myCost;
   }
 
   public double getCost() {
@@ -131,44 +96,5 @@ public class Connection {
 
   public boolean isParentConnection() {
     return myDestWidget == PARENT_CONNECTION;
-  }
-
-  /**
-   * Creates a display list string to render in tests
-   *
-   * @return String
-   */
-  public String getDisplayString() {
-    String res =
-      String.format(Locale.US, "%dx%dx%dx%d,%d",
-                    (int)myDestRect.getX(),
-                    (int)myDestRect.getY(),
-                    myDestRect.getWidthInt(),
-                    myDestRect.getHeightInt(),
-                    equivalentDirection(myDestAnchor));
-    return res;
-  }
-
-  /**
-   * Translates a Direction value into the integer required to build a display
-   * string
-   *
-   * @param Direction anchor
-   * @return int
-   */
-  int equivalentDirection(Direction anchor) {
-    switch (anchor) {
-      case TOP:
-        return 2;
-      case BOTTOM:
-        return 3;
-      case RIGHT:
-        return 1;
-      case LEFT:
-        return 0;
-      case BASELINE:
-        return 0;
-    }
-    return 0;
   }
 }
