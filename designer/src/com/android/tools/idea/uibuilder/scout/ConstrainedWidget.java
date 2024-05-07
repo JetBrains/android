@@ -94,15 +94,6 @@ public class ConstrainedWidget {
     return res;
   }
 
-  public double getCost() {
-    return myCost;
-  }
-
-  int compareTo(ConstrainedWidget other) {
-    int val = myCost < other.getCost() ? 1 : myCost == other.getCost() ? 0 : -1;
-    return val;
-  }
-
   public ScoutWidget getScoutWidget() {
     return myScoutWidget;
   }
