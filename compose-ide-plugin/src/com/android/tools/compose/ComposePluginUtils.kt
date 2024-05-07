@@ -21,14 +21,14 @@ import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtLocalVariableSymbol

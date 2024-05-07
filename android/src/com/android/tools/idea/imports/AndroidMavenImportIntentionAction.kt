@@ -50,9 +50,9 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider

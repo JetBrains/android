@@ -41,11 +41,11 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurrounder

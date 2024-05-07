@@ -22,8 +22,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
@@ -32,8 +30,10 @@ import org.jetbrains.kotlin.analysis.api.base.KaConstantValue.KaErrorConstantVal
 import org.jetbrains.kotlin.analysis.api.calls.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
