@@ -198,7 +198,7 @@ class FakeScreenSharingAgent(
   var isRunning: Boolean = false
     private set
   val videoStreamActive: Boolean
-      get() = displayStreamers.isNotEmpty()
+    get() = displayStreamers.isNotEmpty()
   val audioStreamActive: Boolean
     get() = audioStreamer != null
   @Volatile
