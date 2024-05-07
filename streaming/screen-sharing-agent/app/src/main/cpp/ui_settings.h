@@ -49,8 +49,10 @@ private:
   UiSettingsState initial_settings_;
   UiSettingsState last_settings_;
 
-  void Get(UiSettingsState* state);
   void StoreInitialSettings(const UiSettingsState& state);
+
+  // Creates the shell command that resets all the UI settings to the initial state.
+  const std::string CreateResetCommand();
 
   DISALLOW_COPY_AND_ASSIGN(UiSettings);
 };
