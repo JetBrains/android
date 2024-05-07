@@ -40,7 +40,7 @@ class FilesTest : BasePlatformTestCase() {
     super.setUp()
     ApplicationManager.getApplication()
       .replaceService(StudioBot::class.java, mockStudioBot, testRootDisposable)
-    whenever(mockStudioBot.aiExcludeService()).thenReturn(mockAiExcludeService)
+    whenever(mockStudioBot.aiExcludeService(project)).thenReturn(mockAiExcludeService)
     whenever(mockStudioBot.isContextAllowed(project)).thenReturn(true)
   }
 

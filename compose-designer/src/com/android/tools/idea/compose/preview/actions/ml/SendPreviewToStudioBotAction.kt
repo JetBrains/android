@@ -62,7 +62,7 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
       return
     }
     e.getData(VIRTUAL_FILE)?.let {
-      if (StudioBot.getInstance().aiExcludeService().isFileExcluded(project, it)) {
+      if (StudioBot.getInstance().aiExcludeService(project).isFileExcluded(it)) {
         // The file is excluded, so it can't be used by AI services. Don't display the action.
         return@update
       }

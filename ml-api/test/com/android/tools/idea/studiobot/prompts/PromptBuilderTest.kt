@@ -44,7 +44,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
     super.setUp()
     ApplicationManager.getApplication()
       .replaceService(StudioBot::class.java, mockStudioBot, testRootDisposable)
-    whenever(mockStudioBot.aiExcludeService()).thenReturn(mockAiExcludeService)
+    whenever(mockStudioBot.aiExcludeService(project)).thenReturn(mockAiExcludeService)
     whenever(mockStudioBot.isContextAllowed(project)).thenReturn(true)
   }
 
@@ -263,7 +263,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
       userMessage { text("user", listOf(file)) }
     }
 
-    whenever(mockAiExcludeService.isFileExcluded(project, file)).thenReturn(true)
+    whenever(mockAiExcludeService.isFileExcluded(file)).thenReturn(true)
     assertFailsWith<AiExcludeException> {
       buildPrompt(project) {
         systemMessage { text("preamble", emptyList()) }

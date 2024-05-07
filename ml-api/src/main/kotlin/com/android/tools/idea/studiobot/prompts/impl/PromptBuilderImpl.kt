@@ -112,7 +112,7 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
           else -> msg.chunks.flatMap { chunk -> chunk.filesUsed }
         }
       }
-      .filter { StudioBot.getInstance().aiExcludeService().isFileExcluded(project, it) }
+      .filter { StudioBot.getInstance().aiExcludeService(project).isFileExcluded(it) }
       .toSet()
 
   fun build(): Prompt {

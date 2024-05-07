@@ -95,7 +95,8 @@ class InsightActionTest {
 
       override fun isAvailable() = isOnboardingComplete
 
-      override fun aiExcludeService() = AiExcludeService.FakeAiExcludeService()
+      override fun aiExcludeService(project: Project) =
+        AiExcludeService.FakeAiExcludeService(project)
 
       override fun chat(project: Project) = fakeChatService
 

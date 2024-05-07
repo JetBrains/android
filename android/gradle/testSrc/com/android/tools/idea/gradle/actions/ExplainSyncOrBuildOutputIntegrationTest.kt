@@ -102,7 +102,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
     val preparedProject: PreparedTestProject =
       projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val (contextString, files) =
-      preparedProject.open { getGradleFilesContext(it, AiExcludeService.FakeAiExcludeService()) }!!
+      preparedProject.open { getGradleFilesContext(it, AiExcludeService.FakeAiExcludeService(project)) }!!
 
     assertTrue(contextString.contains("Project Gradle files, separated by -------:"))
     assertEquals(3, files.size)
