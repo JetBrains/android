@@ -21,10 +21,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.getReleaseNameAndDetails
 import com.android.tools.idea.adddevicedialog.Table
+import com.android.tools.idea.adddevicedialog.TableColumn
+import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableTextColumn
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -103,7 +108,13 @@ private fun ServicesDropdown(
 private fun SystemImageTable(images: ImmutableList<SystemImage>) {
   val columns =
     listOf(
-      TableTextColumn("System Image", attribute = { _ -> "" }),
+      TableColumn(
+        "System Image",
+        TableColumnWidth.Weighted(1F),
+        Comparator.comparing(SystemImage::androidVersion),
+      ) {
+        AndroidVersionText(it.androidVersion)
+      },
       TableTextColumn(
         "Services",
         attribute = { it.services.toString() },
@@ -115,4 +126,19 @@ private fun SystemImageTable(images: ImmutableList<SystemImage>) {
 
   // TODO: http://b/339247492 - Stop calling distinct
   Table(columns, images.distinct(), { it })
+}
+
+@Composable
+private fun AndroidVersionText(version: AndroidVersion) {
+  val nameAndDetails = version.getReleaseNameAndDetails(includeCodeName = true)
+  val details = nameAndDetails.details
+
+  if (details == null) {
+    Text(nameAndDetails.name)
+  } else {
+    Row {
+      Text(nameAndDetails.name, Modifier.padding(end = Padding.SMALL))
+      Text(details, color = retrieveColorOrUnspecified("Component.infoForeground"))
+    }
+  }
 }
