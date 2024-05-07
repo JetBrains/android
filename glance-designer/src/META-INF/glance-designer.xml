@@ -44,6 +44,14 @@
                      key="inspection.unit.test.files"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.glance.preview.GlancePreviewDimensionRespectsLimit"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="bundle.glance.GlancePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.dimension.limit.name"
+                     level="WARNING"/>
+
     <notificationGroup id="Glance Preview Notification" displayType="NONE"/>
   </extensions>
 
