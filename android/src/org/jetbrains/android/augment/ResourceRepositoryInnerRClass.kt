@@ -5,7 +5,12 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
+import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.idea.res.ResourceRepositoryRClass.ResourcesSource
+import com.android.tools.idea.res.ResourceUpdateTracer
+import com.android.tools.res.MultiResourceRepository
+import com.android.utils.TraceUtils.simpleId
+import com.google.common.base.MoreObjects
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
@@ -17,7 +22,27 @@ class ResourceRepositoryInnerRClass(
   private val resourcesSource: ResourcesSource,
   parentClass: PsiClass
 ) : InnerRClassBase(parentClass, resourceType) {
-  override fun doGetFields() = buildLocalResourceFields(resourceType, resourcesSource, this)
+  override fun doGetFields(): Array<PsiField> {
+    val fields = buildLocalResourceFields(resourceType, resourcesSource, this)
+
+    if (fields.isEmpty()) {
+      // The super class will dump resource traces, but here let's log some detail about the repository.
+      val repository = resourcesSource.resourceRepository
+      ResourceUpdateTracer.log {
+        buildString {
+          append("${this@ResourceRepositoryInnerRClass.simpleId} using repository ${repository.simpleId})")
+          if (repository is MultiResourceRepository<*>) {
+            appendLine(" with children:")
+            for (child in repository.children) {
+              appendLine("\t${child.simpleId}")
+            }
+          }
+        }
+      }
+    }
+
+    return fields
+  }
 
   /**
    * This implementation adds a fast path for non-final resources and delegates to the super implementation in
@@ -56,6 +81,13 @@ class ResourceRepositoryInnerRClass(
     resourceType == ResourceType.STYLEABLE
     || resourcesSource.fieldModifier == AndroidLightField.FieldModifier.FINAL
     || name.contains("_")
+
+  override fun toString(): String {
+    return MoreObjects.toStringHelper(this)
+      .add("fqn", qualifiedName)
+      .add("repository", resourcesSource.resourceRepository.simpleId)
+      .toString()
+  }
 
   companion object {
     fun buildLocalResourceFields(resourceType: ResourceType, resourcesSource: ResourcesSource, context: PsiClass): Array<PsiField> =

@@ -8,6 +8,7 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
+import com.android.tools.idea.res.ResourceUpdateTracer
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.base.Verify
 import com.intellij.openapi.diagnostic.thisLogger
@@ -42,15 +43,20 @@ abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType
   override fun getFields(): Array<PsiField> {
     if (fieldsCache == null) {
       fieldsCache = CachedValuesManager.getManager(project).createCachedValue {
-        logger.let { if (it.isDebugEnabled) it.debug("Recomputing fields for $this") }
+        val fields = doGetFields()
+        logger.info("Recomputed ${fields.size} fields for $this")
 
-        fieldsDependencies.let {
-          // When ResourceRepositoryManager's caches are dropped, new instances of repositories are created and the old ones
-          // stop incrementing their modification count. We need to make sure the CachedValue doesn't hold on to any particular repository
-          // instance and instead reads the modification count of the "current" instance.
-          Verify.verify(it !is ResourceRepository, "Resource repository leaked in a CachedValue.")
-          CachedValueProvider.Result.create(doGetFields(), it)
+        if (fields.isEmpty()) {
+          ResourceUpdateTracer.dumpTrace("No fields found for ${this.qualifiedName}")
         }
+
+        // When ResourceRepositoryManager's caches are dropped, new instances of repositories are created and the old ones
+        // stop incrementing their modification count. We need to make sure the CachedValue doesn't hold on to any particular repository
+        // instance and instead reads the modification count of the "current" instance.
+        val modificationTracker = fieldsDependencies
+        require(modificationTracker !is ResourceRepository) { "Resource repository leaked in a CachedValue." }
+
+        CachedValueProvider.Result.create(fields, modificationTracker)
       }
     }
     return fieldsCache!!.value
