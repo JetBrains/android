@@ -27,7 +27,6 @@ public class ConstrainedWidget {
   public Connection east;
   public Connection west;
   public Connection baseline;
-  private double myCost;
   private double errorCenterFactor = 8;
 
   /**
@@ -65,11 +64,6 @@ public class ConstrainedWidget {
     this.west.setOriginWidget(this);
     this.baseline = baseline;
     this.baseline.setOriginWidget(this);
-    myCost = north.getCost() +
-             south.getCost() +
-             east.getCost() +
-             west.getCost() +
-             baseline.getCost();
   }
 
   @Override
@@ -83,13 +77,12 @@ public class ConstrainedWidget {
       res = "H GUIDELINE";
     }
     else {
-      res = String.format("%s %s %s %s %s %f",
+      res = String.format("%s %s %s %s %s",
                           north.toString(),
                           south.toString(),
                           east.toString(),
                           west.toString(),
-                          baseline.toString(),
-                          myCost);
+                          baseline.toString());
     }
     return res;
   }

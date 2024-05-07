@@ -28,7 +28,6 @@ public class Connection {
   private int myDestWidget;
   private Direction myDestAnchor;
   private int myMargin;
-  private double myCost;
 
   /**
    * Constructor for a Connection
@@ -54,14 +53,6 @@ public class Connection {
     return result;
   }
 
-  /**
-   * Comparison method for sorting purposes, based on the cost of the connection
-   */
-  public int compareTo(Connection other) {
-    int val = myCost < other.getCost() ? 1 : myCost == other.getCost() ? 0 : -1;
-    return val;
-  }
-
   public void setMargin(int margin) {
     myMargin = margin;
   }
@@ -84,10 +75,6 @@ public class Connection {
 
   public Direction destDirection() {
     return myDestAnchor;
-  }
-
-  public double getCost() {
-    return myCost;
   }
 
   public boolean isConnected() {

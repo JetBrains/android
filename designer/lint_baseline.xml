@@ -3,17 +3,6 @@
 
     <issue
         id="DefaultLocale"
-        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead"
-        errorLine1="      res = String.format(&quot;%s %s %s %s %s %f&quot;,"
-        errorLine2="            ^">
-        <location
-            file="src/com/android/tools/idea/uibuilder/scout/ConstrainedWidget.java"
-            line="86"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="DefaultLocale"
         message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`."
         errorLine1="      connect = connect.substring(&quot;layout_constraint&quot;.length(), connect.length() - 2).replace(&quot;_to&quot;, &quot; to &quot;).toLowerCase();"
         errorLine2="                                                                                                             ~~~~~~~~~~~">
