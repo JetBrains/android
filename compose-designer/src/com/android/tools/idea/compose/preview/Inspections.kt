@@ -29,8 +29,8 @@ import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.layoutlib.isLayoutLibTarget
-import com.android.tools.preview.MAX_HEIGHT
-import com.android.tools.preview.MAX_WIDTH
+import com.android.tools.preview.MAX_DIMENSION
+import com.android.tools.preview.MIN_DIMENSION
 import com.android.tools.preview.config.PARAMETER_API_LEVEL
 import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
@@ -172,8 +172,8 @@ class ComposePreviewMustBeTopLevelFunction :
   )
 
 /**
- * Inspection that checks that `@Preview` width parameter doesn't go higher than [MAX_WIDTH], and
- * the height parameter doesn't go higher than [MAX_HEIGHT].
+ * Inspection that checks that `@Preview` width parameter doesn't go higher than [MAX_DIMENSION],
+ * and the height parameter doesn't go higher than [MAX_DIMENSION].
  */
 class PreviewDimensionRespectsLimit :
   BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
@@ -198,29 +198,31 @@ class PreviewDimensionRespectsLimit :
     // the Previews
     if (!isPreview(previewAnnotation)) return
 
+    var isWithinLimits = true
+    var psiElement: PsiElement? = null
     previewAnnotation.findValueArgument(PARAMETER_WIDTH_DP)?.let {
-      if (it.exceedsLimit(MAX_WIDTH)) {
-        holder.registerProblem(
-          it.psiOrParent as PsiElement,
-          message("inspection.width.limit.description", MAX_WIDTH),
-          ProblemHighlightType.WARNING,
-        )
+      if (it.exceedsLimits(MIN_DIMENSION, MAX_DIMENSION)) {
+        isWithinLimits = false
+        psiElement = it.psiOrParent
       }
     }
-
     previewAnnotation.findValueArgument(PARAMETER_HEIGHT_DP)?.let {
-      if (it.exceedsLimit(MAX_HEIGHT)) {
-        holder.registerProblem(
-          it.psiOrParent as PsiElement,
-          message("inspection.height.limit.description", MAX_HEIGHT),
-          ProblemHighlightType.WARNING,
-        )
+      if (it.exceedsLimits(MIN_DIMENSION, MAX_DIMENSION)) {
+        isWithinLimits = false
+        psiElement = it.psiOrParent
       }
+    }
+    if (!isWithinLimits) {
+      holder.registerProblem(
+        psiElement!!,
+        message("inspection.width.height.limit.description", MIN_DIMENSION, MAX_DIMENSION),
+        ProblemHighlightType.WARNING,
+      )
     }
   }
 
   override fun getStaticDescription() =
-    message("inspection.width.height.limit.description", MAX_WIDTH, MAX_HEIGHT)
+    message("inspection.width.height.limit.description", MIN_DIMENSION, MAX_DIMENSION)
 }
 
 /** Inspection that checks if `@Preview` fontScale parameter is not positive. */
@@ -370,8 +372,8 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
     }
 }
 
-private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {
+private fun KtValueArgument.exceedsLimits(lowerLimit: Int, upperLimit: Int): Boolean {
   val argumentExpression = getArgumentExpression() ?: return false
   val dimension = argumentExpression.evaluateConstant<Int>() ?: return false
-  return dimension > limit
+  return dimension < lowerLimit || upperLimit < dimension
 }
