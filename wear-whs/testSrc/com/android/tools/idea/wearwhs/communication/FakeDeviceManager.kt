@@ -28,6 +28,7 @@ internal class FakeDeviceManager(
   internal var failState = false
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
+  internal var overrideValuesInvocations = 0
   private val onDeviceStates = capabilities.associate { it.dataType to CapabilityState(true, null) }.toMutableMap()
   internal var activeExercise = false
 
@@ -45,6 +46,7 @@ internal class FakeDeviceManager(
 
   override suspend fun overrideValues(overrideUpdates: Map<WhsDataType, Number?>) =
     failOrWrapResult(Unit).also {
+      overrideValuesInvocations++
       overrideUpdates.forEach { (dataType, value) ->
         onDeviceStates[dataType] = CapabilityState(onDeviceStates[dataType]!!.enabled, value?.toFloat())
       }

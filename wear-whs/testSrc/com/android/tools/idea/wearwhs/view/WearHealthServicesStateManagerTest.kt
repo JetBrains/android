@@ -182,6 +182,24 @@ class WearHealthServicesStateManagerTest {
   }
 
   @Test
+  fun `when an exercise is ongoing reset only clears the overridden values`(): Unit = runBlocking {
+    stateManager.preset.value = Preset.STANDARD
+
+    stateManager.setOverrideValue(capabilities[1], 3f)
+
+    assertEquals(0, deviceManager.overrideValuesInvocations)
+
+    stateManager.setOngoingExerciseForTest(true)
+    stateManager.reset()
+
+    stateManager.preset.waitForValue(Preset.STANDARD)
+    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+    stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(null)
+    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
+    assertEquals(1, deviceManager.overrideValuesInvocations)
+  }
+
+  @Test
   fun `test applyChanges sends synced and status updates`(): Unit = runBlocking {
     stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
     stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)

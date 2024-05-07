@@ -219,13 +219,26 @@ internal class WearHealthServicesStateManagerImpl(
 
   private fun resetUiState() =
     capabilityToState.forEach { (_, state) ->
-      state.value = CapabilityUIState()
+      state.value = CapabilityUIState(
+        capabilityState = CapabilityState(
+          enabled = if (ongoingExercise.value) state.value.capabilityState.enabled else true,
+          overrideValue = null
+        )
+      )
     }
+
+  private suspend fun resetOverrides() = deviceManager.overrideValues(capabilityToState.entries.associate { it.key.dataType to null })
 
   override suspend fun reset() =
     runWithStatus(WhsStateManagerStatus.Syncing) {
-      preset.value = Preset.ALL
-      return@runWithStatus deviceManager.clearContentProvider().also {
+      val reset = if (!ongoingExercise.value) {
+        preset.value = Preset.ALL
+        deviceManager.clearContentProvider()
+      } else {
+        resetOverrides()
+      }
+
+      return@runWithStatus reset.also {
         if (it.isSuccess) resetUiState()
       }
     }
@@ -235,6 +248,11 @@ internal class WearHealthServicesStateManagerImpl(
   @TestOnly
   internal suspend fun forceUpdateState() {
     updateState()
+  }
+
+  @TestOnly
+  internal fun setOngoingExerciseForTest(ongoingExercise: Boolean) {
+    _ongoingExercise.value = ongoingExercise
   }
 }
 
