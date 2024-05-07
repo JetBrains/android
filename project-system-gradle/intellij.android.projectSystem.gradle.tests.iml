@@ -12,7 +12,6 @@
     <orderEntry type="library" scope="TEST" name="Gradle" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="XmlRPC" level="project" />
     <orderEntry type="library" scope="TEST" name="commons-io" level="project" />
     <orderEntry type="library" scope="TEST" name="commons-lang3" level="project" />
     <orderEntry type="library" scope="TEST" name="jackson-module-kotlin" level="project" />
