@@ -361,7 +361,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
               }
             }
             is ModCommandLintQuickFix -> {
-              builder = builder.withFix(fix.asIntention(issue, project))
+              builder = builder.newFix(fix.asIntention(issue, project)).key(key).registerFix()
             }
           }
         }

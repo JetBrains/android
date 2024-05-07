@@ -25,13 +25,12 @@ import com.android.tools.idea.lint.common.toIdeFix
 import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix
 import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix
-import com.android.tools.idea.util.toIoFile
 import com.android.tools.lint.checks.ApiDetector
 import com.android.tools.lint.checks.DuplicateResourceDetector
 import com.android.tools.lint.detector.api.ApiConstraint
 import com.android.tools.lint.detector.api.DefaultPosition
 import com.android.tools.lint.detector.api.ExtensionSdk
-import com.android.tools.lint.detector.api.LintFix
+import com.android.tools.lint.detector.api.LintFix.Companion.create
 import com.android.tools.lint.detector.api.Location
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.intention.IntentionAction
@@ -199,23 +198,25 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         "foo.kt", /*language=KT */
         """
         fun test() {
-          val foo = "bar"
+          val f<caret>oo = "bar"
         }
         """
           .trimIndent(),
       )
-    checkPreviewFix(
-      file,
-      "val f^oo =",
-      {
-        val fix = fix().replace().pattern("(foo)").with("foo: Foo").build()
-        fix.toIdeFix(file) as DefaultLintQuickFix
-      },
+
+    val fix =
+      create().replace().pattern("(foo)").with("foo: Foo").build().toIdeFix(file)
+        as ModCommandLintQuickFix
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+
+    myFixture.checkResult(
+      /*language=KT */
       """
-      @@ -2 +2
-      -   val foo = "bar"
-      +   val foo: Foo = "bar"
-      """,
+      fun test() {
+        val foo: Foo = "bar"
+      }
+      """
+        .trimIndent()
     )
   }
 
@@ -235,7 +236,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
 
     @Suppress("DEPRECATION")
     val fix =
-      fix()
+      create()
         .annotate("@java.lang.SuppressWarnings(\"something\")", false)
         .range(getLocationAtCaret())
         .build()
@@ -328,131 +329,184 @@ class PreviewFixTest : AbstractAndroidLintTest() {
         "foo.kt", /*language=KT */
         """
         fun test() {
-          val foo = "bar"
+          val f<caret>oo = "bar"
         }
         """
           .trimIndent(),
       )
 
-    val fooOffset = file.text.indexOf("foo = ")
-    val startPos = DefaultPosition(-1, -1, fooOffset)
-    val endPos = DefaultPosition(-1, -1, fooOffset + "foo".length)
+    val fix =
+      create()
+        .replace()
+        .range(getLocationAtCaret())
+        .pattern("foo")
+        .with("foo:   Foo  ")
+        .reformat(true)
+        .build()
+        .toIdeFix(file) as ModCommandLintQuickFix
 
-    checkPreviewFix(
-      file,
-      "val f^oo =",
-      {
-        val fix =
-          fix()
-            .replace()
-            .range(Location.create(file.virtualFile.toIoFile(), startPos, endPos))
-            .pattern("foo")
-            .with("foo:   Foo  ")
-            .reformat(true)
-            .build()
-        fix.toIdeFix(file) as DefaultLintQuickFix
-      },
+    myFixture.checkPreviewAndLaunchAction(fix.rawIntention())
+    myFixture.checkResult(
+      /*language=KT */
       """
-      @@ -2 +2
-      -   val foo = "bar"
-      +   val foo: Foo = "bar"
-      """,
+      fun test() {
+        val foo: Foo = "bar"
+      }
+      """
+        .trimIndent()
+    )
+  }
+
+  fun testNavigatePreview() {
+    // Test preview for navigation action, which will be rendered in HTML
+    val file =
+      myFixture.configureByText(
+        "foo.kt", /*language=KT */
+        """
+      fun test() {
+        val foo = "bar"
+      }
+      """
+          .trimIndent(),
+      )
+    val otherFile = myFixture.createFile("other.xml", "<Resources/>")
+
+    val fix =
+      create().newFile(File(otherFile.path), "<Resources/>").build().toIdeFix(file)
+        as ModCommandLintQuickFix
+
+    myFixture.checkIntentionPreviewHtml(
+      fix.rawIntention(),
+      """
+      <p>&rarr; <icon src="icon"/>&nbsp;other.xml, line #1</p>
+      """
+        .trimIndent(),
     )
   }
 
   fun testPreviewComposite() {
-    // Test that a composite fix which targets multiple files is treated properly:
-    // we only show a preview for the current preview file and ignore the other diffs
+    // Test that a composite fix which targets multiple files is treated properly
     val file =
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
         fun test() {
-          val foo = "bar"
+          val f<caret>oo = "bar"
         }
         """
           .trimIndent(),
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
-    val createFix: (element: PsiElement) -> DefaultLintQuickFix = {
-      val fix =
-        fix()
-          .composite(
-            fix()
-              .replace()
-              .range(Location.create(File(otherFile.path)))
-              .text("Resources")
-              .with("resources")
-              .build(),
-            fix().replace().pattern("(foo)").with("foo: Foo").build(),
-          )
-      fix.toIdeFix(file) as DefaultLintQuickFix
-    }
+    val fix =
+      create()
+        .composite(
+          create()
+            .replace()
+            .range(Location.create(File(otherFile.path)))
+            .text("Resources")
+            .with("resources")
+            .build(),
+          create().replace().pattern("(foo)").with("foo: Foo").build(),
+        )
+        .toIdeFix(file) as ModCommandLintQuickFix
 
-    checkPreviewFix(
-      file,
-      "val f^oo =",
-      createFix,
+    val preview = myFixture.getIntentionPreviewText(fix.rawIntention())
+    assertEquals(
       """
-      @@ -2 +2
-      -   val foo = "bar"
-      +   val foo: Foo = "bar"
-      """,
+      fun test() {
+        val foo: Foo = "bar"
+      }
+      ----------
+      <resources/>
+      """
+        .trimIndent(),
+      preview,
+    )
+
+    myFixture.launchAction(fix.rawIntention())
+    myFixture.checkResult(
+      /*language=KT */
+      """
+      fun test() {
+        val foo: Foo = "bar"
+      }
+      """
+        .trimIndent()
     )
   }
 
   fun testPreviewIgnoreUnrelated1() {
-    // Test that a fix which is targeting a different file than the one we're looking at
-    // is ignored.
+    // Test a fix which is targeting a different file than the one we're looking at
     val file =
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
         fun test() {
-          val foo = "bar"
+          val f<caret>oo = "bar"
         }
         """
           .trimIndent(),
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
-    val createFix: (element: PsiElement) -> DefaultLintQuickFix = {
-      val fix =
-        fix()
-          .replace()
-          .range(Location.create(File(otherFile.path)))
-          .text("Resources")
-          .with("resources")
-          .build()
-      fix.toIdeFix(file) as DefaultLintQuickFix
-    }
+    val fix =
+      create()
+        .replace()
+        .range(Location.create(File(otherFile.path)))
+        .text("Resources")
+        .with("resources")
+        .build()
+        .toIdeFix(file) as ModCommandLintQuickFix
 
-    checkPreviewFix(file, "val f^oo =", createFix, "")
+    val preview = myFixture.getIntentionPreviewText(fix.rawIntention())
+    assertEquals("<resources/>", preview)
+
+    myFixture.launchAction(fix.rawIntention())
+    myFixture.checkResult(
+      /*language=KT */
+      """
+      fun test() {
+        val foo = "bar"
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testPreviewIgnoreUnrelated2() {
-    // Like testPreviewIgnoreUnrelated1, but tests a different fix -- creating a new file,
-    // instead of editing an existing unrelated file (since there are different quickfixes
-    // involved.)
+    // Like testPreviewIgnoreUnrelated1, but tests a different fix -- creating a new file, instead
+    // of editing an existing unrelated file
+    // (since there are different quickfixes involved.)
     val file =
       myFixture.configureByText(
         "foo.kt", /*language=KT */
         """
         fun test() {
-          val foo = "bar"
+          val f<caret>oo = "bar"
         }
         """
           .trimIndent(),
       )
     val otherFile = myFixture.createFile("other.xml", "<Resources/>")
 
-    val createFix: (element: PsiElement) -> DefaultLintQuickFix = {
-      val fix = fix().newFile(File(otherFile.path), "<new>").build()
-      fix.toIdeFix(file) as DefaultLintQuickFix
-    }
+    val fix =
+      create().newFile(File(otherFile.path), "<new>").build().toIdeFix(file)
+        as ModCommandLintQuickFix
 
-    checkPreviewFix(file, "val f^oo =", createFix, "")
+    val preview = myFixture.getIntentionPreviewText(fix.rawIntention())
+    assertEquals("<new>", preview)
+
+    myFixture.launchAction(fix.rawIntention())
+    myFixture.checkResult(
+      /*language=KT */
+      """
+      fun test() {
+        val foo = "bar"
+      }
+      """
+        .trimIndent()
+    )
   }
 
   fun testIntentionPreviewSuppressQuickFix() {
@@ -529,8 +583,6 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       DefaultPosition(-1, -1, element.textRange.endOffset),
     )
   }
-
-  private fun fix() = LintFix.create()
 
   private fun findElement(file: PsiFile, caret: String): PsiElement {
     val offset = getCaretOffset(file.text, caret)
