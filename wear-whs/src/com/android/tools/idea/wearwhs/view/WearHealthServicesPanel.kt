@@ -93,22 +93,24 @@ private fun createCenterPanel(
     capabilities.forEach { capability ->
       add(JPanel(BorderLayout()).apply {
         preferredSize = Dimension(0, 35)
-        val checkBox = JCheckBox(WearWhsBundle.message(capability.label)).also { checkBox ->
-          elementsToDisableDuringExercise.add(checkBox)
-          val plainFont = checkBox.font.deriveFont(Font.PLAIN)
-          val italicFont = checkBox.font.deriveFont(Font.ITALIC)
-          stateManager.getState(capability).map { it.capabilityState.enabled }.onEach { enabled ->
-            checkBox.isSelected = enabled
-          }.launchIn(uiScope)
+        val label = JLabel(WearWhsBundle.message(capability.label)).also { label ->
+          val plainFont = label.font.deriveFont(Font.PLAIN)
+          val italicFont = label.font.deriveFont(Font.ITALIC)
           stateManager.getState(capability).map { it.synced }.onEach { synced ->
             if (!synced) {
-              checkBox.font = italicFont
-              checkBox.text = "${WearWhsBundle.message(capability.label)}*"
+              label.font = italicFont
+              label.text = "${WearWhsBundle.message(capability.label)}*"
             }
             else {
-              checkBox.font = plainFont
-              checkBox.text = WearWhsBundle.message(capability.label)
+              label.font = plainFont
+              label.text = WearWhsBundle.message(capability.label)
             }
+          }.launchIn(uiScope)
+        }
+        val checkBox = JCheckBox().also { checkBox ->
+          elementsToDisableDuringExercise.add(checkBox)
+          stateManager.getState(capability).map { it.capabilityState.enabled }.onEach { enabled ->
+            checkBox.isSelected = enabled
           }.launchIn(uiScope)
           checkBox.addActionListener {
             workerScope.launch {
@@ -117,7 +119,12 @@ private fun createCenterPanel(
             }
           }
         }
-        add(checkBox, BorderLayout.CENTER)
+        stateManager.ongoingExercise.onEach {
+          label.isEnabled = !it || checkBox.isSelected
+        }.launchIn(uiScope)
+
+        add(checkBox, BorderLayout.LINE_START)
+        add(label, BorderLayout.CENTER)
         add(JPanel(FlowLayout()).apply {
           elementsToDisplayDuringExercise.add(this)
           add(JTextField().also { textField ->

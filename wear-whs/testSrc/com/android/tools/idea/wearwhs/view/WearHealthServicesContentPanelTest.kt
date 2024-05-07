@@ -229,14 +229,14 @@ class WearHealthServicesContentPanelTest {
     val fakeUi = FakeUi(whsPanel)
 
     fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Steps") && it.isEnabled }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && it.isEnabled }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && it.isEnabled }
 
     deviceManager.activeExercise = true
 
     fakeUi.waitForDescendant<ComboBox<Preset>> { !it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Heart rate") && !it.isEnabled }
-    fakeUi.waitForDescendant<JCheckBox> { it.text.contains("Steps") && !it.isEnabled }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && !it.isEnabled }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Steps") && !it.isEnabled }
   }
 
   @Test
@@ -247,24 +247,24 @@ class WearHealthServicesContentPanelTest {
     val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
     applyButton.doClick()
 
-    val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+    val hrCheckBox = fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
     hrCheckBox.doClick()
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate*" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
     applyButton.doClick()
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
 
     deviceManager.activeExercise = true
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
     textField.text = "50"
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate*" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate*") }
 
     applyButton.doClick()
 
-    fakeUi.waitForDescendant<JCheckBox> { it.text == "Heart rate" }
+    fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
   }
 
   @Test
@@ -299,9 +299,12 @@ class WearHealthServicesContentPanelTest {
     fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && !it.isEnabled }
   }
 
-  private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForDescendant<JCheckBox> {
-    it.text.contains(text) && it.isSelected == selected
+  private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) = waitForDescendant<JCheckBox> { checkbox ->
+    checkbox.hasLabel(text) && checkbox.isSelected == selected
   }
+
+  private fun JCheckBox.hasLabel(text: String) =
+    parent.findDescendant<JLabel> { it.text.contains(text) } != null
 
   // The UI loads on asynchronous coroutine, we need to wait
   private inline fun <reified T> FakeUi.waitForDescendant(crossinline predicate: (T) -> Boolean = { true }): T {
