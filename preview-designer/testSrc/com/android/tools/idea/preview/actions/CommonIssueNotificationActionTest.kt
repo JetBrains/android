@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.status.ComposeStatus
+import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.idea.editors.fast.DisableReason
@@ -110,7 +110,7 @@ class CommonIssueNotificationActionTest {
     action.update(event)
     val statusInfo = getStatusInfo(projectRule.project, dataContext)!!
     assertTrue(statusInfo.hasRefreshIcon)
-    assertEquals(ComposeStatus.Presentation.Warning, statusInfo.presentation)
+    assertEquals(IdeStatus.Presentation.Warning, statusInfo.presentation)
     assertEquals(
       "Render Issues (Some problems were found while rendering the preview)",
       event.presentation.toString(),

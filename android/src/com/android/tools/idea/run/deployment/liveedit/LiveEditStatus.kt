@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.adtui.status.ComposeStatus
+import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.idea.editors.liveedit.ui.REFRESH_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
@@ -37,12 +37,12 @@ open class LiveEditStatus(
   override val description: String,
   private val mergePriority: Priority,
   /** When true, the refresh icon will be displayed next to the notification chip. */
-  override val presentation: ComposeStatus.Presentation? = null,
+  override val presentation: IdeStatus.Presentation? = null,
   val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
   override val shouldSimplify: Boolean = false,
-  ) : ComposeStatus {
+  ) : IdeStatus {
   companion object {
     // A simple priority system that is used when multiple LiveEditStatus need to be merged.
     // The high the value is, the more important the status is, and thus takes precedence.

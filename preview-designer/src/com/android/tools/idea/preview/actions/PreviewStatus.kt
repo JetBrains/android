@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.status.ComposeStatus
+import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
@@ -35,10 +35,10 @@ sealed class PreviewStatus(
   override val icon: Icon?,
   override val title: String,
   override val description: String,
-  override val presentation: ComposeStatus.Presentation? = null,
+  override val presentation: IdeStatus.Presentation? = null,
   /** When true, the refresh icon will be displayed next to the notification chip. */
   val hasRefreshIcon: Boolean = false,
-) : ComposeStatus {
+) : IdeStatus {
   /** The Preview found a syntax error and paused the updates. */
   object SyntaxError :
     PreviewStatus(
@@ -55,7 +55,7 @@ sealed class PreviewStatus(
       AllIcons.General.Error,
       message("notification.needs.build.broken.title"),
       message("notification.needs.build.broken.description"),
-      ComposeStatus.Presentation.Error,
+      IdeStatus.Presentation.Error,
       true,
     )
 
@@ -75,7 +75,7 @@ sealed class PreviewStatus(
       AllIcons.General.Warning,
       message("notification.preview.out.of.date.title"),
       message("notification.preview.out.of.date.description"),
-      ComposeStatus.Presentation.Warning,
+      IdeStatus.Presentation.Warning,
       true,
     )
 
@@ -93,7 +93,7 @@ sealed class PreviewStatus(
       AllIcons.General.Warning,
       message("notification.preview.render.issues.title"),
       message("notification.preview.render.issues.description"),
-      ComposeStatus.Presentation.Warning,
+      IdeStatus.Presentation.Warning,
       true,
     )
 
@@ -103,7 +103,7 @@ sealed class PreviewStatus(
       AllIcons.General.InspectionsPause,
       message("notification.preview.fast.disabled.reason.compiler.error.title"),
       message("notification.preview.fast.disabled.reason.compiler.error.description"),
-      ComposeStatus.Presentation.Error,
+      IdeStatus.Presentation.Error,
       true,
     )
 

@@ -16,10 +16,9 @@
 package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.annotations.concurrency.UiThread
-import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.adtui.status.ComposeStatus
+import com.android.tools.adtui.status.IdeStatus
 import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.status.InformationPopupImpl
 import com.android.tools.adtui.status.IssueNotificationAction
@@ -36,7 +35,6 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -190,12 +188,12 @@ class LiveEditIssueNotificationAction(
   }
 
   @UiThread
-  override fun shouldHide(status: ComposeStatus, dataContext: DataContext): Boolean {
+  override fun shouldHide(status: IdeStatus, dataContext: DataContext): Boolean {
     return shouldHideImpl(status, dataContext)
   }
 
   @UiThread
-  override fun shouldSimplify(status: ComposeStatus, dataContext: DataContext): Boolean {
+  override fun shouldSimplify(status: IdeStatus, dataContext: DataContext): Boolean {
     val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
 
     if (toolWindowId != null && toolWindowId.id == RUNNING_DEVICES_TOOL_WINDOW_ID) {
@@ -211,7 +209,7 @@ class LiveEditIssueNotificationAction(
 }
 
 @UiThread
-private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boolean {
+private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean {
   if (status != LiveEditStatus.Disabled) {
     // Always show when it's an active status, even if error.
     return false
