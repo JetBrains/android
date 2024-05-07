@@ -22,4 +22,9 @@
                              bundle="messages.AndroidBundle"
                              key="configurable.DeploymentConfigurable.displayName"/>
   </extensions>
+  <actions>
+    <reference ref="AndroidToolsGroup">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </reference>
+  </actions>
 </idea-plugin>
