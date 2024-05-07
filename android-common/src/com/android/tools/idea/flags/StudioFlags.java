@@ -1227,6 +1227,15 @@ public final class StudioFlags {
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
 
+  public enum ClosureScheme {CLASS, INDY}
+
+  public static final Flag<ClosureScheme> CLOSURE_SCHEME = new EnumFlag<>(
+    COMPOSE,
+    "deploy.codegen.closure.scheme",
+    "Lambda / SAM code generation scheme",
+    "Implementation of lambda used by Kotlin / Compose code generation within Studio",
+    ClosureScheme.CLASS);
+
   public static final Flag<Boolean> COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE = new BooleanFlag(
     COMPOSE, "preview.scroll.on.caret.move", "Enable the Compose Preview scrolling when the caret moves",
     "If enabled, when moving the caret in the text editor, the Preview will show the preview currently under the cursor.",
