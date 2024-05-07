@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.adtui.compose.ComposeStatus
+import com.android.tools.adtui.status.ComposeStatus
 import com.android.tools.idea.editors.liveedit.ui.REFRESH_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message

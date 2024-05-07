@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.compose.InformationPopup
-import com.android.tools.adtui.compose.IssueNotificationAction
+import com.android.tools.adtui.status.InformationPopup
+import com.android.tools.adtui.status.IssueNotificationAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar

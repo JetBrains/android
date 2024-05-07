@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.compose.ComposeStatus
-import com.android.tools.adtui.compose.InformationPopup
+import com.android.tools.adtui.status.ComposeStatus
+import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.swing.findAllDescendants
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager

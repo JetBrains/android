@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.compose.REFRESH_BUTTON
+import com.android.tools.adtui.status.REFRESH_BUTTON
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
-import com.android.tools.adtui.compose.POPUP_ACTION
-import com.android.tools.adtui.compose.REFRESH_BUTTON
+import com.android.tools.adtui.status.POPUP_ACTION
+import com.android.tools.adtui.status.REFRESH_BUTTON
 import com.android.tools.idea.editors.liveedit.LiveEditAnActionListener
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC

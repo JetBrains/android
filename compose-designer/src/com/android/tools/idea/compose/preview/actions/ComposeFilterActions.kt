@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.adtui.compose.ComposeStatus
+import com.android.tools.adtui.status.ComposeStatus
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER

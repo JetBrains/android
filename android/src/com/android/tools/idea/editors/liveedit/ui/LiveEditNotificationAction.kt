@@ -19,10 +19,10 @@ import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.tools.adtui.compose.ComposeStatus
-import com.android.tools.adtui.compose.InformationPopup
-import com.android.tools.adtui.compose.InformationPopupImpl
-import com.android.tools.adtui.compose.IssueNotificationAction
+import com.android.tools.adtui.status.ComposeStatus
+import com.android.tools.adtui.status.InformationPopup
+import com.android.tools.adtui.status.InformationPopupImpl
+import com.android.tools.adtui.status.IssueNotificationAction
 import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE

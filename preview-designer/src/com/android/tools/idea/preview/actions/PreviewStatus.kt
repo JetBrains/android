@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.preview.actions
 
-import com.android.tools.adtui.compose.ComposeStatus
+import com.android.tools.adtui.status.ComposeStatus
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.preview.PreviewBundle.message
