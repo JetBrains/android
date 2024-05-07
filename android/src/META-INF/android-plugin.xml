@@ -65,7 +65,7 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
       <group id="AndroidDeviceManagerPlaceholder"/>
       <separator/>
