@@ -52,18 +52,21 @@ internal fun DeviceTable(
   val columns: List<TableColumn<DeviceProfile>> = remember {
     listOf(
       TableColumn("", TableColumnWidth.Fixed(16.dp)) { it.Icon(Modifier.size(16.dp)) },
-      TableTextColumn("OEM") { it.manufacturer },
-      TableTextColumn("Name", TableColumnWidth.Weighted(2f), maxLines = 2) { it.name },
-      TableTextColumn("API") {
-        // This case is a bit strange, because we adjust the display based on the API filter.
-        // TODO: We will need a way to pass the API level on to the next stage.
-        (filterState.apiLevelFilter.apiLevel.apiLevel ?: it.apiRange.upperEndpoint()).toString()
-      },
-      TableTextColumn("Width") { it.resolution.width.toString() },
-      TableTextColumn("Height") { it.resolution.height.toString() },
-      TableTextColumn("Density") { "${it.displayDensity} dpi" },
-      TableTextColumn("Type") { if (it.isVirtual) "Virtual" else "Physical" },
-      TableTextColumn("Source") { if (it.isRemote) "Remote" else "Local" },
+      TableTextColumn("OEM", attribute = { it.manufacturer }),
+      TableTextColumn("Name", TableColumnWidth.Weighted(2f), attribute = { it.name }, maxLines = 2),
+      TableTextColumn(
+        "API",
+        attribute = {
+          // This case is a bit strange, because we adjust the display based on the API filter.
+          // TODO: We will need a way to pass the API level on to the next stage.
+          (filterState.apiLevelFilter.apiLevel.apiLevel ?: it.apiRange.upperEndpoint()).toString()
+        },
+      ),
+      TableTextColumn("Width", attribute = { it.resolution.width.toString() }),
+      TableTextColumn("Height", attribute = { it.resolution.height.toString() }),
+      TableTextColumn("Density", attribute = { "${it.displayDensity} dpi" }),
+      TableTextColumn("Type", attribute = { if (it.isVirtual) "Virtual" else "Physical" }),
+      TableTextColumn("Source", attribute = { if (it.isRemote) "Remote" else "Local" }),
     )
   }
   Column(modifier) {

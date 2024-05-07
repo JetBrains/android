@@ -41,7 +41,7 @@ class SystemImageTest {
       mockRepoPackage(mockSysImgDetailsType(AndroidVersion(29), SystemImageTags.PLAY_STORE_TAG))
 
     // Act
-    val services = SystemImage(repoPackage).services
+    val services = SystemImage.from(repoPackage).services
 
     // Assert
     assertEquals(Services.GOOGLE_PLAY_STORE, services)
@@ -57,7 +57,7 @@ class SystemImageTest {
     val repoPackage = mockRepoPackage(details)
 
     // Act
-    val services = SystemImage(repoPackage).services
+    val services = SystemImage.from(repoPackage).services
 
     // Assert
     assertEquals(Services.GOOGLE_PLAY_STORE, services)
@@ -78,7 +78,7 @@ class SystemImageTest {
       .thenReturn("system-images;android-30;android-wear;arm64-v8a")
 
     // Act
-    val services = SystemImage(repoPackage).services
+    val services = SystemImage.from(repoPackage).services
 
     // Assert
     assertEquals(Services.GOOGLE_PLAY_STORE, services)
@@ -92,7 +92,7 @@ class SystemImageTest {
       mockRepoPackage(mockSysImgDetailsType(AndroidVersion(23), SystemImageTags.GOOGLE_APIS_TAG))
 
     // Act
-    val services = SystemImage(repoPackage).services
+    val services = SystemImage.from(repoPackage).services
 
     // Assert
     assertEquals(Services.GOOGLE_APIS, services)
@@ -106,7 +106,7 @@ class SystemImageTest {
       mockRepoPackage(mockSysImgDetailsType(AndroidVersion(31), SystemImageTags.ANDROID_TV_TAG))
 
     // Act
-    val services = SystemImage(repoPackage).services
+    val services = SystemImage.from(repoPackage).services
 
     // Assert
     assertEquals(Services.GOOGLE_APIS, services)
@@ -124,7 +124,7 @@ class SystemImageTest {
     val repoPackage = mockRepoPackage(details)
 
     // Act
-    val abis = SystemImage(repoPackage).abis
+    val abis = SystemImage.from(repoPackage).abis
 
     // Assert
     assertEquals(setOf(Abi.ARMEABI), abis)

@@ -21,7 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.android.tools.idea.adddevicedialog.Table
+import com.android.tools.idea.adddevicedialog.TableTextColumn
 import kotlinx.collections.immutable.ImmutableCollection
+import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -32,6 +35,7 @@ internal fun DevicePanel(
   device: VirtualDevice,
   selectedServices: Services?,
   servicesCollection: ImmutableCollection<Services>,
+  images: ImmutableList<SystemImage>,
   onDeviceChange: (VirtualDevice) -> Unit,
   onSelectedServicesChange: (Services?) -> Unit,
 ) {
@@ -50,7 +54,14 @@ internal fun DevicePanel(
     Modifier.padding(bottom = Padding.SMALL_MEDIUM),
   )
 
-  ServicesDropdown(selectedServices, servicesCollection, onSelectedServicesChange)
+  ServicesDropdown(
+    selectedServices,
+    servicesCollection,
+    onSelectedServicesChange,
+    Modifier.padding(bottom = Padding.MEDIUM_LARGE),
+  )
+
+  SystemImageTable(images)
 }
 
 @Composable
@@ -86,4 +97,22 @@ private fun ServicesDropdown(
       InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
     }
   }
+}
+
+@Composable
+private fun SystemImageTable(images: ImmutableList<SystemImage>) {
+  val columns =
+    listOf(
+      TableTextColumn("System Image", attribute = { _ -> "" }),
+      TableTextColumn(
+        "Services",
+        attribute = { it.services.toString() },
+        comparator = Comparator.comparing(SystemImage::services),
+      ),
+      TableTextColumn("API", attribute = { _ -> "" }),
+      TableTextColumn("ABI", attribute = { _ -> "" }),
+    )
+
+  // TODO: http://b/339247492 - Stop calling distinct
+  Table(columns, images.distinct(), { it })
 }

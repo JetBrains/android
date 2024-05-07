@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import java.util.EnumSet
 import kotlinx.collections.immutable.ImmutableCollection
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -34,7 +35,7 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 internal fun ConfigureDevicePanel(
   device: VirtualDevice,
-  images: ImmutableCollection<SystemImage>,
+  images: ImmutableList<SystemImage>,
   skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
@@ -52,7 +53,7 @@ internal fun ConfigureDevicePanel(
 @Composable
 private fun Tabs(
   device: VirtualDevice,
-  images: ImmutableCollection<SystemImage>,
+  images: ImmutableList<SystemImage>,
   skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit,
   onImportButtonClick: () -> Unit,
@@ -79,6 +80,7 @@ private fun Tabs(
         device,
         services,
         servicesSet,
+        images,
         onDeviceChange,
         onSelectedServicesChange = { services = it },
       )

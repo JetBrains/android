@@ -77,11 +77,12 @@ sealed interface TableColumnWidth {
 internal fun <T> TableTextColumn(
   name: String,
   width: TableColumnWidth = TableColumnWidth.Weighted(1f),
+  attribute: (T) -> String,
+  comparator: Comparator<T>? = compareBy(attribute),
   overflow: TextOverflow = TextOverflow.Ellipsis,
   maxLines: Int = 1,
-  attribute: (T) -> String,
 ) =
-  TableColumn<T>(name, width, compareBy(attribute)) {
+  TableColumn(name, width, comparator) {
     Text(attribute(it), overflow = overflow, maxLines = maxLines)
   }
 
