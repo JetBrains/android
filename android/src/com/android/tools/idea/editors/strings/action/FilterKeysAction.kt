@@ -48,6 +48,10 @@ class FilterKeysAction : ComboBoxAction() {
     event.presentation.text = filter?.getDescription() ?: NO_FILTER_TITLE
   }
 
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.EDT
+  }
+
   override fun createPopupActionGroup(button: JComponent, dataContext: DataContext): DefaultActionGroup {
     val group = DefaultActionGroup.createPopupGroupWithEmptyText()
 
