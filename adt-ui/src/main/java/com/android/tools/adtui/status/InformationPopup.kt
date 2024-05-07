@@ -86,7 +86,7 @@ interface InformationPopup : Disposable {
  * If the underlying action creates a popup, its DataProvider should return true for
  * this data key to prevent closing the parent popup prematurely.
  */
-val POPUP_ACTION = DataKey.create<Boolean>("compose.information_popup.popup_action")
+val POPUP_ACTION = DataKey.create<Boolean>("information_popup.popup_action")
 
 /**
  * The popup contains an optional `title` and `description` that can contain HTML contents.
