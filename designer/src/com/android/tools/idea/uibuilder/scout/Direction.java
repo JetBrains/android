@@ -173,13 +173,4 @@ public enum Direction {
     }
     return "?";
   }
-
-  int getOrientation() {
-    if (this == TOP || this == BOTTOM || this == BASELINE) {
-      return ORIENTATION_VERTICAL;
-    }
-    else {
-      return ORIENTATION_HORIZONTAL;
-    }
-  }
 }
