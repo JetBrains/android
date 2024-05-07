@@ -19,6 +19,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ex.ActionUtil.createEmptyEvent
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
@@ -92,7 +93,9 @@ class AndroidTestExtraParamsTableTest {
     table.tableView.addSelection(params[1])
 
     // Make sure revert button is displayed and tapping the button reverts the modification on the element.
-    val availableActions = requireNotNull(findComponentOfType(table.component, CommonActionsPanel::class.java)).toolbar.actions
+    val toolbar = requireNotNull(findComponentOfType(table.component, CommonActionsPanel::class.java)).toolbar
+    PlatformTestUtil.waitForFuture(toolbar.updateActionsAsync())
+    val availableActions = toolbar.actions
     val revertAction = availableActions.first { action ->
       action.templatePresentation.icon == AllIcons.Actions.Rollback
     }
