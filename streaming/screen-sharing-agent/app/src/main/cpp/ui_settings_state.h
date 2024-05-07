@@ -36,6 +36,14 @@ public:
     response_.copy(response);
   }
 
+  void set_original_values(bool original_values) {
+    response_.set_original_values(original_values);
+  }
+
+  bool original_values() const {
+    return response_.original_values();
+  }
+
   void set_dark_mode(bool dark_mode) {
     response_.set_dark_mode(dark_mode);
   }

@@ -76,13 +76,15 @@ sealed class ControlMessage(val type: Int) {
         DisplayRemovedNotification.TYPE -> DisplayRemovedNotification.deserialize(stream)
         UiSettingsRequest.TYPE -> UiSettingsRequest.deserialize(stream)
         UiSettingsResponse.TYPE -> UiSettingsResponse.deserialize(stream)
-        SetDarkModeMessage.TYPE -> SetDarkModeMessage.deserialize(stream)
-        SetTalkBackMessage.TYPE -> SetTalkBackMessage.deserialize(stream)
-        SetSelectToSpeakMessage.TYPE -> SetSelectToSpeakMessage.deserialize(stream)
-        SetFontScaleMessage.TYPE -> SetFontScaleMessage.deserialize(stream)
-        SetScreenDensityMessage.TYPE -> SetScreenDensityMessage.deserialize(stream)
-        SetAppLanguageMessage.TYPE -> SetAppLanguageMessage.deserialize(stream)
-        SetGestureNavigationMessage.TYPE -> SetGestureNavigationMessage.deserialize(stream)
+        SetDarkModeRequest.TYPE -> SetDarkModeRequest.deserialize(stream)
+        SetTalkBackRequest.TYPE -> SetTalkBackRequest.deserialize(stream)
+        SetSelectToSpeakRequest.TYPE -> SetSelectToSpeakRequest.deserialize(stream)
+        SetFontScaleRequest.TYPE -> SetFontScaleRequest.deserialize(stream)
+        SetScreenDensityRequest.TYPE -> SetScreenDensityRequest.deserialize(stream)
+        SetAppLanguageRequest.TYPE -> SetAppLanguageRequest.deserialize(stream)
+        SetGestureNavigationRequest.TYPE -> SetGestureNavigationRequest.deserialize(stream)
+        ResetUiSettingsRequest.TYPE -> ResetUiSettingsRequest.deserialize(stream)
+        UiSettingsCommandResponse.TYPE -> UiSettingsCommandResponse.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
       FlightRecorder.log { "${TraceUtils.currentTime} deserialize: message = $message" }
@@ -692,9 +694,26 @@ internal class UiSettingsRequest private constructor(override val requestId: Int
 
 /**
  * The current UI settings received from a device.
+ *
+ * @param requestId The id from the request
+ * @param originalValues true if all values are the same as the original values.
+ *        This could be false if this is the 2nd time this data is requested.
+ * @param darkMode true if the device is in dark mode
+ * @param gestureOverlayInstalled true if the gesture overlay is installed
+ * @param gestureNavigation true if gesture navigation is on versus 3 button navigation
+ * @param foregroundApplicationId the foreground application id
+ * @param appLocale the app locale for the foreground app
+ * @param tackBackInstalled true if the talkback package is installed
+ * @param talkBackOn true if TalkBack is currently on
+ * @param selectToSpeakOn true if SelectTopSpeak is currently on
+ * @param fontScaleSettable true if font scale could be set without errors
+ * @param fontScale the current font scale setting
+ * @param densitySettable true if density could be set without errors
+ * @param density the current screen density setting
  */
 internal data class UiSettingsResponse(
   override val requestId: Int,
+  val originalValues: Boolean,
   val darkMode: Boolean,
   val gestureOverlayInstalled: Boolean,
   val gestureNavigation: Boolean,
@@ -711,6 +730,7 @@ internal data class UiSettingsResponse(
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
+    stream.writeBoolean(originalValues)
     stream.writeBoolean(darkMode)
     stream.writeBoolean(gestureOverlayInstalled)
     stream.writeBoolean(gestureNavigation)
@@ -728,6 +748,7 @@ internal data class UiSettingsResponse(
   override fun toString(): String =
     "UiSettingsResponse(" +
     "requestId=$requestId, " +
+    "originalValues=$originalValues, " +
     "darkMode=$darkMode, " +
     "gestureOverlayInstalled=$gestureOverlayInstalled, " +
     "gestureNavigation=$gestureNavigation, " +
@@ -744,6 +765,7 @@ internal data class UiSettingsResponse(
 
     override fun deserialize(stream: Base128InputStream): UiSettingsResponse {
       val requestId = stream.readInt()
+      val originalValues = stream.readBoolean()
       val darkMode = stream.readBoolean()
       val gestureOverlayInstalled = stream.readBoolean()
       val gestureNavigation = stream.readBoolean()
@@ -758,6 +780,7 @@ internal data class UiSettingsResponse(
       val density = stream.readInt()
       return UiSettingsResponse(
         requestId,
+        originalValues,
         darkMode,
         gestureOverlayInstalled,
         gestureNavigation,
@@ -778,7 +801,9 @@ internal data class UiSettingsResponse(
 /**
  * Changes the Dark Mode setting on a device.
  */
-internal data class SetDarkModeMessage(val darkMode: Boolean) : ControlMessage(TYPE) {
+internal data class SetDarkModeRequest(override val requestId: Int, val darkMode: Boolean) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int, darkMode: Boolean) : this(requestIdGenerator(), darkMode)
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -786,14 +811,15 @@ internal data class SetDarkModeMessage(val darkMode: Boolean) : ControlMessage(T
   }
 
   override fun toString(): String =
-    "SetDarkModeMessage(darkMode=$darkMode)"
+    "SetDarkModeRequest(requestId=$requestId, darkMode=$darkMode)"
 
   companion object : Deserializer {
     const val TYPE = 23
 
-    override fun deserialize(stream: Base128InputStream): SetDarkModeMessage {
+    override fun deserialize(stream: Base128InputStream): SetDarkModeRequest {
+      val requestId = stream.readInt()
       val darkMode = stream.readBoolean()
-      return SetDarkModeMessage(darkMode)
+      return SetDarkModeRequest(requestId, darkMode)
     }
   }
 }
@@ -801,10 +827,13 @@ internal data class SetDarkModeMessage(val darkMode: Boolean) : ControlMessage(T
 /**
  * Changes the Font Scale setting on a device.
  *
+ * The [requestId] identifies the request
  * The [fontScale] is specified as a percentage of the normal font.
  * A value of 100 is the normal size.
  */
-internal data class SetFontScaleMessage(val fontScale: Int) : ControlMessage(TYPE) {
+internal data class SetFontScaleRequest(override val requestId: Int, val fontScale: Int) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int, fontScale: Int) : this(requestIdGenerator(), fontScale)
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -812,14 +841,15 @@ internal data class SetFontScaleMessage(val fontScale: Int) : ControlMessage(TYP
   }
 
   override fun toString(): String =
-    "SetFontScaleMessage(fontScale=$fontScale)"
+    "SetFontScaleRequest(requestId=$requestId, fontScale=$fontScale)"
 
   companion object : Deserializer {
     const val TYPE = 24
 
-    override fun deserialize(stream: Base128InputStream): SetFontScaleMessage {
+    override fun deserialize(stream: Base128InputStream): SetFontScaleRequest {
+      val requestId = stream.readInt()
       val fontScale = stream.readInt()
-      return SetFontScaleMessage(fontScale)
+      return SetFontScaleRequest(requestId, fontScale)
     }
   }
 }
@@ -827,7 +857,9 @@ internal data class SetFontScaleMessage(val fontScale: Int) : ControlMessage(TYP
 /**
  * Changes the Screen Density setting on a device.
  */
-internal data class SetScreenDensityMessage(val density: Int) : ControlMessage(TYPE) {
+internal data class SetScreenDensityRequest(override val requestId: Int, val density: Int) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int, density: Int) : this(requestIdGenerator(), density)
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -835,14 +867,15 @@ internal data class SetScreenDensityMessage(val density: Int) : ControlMessage(T
   }
 
   override fun toString(): String =
-    "SetScreenDensityMessage(density=$density)"
+    "SetScreenDensityRequest(requestId=$requestId, density=$density)"
 
   companion object : Deserializer {
     const val TYPE = 25
 
-    override fun deserialize(stream: Base128InputStream): SetScreenDensityMessage {
+    override fun deserialize(stream: Base128InputStream): SetScreenDensityRequest {
+      val requestId = stream.readInt()
       val density = stream.readInt()
-      return SetScreenDensityMessage(density)
+      return SetScreenDensityRequest(requestId, density)
     }
   }
 }
@@ -850,7 +883,9 @@ internal data class SetScreenDensityMessage(val density: Int) : ControlMessage(T
 /**
  * Turns TalkBack on or off.
  */
-internal data class SetTalkBackMessage(val on: Boolean) : ControlMessage(TYPE) {
+internal data class SetTalkBackRequest(override val requestId: Int, val on: Boolean) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int, on: Boolean) : this(requestIdGenerator(), on)
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -858,14 +893,15 @@ internal data class SetTalkBackMessage(val on: Boolean) : ControlMessage(TYPE) {
   }
 
   override fun toString(): String =
-    "SetTalkBackMessage(on=$on)"
+    "SetTalkBackRequest(requestId=$requestId, on=$on)"
 
   companion object : Deserializer {
     const val TYPE = 26
 
-    override fun deserialize(stream: Base128InputStream): SetTalkBackMessage {
+    override fun deserialize(stream: Base128InputStream): SetTalkBackRequest {
+      val requestId = stream.readInt()
       val on = stream.readBoolean()
-      return SetTalkBackMessage(on)
+      return SetTalkBackRequest(requestId, on)
     }
   }
 }
@@ -873,7 +909,9 @@ internal data class SetTalkBackMessage(val on: Boolean) : ControlMessage(TYPE) {
 /**
  * Turns TalkBack on or off.
  */
-internal data class SetSelectToSpeakMessage(val on: Boolean) : ControlMessage(TYPE) {
+internal data class SetSelectToSpeakRequest(override val requestId: Int, val on: Boolean) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int, on: Boolean) : this(requestIdGenerator(), on)
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -881,14 +919,15 @@ internal data class SetSelectToSpeakMessage(val on: Boolean) : ControlMessage(TY
   }
 
   override fun toString(): String =
-    "SetSelectToSpeakMessage(on=$on)"
+    "SetSelectToSpeakRequest(requestId=$requestId, on=$on)"
 
   companion object : Deserializer {
     const val TYPE = 27
 
-    override fun deserialize(stream: Base128InputStream): SetSelectToSpeakMessage {
+    override fun deserialize(stream: Base128InputStream): SetSelectToSpeakRequest {
+      val requestId = stream.readInt()
       val on = stream.readBoolean()
-      return SetSelectToSpeakMessage(on)
+      return SetSelectToSpeakRequest(requestId, on)
     }
   }
 }
@@ -896,7 +935,13 @@ internal data class SetSelectToSpeakMessage(val on: Boolean) : ControlMessage(TY
 /**
  * Changes the [locale] of the application identified by [applicationId].
  */
-internal data class SetAppLanguageMessage(val applicationId: String, val locale: String) : ControlMessage(TYPE) {
+internal data class SetAppLanguageRequest(
+  override val requestId: Int,
+  val applicationId: String,
+  val locale: String
+) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int, applicationId: String, locale: String) : this(requestIdGenerator(), applicationId, locale)
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -905,15 +950,16 @@ internal data class SetAppLanguageMessage(val applicationId: String, val locale:
   }
 
   override fun toString(): String =
-    "SetAppLanguageMessage(applicationId=\"$applicationId\", locale=\"$locale\")"
+    "SetAppLanguageRequest(requestId=$requestId, applicationId=\"$applicationId\", locale=\"$locale\")"
 
   companion object : Deserializer {
     const val TYPE = 28
 
-    override fun deserialize(stream: Base128InputStream): SetAppLanguageMessage {
+    override fun deserialize(stream: Base128InputStream): SetAppLanguageRequest {
+      val requestId = stream.readInt()
       val applicationId = stream.readBytes().toString(UTF_8)
       val locale = stream.readBytes().toString(UTF_8)
-      return SetAppLanguageMessage(applicationId, locale)
+      return SetAppLanguageRequest(requestId, applicationId, locale)
     }
   }
 }
@@ -921,7 +967,9 @@ internal data class SetAppLanguageMessage(val applicationId: String, val locale:
 /**
  * Changes the gesture navigation.
  */
-internal data class SetGestureNavigationMessage(val on: Boolean) : ControlMessage(TYPE) {
+internal data class SetGestureNavigationRequest(override val requestId: Int, val on: Boolean) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int, on: Boolean) : this(requestIdGenerator(), on)
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -929,14 +977,63 @@ internal data class SetGestureNavigationMessage(val on: Boolean) : ControlMessag
   }
 
   override fun toString(): String =
-    "SetGestureNavigationMessage(on=$on)"
+    "SetGestureNavigationRequest(requestId=$requestId, on=$on)"
 
   companion object : Deserializer {
     const val TYPE = 29
 
-    override fun deserialize(stream: Base128InputStream): SetGestureNavigationMessage {
+    override fun deserialize(stream: Base128InputStream): SetGestureNavigationRequest {
+      val requestId = stream.readInt()
       val on = stream.readBoolean()
-      return SetGestureNavigationMessage(on)
+      return SetGestureNavigationRequest(requestId, on)
+    }
+  }
+}
+
+/**
+ * Changes the gesture navigation.
+ */
+internal class ResetUiSettingsRequest(override val requestId: Int) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
+
+  override fun toString(): String =
+    "ResetUiSettingsRequest(requestId=$requestId)"
+
+  companion object : Deserializer {
+    const val TYPE = 30
+
+    override fun deserialize(stream: Base128InputStream): ResetUiSettingsRequest {
+      val requestId = stream.readInt()
+      return ResetUiSettingsRequest(requestId)
+    }
+  }
+}
+
+/**
+ * The response from various UI settings commands.
+ */
+internal data class UiSettingsCommandResponse(
+  override val requestId: Int,
+  val originalValues: Boolean
+) : CorrelatedMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBoolean(originalValues)
+  }
+
+  override fun toString(): String {
+    return "UiSettingsCommandResponse(requestId=$requestId, originalValues=\"$originalValues\")"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 31
+
+    override fun deserialize(stream: Base128InputStream): UiSettingsCommandResponse {
+      val requestId = stream.readInt()
+      val originalValues = stream.readBoolean()
+      return UiSettingsCommandResponse(requestId, originalValues)
     }
   }
 }

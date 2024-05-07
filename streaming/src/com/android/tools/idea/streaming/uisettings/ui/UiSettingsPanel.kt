@@ -58,12 +58,10 @@ private val SPACING = object : IntelliJSpacingConfiguration() {
  * Displays a picker with setting shortcuts.
  *
  * @param model the UI settings model
- * @param showResetButton if true: show a reset button (used for emulators)
  * @param limitedSupport Wear, Auto, and TV show a limited set of controls
  */
 internal class UiSettingsPanel(
   private val model: UiSettingsModel,
-  showResetButton: Boolean = false,
   limitedSupport: Boolean = false
 ) : BorderLayoutPanel()  {
   init {
@@ -132,13 +130,11 @@ internal class UiSettingsPanel(
           })
         }.visibleIf((model.fontScaleSettable.and(model.screenDensitySettable)).not())
 
-        if (showResetButton) {
-          row(label(RESET_TITLE)) {
-            button(RESET_BUTTON_TEXT) {
-              model.resetAction()
-            }.apply { component.name = RESET_BUTTON_TEXT }
-          }.enabledIf(model.differentFromDefault)
-        }
+        row(label(RESET_TITLE)) {
+          button(RESET_BUTTON_TEXT) {
+            model.resetAction()
+          }.apply { component.name = RESET_BUTTON_TEXT }
+        }.enabledIf(model.differentFromDefault)
       }
     })
     updateBackground()

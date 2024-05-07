@@ -28,21 +28,21 @@ public:
 
   void Get(UiSettingsResponse* response);
 
-  void SetDarkMode(bool dark_mode);
+  void SetDarkMode(bool dark_mode, UiSettingsCommandResponse* response);
 
-  void SetGestureNavigation(bool gesture_navigation);
+  void SetGestureNavigation(bool gesture_navigation, UiSettingsCommandResponse* response);
 
-  void SetAppLanguage(const std::string& application_id, const std::string& locale);
+  void SetAppLanguage(const std::string& application_id, const std::string& locale, UiSettingsCommandResponse* response);
 
-  void SetTalkBack(bool on);
+  void SetTalkBack(bool on, UiSettingsCommandResponse* response);
 
-  void SetSelectToSpeak(bool on);
+  void SetSelectToSpeak(bool on, UiSettingsCommandResponse* response);
 
-  void SetFontScale(int32_t font_scale);
+  void SetFontScale(int32_t font_size, UiSettingsCommandResponse* response);
 
-  void SetScreenDensity(int32_t density);
+  void SetScreenDensity(int32_t density, UiSettingsCommandResponse* response);
 
-  void Reset();
+  void Reset(UiSettingsResponse* response);
 
 private:
   bool initial_settings_recorded_ = false;
@@ -53,6 +53,9 @@ private:
 
   // Creates the shell command that resets all the UI settings to the initial state.
   const std::string CreateResetCommand();
+
+  // Returns true if no commands are required to reset the UI settings to the initial state.
+  const bool has_original_values();
 
   DISALLOW_COPY_AND_ASSIGN(UiSettings);
 };

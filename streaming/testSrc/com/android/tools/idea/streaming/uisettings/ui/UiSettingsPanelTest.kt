@@ -59,7 +59,6 @@ class UiSettingsPanelTest {
 
     panel = UiSettingsPanel(
       model,
-      showResetButton = nameRule.methodName == "testResetButton",
       limitedSupport = nameRule.methodName == "testLimitedControls"
     )
     model.inDarkMode.uiChangeListener = ChangeListener { lastCommand = "dark=$it" }
@@ -176,11 +175,6 @@ class UiSettingsPanelTest {
 
     slider.value = 0
     waitForCondition(1.seconds) { lastCommand == "density=408" }
-  }
-
-  @Test
-  fun testNoResetButtonIfNotRequested() {
-    assertThat(panel.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNull()
   }
 
   @Test

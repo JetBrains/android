@@ -216,6 +216,8 @@ class FakeScreenSharingAgent(
       }
     }
   @Volatile
+  var originalValues = true
+  @Volatile
   var darkMode = false
   @Volatile
   var gestureOverlayInstalled = true
@@ -240,6 +242,13 @@ class FakeScreenSharingAgent(
   @Volatile
   var screenDensity = 480
 
+  private var originalDarkMode = false
+  private var originalGestureNavigation = true
+  private var originalTalkBackOn = false
+  private var originalSelectToSpeakOn = false
+  private var originalFontScale = 100
+  private var originalScreenDensity = 480
+  private var originalAppLocales = ""
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var agentFlags = 0
   private var deviceOrientation = 0
@@ -626,41 +635,76 @@ class FakeScreenSharingAgent(
 
   private fun sendUiSettingsResponse(message: UiSettingsRequest) {
     sendNotificationOrResponse(
-      UiSettingsResponse(message.requestId, darkMode, gestureOverlayInstalled, gestureNavigation, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontScaleSettable, fontScale, screenDensitySettable, screenDensity))
+      UiSettingsResponse(message.requestId, originalValues, darkMode, gestureOverlayInstalled, gestureNavigation, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontScaleSettable, fontScale, screenDensitySettable, screenDensity))
   }
 
-  private fun setDarkMode(message: SetDarkModeMessage) {
+  private fun setDarkMode(message: SetDarkModeRequest) {
     darkMode = message.darkMode
+    updateOriginalValues()
+    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
-  private fun setGestureNavigation(message: SetGestureNavigationMessage) {
+  private fun setGestureNavigation(message: SetGestureNavigationRequest) {
     gestureNavigation = message.on
+    updateOriginalValues()
+    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
-  private fun setAppLanguage(message: SetAppLanguageMessage) {
+  private fun setAppLanguage(message: SetAppLanguageRequest) {
     if (foregroundProcess == message.applicationId) {
       appLocales = message.locale
     }
+    updateOriginalValues()
+    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
-  private fun setTalkBack(message: SetTalkBackMessage) {
+  private fun setTalkBack(message: SetTalkBackRequest) {
     talkBackOn = message.on
+    updateOriginalValues()
+    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
-  private fun setSelectToSpeak(message: SetSelectToSpeakMessage) {
+  private fun setSelectToSpeak(message: SetSelectToSpeakRequest) {
     selectToSpeakOn = message.on
+    updateOriginalValues()
+    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
-  private fun setFontScale(message: SetFontScaleMessage) {
+  private fun setFontScale(message: SetFontScaleRequest) {
     fontScale = message.fontScale
+    updateOriginalValues()
+    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
-  private fun setScreenDensity(message: SetScreenDensityMessage) {
+  private fun setScreenDensity(message: SetScreenDensityRequest) {
     screenDensity = message.density
+    updateOriginalValues()
+    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
   private fun sendNotificationOrResponse(message: ControlMessage) {
     controller?.sendNotificationOrResponse(message)
+  }
+
+  fun setOriginalValues() {
+    originalDarkMode = darkMode
+    originalGestureNavigation = gestureNavigation
+    originalTalkBackOn = talkBackOn
+    originalSelectToSpeakOn = selectToSpeakOn
+    originalFontScale = fontScale
+    originalScreenDensity = screenDensity
+    originalAppLocales = appLocales
+  }
+
+  private fun updateOriginalValues() {
+    originalValues =
+      originalDarkMode == darkMode &&
+      originalGestureNavigation == gestureNavigation &&
+      originalTalkBackOn == talkBackOn &&
+      originalSelectToSpeakOn == selectToSpeakOn &&
+      originalFontScale == fontScale &&
+      originalScreenDensity == screenDensity &&
+      originalAppLocales == appLocales
   }
 
   private inner class DisplayStreamer(
@@ -1084,13 +1128,13 @@ class FakeScreenSharingAgent(
         is RequestDeviceStateMessage -> requestDeviceState(message)
         is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
         is UiSettingsRequest -> sendUiSettingsResponse(message)
-        is SetDarkModeMessage -> setDarkMode(message)
-        is SetAppLanguageMessage -> setAppLanguage(message)
-        is SetTalkBackMessage -> setTalkBack(message)
-        is SetSelectToSpeakMessage -> setSelectToSpeak(message)
-        is SetFontScaleMessage -> setFontScale(message)
-        is SetScreenDensityMessage -> setScreenDensity(message)
-        is SetGestureNavigationMessage -> setGestureNavigation(message)
+        is SetDarkModeRequest -> setDarkMode(message)
+        is SetAppLanguageRequest -> setAppLanguage(message)
+        is SetTalkBackRequest -> setTalkBack(message)
+        is SetSelectToSpeakRequest -> setSelectToSpeak(message)
+        is SetFontScaleRequest -> setFontScale(message)
+        is SetScreenDensityRequest -> setScreenDensity(message)
+        is SetGestureNavigationRequest -> setGestureNavigation(message)
         else -> {}
       }
       commandLog.add(message)

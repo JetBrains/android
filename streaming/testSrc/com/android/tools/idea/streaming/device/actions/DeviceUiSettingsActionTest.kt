@@ -36,7 +36,6 @@ import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.FONT_SCALE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
-import com.android.tools.idea.streaming.uisettings.ui.RESET_BUTTON_TEXT
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.TALKBACK_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsPanel
@@ -62,7 +61,6 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.event.MouseEvent
 import java.awt.event.WindowFocusListener
-import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JComponent
@@ -130,19 +128,6 @@ class DeviceUiSettingsActionTest {
     assertThat(balloon.component).isInstanceOf(UiSettingsPanel::class.java)
     assertThat((balloon.target as RelativePoint).originalComponent).isInstanceOf(ActionButton::class.java)
     assertThat((balloon.target as RelativePoint).originalPoint).isEqualTo(Point(8, 8))
-  }
-
-  @Test
-  fun testHasNoResetButton() {
-    StudioFlags.EMBEDDED_EMULATOR_SETTINGS_PICKER.override(true, testRootDisposable)
-    val action = DeviceUiSettingsAction()
-    val view = connectDeviceAndCreateView()
-    val event = createTestMouseEvent(action, view)
-    action.actionPerformed(event)
-    waitForCondition(10.seconds) { popupFactory.balloonCount > 0 }
-    val balloon = popupFactory.getNextBalloon()
-    waitForCondition(10.seconds) { balloon.isShowing }
-    assertThat(balloon.component.findDescendant<JButton> { it.name == RESET_BUTTON_TEXT }).isNull()
   }
 
   @Test

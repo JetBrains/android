@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.launch
 
 /**
  * A controller for the UI settings for a physical device,
@@ -30,11 +33,16 @@ internal class DeviceUiSettingsController(
   private val deviceController: DeviceController,
   deviceConfig: DeviceConfiguration,
   private val project: Project,
-  model: UiSettingsModel
+  model: UiSettingsModel,
+  parentDisposable: Disposable
 ) : UiSettingsController(model, UiSettingsStats(deviceConfig.deviceProperties.deviceInfoProto)) {
+  private val scope = AndroidCoroutineScope(parentDisposable)
 
   override suspend fun populateModel() {
-    val response = deviceController.getUiSettings()
+    populateModel(deviceController.getUiSettings())
+  }
+
+  private fun populateModel(response: UiSettingsResponse) {
     model.inDarkMode.setFromController(response.darkMode)
     model.gestureOverlayInstalled.setFromController(response.gestureOverlayInstalled)
     model.gestureNavigation.setFromController(response.gestureNavigation)
@@ -51,35 +59,55 @@ internal class DeviceUiSettingsController(
     }
   }
 
+  private fun handleCommandResponse(response: UiSettingsCommandResponse) {
+    model.differentFromDefault.setFromController(!response.originalValues)
+  }
+
   override fun setDarkMode(on: Boolean) {
-    deviceController.sendControlMessage(SetDarkModeMessage(on))
+    scope.launch {
+      handleCommandResponse(deviceController.setDarkMode(on))
+    }
   }
 
   override fun setGestureNavigation(on: Boolean) {
-    deviceController.sendControlMessage(SetGestureNavigationMessage(on))
+    scope.launch {
+      handleCommandResponse(deviceController.setGestureNavigation(on))
+    }
   }
 
   override fun setAppLanguage(applicationId: String, language: AppLanguage?) {
-    deviceController.sendControlMessage(SetAppLanguageMessage(applicationId, language?.tag ?: ""))
+    scope.launch {
+      handleCommandResponse(deviceController.setAppLanguage(applicationId, language?.tag ?: ""))
+    }
   }
 
   override fun setTalkBack(on: Boolean) {
-    deviceController.sendControlMessage(SetTalkBackMessage(on))
+    scope.launch {
+      handleCommandResponse(deviceController.setTalkBack(on))
+    }
   }
 
   override fun setSelectToSpeak(on: Boolean) {
-    deviceController.sendControlMessage(SetSelectToSpeakMessage(on))
+    scope.launch {
+      handleCommandResponse(deviceController.setSelectToSpeak(on))
+    }
   }
 
   override fun setFontScale(percent: Int) {
-    deviceController.sendControlMessage(SetFontScaleMessage(percent))
+    scope.launch {
+      handleCommandResponse(deviceController.setFontScale(percent))
+    }
   }
 
   override fun setScreenDensity(density: Int) {
-    deviceController.sendControlMessage(SetScreenDensityMessage(density))
+    scope.launch {
+      handleCommandResponse(deviceController.setScreenDensity(density))
+    }
   }
 
   override fun reset() {
-    // Noop. A device agent will reset all settings when the device is disconnected.
+    scope.launch {
+      populateModel(deviceController.resetUiSettings())
+    }
   }
 }

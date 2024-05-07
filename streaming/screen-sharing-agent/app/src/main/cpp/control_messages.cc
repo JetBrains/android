@@ -71,26 +71,29 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case UiSettingsRequest::TYPE:
       return unique_ptr<ControlMessage>(UiSettingsRequest::Deserialize(stream));
 
-    case SetDarkModeMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetDarkModeMessage::Deserialize(stream));
+    case SetDarkModeRequest::TYPE:
+      return unique_ptr<ControlMessage>(SetDarkModeRequest::Deserialize(stream));
 
-    case SetFontScaleMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetFontScaleMessage::Deserialize(stream));
+    case SetFontScaleRequest::TYPE:
+      return unique_ptr<ControlMessage>(SetFontScaleRequest::Deserialize(stream));
 
-    case SetScreenDensityMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetScreenDensityMessage::Deserialize(stream));
+    case SetScreenDensityRequest::TYPE:
+      return unique_ptr<ControlMessage>(SetScreenDensityRequest::Deserialize(stream));
 
-    case SetTalkBackMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetTalkBackMessage::Deserialize(stream));
+    case SetTalkBackRequest::TYPE:
+      return unique_ptr<ControlMessage>(SetTalkBackRequest::Deserialize(stream));
 
-    case SetSelectToSpeakMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetSelectToSpeakMessage::Deserialize(stream));
+    case SetSelectToSpeakRequest::TYPE:
+      return unique_ptr<ControlMessage>(SetSelectToSpeakRequest::Deserialize(stream));
 
-    case SetAppLanguageMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetAppLanguageMessage::Deserialize(stream));
+    case SetAppLanguageRequest::TYPE:
+      return unique_ptr<ControlMessage>(SetAppLanguageRequest::Deserialize(stream));
 
-    case SetGestureNavigationMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetGestureNavigationMessage::Deserialize(stream));
+    case SetGestureNavigationRequest::TYPE:
+      return unique_ptr<ControlMessage>(SetGestureNavigationRequest::Deserialize(stream));
+
+    case ResetUiSettingsRequest::TYPE:
+      return unique_ptr<ControlMessage>(ResetUiSettingsRequest::Deserialize(stream));
 
     default:
       Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", type);
@@ -204,40 +207,52 @@ UiSettingsRequest* UiSettingsRequest::Deserialize(Base128InputStream& stream) {
   return new UiSettingsRequest(request_id);
 }
 
-SetDarkModeMessage* SetDarkModeMessage::Deserialize(Base128InputStream& stream) {
+SetDarkModeRequest* SetDarkModeRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
   bool dark_mode = stream.ReadBool();
-  return new SetDarkModeMessage(dark_mode);
+  return new SetDarkModeRequest(request_id, dark_mode);
 }
 
-SetFontScaleMessage* SetFontScaleMessage::Deserialize(Base128InputStream& stream) {
+SetFontScaleRequest* SetFontScaleRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
   int32_t font_scale = stream.ReadInt32();
-  return new SetFontScaleMessage(font_scale);
+  return new SetFontScaleRequest(request_id, font_scale);
 }
 
-SetScreenDensityMessage* SetScreenDensityMessage::Deserialize(Base128InputStream& stream) {
+SetScreenDensityRequest* SetScreenDensityRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
   int32_t density = stream.ReadInt32();
-  return new SetScreenDensityMessage(density);
+  return new SetScreenDensityRequest(request_id, density);
 }
 
-SetTalkBackMessage* SetTalkBackMessage::Deserialize(Base128InputStream& stream) {
+SetTalkBackRequest* SetTalkBackRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
   bool on = stream.ReadBool();
-  return new SetTalkBackMessage(on);
+  return new SetTalkBackRequest(request_id, on);
 }
 
-SetSelectToSpeakMessage* SetSelectToSpeakMessage::Deserialize(Base128InputStream& stream) {
+SetSelectToSpeakRequest* SetSelectToSpeakRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
   bool on = stream.ReadBool();
-  return new SetSelectToSpeakMessage(on);
+  return new SetSelectToSpeakRequest(request_id, on);
 }
 
-SetAppLanguageMessage* SetAppLanguageMessage::Deserialize(Base128InputStream& stream) {
+SetAppLanguageRequest* SetAppLanguageRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
   string application_id = stream.ReadBytes();
   string locale = stream.ReadBytes();
-  return new SetAppLanguageMessage(application_id, locale);
+  return new SetAppLanguageRequest(request_id, application_id, locale);
 }
 
-SetGestureNavigationMessage* SetGestureNavigationMessage::Deserialize(Base128InputStream& stream) {
+SetGestureNavigationRequest* SetGestureNavigationRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
   bool gesture_navigation = stream.ReadBool();
-  return new SetGestureNavigationMessage(gesture_navigation);
+  return new SetGestureNavigationRequest(request_id, gesture_navigation);
+}
+
+ResetUiSettingsRequest* ResetUiSettingsRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
+  return new ResetUiSettingsRequest(request_id);
 }
 
 void ErrorResponse::Serialize(Base128OutputStream& stream) const {
@@ -293,6 +308,7 @@ void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
 
 void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
+  stream.WriteBool(original_values_);
   stream.WriteBool(dark_mode_);
   stream.WriteBool(gesture_overlay_installed_);
   stream.WriteBool(gesture_navigation_);
@@ -307,40 +323,44 @@ void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   stream.WriteInt32(density_);
 }
 
-void SetDarkModeMessage::Serialize(Base128OutputStream& stream) const {
-  ControlMessage::Serialize(stream);
+void SetDarkModeRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
   stream.WriteInt32(dark_mode_);
 }
 
-void SetFontScaleMessage::Serialize(Base128OutputStream& stream) const {
-  ControlMessage::Serialize(stream);
+void SetFontScaleRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
   stream.WriteInt32(font_scale_);
 }
 
-void SetScreenDensityMessage::Serialize(Base128OutputStream& stream) const {
-  ControlMessage::Serialize(stream);
+void SetScreenDensityRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
   stream.WriteInt32(density_);
 }
 
-void SetTalkBackMessage::Serialize(Base128OutputStream& stream) const {
-  ControlMessage::Serialize(stream);
+void SetTalkBackRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
   stream.WriteBool(talkback_on_);
 }
 
-void SetSelectToSpeakMessage::Serialize(Base128OutputStream& stream) const {
-  ControlMessage::Serialize(stream);
+void SetSelectToSpeakRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
   stream.WriteBool(select_to_speak_on_);
 }
 
-void SetAppLanguageMessage::Serialize(Base128OutputStream& stream) const {
-  ControlMessage::Serialize(stream);
+void SetAppLanguageRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
   stream.WriteBytes(application_id_);
   stream.WriteBytes(locale_);
 }
 
-void SetGestureNavigationMessage::Serialize(Base128OutputStream& stream) const {
-  ControlMessage::Serialize(stream);
+void SetGestureNavigationRequest::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
   stream.WriteInt32(gesture_navigation_);
 }
 
+void UiSettingsCommandResponse::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+  stream.WriteBool(original_values_);
+}
 }  // namespace screensharing

@@ -52,7 +52,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
-        val panel = UiSettingsPanel(model, showResetButton = true, config.deviceType.hasLimitedUiSettingsSupport)
+        val panel = UiSettingsPanel(model, config.deviceType.hasLimitedUiSettingsSupport)
         showUiSettingsPopup(panel, this@EmulatorUiSettingsAction, event, emulatorView)
       }
     }

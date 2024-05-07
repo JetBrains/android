@@ -226,6 +226,9 @@ void ProcessAppLanguage(stringstream* stream, UiSettingsState* state) {
     if (ParseAppLanguageLine(line, &application_id, &locales)) {
       stringstream ss(locales);
       getline(ss, locale, ',');  // Read the first locale, ignore the rest
+      if (locale == "null") {
+        locale = "";
+      }
       state->add_app_locale(application_id, locale);
     }
   }
@@ -402,43 +405,54 @@ void UiSettings::StoreInitialSettings(const UiSettingsState& state) {
   state.add_unseen_app_locales(&last_settings_);
 }
 
-void UiSettings::SetDarkMode(bool dark_mode) {
+void UiSettings::SetDarkMode(bool dark_mode, UiSettingsCommandResponse* response) {
   ExecuteShellCommand(CreateSetDarkModeCommand(dark_mode));
   last_settings_.set_dark_mode(dark_mode);
+  response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetGestureNavigation(bool gesture_navigation) {
+void UiSettings::SetGestureNavigation(bool gesture_navigation, UiSettingsCommandResponse* response) {
   ExecuteShellCommand(CreateSetGestureNavigationCommand(gesture_navigation));
   last_settings_.set_gesture_navigation(gesture_navigation);
+  response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetAppLanguage(const string& application_id, const string& locale) {
+void UiSettings::SetAppLanguage(const string& application_id, const string& locale, UiSettingsCommandResponse* response) {
   ExecuteShellCommand(CreateSetAppLanguageCommand(application_id, locale));
   last_settings_.add_app_locale(application_id, locale);
+  response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetTalkBack(bool on) {
+void UiSettings::SetTalkBack(bool on, UiSettingsCommandResponse* response) {
   CommandContext context;
   GetSecureSettings(&context);
   ExecuteShellCommand(CreateSetTalkBackCommand(on, &context));
   last_settings_.set_talkback_on(on);
+  response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetSelectToSpeak(bool on) {
+void UiSettings::SetSelectToSpeak(bool on, UiSettingsCommandResponse* response) {
   CommandContext context;
   GetSecureSettings(&context);
   ExecuteShellCommand(CreateSetSelectToSpeakCommand(on, &context));
   last_settings_.set_select_to_speak_on(on);
+  response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetFontScale(int32_t font_scale) {
+void UiSettings::SetFontScale(int32_t font_scale, UiSettingsCommandResponse* response) {
   ExecuteShellCommand(CreateSetFontScaleCommand(font_scale));
   last_settings_.set_font_scale(font_scale);
+  response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetScreenDensity(int32_t density) {
+void UiSettings::SetScreenDensity(int32_t density, UiSettingsCommandResponse* response) {
   ExecuteShellCommand(CreateSetScreenDensityCommand(density));
   last_settings_.set_density(density);
+  response->set_original_values(has_original_values());
+}
+
+const bool UiSettings::has_original_values() {
+  return CreateResetCommand().empty();
 }
 
 const string UiSettings::CreateResetCommand() {
@@ -488,11 +502,14 @@ const string UiSettings::CreateResetCommand() {
 
 // Reset all changed settings to the initial state.
 // If the user overrides any setting on the device the original state is ignored.
-void UiSettings::Reset() {
+void UiSettings::Reset(UiSettingsResponse* response) {
   string command = CreateResetCommand();
   if (!command.empty()) {
     ExecuteShellCommand(command);
     initial_settings_.copy(&last_settings_);
+  }
+  if (response != nullptr) {
+    Get(response);
   }
 }
 
