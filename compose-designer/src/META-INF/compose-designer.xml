@@ -50,7 +50,7 @@
                      key="inspection.top.level.function"
                      level="ERROR"/>
 
-    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewDimensionRespectsLimit"
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.ComposePreviewDimensionRespectsLimit"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"

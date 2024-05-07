@@ -320,7 +320,7 @@ class InspectionsTest {
 
   @Test
   fun testWidthShouldntExceedApiLimit() {
-    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -371,7 +371,7 @@ class InspectionsTest {
 
   @Test
   fun testHeightShouldntExceedApiLimit() {
-    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")
@@ -422,7 +422,7 @@ class InspectionsTest {
 
   @Test
   fun testOnlyParametersAndValuesAreHighlighted() {
-    fixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
+    fixture.enableInspections(ComposePreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
     @Suppress("TestFunctionName")
     @Language("kotlin")

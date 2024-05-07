@@ -20,6 +20,7 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.compose.inspection.BasePreviewAnnotationInspection
 import com.android.tools.compose.inspection.PreviewAnnotationChecker
+import com.android.tools.compose.inspection.PreviewDimensionRespectsLimit
 import com.android.tools.compose.inspection.PreviewMustBeTopLevelFunction
 import com.android.tools.compose.inspection.PreviewNeedsComposableAnnotationInspection
 import com.android.tools.compose.inspection.PreviewNotSupportedInUnitTestFiles
@@ -55,7 +56,6 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.toUElement
@@ -171,59 +171,16 @@ class ComposePreviewMustBeTopLevelFunction :
     ComposePreviewAnnotationChecker,
   )
 
-/**
- * Inspection that checks that `@Preview` width parameter doesn't go higher than [MAX_DIMENSION],
- * and the height parameter doesn't go higher than [MAX_DIMENSION].
- */
-class PreviewDimensionRespectsLimit :
-  BasePreviewAnnotationInspection(composePreviewGroupDisplayName, ComposePreviewAnnotationChecker) {
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    function: KtNamedFunction,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    checkMaxWidthAndHeight(holder, previewAnnotation)
-  }
-
-  override fun visitPreviewAnnotation(
-    holder: ProblemsHolder,
-    annotationClass: KtClass,
-    previewAnnotation: KtAnnotationEntry,
-  ) {
-    checkMaxWidthAndHeight(holder, previewAnnotation)
-  }
-
-  private fun checkMaxWidthAndHeight(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry) {
-    // If it's not a preview, it must be a MultiPreview, and MultiPreview parameters don't affect
-    // the Previews
-    if (!isPreview(previewAnnotation)) return
-
-    var isWithinLimits = true
-    var psiElement: PsiElement? = null
-    previewAnnotation.findValueArgument(PARAMETER_WIDTH_DP)?.let {
-      if (it.exceedsLimits(MIN_DIMENSION, MAX_DIMENSION)) {
-        isWithinLimits = false
-        psiElement = it.psiOrParent
-      }
-    }
-    previewAnnotation.findValueArgument(PARAMETER_HEIGHT_DP)?.let {
-      if (it.exceedsLimits(MIN_DIMENSION, MAX_DIMENSION)) {
-        isWithinLimits = false
-        psiElement = it.psiOrParent
-      }
-    }
-    if (!isWithinLimits) {
-      holder.registerProblem(
-        psiElement!!,
-        message("inspection.width.height.limit.description", MIN_DIMENSION, MAX_DIMENSION),
-        ProblemHighlightType.WARNING,
-      )
-    }
-  }
-
-  override fun getStaticDescription() =
-    message("inspection.width.height.limit.description", MIN_DIMENSION, MAX_DIMENSION)
-}
+class ComposePreviewDimensionRespectsLimit :
+  PreviewDimensionRespectsLimit(
+    PARAMETER_WIDTH_DP,
+    PARAMETER_HEIGHT_DP,
+    MIN_DIMENSION,
+    MAX_DIMENSION,
+    message("inspection.width.height.limit.description", MIN_DIMENSION, MAX_DIMENSION),
+    composePreviewGroupDisplayName,
+    ComposePreviewAnnotationChecker,
+  )
 
 /** Inspection that checks if `@Preview` fontScale parameter is not positive. */
 class PreviewFontScaleMustBeGreaterThanZero :
@@ -370,10 +327,4 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
     } else {
       PsiElementVisitor.EMPTY_VISITOR
     }
-}
-
-private fun KtValueArgument.exceedsLimits(lowerLimit: Int, upperLimit: Int): Boolean {
-  val argumentExpression = getArgumentExpression() ?: return false
-  val dimension = argumentExpression.evaluateConstant<Int>() ?: return false
-  return dimension < lowerLimit || upperLimit < dimension
 }
