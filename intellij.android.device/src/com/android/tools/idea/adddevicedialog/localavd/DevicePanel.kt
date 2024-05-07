@@ -126,7 +126,7 @@ private fun SystemImageTable(images: ImmutableList<SystemImage>) {
         attribute = { it.androidVersion.getFullApiName() },
         comparator = Comparator.comparing(SystemImage::androidVersion),
       ),
-      TableTextColumn("ABI", attribute = { _ -> "" }),
+      TableTextColumn("ABIs", attribute = { it.abis.joinToString() }),
     )
 
   // TODO: http://b/339247492 - Stop calling distinct
