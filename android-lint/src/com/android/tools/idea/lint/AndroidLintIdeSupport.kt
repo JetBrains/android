@@ -74,7 +74,7 @@ import java.io.File
 import java.util.EnumSet
 import com.android.ide.common.gradle.Module as ExternalModule
 
-class AndroidLintIdeSupport : LintIdeSupport() {
+open class AndroidLintIdeSupport : LintIdeSupport() {
   override fun getIssueRegistry(): IssueRegistry {
     return AndroidLintIdeIssueRegistry()
   }
