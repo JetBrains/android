@@ -373,6 +373,29 @@ public class UpdateTest {
       List<URI> updatesRequests = fileServer.getRequestHistoryForPath("/updates.xml");
       assertEquals(1, updatesRequests.size());
 
+      // Ensure that updates.xml was requested with the correct query parameters
+      URI uri = updatesRequests.get(0);
+      List<NameValuePair> queryParamList = URLEncodedUtils.parse(uri, StandardCharsets.UTF_8);
+      Map<String, String> queryParams = queryParamList.stream().collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue));
+      System.out.println("Query params when requesting updates.xml: " + queryParams);
+      // The value of "uid" is random, so just ensure it exists. Note that the "mid" (machine ID)
+      // isn't guaranteed to be set.
+      assertTrue(queryParams.containsKey("uid"));
+      assertFalse(queryParams.containsKey("eap"));
+      String osParam = queryParams.get("os");
+      if (SystemInfo.isWindows) {
+        // This will look like "Windows 10 10.0" or "Windows Server 2019 10.0".
+        assertTrue(osParam.contains("Windows"));
+      } else if (SystemInfo.isLinux) {
+        // This will look like "Linux 5.4.0-1083-gcp" or "Linux 5.17.11-1rodete2-amd64".
+        assertTrue(osParam.toLowerCase().contains("linux"));
+      } else if (SystemInfo.isMac) {
+        // This will look like "Mac OS X 12.5".
+        assertTrue(osParam.contains("Mac OS X"));
+      }
+      String buildParam = queryParams.get("build");
+      assertEquals(PRODUCT_PREFIX + FAKE_CURRENT_BUILD_NUMBER, buildParam);
+
       install.getIdeaLog().waitForMatchingLine(".*run restarter:.*", 120, TimeUnit.SECONDS);
       try (AndroidStudio studio = install.attach()) {
         String version = studio.version();

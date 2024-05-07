@@ -16,6 +16,7 @@
 package com.android.tools.idea
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.util.BuildNumber
 import com.intellij.platform.ide.customization.ExternalProductResourceUrls
 import com.intellij.testFramework.ApplicationRule
@@ -25,6 +26,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.net.URLDecoder
 
 class AndroidStudioResourceUrlsTest {
 
@@ -60,7 +62,13 @@ class AndroidStudioResourceUrlsTest {
   fun updateMetadataUrl() {
     val resourceUrls = ExternalProductResourceUrls.getInstance()
     val updateMetadataUrl = resourceUrls.updateMetadataUrl.toString()
-    assertThat(updateMetadataUrl).isEqualTo("https://dl.google.com/android/studio/patches/updates.xml")
+    assertThat(updateMetadataUrl).startsWith("https://dl.google.com/android/studio/patches/updates.xml")
+
+    val params = updateMetadataUrl.substringAfter('?').split("&").associate {
+      Pair(it.substringBefore('='), URLDecoder.decode(it.substringAfter('='), "UTF-8"))
+    }
+    assertThat(params.keys).containsAllOf("build", "uid", "os")
+    assertThat(params["build"]).isEqualTo(ApplicationInfo.getInstance().build.asString())
   }
 
   // Tests for the patch url
