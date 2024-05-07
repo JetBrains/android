@@ -93,7 +93,7 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
 vector<int32_t> DisplayManager::GetDisplayIds(Jni jni) {
   InitializeStatics(jni);
   JObject display_ids = display_manager_global_.CallObjectMethod(jni, get_display_ids_method_);
-  auto id_array = static_cast<jintArray>(display_ids.ref());
+  auto id_array = down_cast<jintArray>(display_ids.ref());
   jsize size = jni->GetArrayLength(id_array);
   jboolean is_copy;
   jint* ids = jni->GetIntArrayElements(id_array, &is_copy);
