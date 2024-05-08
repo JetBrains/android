@@ -47,41 +47,6 @@ import kotlinx.coroutines.launch
 /** Minimum allowed width for the SceneViewPeerPanel. */
 @SwingCoordinate private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
 
-data class LayoutData(
-  val scale: Double,
-  val modelName: String?,
-  val modelTooltip: String?,
-  val x: Int,
-  val y: Int,
-  val scaledSize: Dimension,
-) {
-
-  // Used to avoid extra allocations in isValidFor calls
-  private val cachedDimension = Dimension()
-
-  /**
-   * Returns whether this [LayoutData] is still valid (has not changed) for the given [SceneView]
-   */
-  fun isValidFor(sceneView: SceneView): Boolean =
-    scale == sceneView.scale &&
-      x == sceneView.x &&
-      y == sceneView.y &&
-      modelName == sceneView.scene.sceneManager.model.modelDisplayName &&
-      scaledSize == sceneView.getContentSize(cachedDimension).scaleBy(sceneView.scale)
-
-  companion object {
-    fun fromSceneView(sceneView: SceneView): LayoutData =
-      LayoutData(
-        sceneView.scale,
-        sceneView.scene.sceneManager.model.modelDisplayName,
-        sceneView.scene.sceneManager.model.modelTooltip,
-        sceneView.x,
-        sceneView.y,
-        sceneView.getContentSize(null).scaleBy(sceneView.scale),
-      )
-  }
-}
-
 /**
  * A Swing component associated to the given [SceneView]. There will be one of this components in
  * the [DesignSurface] per every [SceneView] available. This panel will be positioned on the
