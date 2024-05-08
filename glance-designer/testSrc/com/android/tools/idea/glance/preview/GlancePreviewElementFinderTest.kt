@@ -15,17 +15,18 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert
+import org.junit.Assert.assertArrayEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class GlancePreviewElementFinderTest {
-  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule: GlanceProjectRule = GlanceProjectRule()
 
   private val project
     get() = projectRule.project
@@ -39,28 +40,6 @@ class GlancePreviewElementFinderTest {
 
   @Before
   fun setUp() {
-    fixture.addFileToProjectAndInvalidate(
-      "androidx/glance/preview/Preview.kt",
-      // language=kotlin
-      """
-        package androidx.glance.preview
-
-        annotation class Preview(surface: String)
-        """
-        .trimIndent(),
-    )
-
-    fixture.addFileToProjectAndInvalidate(
-      "androidx/compose/runtime/Composable.kt",
-      // language=kotlin
-      """
-        package androidx.compose.runtime
-
-        annotation class Composable
-        """
-        .trimIndent(),
-    )
-
     sourceFileAppWidgets =
       fixture.addFileToProjectAndInvalidate(
         "com/android/test/SourceFileWidget.kt",
@@ -199,5 +178,94 @@ class GlancePreviewElementFinderTest {
       listOf("com.android.test.MultiPreviewTestKt.GlancePreviewFun"),
       previewElements.map { it.methodFqn }.distinct(),
     )
+  }
+
+  @Test
+  fun testPreviewNameAndOrder(): Unit = runBlocking {
+    val composeTest =
+      fixture.addFileToProjectAndInvalidate(
+        "src/Test.kt",
+        // language=kotlin
+        """
+        import androidx.glance.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Annot3
+        @Preview
+        annotation class Annot1(){}
+
+        @Preview
+        annotation class Annot2(){}
+
+        @Composable
+        @Annot1
+        @Preview
+        fun C() {
+        }
+
+        @Annot1
+        @Preview
+        annotation class Annot3(){}
+
+        @Composable
+        @Annot2
+        @Preview
+        @Annot3
+        fun A() {
+        }
+
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview
+        @Preview // 10 previews, for testing lexicographic order with double-digit numbers in the names
+        annotation class Many() {}
+
+        @Composable
+        @Many
+        fun f(){
+        }
+      """
+          .trimIndent(),
+      )
+
+    AppWidgetPreviewElementFinder.findPreviewElements(project, composeTest.virtualFile)
+      .toMutableList()
+      .apply {
+        // Randomize to make sure the ordering works
+        shuffle()
+      }
+      .sortByDisplayAndSourcePosition()
+      .map { it.displaySettings.name }
+      .toTypedArray()
+      .let {
+        assertArrayEquals(
+          arrayOf(
+            "C - Annot1 1",
+            "C - Annot3 1",
+            "C", // Previews of 'C'
+            "A - Annot2 1",
+            "A",
+            "A - Annot1 1",
+            "A - Annot3 1", // Previews of 'A'
+            "f - Many 01",
+            "f - Many 02",
+            "f - Many 03",
+            "f - Many 04",
+            "f - Many 05",
+            "f - Many 06",
+            "f - Many 07",
+            "f - Many 08",
+            "f - Many 09",
+            "f - Many 10", // Previews of 'f'
+          ),
+          it,
+        )
+      }
   }
 }
