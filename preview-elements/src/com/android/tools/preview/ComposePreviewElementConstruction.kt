@@ -32,17 +32,10 @@ fun <T : Any> previewAnnotationToPreviewElement(
   previewElementDefinition: T?,
   parameterizedElementConstructor: (SingleComposePreviewElementInstance<T>, Collection<PreviewParameter>) -> ComposePreviewElement<T>,
   overrideGroupName: String? = null,
-  parentAnnotationInfo: String? = null
+  buildPreviewName: (nameParameter: String?) -> String,
 ): ComposePreviewElement<T> {
-  fun getPreviewName(nameParameter: String?) =
-    when {
-      nameParameter != null -> "${annotatedMethod.name} - $nameParameter"
-      parentAnnotationInfo != null -> "${annotatedMethod.name} - $parentAnnotationInfo"
-      else -> annotatedMethod.name
-    }
-
   val composableMethod = annotatedMethod.qualifiedName
-  val previewName = getPreviewName(attributesProvider.getDeclaredAttributeValue(PARAMETER_NAME))
+  val previewName = buildPreviewName(attributesProvider.getDeclaredAttributeValue(PARAMETER_NAME))
 
   val groupName = overrideGroupName ?: attributesProvider.getDeclaredAttributeValue(PARAMETER_GROUP)
   val showDecorations =

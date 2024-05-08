@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.preview
 
+import com.android.tools.idea.preview.annotations.NodeInfo
+import com.android.tools.idea.preview.annotations.UAnnotationSubtreeInfo
+import com.android.tools.idea.preview.annotations.getUAnnotations
+import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
@@ -27,6 +32,7 @@ import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.tryResolve
 
 /** Helper method that returns a map with all the default values of a preview annotation */
 fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
@@ -51,3 +57,37 @@ fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
   val bodyPsiElement = this?.sourcePsi ?: return null
   return SmartPointerManager.createPointer(bodyPsiElement)
 }
+
+/**
+ * Returns the number of preview annotations attached to this element. This method does not count
+ * preview annotations that are indirectly referenced through the annotation graph.
+ */
+fun UElement.directPreviewChildrenCount(isPreviewAnnotation: UElement?.() -> Boolean) =
+  runReadAction { getUAnnotations() }.count { it.isPreviewAnnotation() }
+
+private fun buildParentAnnotationInfo(
+  parent: NodeInfo<UAnnotationSubtreeInfo>?,
+  isPreviewAnnotation: UElement?.() -> Boolean,
+): String? {
+  val parentAnnotation = parent?.element as? UAnnotation ?: return null
+  val name = runReadAction { (parent.element.tryResolve() as PsiClass).name }
+  val traversedPreviewChildrenCount =
+    parent.subtreeInfo?.children?.count { it.element.isPreviewAnnotation() } ?: 0
+  val parentPreviewChildrenCount = parentAnnotation.directPreviewChildrenCount(isPreviewAnnotation)
+
+  return "$name ${traversedPreviewChildrenCount.toString().padStart(parentPreviewChildrenCount.toString().length, '0')}"
+}
+
+/**
+ * Create the name to be displayed for a Preview by using the [methodName] and the [nameParameter]
+ * when available, or otherwise trying to use some information from the [NodeInfo].
+ */
+fun NodeInfo<UAnnotationSubtreeInfo>.buildPreviewName(
+  methodName: String,
+  nameParameter: String?,
+  isPreviewAnnotation: UElement?.() -> Boolean,
+) =
+  if (nameParameter != null) "$methodName - $nameParameter"
+  else
+    buildParentAnnotationInfo(parent, isPreviewAnnotation)?.let { "$methodName - $it" }
+      ?: methodName
