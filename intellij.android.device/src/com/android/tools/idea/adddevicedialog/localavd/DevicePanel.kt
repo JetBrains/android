@@ -71,7 +71,8 @@ internal fun DevicePanel(
   )
 
   SystemImageTable(images, Modifier.height(150.dp).padding(bottom = Padding.SMALL))
-  ShowSdkExtensionSystemImagesCheckbox()
+  ShowSdkExtensionSystemImagesCheckbox(Modifier.padding(bottom = Padding.SMALL))
+  CheckboxRow("Only show system images recommended for my host machine", false, {})
 }
 
 @Composable
@@ -154,8 +155,8 @@ private fun AndroidVersionText(version: AndroidVersion) {
 }
 
 @Composable
-private fun ShowSdkExtensionSystemImagesCheckbox() {
-  Row {
+private fun ShowSdkExtensionSystemImagesCheckbox(modifier: Modifier = Modifier) {
+  Row(modifier) {
     CheckboxRow(
       "Show SDK extension system images",
       false,
