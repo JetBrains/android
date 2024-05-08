@@ -168,7 +168,6 @@ iml_module(
             "data": [],
         },
     },
-    tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
     test_data = [
         ":test_deps",
@@ -189,6 +188,7 @@ iml_module(
     test_tags = [
         "block-network",
         "no_test_mac",
+        "no_test_windows",
     ],
     test_timeout = "long",
     visibility = ["//visibility:public"],
