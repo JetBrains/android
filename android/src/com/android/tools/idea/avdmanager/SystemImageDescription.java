@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -199,29 +198,25 @@ public final class SystemImageDescription {
     private final AndroidVersion myAndroidVersion;
 
     public RemoteSystemImage(RemotePackage p) {
-      myRemotePackage = p;
-
-      TypeDetails details = myRemotePackage.getTypeDetails();
+      var details = p.getTypeDetails();
       assert details instanceof ApiDetailsType;
 
-      var apiDetailsType = (ApiDetailsType)details;
-      myAndroidVersion = apiDetailsType.getAndroidVersion();
-
       IdDisplay vendor = null;
-      List<String> translatedAbis = Collections.emptyList();
-
-      myTags = SystemImageTags.getTags(p);
+      var apiDetailsType = (ApiDetailsType)details;
 
       if (details instanceof DetailsTypes.AddonDetailsType) {
         vendor = ((DetailsTypes.AddonDetailsType)details).getVendor();
       }
       if (details instanceof DetailsTypes.SysImgDetailsType) {
         vendor = ((DetailsTypes.SysImgDetailsType)details).getVendor();
-        translatedAbis = ((DetailsTypes.SysImgDetailsType)details).getTranslatedAbis();
       }
+
+      myRemotePackage = p;
+      myTags = SystemImageTags.getTags(p);
       myVendor = vendor;
       myAbis = apiDetailsType.getAbis();
-      myTranslatedAbis = translatedAbis;
+      myTranslatedAbis = apiDetailsType.getTranslatedAbis();
+      myAndroidVersion = apiDetailsType.getAndroidVersion();
     }
 
     @NonNull
