@@ -23,6 +23,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
+import icons.StudioIllustrations
+import java.awt.ComponentOrientation
 import java.io.File
 import java.nio.file.Path
 import javax.swing.JFrame
@@ -30,6 +32,12 @@ import javax.swing.JOptionPane
 import kotlin.system.exitProcess
 
 class SafeMode : ApplicationLoadListener {
+  companion object {
+    private val LOG = Logger.getInstance(SafeMode::class.java)
+  }
+
+  private val crashDetectionFile: String
+    get() = "android.studio.safe.mode." + ApplicationInfo.getInstance().build + ".sentinel"
 
   override suspend fun beforeApplicationLoaded(application: Application, configPath: Path) {
     checkSafeMode()
@@ -64,27 +72,10 @@ class SafeMode : ApplicationLoadListener {
       return
     }
 
-    // Creating this frame so the safe mode dialog is not hidden behind the Android Studio Icon screen.
-    val frame = JFrame("Safe Mode Frame")
-    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE)
-    frame.isVisible = true
-    val options = arrayOf("Safe Mode", "Cancel")
-    if (JOptionPane.showOptionDialog(
-        frame,
-        "Would you like to restart studio in Safe Mode?",
-        "Crash detected! Studio did not close properly last time.",
-        JOptionPane.DEFAULT_OPTION,
-        JOptionPane.INFORMATION_MESSAGE,
-        null,
-        options,
-        options[0]
-      ) != 0
-    ) {
-      frame.dispose()
-      // Register a cleanup handler and return.
-      registerCleanupHandler()
+    if (!shouldStartInSafeMode()) {
       return
     }
+
     try {
       val p = ProcessBuilder(*command(safeModeScripts[0].toString())).inheritIO().start()
       // This is needed to clear out the heap so the safe mode script can run.
@@ -104,55 +95,87 @@ class SafeMode : ApplicationLoadListener {
     exitProcess(0)
   }
 
-  companion object {
-    private val LOG = Logger.getInstance(SafeMode::class.java)
-    private fun getFiles(root: String, filter: String): Array<File?> {
-      val files = File(root).listFiles { file: File -> file.isFile() && file.getName().contains(filter) }
-      return files ?: arrayOfNulls(0)
+  private fun getFiles(root: String, filter: String): Array<File?> {
+    val files = File(root).listFiles { file: File -> file.isFile() && file.getName().contains(filter) }
+    return files ?: arrayOfNulls(0)
+  }
+
+  private fun safeModeDisabled(): Boolean {
+    if (SystemInfo.isMac) {
+      return true
+    }
+    if (System.getProperty("disable.safe.mode") != null) {
+      return true
+    }
+    if (System.getenv("DISABLE_SAFE_MODE") != null) {
+      return true
+    }
+    if (ApplicationManager.getApplication().isInternal) {
+      return true
+    }
+    val files = getFiles(PathManager.getBinPath(), "disable_safe_mode")
+    return files.isNotEmpty()
+  }
+
+  private fun shouldStartInSafeMode(): Boolean {
+    // Creating this frame so the safe mode dialog is not hidden behind the Android Studio Icon screen.
+    val frame = JFrame("Safe Mode Frame")
+    frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE)
+    frame.isVisible = true
+    frame.isAlwaysOnTop = true
+
+    val options = arrayOf("OK", "Cancel")
+    val optionIndex = JOptionPane(
+      "Android Studio did not properly close. Would you like to restart the IDE in Safe Mode?",
+      JOptionPane.INFORMATION_MESSAGE,
+      JOptionPane.DEFAULT_OPTION,
+      StudioIllustrations.Common.PRODUCT_ICON,
+      options,
+      options[0]
+    ).let {
+      it.initialValue = options[0]
+      it.componentOrientation = ComponentOrientation.LEFT_TO_RIGHT
+
+      val dialog = it.createDialog(frame, "Android Studio")
+      it.updateUI()
+      it.selectInitialValue()
+      dialog.isVisible = true
+
+      dialog.dispose()
+      val index = options.indexOf(it.value)
+      if (index < 0) JOptionPane.CLOSED_OPTION else index
     }
 
-    private val crashDetectionFile: String
-      private get() = "android.studio.safe.mode." + ApplicationInfo.getInstance().build + ".sentinel"
-
-    private fun safeModeDisabled(): Boolean {
-      if (SystemInfo.isMac) {
-        return true
-      }
-      if (System.getProperty("disable.safe.mode") != null) {
-        return true
-      }
-      if (System.getenv("DISABLE_SAFE_MODE") != null) {
-        return true
-      }
-      if (ApplicationManager.getApplication().isInternal) {
-        return true
-      }
-      val files = getFiles(PathManager.getBinPath(), "disable_safe_mode")
-      return files.isNotEmpty()
+    frame.dispose()
+    if (optionIndex != 0) {
+      // Register a cleanup handler and return.
+      registerCleanupHandler()
+      return false
     }
+    return true
+  }
 
-    private fun registerCleanupHandler() {
-      ApplicationManager.getApplication().messageBus.connect().subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
-        override fun appWillBeClosed(isRestart: Boolean) {
-          //  SafeMode crash detection clean up
-          val studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), crashDetectionFile)
-          for (f in studioCrashFiles) {
-            f!!.delete()
-          }
+  private fun registerCleanupHandler() {
+    ApplicationManager.getApplication().messageBus.connect().subscribe(AppLifecycleListener.TOPIC, object : AppLifecycleListener {
+      override fun appWillBeClosed(isRestart: Boolean) {
+        //  SafeMode crash detection clean up
+        val studioCrashFiles = getFiles(System.getProperty("java.io.tmpdir"), crashDetectionFile)
+        for (f in studioCrashFiles) {
+          f!!.delete()
         }
-      })
-    }
+      }
+    })
+  }
 
-    private fun command(safeModeScript: String): Array<String> {
-      return if (SystemInfo.isWindows) arrayOf(
-        "C:\\Windows\\System32\\cmd.exe",
-        "/c",
-        safeModeScript
-      ) else arrayOf(
-        "/bin/sh",
-        "-x",
-        safeModeScript
-      )
-    }
+  private fun command(safeModeScript: String): Array<String> {
+    return if (SystemInfo.isWindows) arrayOf(
+      "C:\\Windows\\System32\\cmd.exe",
+      "/c",
+      safeModeScript
+    ) else arrayOf(
+      "/bin/sh",
+      "-x",
+      safeModeScript
+    )
   }
 }
