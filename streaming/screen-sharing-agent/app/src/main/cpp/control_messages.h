@@ -634,7 +634,9 @@ public:
     result->set_talkback_installed(talkback_installed_);
     result->set_talkback_on(talkback_on_);
     result->set_select_to_speak_on(select_to_speak_on_);
+    result->set_font_scale_settable(font_scale_settable_);
     result->set_font_scale(font_scale_);
+    result->set_density_settable(density_settable_);
     result->set_density(density_);
   }
 
