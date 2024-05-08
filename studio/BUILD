@@ -668,7 +668,7 @@ studio_plugin(
         "//tools/vendor/google/ml/aiplugin/core:aida_proto",
         "//tools/vendor/google/ml/aiplugin/core:aida_protobuf",
         "//tools/vendor/google/ml/aiplugin/core:gemini_plugin_proto",
-        "//prebuilts/tools/common/m2:commonmark-0.20.0",
+        "//prebuilts/tools/common/m2:commonmark-0.22.0",
     ],
     modules = {
         "aiplugin.jar": [

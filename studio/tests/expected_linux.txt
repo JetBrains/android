@@ -2693,7 +2693,7 @@ android-studio/plugins/gemini/lib/aida_grpc.jar
 android-studio/plugins/gemini/lib/aida_proto.jar
 android-studio/plugins/gemini/lib/aida_protobuf.jar
 android-studio/plugins/gemini/lib/aiplugin.jar
-android-studio/plugins/gemini/lib/commonmark-0.20.0.jar
+android-studio/plugins/gemini/lib/commonmark-0.22.0.jar
 android-studio/plugins/gemini/lib/gemini_plugin_proto.jar
 android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar

@@ -21,17 +21,20 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
 import org.jetbrains.jewel.foundation.theme.JewelTheme
+import org.jetbrains.jewel.intui.markdown.bridge.styling.create
+import org.jetbrains.jewel.intui.markdown.standalone.ProvideMarkdownStyling
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.createDefaultTextStyle
 import org.jetbrains.jewel.intui.standalone.theme.dark
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
 import org.jetbrains.jewel.intui.standalone.theme.light
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
+import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
 import org.jetbrains.jewel.ui.ComponentStyling
 
 @Suppress("TestFunctionName") // It's a composable
 @Composable
-fun JewelTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) {
+fun JewelTestTheme(darkMode: Boolean = false, includeMarkdown: Boolean = false, content: @Composable () -> Unit) {
   val fontFamily =
     FontFamily(
       Font(resource = "fonts/inter/Inter-Thin.ttf", weight = FontWeight.Thin),
@@ -62,5 +65,14 @@ fun JewelTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) {
       ComponentStyling.light()
     }
 
-  IntUiTheme(themeDefinition, componentStyling, true) { content() }
+  IntUiTheme(themeDefinition, componentStyling, true) {
+    if (includeMarkdown) {
+      ProvideMarkdownStyling(JewelTheme.isDark, MarkdownStyling.create(textStyle)) {
+        content()
+      }
+    }
+    else {
+      content()
+    }
+  }
 }

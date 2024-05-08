@@ -2716,7 +2716,7 @@ Android Studio Preview.app/Contents/plugins/gemini/lib/aida_grpc.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_proto.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aida_protobuf.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/aiplugin.jar
-Android Studio Preview.app/Contents/plugins/gemini/lib/commonmark-0.20.0.jar
+Android Studio Preview.app/Contents/plugins/gemini/lib/commonmark-0.22.0.jar
 Android Studio Preview.app/Contents/plugins/gemini/lib/gemini_plugin_proto.jar
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
