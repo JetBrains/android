@@ -59,6 +59,7 @@ struct CommandContext {
     set<string> enabled;
     set<string> buttons;
     string foreground_application_id;
+    bool secure_settings_retrieved = false;
 };
 
 string TrimEnd(string value) {
@@ -299,14 +300,21 @@ string CreateSetAppLanguageCommand(const string& application_id, const string& l
 }
 
 void GetSecureSettings(CommandContext* context) {
-  string command =
-    "echo " ACCESSIBILITY_SERVICES_DIVIDER "; "
-    "settings get secure " ENABLED_ACCESSIBILITY_SERVICES "; "
-    "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "; "
-    "settings get secure " ACCESSIBILITY_BUTTON_TARGETS "; ";
-  string output = ExecuteShellCommand(command.c_str());
-  UiSettingsState ignored;
-  ProcessAdbOutput(TrimEnd(output), &ignored, context);
+  if (!context->secure_settings_retrieved) {
+    string command =
+      "echo " ACCESSIBILITY_SERVICES_DIVIDER "; "
+      "settings get secure " ENABLED_ACCESSIBILITY_SERVICES "; "
+      "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "; "
+      "settings get secure " ACCESSIBILITY_BUTTON_TARGETS "; ";
+    string output = ExecuteShellCommand(command.c_str());
+    stringstream stream(output);
+    string line;
+    while (getline(stream, line, '\n')) {
+      if (line == ACCESSIBILITY_SERVICES_DIVIDER) ProcessAccessibilityServices(&stream, &context->enabled);
+      if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &context->buttons);
+    }
+    context->secure_settings_retrieved = true;
+  }
 }
 
 string CombineServices(string serviceA, string serviceB) {
@@ -460,48 +468,40 @@ const string UiSettings::CreateResetCommand() {
     return "";
   }
 
-  UiSettingsState current_settings;
-  CommandContext context;
-  GetSettings(&current_settings, &context);
   vector<string> application_ids = initial_settings_.get_application_ids();
-  GetApplicationLocales(application_ids, &current_settings);
+  bool context_initialized = false;
+  CommandContext context;
 
   string command;
-  if (current_settings.dark_mode() != initial_settings_.dark_mode() &&
-      current_settings.dark_mode() == last_settings_.dark_mode()) {
+  if (last_settings_.dark_mode() != initial_settings_.dark_mode()) {
     command += CreateSetDarkModeCommand(initial_settings_.dark_mode());
   }
-  if (current_settings.gesture_navigation() != initial_settings_.gesture_navigation() &&
-      current_settings.gesture_navigation() == last_settings_.gesture_navigation()) {
+  if (last_settings_.gesture_navigation() != initial_settings_.gesture_navigation()) {
     command += CreateSetGestureNavigationCommand(initial_settings_.gesture_navigation());
   }
   for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
-    if (current_settings.app_locale_of(*it) != initial_settings_.app_locale_of(*it) &&
-        current_settings.app_locale_of(*it) == last_settings_.app_locale_of(*it)) {
+    if (last_settings_.app_locale_of(*it) != initial_settings_.app_locale_of(*it)) {
       command += CreateSetAppLanguageCommand(*it, initial_settings_.app_locale_of(*it));
     }
   }
-  if (current_settings.talkback_on() != initial_settings_.talkback_on() &&
-      current_settings.talkback_on() == last_settings_.talkback_on()) {
+  if (last_settings_.talkback_on() != initial_settings_.talkback_on()) {
+    GetSecureSettings(&context);
     command += CreateSetTalkBackCommand(initial_settings_.talkback_on(), &context);
   }
-  if (current_settings.select_to_speak_on() != initial_settings_.select_to_speak_on() &&
-      current_settings.select_to_speak_on() == last_settings_.select_to_speak_on()) {
+  if (last_settings_.select_to_speak_on() != initial_settings_.select_to_speak_on()) {
+    GetSecureSettings(&context);
     command += CreateSetSelectToSpeakCommand(initial_settings_.select_to_speak_on(), &context);
   }
-  if (current_settings.font_scale() != initial_settings_.font_scale() &&
-      current_settings.font_scale() == last_settings_.font_scale()) {
+  if (last_settings_.font_scale() != initial_settings_.font_scale()) {
     command += CreateSetFontScaleCommand(initial_settings_.font_scale());
   }
-  if (current_settings.density() != initial_settings_.density() &&
-      current_settings.density() == last_settings_.density()) {
+  if (last_settings_.density() != initial_settings_.density()) {
     command += CreateSetScreenDensityCommand(initial_settings_.density());
   }
   return command;
 }
 
 // Reset all changed settings to the initial state.
-// If the user overrides any setting on the device the original state is ignored.
 void UiSettings::Reset(UiSettingsResponse* response) {
   string command = CreateResetCommand();
   if (!command.empty()) {
