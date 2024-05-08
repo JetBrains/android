@@ -36,6 +36,7 @@ internal constructor(
   internal val androidVersion: AndroidVersion,
   internal val services: Services,
   internal val abis: ImmutableCollection<Abi>,
+  internal val translatedAbis: ImmutableCollection<Abi>,
 ) {
   internal companion object {
     internal fun getSystemImages(): Collection<SystemImage> {
@@ -63,6 +64,7 @@ internal constructor(
         details.androidVersion,
         repoPackage.getServices(details.androidVersion),
         details.abis.map(::valueOfString).toImmutableSet(),
+        details.translatedAbis.map(::valueOfString).toImmutableSet(),
       )
     }
 
