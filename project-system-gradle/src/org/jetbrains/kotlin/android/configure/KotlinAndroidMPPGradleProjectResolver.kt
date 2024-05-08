@@ -85,9 +85,6 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
   override fun populateModuleDependencies(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>, ideProject: DataNode<ProjectData>) {
     super.populateModuleDependencies(gradleModule, ideModule, ideProject)
 
-    // Workaround added for KT-64114
-    addMissingGradlePrefixForLibraryDependencies(ideModule)
-
     val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java) ?: return
     val selectedVariantName = androidModels.selectedVariantName
@@ -104,18 +101,6 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
           ProjectKeys.MODULE_DEPENDENCY,
           ModuleDependencyData(androidGradleSourceSetDataNode.data, dependsOnGradleSourceSet.data)
         )
-      }
-    }
-  }
-
-  private fun addMissingGradlePrefixForLibraryDependencies(ideModule: DataNode<ModuleData>) {
-    ideModule.sourceSetsByName().values.forEach { sourceSetNode ->
-      sourceSetNode.children.forEach { childrenNode ->
-        (childrenNode.data as? LibraryDependencyData?)?.let { libraryDependency ->
-          if (!libraryDependency.internalName.startsWith(GradleConstants.GRADLE_NAME)) {
-            libraryDependency.internalName = "${GradleConstants.GRADLE_NAME}: ${libraryDependency.internalName}"
-          }
-        }
       }
     }
   }
