@@ -133,7 +133,7 @@ private const val DEVICE_FRAME_VISIBLE_PROPERTY = "com.android.tools.idea.stream
 private const val DEVICE_FRAME_VISIBLE_DEFAULT = true
 private const val ZOOM_TOOLBAR_VISIBLE_PROPERTY = "com.android.tools.idea.streaming.zoom.toolbar.visible"
 private const val ZOOM_TOOLBAR_VISIBLE_DEFAULT = true
-private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000
+private const val EMULATOR_DISCOVERY_INTERVAL_MILLIS = 1000L
 
 private val ID_KEY = Key.create<DeviceId>("device-id")
 
@@ -476,7 +476,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
     contentShown = false
 
-    RunningEmulatorCatalog.getInstance().removeListener(this)
+    RunningEmulatorCatalog.getInstance().addListener(this, Long.MAX_VALUE) // Don't need frequent updates.
     for (emulator in emulators) {
       emulator.removeConnectionStateListener(connectionStateListener)
     }
