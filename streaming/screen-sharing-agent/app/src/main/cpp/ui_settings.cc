@@ -354,7 +354,7 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
     "echo " GESTURES_DIVIDER "; "
     "cmd overlay list android | grep " GESTURES_OVERLAY "$; "
     "echo " LIST_PACKAGES_DIVIDER "; "
-    "pm list packages; "
+    "pm list packages | grep package:" TALKBACK_PACKAGE_NAME "$; "
     "echo " ACCESSIBILITY_SERVICES_DIVIDER "; "
     "settings get secure " ENABLED_ACCESSIBILITY_SERVICES "; "
     "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "; "

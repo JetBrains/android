@@ -99,9 +99,7 @@ class UiSettingsRule : ExternalResource() {
       -- Gestures --
       ${if (gestureOverlayInstalled) "[${if (gestureNavigation) "x" else " "}] com.android.internal.systemui.navbar.gestural" else ""}
       -- List Packages --
-      package:com.google.some.package1
-      ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else "package:com.google.some.package2"}
-      package:com.google.some.package3
+      ${if (talkBackInstalled) "package:com.google.android.marvin.talkback" else ""}
       -- Accessibility Services --
       ${formatAccessibilityServices(talkBackOn, selectToSpeakOn)}
       -- Accessibility Button Targets --
