@@ -57,7 +57,6 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
@@ -384,7 +383,6 @@ class LayoutInspectorManagerTest {
     assertThat(refreshCount).isEqualTo(1)
   }
 
-  @Ignore("b/287075342")
   @Test
   @RunsInEdt
   fun testDeepInspectIsDisabledOnProcessChange() = withEmbeddedLayoutInspector {
