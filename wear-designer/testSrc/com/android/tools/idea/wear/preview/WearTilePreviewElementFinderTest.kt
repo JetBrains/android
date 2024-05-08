@@ -498,25 +498,25 @@ class WearTilePreviewElementFinderTest {
     assertThat(previewElements).hasSize(7)
 
     previewElements.elementAt(0).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 1"))
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_large_round"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
     }
     previewElements.elementAt(1).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 2"))
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_small_round"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
     }
     previewElements.elementAt(2).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 3"))
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_square"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
     }
     previewElements.elementAt(3).let {
-      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview"))
+      assertThat(it).hasDisplaySettings(defaultDisplaySettings(name = "tilePreview - AllWearDevices 4"))
       assertThat(it).hasPreviewConfiguration(defaultConfiguration(device = "id:wearos_rect"))
       assertThat(it).previewBodyHasTextRange(previewsTest.textRange("tilePreview"))
       assertThat(it).hasAnnotationDefinition("@AllWearDevices")
