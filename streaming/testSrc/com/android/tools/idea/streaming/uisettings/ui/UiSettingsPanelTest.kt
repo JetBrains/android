@@ -67,7 +67,7 @@ class UiSettingsPanelTest {
     model.appLanguage.selection.uiChangeListener = ChangeListener { lastCommand = "locale=${it?.tag}" }
     model.talkBackOn.uiChangeListener = ChangeListener { lastCommand = "talkBackOn=$it" }
     model.selectToSpeakOn.uiChangeListener = ChangeListener { lastCommand = "selectToSpeakOn=$it" }
-    model.fontSizeInPercent.uiChangeListener = ChangeListener { lastCommand = "fontSize=$it" }
+    model.fontScaleInPercent.uiChangeListener = ChangeListener { lastCommand = "fontScale=$it" }
     model.screenDensity.uiChangeListener = ChangeListener { lastCommand = "density=$it" }
     model.resetAction = { lastCommand = "reset" }
   }
@@ -154,15 +154,15 @@ class UiSettingsPanelTest {
   }
 
   @Test
-  fun testSetFontSizeFromUi() {
-    val slider = panel.getDescendant<JSlider> { it.name == FONT_SIZE_TITLE }
-    assertThat(slider.value).isEqualTo(FontSize.NORMAL.ordinal)
+  fun testSetFontScaleFromUi() {
+    val slider = panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }
+    assertThat(slider.value).isEqualTo(FontScale.NORMAL.ordinal)
 
-    slider.value = FontSize.values().size - 1
-    waitForCondition(1.seconds) { lastCommand == "fontSize=200" }
+    slider.value = FontScale.values().size - 1
+    waitForCondition(1.seconds) { lastCommand == "fontScale=200" }
 
     slider.value = 0
-    waitForCondition(1.seconds) { lastCommand == "fontSize=85" }
+    waitForCondition(1.seconds) { lastCommand == "fontScale=85" }
   }
 
   @Test
@@ -199,7 +199,7 @@ class UiSettingsPanelTest {
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
-    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SIZE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
 
     assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()

@@ -36,7 +36,7 @@ class UiSettingsStats(private val deviceInfo: DeviceInfo?) {
 
   fun setSelectToSpeak() = logUiSettingsChange(OperationKind.SELECT_TO_SPEAK)
 
-  fun setFontSize() = logUiSettingsChange(OperationKind.FONT_SIZE)
+  fun setFontScale() = logUiSettingsChange(OperationKind.FONT_SIZE)
 
   fun setScreenDensity() = logUiSettingsChange(OperationKind.SCREEN_DENSITY)
 

@@ -34,7 +34,7 @@ import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.uisettings.ui.APP_LANGUAGE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DARK_THEME_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.DENSITY_TITLE
-import com.android.tools.idea.streaming.uisettings.ui.FONT_SIZE_TITLE
+import com.android.tools.idea.streaming.uisettings.ui.FONT_SCALE_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.GESTURE_NAVIGATION_TITLE
 import com.android.tools.idea.streaming.uisettings.ui.RESET_BUTTON_TEXT
 import com.android.tools.idea.streaming.uisettings.ui.SELECT_TO_SPEAK_TITLE
@@ -159,7 +159,7 @@ class DeviceUiSettingsActionTest {
     assertThat(panel.findDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }).isNotNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == TALKBACK_TITLE }).isNotNull()
-    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SIZE_TITLE }).isNotNull()
+    assertThat(panel.findDescendant<JSlider> { it.name == FONT_SCALE_TITLE }).isNotNull()
 
     assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()

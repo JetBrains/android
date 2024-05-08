@@ -79,7 +79,7 @@ sealed class ControlMessage(val type: Int) {
         SetDarkModeMessage.TYPE -> SetDarkModeMessage.deserialize(stream)
         SetTalkBackMessage.TYPE -> SetTalkBackMessage.deserialize(stream)
         SetSelectToSpeakMessage.TYPE -> SetSelectToSpeakMessage.deserialize(stream)
-        SetFontSizeMessage.TYPE -> SetFontSizeMessage.deserialize(stream)
+        SetFontScaleMessage.TYPE -> SetFontScaleMessage.deserialize(stream)
         SetScreenDensityMessage.TYPE -> SetScreenDensityMessage.deserialize(stream)
         SetAppLanguageMessage.TYPE -> SetAppLanguageMessage.deserialize(stream)
         SetGestureNavigationMessage.TYPE -> SetGestureNavigationMessage.deserialize(stream)
@@ -703,8 +703,8 @@ internal data class UiSettingsResponse(
   val tackBackInstalled: Boolean,
   val talkBackOn: Boolean,
   val selectToSpeakOn: Boolean,
-  val fontSizeSettable: Boolean,
-  val fontSize: Int,
+  val fontScaleSettable: Boolean,
+  val fontScale: Int,
   val densitySettable: Boolean,
   val density: Int
 ) : CorrelatedMessage(TYPE) {
@@ -719,8 +719,8 @@ internal data class UiSettingsResponse(
     stream.writeBoolean(tackBackInstalled)
     stream.writeBoolean(talkBackOn)
     stream.writeBoolean(selectToSpeakOn)
-    stream.writeBoolean(fontSizeSettable)
-    stream.writeInt(fontSize)
+    stream.writeBoolean(fontScaleSettable)
+    stream.writeInt(fontScale)
     stream.writeBoolean(densitySettable)
     stream.writeInt(density)
   }
@@ -736,7 +736,7 @@ internal data class UiSettingsResponse(
     "tackBackInstalled=$tackBackInstalled, " +
     "talkBackOn=$talkBackOn, " +
     "selectToSpeakOn=$selectToSpeakOn, " +
-    "fontSize=$fontSize, " +
+    "fontScale=$fontScale, " +
     "density=$density)"
 
   companion object : Deserializer {
@@ -752,8 +752,8 @@ internal data class UiSettingsResponse(
       val tackBackInstalled = stream.readBoolean()
       val talkBackOn = stream.readBoolean()
       val selectToSpeakOn = stream.readBoolean()
-      val fontSizeSettable = stream.readBoolean()
-      val fontSize = stream.readInt()
+      val fontScaleSettable = stream.readBoolean()
+      val fontScale = stream.readInt()
       val densitySettable = stream.readBoolean()
       val density = stream.readInt()
       return UiSettingsResponse(
@@ -766,8 +766,8 @@ internal data class UiSettingsResponse(
         tackBackInstalled,
         talkBackOn,
         selectToSpeakOn,
-        fontSizeSettable,
-        fontSize,
+        fontScaleSettable,
+        fontScale,
         densitySettable,
         density
       )
@@ -799,27 +799,27 @@ internal data class SetDarkModeMessage(val darkMode: Boolean) : ControlMessage(T
 }
 
 /**
- * Changes the Font Size setting on a device.
+ * Changes the Font Scale setting on a device.
  *
- * The [fontSize] is specified as a percentage of the normal font.
+ * The [fontScale] is specified as a percentage of the normal font.
  * A value of 100 is the normal size.
  */
-internal data class SetFontSizeMessage(val fontSize: Int) : ControlMessage(TYPE) {
+internal data class SetFontScaleMessage(val fontScale: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
-    stream.writeInt(fontSize)
+    stream.writeInt(fontScale)
   }
 
   override fun toString(): String =
-    "SetFontSizeMessage(fontSize=$fontSize)"
+    "SetFontScaleMessage(fontScale=$fontScale)"
 
   companion object : Deserializer {
     const val TYPE = 24
 
-    override fun deserialize(stream: Base128InputStream): SetFontSizeMessage {
-      val fontSize = stream.readInt()
-      return SetFontSizeMessage(fontSize)
+    override fun deserialize(stream: Base128InputStream): SetFontScaleMessage {
+      val fontScale = stream.readInt()
+      return SetFontScaleMessage(fontScale)
     }
   }
 }

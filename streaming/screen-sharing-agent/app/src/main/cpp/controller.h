@@ -121,7 +121,7 @@ private:
   void SetAppLanguage(const SetAppLanguageMessage& message);
   void SetTalkBack(const SetTalkBackMessage& message);
   void SetSelectToSpeak(const SetSelectToSpeakMessage& message);
-  void SetFontSize(const SetFontSizeMessage& message);
+  void SetFontScale(const SetFontScaleMessage& message);
   void SetScreenDensity(const SetScreenDensityMessage& message);
 
   void StartDisplayPolling();

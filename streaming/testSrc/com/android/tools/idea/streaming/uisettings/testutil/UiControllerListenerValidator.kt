@@ -17,9 +17,9 @@ package com.android.tools.idea.streaming.uisettings.testutil
 
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
-import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
+import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SCALE
 import com.android.tools.idea.streaming.emulator.DEFAULT_DENSITY
-import com.android.tools.idea.streaming.emulator.DEFAULT_FONT_SIZE
+import com.android.tools.idea.streaming.emulator.DEFAULT_FONT_SCALE
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
@@ -44,8 +44,8 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
   val talkBackInstalled = createAndAddListener(model.talkBackInstalled, customValues)
   val talkBackOn = createAndAddListener(model.talkBackOn, customValues)
   val selectToSpeakOn = createAndAddListener(model.selectToSpeakOn, customValues)
-  val fontSizeSettable = createAndAddListener(model.fontSizeSettable, settable)
-  val fontSize = createAndAddListener(model.fontSizeInPercent, if (customValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
+  val fontScaleSettable = createAndAddListener(model.fontScaleSettable, settable)
+  val fontScale = createAndAddListener(model.fontScaleInPercent, if (customValues) CUSTOM_FONT_SCALE else DEFAULT_FONT_SCALE)
   val densitySettable = createAndAddListener(model.screenDensitySettable, settable)
   val density = createAndAddListener(model.screenDensity, if (customValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
 
@@ -79,12 +79,12 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.selectToSpeakOn.value).isEqualTo(expectedCustomValues)
     assertThat(selectToSpeakOn.changes).isEqualTo(expectedChanges)
     assertThat(selectToSpeakOn.lastValue).isEqualTo(expectedCustomValues)
-    assertThat(model.fontSizeSettable.value).isEqualTo(expectedSettable)
-    assertThat(fontSizeSettable.changes).isEqualTo(expectedChanges)
-    assertThat(fontSizeSettable.lastValue).isEqualTo(expectedSettable)
-    assertThat(model.fontSizeInPercent.value).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
-    assertThat(fontSize.changes).isEqualTo(expectedChanges)
-    assertThat(fontSize.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SIZE else DEFAULT_FONT_SIZE)
+    assertThat(model.fontScaleSettable.value).isEqualTo(expectedSettable)
+    assertThat(fontScaleSettable.changes).isEqualTo(expectedChanges)
+    assertThat(fontScaleSettable.lastValue).isEqualTo(expectedSettable)
+    assertThat(model.fontScaleInPercent.value).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SCALE else DEFAULT_FONT_SCALE)
+    assertThat(fontScale.changes).isEqualTo(expectedChanges)
+    assertThat(fontScale.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_FONT_SCALE else DEFAULT_FONT_SCALE)
     assertThat(model.screenDensitySettable.value).isEqualTo(expectedSettable)
     assertThat(densitySettable.changes).isEqualTo(expectedChanges)
     assertThat(densitySettable.lastValue).isEqualTo(expectedSettable)

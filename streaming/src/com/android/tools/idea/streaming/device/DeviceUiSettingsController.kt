@@ -41,8 +41,8 @@ internal class DeviceUiSettingsController(
     model.talkBackInstalled.setFromController(response.tackBackInstalled)
     model.talkBackOn.setFromController(response.talkBackOn)
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
-    model.fontSizeSettable.setFromController(response.fontSizeSettable)
-    model.fontSizeInPercent.setFromController(response.fontSize)
+    model.fontScaleSettable.setFromController(response.fontScaleSettable)
+    model.fontScaleInPercent.setFromController(response.fontScale)
     model.screenDensitySettable.setFromController(response.densitySettable)
     model.screenDensity.setFromController(response.density)
     val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
@@ -71,8 +71,8 @@ internal class DeviceUiSettingsController(
     deviceController.sendControlMessage(SetSelectToSpeakMessage(on))
   }
 
-  override fun setFontSize(percent: Int) {
-    deviceController.sendControlMessage(SetFontSizeMessage(percent))
+  override fun setFontScale(percent: Int) {
+    deviceController.sendControlMessage(SetFontScaleMessage(percent))
   }
 
   override fun setScreenDensity(density: Int) {

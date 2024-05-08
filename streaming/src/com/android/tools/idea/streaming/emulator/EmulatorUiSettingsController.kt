@@ -27,7 +27,7 @@ import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.data.hasLimitedUiSettingsSupport
 import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
-import com.android.tools.idea.streaming.uisettings.ui.FontSize
+import com.android.tools.idea.streaming.uisettings.ui.FontScale
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsController
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -47,7 +47,7 @@ private const val GESTURES_DIVIDER = "-- Gestures --"
 private const val LIST_PACKAGES_DIVIDER = "-- List Packages --"
 private const val ACCESSIBILITY_SERVICES_DIVIDER = "-- Accessibility Services --"
 private const val ACCESSIBILITY_BUTTON_TARGETS_DIVIDER = "-- Accessibility Button Targets --"
-private const val FONT_SIZE_DIVIDER = "-- Font Size --"
+private const val FONT_SCALE_DIVIDER = "-- Font Scale --"
 private const val DENSITY_DIVIDER = "-- Density --"
 private const val FOREGROUND_APPLICATION_DIVIDER = "-- Foreground Application --"
 private const val APP_LANGUAGE_DIVIDER = "-- App Language --"
@@ -77,7 +77,7 @@ internal const val POPULATE_COMMAND =
   "settings get secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "echo $ACCESSIBILITY_BUTTON_TARGETS_DIVIDER; " +
   "settings get secure $ACCESSIBILITY_BUTTON_TARGETS; " +
-  "echo $FONT_SIZE_DIVIDER; " +
+  "echo $FONT_SCALE_DIVIDER; " +
   "settings get system font_scale; " +
   "echo $DENSITY_DIVIDER; " +
   "wm density; " +
@@ -133,7 +133,7 @@ internal class EmulatorUiSettingsController(
   private var lastLocaleTag = ""
   private var lastTalkBack = false
   private var lastSelectToSpeak = false
-  private var lastFontSize = FontSize.NORMAL.percent
+  private var lastFontScale = FontScale.NORMAL.percent
   private var lastDensity = readPhysicalDensity
 
   override suspend fun populateModel() {
@@ -146,9 +146,9 @@ internal class EmulatorUiSettingsController(
     processAccessibility(context.enabled, context.buttons)
     updateResetButton()
 
-    // Assume all emulators have settable font size and density.
+    // Assume all emulators have settable font scale and density.
     // We do not have any OEM system images for our emulators.
-    model.fontSizeSettable.setFromController(true)
+    model.fontScaleSettable.setFromController(true)
     model.screenDensitySettable.setFromController(true)
   }
 
@@ -161,7 +161,7 @@ internal class EmulatorUiSettingsController(
         LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
         ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, context.enabled)
         ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, context.buttons)
-        FONT_SIZE_DIVIDER -> processFontSize(iterator)
+        FONT_SCALE_DIVIDER -> processFontScale(iterator)
         DENSITY_DIVIDER -> processScreenDensity(iterator)
         FOREGROUND_APPLICATION_DIVIDER -> processForegroundProcess(iterator, context)
         APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator, context.languageInfo)
@@ -207,10 +207,10 @@ internal class EmulatorUiSettingsController(
     model.talkBackInstalled.setFromController(talkBackInstalled)
   }
 
-  private fun processFontSize(iterator: ListIterator<String>) {
-    val fontSize = (if (iterator.hasNext()) iterator.next() else "1.0").toFloatOrNull() ?: 1f
-    model.fontSizeInPercent.setFromController((fontSize * 100f + 0.5f).toInt())
-    lastFontSize = model.fontSizeInPercent.value
+  private fun processFontScale(iterator: ListIterator<String>) {
+    val fontScale = (if (iterator.hasNext()) iterator.next() else "1.0").toFloatOrNull() ?: 1f
+    model.fontScaleInPercent.setFromController((fontScale * 100f + 0.5f).toInt())
+    lastFontScale = model.fontScaleInPercent.value
   }
 
   private fun processScreenDensity(iterator: ListIterator<String>) {
@@ -309,9 +309,9 @@ internal class EmulatorUiSettingsController(
     updateResetButton()
   }
 
-  override fun setFontSize(percent: Int) {
+  override fun setFontScale(percent: Int) {
     scope.launch { executeShellCommand("settings put system font_scale %s".format(decimalFormat.format(percent.toFloat() / 100f))) }
-    lastFontSize = percent
+    lastFontScale = percent
     updateResetButton()
   }
 
@@ -334,7 +334,7 @@ internal class EmulatorUiSettingsController(
   }
 
   private fun updateResetButton() {
-    var isDefault = !lastDarkMode && lastLocaleTag.isEmpty() && !lastTalkBack && lastFontSize == FontSize.NORMAL.percent
+    var isDefault = !lastDarkMode && lastLocaleTag.isEmpty() && !lastTalkBack && lastFontScale == FontScale.NORMAL.percent
     if (!hasLimitedUiSettingsSupportForDevice) {
       isDefault =
         isDefault &&

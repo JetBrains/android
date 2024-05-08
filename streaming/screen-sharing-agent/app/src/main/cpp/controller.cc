@@ -306,8 +306,8 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       SetDarkMode((const SetDarkModeMessage&) message);
       break;
 
-    case SetFontSizeMessage::TYPE:
-      SetFontSize((const SetFontSizeMessage&) message);
+    case SetFontScaleMessage::TYPE:
+      SetFontScale((const SetFontScaleMessage&) message);
       break;
 
     case SetScreenDensityMessage::TYPE:
@@ -652,8 +652,8 @@ void Controller::SetSelectToSpeak(const SetSelectToSpeakMessage& message) {
   ui_settings_.SetSelectToSpeak(message.select_to_speak_on());
 }
 
-void Controller::SetFontSize(const SetFontSizeMessage& message) {
-  ui_settings_.SetFontSize(message.font_size());
+void Controller::SetFontScale(const SetFontScaleMessage& message) {
+  ui_settings_.SetFontScale(message.font_scale());
 }
 
 void Controller::SetScreenDensity(const SetScreenDensityMessage& message) {

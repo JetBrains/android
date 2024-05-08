@@ -23,9 +23,9 @@ import java.awt.Dimension
 import kotlin.math.abs
 
 /**
- * Give 7 choices for font sizes. A [percent] of 100 is the normal font size.
+ * Give 7 choices for font scales. A [percent] of 100 is the normal font scale.
  */
-internal enum class FontSize(val percent: Int) {
+internal enum class FontScale(val percent: Int) {
   SMALL(85),
   NORMAL(100),
   LARGE_115(115),
@@ -48,10 +48,10 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   val talkBackInstalled: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   val talkBackOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val selectToSpeakOn: TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
-  val fontSizeInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
-  val fontSizeSettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
-  val fontSizeIndex: TwoWayProperty<Int> = fontSizeInPercent.createMappedProperty(::toFontSizeIndex, ::toFontSizeInPercent)
-  val fontSizeMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(numberOfFontSizes(api) - 1)
+  val fontScaleInPercent: TwoWayProperty<Int> = DefaultTwoWayProperty(100)
+  val fontScaleSettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
+  val fontScaleIndex: TwoWayProperty<Int> = fontScaleInPercent.createMappedProperty(::toFontScaleIndex, ::toFontScaleInPercent)
+  val fontScaleMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(numberOfFontScales(api) - 1)
   val screenDensity: TwoWayProperty<Int> = DefaultTwoWayProperty(physicalDensity)
   val screenDensitySettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
   val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
@@ -60,17 +60,17 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   var resetAction: () -> Unit = {}
 
   /**
-   * The font size settings for API 33 has 4 possible values, and for API 34+ there are 7 possible values.
-   * See [FontSize]
+   * The font scale settings for API 33 has 4 possible values, and for API 34+ there are 7 possible values.
+   * See [FontScale]
    */
-  private fun numberOfFontSizes(api: Int): Int =
-    if (api > 33) FontSize.values().size else 4
+  private fun numberOfFontScales(api: Int): Int =
+    if (api > 33) FontScale.values().size else 4
 
-  private fun toFontSizeInPercent(fontIndex: Int): Int =
-    FontSize.values()[fontIndex.coerceIn(0, fontSizeMaxIndex.value)].percent
+  private fun toFontScaleInPercent(fontIndex: Int): Int =
+    FontScale.values()[fontIndex.coerceIn(0, fontScaleMaxIndex.value)].percent
 
-  private fun toFontSizeIndex(percent: Int): Int =
-    FontSize.values().minBy { abs(it.percent - percent) }.ordinal
+  private fun toFontScaleIndex(percent: Int): Int =
+    FontScale.values().minBy { abs(it.percent - percent) }.ordinal
 
   private fun toDensityFromIndex(densityIndex: Int): Int =
     densities[densityIndex.coerceIn(0, screenDensityMaxIndex.value)]

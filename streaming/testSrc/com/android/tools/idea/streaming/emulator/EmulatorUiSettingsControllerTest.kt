@@ -112,7 +112,7 @@ class EmulatorUiSettingsControllerTest {
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
-      fontSize = CUSTOM_FONT_SIZE,
+      fontScale = CUSTOM_FONT_SCALE,
       physicalDensity = DEFAULT_DENSITY,
       overrideDensity = CUSTOM_DENSITY
     )
@@ -288,12 +288,12 @@ class EmulatorUiSettingsControllerTest {
   }
 
   @Test
-  fun testSetFontSize() {
+  fun testSetFontScale() {
     controller.initAndWait()
     assertThat(model.differentFromDefault.value).isFalse()
-    model.fontSizeInPercent.setFromUi(200)
+    model.fontScaleInPercent.setFromUi(200)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 2" }
-    model.fontSizeInPercent.setFromUi(75)
+    model.fontScaleInPercent.setFromUi(75)
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "settings put system font_scale 0.75" }
     assertUsageEvent(OperationKind.FONT_SIZE, OperationKind.FONT_SIZE)
     assertThat(model.differentFromDefault.value).isTrue()
@@ -324,7 +324,7 @@ class EmulatorUiSettingsControllerTest {
       talkBackInstalled = true,
       talkBackOn = true,
       selectToSpeakOn = true,
-      fontSize = CUSTOM_FONT_SIZE,
+      fontScale = CUSTOM_FONT_SCALE,
       physicalDensity = DEFAULT_DENSITY,
       overrideDensity = CUSTOM_DENSITY
     )

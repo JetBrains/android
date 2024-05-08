@@ -42,7 +42,7 @@ internal abstract class UiSettingsController(
     model.gestureNavigation.uiChangeListener = LoggingChangeListener(::setGestureNavigation, stats::setGestureNavigation)
     model.talkBackOn.uiChangeListener = LoggingChangeListener(::setTalkBack, stats::setTalkBack)
     model.selectToSpeakOn.uiChangeListener = LoggingChangeListener(::setSelectToSpeak, stats::setSelectToSpeak)
-    model.fontSizeInPercent.uiChangeListener = LoggingChangeListener(::setFontSize, stats::setFontSize)
+    model.fontScaleInPercent.uiChangeListener = LoggingChangeListener(::setFontScale, stats::setFontScale)
     model.screenDensity.uiChangeListener = LoggingChangeListener(::setScreenDensity, stats::setScreenDensity)
     model.resetAction = { reset(); stats.reset() }
   }
@@ -92,9 +92,9 @@ internal abstract class UiSettingsController(
   protected abstract fun setSelectToSpeak(on: Boolean)
 
   /**
-   * Changes the font size on the device/emulator.
+   * Changes the font scale on the device/emulator.
    */
-  protected abstract fun setFontSize(percent: Int)
+  protected abstract fun setFontScale(percent: Int)
 
   /**
    * Changes the screen density on the device/emulator.

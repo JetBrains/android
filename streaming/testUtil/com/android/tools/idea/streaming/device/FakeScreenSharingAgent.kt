@@ -232,9 +232,9 @@ class FakeScreenSharingAgent(
   @Volatile
   var selectToSpeakOn = false
   @Volatile
-  var fontSizeSettable = true
+  var fontScaleSettable = true
   @Volatile
-  var fontSize = 100
+  var fontScale = 100
   @Volatile
   var screenDensitySettable = true
   @Volatile
@@ -626,7 +626,7 @@ class FakeScreenSharingAgent(
 
   private fun sendUiSettingsResponse(message: UiSettingsRequest) {
     sendNotificationOrResponse(
-      UiSettingsResponse(message.requestId, darkMode, gestureOverlayInstalled, gestureNavigation, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontSizeSettable, fontSize, screenDensitySettable, screenDensity))
+      UiSettingsResponse(message.requestId, darkMode, gestureOverlayInstalled, gestureNavigation, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontScaleSettable, fontScale, screenDensitySettable, screenDensity))
   }
 
   private fun setDarkMode(message: SetDarkModeMessage) {
@@ -651,8 +651,8 @@ class FakeScreenSharingAgent(
     selectToSpeakOn = message.on
   }
 
-  private fun setFontSize(message: SetFontSizeMessage) {
-    fontSize = message.fontSize
+  private fun setFontScale(message: SetFontScaleMessage) {
+    fontScale = message.fontScale
   }
 
   private fun setScreenDensity(message: SetScreenDensityMessage) {
@@ -1088,7 +1088,7 @@ class FakeScreenSharingAgent(
         is SetAppLanguageMessage -> setAppLanguage(message)
         is SetTalkBackMessage -> setTalkBack(message)
         is SetSelectToSpeakMessage -> setSelectToSpeak(message)
-        is SetFontSizeMessage -> setFontSize(message)
+        is SetFontScaleMessage -> setFontScale(message)
         is SetScreenDensityMessage -> setScreenDensity(message)
         is SetGestureNavigationMessage -> setGestureNavigation(message)
         else -> {}

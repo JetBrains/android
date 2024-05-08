@@ -40,7 +40,7 @@ internal const val GESTURE_NAVIGATION_TITLE = "Gesture Navigation:"
 internal const val APP_LANGUAGE_TITLE = "App Language:"
 internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
-internal const val FONT_SIZE_TITLE = "Font Size:"
+internal const val FONT_SCALE_TITLE = "Font Size:"
 internal const val DENSITY_TITLE = "Screen Size:"
 internal const val RESET_BUTTON_TEXT = "Reset"
 private const val RESET_TITLE = "Reset to factory defaults"
@@ -107,13 +107,13 @@ internal class UiSettingsPanel(
           }.visibleIf(model.talkBackInstalled)
         }
 
-        row(label(FONT_SIZE_TITLE)) {
-          slider(0, model.fontSizeMaxIndex.value, 1, 1)
+        row(label(FONT_SCALE_TITLE)) {
+          slider(0, model.fontScaleMaxIndex.value, 1, 1)
             .noLabels()
-            .bindSliderPosition(model.fontSizeIndex)
-            .bindSliderMaximum(model.fontSizeMaxIndex)
-            .apply { component.name = FONT_SIZE_TITLE }
-        }.visibleIf(model.fontSizeSettable)
+            .bindSliderPosition(model.fontScaleIndex)
+            .bindSliderMaximum(model.fontScaleMaxIndex)
+            .apply { component.name = FONT_SCALE_TITLE }
+        }.visibleIf(model.fontScaleSettable)
 
         if (!limitedSupport) {
           row(label(DENSITY_TITLE)) {
@@ -130,7 +130,7 @@ internal class UiSettingsPanel(
             addToTop(JBLabel(PERMISSION_HINT_LINE1, UIUtil.ComponentStyle.MINI))
             addToBottom(JBLabel(PERMISSION_HINT_LINE2, UIUtil.ComponentStyle.MINI))
           })
-        }.visibleIf((model.fontSizeSettable.and(model.screenDensitySettable)).not())
+        }.visibleIf((model.fontScaleSettable.and(model.screenDensitySettable)).not())
 
         if (showResetButton) {
           row(label(RESET_TITLE)) {

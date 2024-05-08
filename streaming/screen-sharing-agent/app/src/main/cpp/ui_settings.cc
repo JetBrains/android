@@ -38,7 +38,7 @@ namespace {
 #define LIST_PACKAGES_DIVIDER "-- List Packages --"
 #define ACCESSIBILITY_SERVICES_DIVIDER "-- Accessibility Services --"
 #define ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "-- Accessibility Button Targets --"
-#define FONT_SIZE_DIVIDER "-- Font Size --"
+#define FONT_SCALE_DIVIDER "-- Font Scale --"
 #define DENSITY_DIVIDER "-- Density --"
 #define FOREGROUND_APPLICATION_DIVIDER "-- Foreground Application --"
 #define APP_LANGUAGE_DIVIDER "-- App Language --"
@@ -128,13 +128,13 @@ void ProcessAccessibilityServices(stringstream* stream, set<string>* services) {
   }
 }
 
-void ProcessFontSize(stringstream* stream, UiSettingsState* state) {
+void ProcessFontScale(stringstream* stream, UiSettingsState* state) {
   string line;
-  float font_size = 1;
+  float font_scale = 1;
   if (getline(*stream, line, '\n')) {
-    sscanf(line.c_str(), "%g", &font_size);
+    sscanf(line.c_str(), "%g", &font_scale);
   }
-  state->set_font_size(font_size * 100.);
+  state->set_font_scale(font_scale * 100.);
 }
 
 void ReadDensity(stringstream* stream, const char* pattern, int* density) {
@@ -250,7 +250,7 @@ void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandConte
     if (line == LIST_PACKAGES_DIVIDER) ProcessListPackages(&stream, state);
     if (line == ACCESSIBILITY_SERVICES_DIVIDER) ProcessAccessibilityServices(&stream, &context->enabled);
     if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &context->buttons);
-    if (line == FONT_SIZE_DIVIDER) ProcessFontSize(&stream, state);
+    if (line == FONT_SCALE_DIVIDER) ProcessFontScale(&stream, state);
     if (line == DENSITY_DIVIDER) ProcessDensity(&stream, state);
     if (line == FOREGROUND_APPLICATION_DIVIDER) ProcessForegroundProcess(&stream, context);
     if (line == APP_LANGUAGE_DIVIDER) ProcessAppLanguage(&stream, state);
@@ -269,8 +269,8 @@ void GetApplicationLocales(const vector<string>& application_ids, UiSettingsStat
   ProcessAdbOutput(TrimEnd(output), state, nullptr);
 }
 
-bool IsFontSizeSettable(int32_t font_size) {
-  string command = StringPrintf("settings put system font_scale %g 2>&1 >/dev/null", font_size / 100.0f);
+bool IsFontScaleSettable(int32_t font_scale) {
+  string command = StringPrintf("settings put system font_scale %g 2>&1 >/dev/null", font_scale / 100.0f);
   string error = ExecuteShellCommand(command);
   return error.empty();
 }
@@ -336,8 +336,8 @@ string CreateSetSelectToSpeakCommand(bool on, CommandContext* context) {
       +  CreateSecureSettingChangeCommand(on, ACCESSIBILITY_BUTTON_TARGETS, SELECT_TO_SPEAK_SERVICE_NAME, &context->buttons);
 }
 
-string CreateSetFontSizeCommand(int32_t font_size) {
-  return string("settings put system font_scale ") + StringPrintf("%g", font_size / 100.0f) + ";\n";
+string CreateSetFontScaleCommand(int32_t font_scale) {
+  return string("settings put system font_scale ") + StringPrintf("%g", font_scale / 100.0f) + ";\n";
 }
 
 string CreateSetScreenDensityCommand(int32_t density) {
@@ -356,7 +356,7 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
     "settings get secure " ENABLED_ACCESSIBILITY_SERVICES "; "
     "echo " ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "; "
     "settings get secure " ACCESSIBILITY_BUTTON_TARGETS "; "
-    "echo " FONT_SIZE_DIVIDER "; "
+    "echo " FONT_SCALE_DIVIDER "; "
     "settings get system font_scale; "
     "echo " DENSITY_DIVIDER "; "
     "wm density; "
@@ -387,7 +387,7 @@ void UiSettings::Get(UiSettingsResponse* response) {
   string foreground_application_id = application_ids.size() == 1 ? application_ids.at(0) : "";
   response->set_foreground_application_id(foreground_application_id);
   response->set_app_locale(state.app_locale_of(foreground_application_id));
-  response->set_font_size_settable(IsFontSizeSettable(state.font_size()));
+  response->set_font_scale_settable(IsFontScaleSettable(state.font_scale()));
   response->set_density_settable(IsScreenDensitySettable(state.density()));
 }
 
@@ -431,9 +431,9 @@ void UiSettings::SetSelectToSpeak(bool on) {
   last_settings_.set_select_to_speak_on(on);
 }
 
-void UiSettings::SetFontSize(int32_t font_size) {
-  ExecuteShellCommand(CreateSetFontSizeCommand(font_size));
-  last_settings_.set_font_size(font_size);
+void UiSettings::SetFontScale(int32_t font_scale) {
+  ExecuteShellCommand(CreateSetFontScaleCommand(font_scale));
+  last_settings_.set_font_scale(font_scale);
 }
 
 void UiSettings::SetScreenDensity(int32_t density) {
@@ -475,9 +475,9 @@ const string UiSettings::CreateResetCommand() {
       current_settings.select_to_speak_on() == last_settings_.select_to_speak_on()) {
     command += CreateSetSelectToSpeakCommand(initial_settings_.select_to_speak_on(), &context);
   }
-  if (current_settings.font_size() != initial_settings_.font_size() &&
-      current_settings.font_size() == last_settings_.font_size()) {
-    command += CreateSetFontSizeCommand(initial_settings_.font_size());
+  if (current_settings.font_scale() != initial_settings_.font_scale() &&
+      current_settings.font_scale() == last_settings_.font_scale()) {
+    command += CreateSetFontScaleCommand(initial_settings_.font_scale());
   }
   if (current_settings.density() != initial_settings_.density() &&
       current_settings.density() == last_settings_.density()) {

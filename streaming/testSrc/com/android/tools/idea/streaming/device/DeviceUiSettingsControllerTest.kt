@@ -25,9 +25,9 @@ import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDe
 import com.android.tools.idea.streaming.emulator.APPLICATION_ID1
 import com.android.tools.idea.streaming.emulator.APPLICATION_ID2
 import com.android.tools.idea.streaming.emulator.CUSTOM_DENSITY
-import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SIZE
+import com.android.tools.idea.streaming.emulator.CUSTOM_FONT_SCALE
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
-import com.android.tools.idea.streaming.uisettings.ui.FontSize
+import com.android.tools.idea.streaming.uisettings.ui.FontScale
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
@@ -88,7 +88,7 @@ class DeviceUiSettingsControllerTest {
     agent.talkBackInstalled = true
     agent.talkBackOn = true
     agent.selectToSpeakOn = true
-    agent.fontSize = CUSTOM_FONT_SIZE
+    agent.fontScale = CUSTOM_FONT_SCALE
     agent.screenDensity = CUSTOM_DENSITY
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
@@ -96,15 +96,15 @@ class DeviceUiSettingsControllerTest {
   }
 
   @Test
-  fun testReadCustomValueWithoutFontSizeAndDensity() {
+  fun testReadCustomValueWithoutFontScaleAndDensity() {
     agent.darkMode = true
     agent.gestureNavigation = false
     agent.appLocales = "da"
     agent.talkBackInstalled = true
     agent.talkBackOn = true
     agent.selectToSpeakOn = true
-    agent.fontSizeSettable = false
-    agent.fontSize = CUSTOM_FONT_SIZE
+    agent.fontScaleSettable = false
+    agent.fontScale = CUSTOM_FONT_SCALE
     agent.screenDensitySettable = false
     agent.screenDensity = CUSTOM_DENSITY
     controller.initAndWait()
@@ -196,12 +196,12 @@ class DeviceUiSettingsControllerTest {
   }
 
   @Test
-  fun testSetFontSize() {
+  fun testSetFontScale() {
     controller.initAndWait()
-    model.fontSizeIndex.setFromUi(0)
-    waitForCondition(10.seconds) { agent.fontSize == 85 }
-    model.fontSizeIndex.setFromUi(3)
-    waitForCondition(10.seconds) { agent.fontSize == FontSize.LARGE_130.percent }
+    model.fontScaleIndex.setFromUi(0)
+    waitForCondition(10.seconds) { agent.fontScale == 85 }
+    model.fontScaleIndex.setFromUi(3)
+    waitForCondition(10.seconds) { agent.fontScale == FontScale.LARGE_130.percent }
   }
 
   @Test

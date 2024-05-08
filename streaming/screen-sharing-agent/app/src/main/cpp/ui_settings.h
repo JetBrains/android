@@ -38,7 +38,7 @@ public:
 
   void SetSelectToSpeak(bool on);
 
-  void SetFontSize(int32_t font_size);
+  void SetFontScale(int32_t font_scale);
 
   void SetScreenDensity(int32_t density);
 

@@ -634,7 +634,7 @@ public:
     result->set_talkback_installed(talkback_installed_);
     result->set_talkback_on(talkback_on_);
     result->set_select_to_speak_on(select_to_speak_on_);
-    result->set_font_size(font_size_);
+    result->set_font_scale(font_scale_);
     result->set_density(density_);
   }
 
@@ -702,16 +702,16 @@ public:
     return select_to_speak_on_;
   }
 
-  void set_font_size_settable(bool settable) {
-    font_size_settable_ = settable;
+  void set_font_scale_settable(bool settable) {
+    font_scale_settable_ = settable;
   }
 
-  void set_font_size(int32_t font_size) {
-    font_size_ = font_size;
+  void set_font_scale(int32_t font_scale) {
+    font_scale_ = font_scale;
   }
 
-  [[nodiscard]] int32_t font_size() const {
-    return font_size_;
+  [[nodiscard]] int32_t font_scale() const {
+    return font_scale_;
   }
 
   void set_density_settable(bool settable) {
@@ -739,8 +739,8 @@ private:
   bool talkback_installed_ = false;
   bool talkback_on_ = false;
   bool select_to_speak_on_ = false;
-  bool font_size_settable_= false;
-  int32_t font_size_ = 0;
+  bool font_scale_settable_= false;
+  int32_t font_scale_ = 0;
   bool density_settable_ = false;
   int32_t density_ = 0;
 
@@ -774,21 +774,21 @@ private:
   DISALLOW_COPY_AND_ASSIGN(SetDarkModeMessage);
 };
 
-// Changes the Font Size setting on the device.
-// The font_size is specified as a percentage of the normal font.
+// Changes the Font Scale setting on the device.
+// The font_scale is specified as a percentage of the normal font.
 // A value of 100 is the normal size.
-class SetFontSizeMessage : ControlMessage {
+class SetFontScaleMessage : ControlMessage {
 public:
-  explicit SetFontSizeMessage(int32_t font_size)
+  explicit SetFontScaleMessage(int32_t font_scale)
       : ControlMessage(TYPE),
-        font_size_(font_size) {
+        font_scale_(font_scale) {
   }
-  ~SetFontSizeMessage() override = default;
+  ~SetFontScaleMessage() override = default;
 
   void Serialize(Base128OutputStream& stream) const override;
 
-  [[nodiscard]] int32_t font_size() const {
-    return font_size_;
+  [[nodiscard]] int32_t font_scale() const {
+    return font_scale_;
   }
 
   static constexpr int TYPE = 24;
@@ -796,11 +796,11 @@ public:
 private:
   friend class ControlMessage;
 
-  static SetFontSizeMessage* Deserialize(Base128InputStream& stream);
+  static SetFontScaleMessage* Deserialize(Base128InputStream& stream);
 
-  int32_t font_size_;
+  int32_t font_scale_;
 
-  DISALLOW_COPY_AND_ASSIGN(SetFontSizeMessage);
+  DISALLOW_COPY_AND_ASSIGN(SetFontScaleMessage);
 };
 
 // Changes the Screen Density setting on the device.

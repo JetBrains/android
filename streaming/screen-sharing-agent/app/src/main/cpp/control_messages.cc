@@ -74,8 +74,8 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case SetDarkModeMessage::TYPE:
       return unique_ptr<ControlMessage>(SetDarkModeMessage::Deserialize(stream));
 
-    case SetFontSizeMessage::TYPE:
-      return unique_ptr<ControlMessage>(SetFontSizeMessage::Deserialize(stream));
+    case SetFontScaleMessage::TYPE:
+      return unique_ptr<ControlMessage>(SetFontScaleMessage::Deserialize(stream));
 
     case SetScreenDensityMessage::TYPE:
       return unique_ptr<ControlMessage>(SetScreenDensityMessage::Deserialize(stream));
@@ -209,9 +209,9 @@ SetDarkModeMessage* SetDarkModeMessage::Deserialize(Base128InputStream& stream) 
   return new SetDarkModeMessage(dark_mode);
 }
 
-SetFontSizeMessage* SetFontSizeMessage::Deserialize(Base128InputStream& stream) {
-  int32_t font_size = stream.ReadInt32();
-  return new SetFontSizeMessage(font_size);
+SetFontScaleMessage* SetFontScaleMessage::Deserialize(Base128InputStream& stream) {
+  int32_t font_scale = stream.ReadInt32();
+  return new SetFontScaleMessage(font_scale);
 }
 
 SetScreenDensityMessage* SetScreenDensityMessage::Deserialize(Base128InputStream& stream) {
@@ -301,8 +301,8 @@ void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   stream.WriteBool(talkback_installed_);
   stream.WriteBool(talkback_on_);
   stream.WriteBool(select_to_speak_on_);
-  stream.WriteBool(font_size_settable_);
-  stream.WriteInt32(font_size_);
+  stream.WriteBool(font_scale_settable_);
+  stream.WriteInt32(font_scale_);
   stream.WriteBool(density_settable_);
   stream.WriteInt32(density_);
 }
@@ -312,9 +312,9 @@ void SetDarkModeMessage::Serialize(Base128OutputStream& stream) const {
   stream.WriteInt32(dark_mode_);
 }
 
-void SetFontSizeMessage::Serialize(Base128OutputStream& stream) const {
+void SetFontScaleMessage::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
-  stream.WriteInt32(font_size_);
+  stream.WriteInt32(font_scale_);
 }
 
 void SetScreenDensityMessage::Serialize(Base128OutputStream& stream) const {
