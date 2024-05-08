@@ -419,7 +419,7 @@
         serviceInterface="com.android.tools.idea.lint.common.LintIdeSupport"
         serviceImplementation="com.android.tools.idea.lint.AndroidLintIdeSupport" />
     <lang.inspectionSuppressor
-        language="JAVA"
+        language="UAST"
         implementationClass="com.android.tools.idea.lint.inspections.JavaApiUsageInspectionSuppressor"/>
   </extensions>
 
