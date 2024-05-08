@@ -1568,7 +1568,7 @@ public final class StudioFlags {
       "direct.access.create.project",
       "Direct Access Create Project",
       "Create a cloud project on logging in and authenticating Firebase",
-      false);
+      true);
 
   public static final Flag<Boolean> DIRECT_ACCESS_SETTINGS_PAGE =
     new BooleanFlag(
@@ -1996,7 +1996,7 @@ public final class StudioFlags {
                 "When enabled, a login settings page will replace the popup from the login action in the top right.", true);
   public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_UI =
     new BooleanFlag(GOOGLE_LOGIN, "combined.login.enabled", "Enable combined login",
-                    "When enabled, a combined login page will show when logging in for a new user.", false);
+                    "When enabled, a combined login page will show when logging in for a new user.", true);
   // endregion GOOGLE_LOGIN
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
