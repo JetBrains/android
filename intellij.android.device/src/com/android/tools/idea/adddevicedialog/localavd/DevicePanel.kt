@@ -17,10 +17,12 @@ package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.getFullApiName
 import com.android.sdklib.getReleaseNameAndDetails
@@ -31,6 +33,7 @@ import com.android.tools.idea.adddevicedialog.TableTextColumn
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
+import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -67,7 +70,8 @@ internal fun DevicePanel(
     Modifier.padding(bottom = Padding.MEDIUM_LARGE),
   )
 
-  SystemImageTable(images)
+  SystemImageTable(images, Modifier.height(150.dp).padding(bottom = Padding.SMALL))
+  ShowSdkExtensionSystemImagesCheckbox()
 }
 
 @Composable
@@ -106,7 +110,7 @@ private fun ServicesDropdown(
 }
 
 @Composable
-private fun SystemImageTable(images: ImmutableList<SystemImage>) {
+private fun SystemImageTable(images: ImmutableList<SystemImage>, modifier: Modifier = Modifier) {
   val columns =
     listOf(
       TableColumn(
@@ -131,7 +135,7 @@ private fun SystemImageTable(images: ImmutableList<SystemImage>) {
     )
 
   // TODO: http://b/339247492 - Stop calling distinct
-  Table(columns, images.distinct(), { it })
+  Table(columns, images.distinct(), { it }, modifier)
 }
 
 @Composable
@@ -146,5 +150,19 @@ private fun AndroidVersionText(version: AndroidVersion) {
       Text(nameAndDetails.name, Modifier.padding(end = Padding.SMALL))
       Text(details, color = retrieveColorOrUnspecified("Component.infoForeground"))
     }
+  }
+}
+
+@Composable
+private fun ShowSdkExtensionSystemImagesCheckbox() {
+  Row {
+    CheckboxRow(
+      "Show SDK extension system images",
+      false,
+      {},
+      Modifier.padding(end = Padding.MEDIUM),
+    )
+
+    InfoOutlineIcon(Modifier.align(Alignment.CenterVertically))
   }
 }
