@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.applicationCoroutineScope
 import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
@@ -34,6 +35,7 @@ import com.intellij.util.containers.ContainerUtil
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -150,7 +152,7 @@ internal class DeviceController(
   override fun dispose() {
     executor.shutdown()
     responseCallbacks.cancelAll()
-    receiverScope.launch { controlChannel.close() }
+    applicationCoroutineScope(Dispatchers.IO).launch { controlChannel.close() }
     try {
       executor.awaitTermination(2, TimeUnit.SECONDS)
     }

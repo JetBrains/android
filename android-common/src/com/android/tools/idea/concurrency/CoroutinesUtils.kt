@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -165,6 +166,27 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
   }
 }
 
+/** Returns a coroutine scope that is tied to the [com.intellij.openapi.application.Application]'s lifecycle. */
+fun applicationCoroutineScope(context: CoroutineContext = EmptyCoroutineContext): CoroutineScope =
+  AndroidCoroutineScope(service<ApplicationCoroutineScopeDisposable>(), context)
+
+/** Returns a coroutine scope that is tied to the [Project]'s lifecycle. */
+fun Project.coroutineScope(context: CoroutineContext = EmptyCoroutineContext): CoroutineScope =
+  AndroidCoroutineScope(service<ProjectDisposable>(), context)
+
+/**
+ * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned
+ * [Disposable] can be used as the root. This is analogous to [AndroidCoroutineScope] where this
+ * generates a [Disposable] for the given [CoroutineScope].
+ */
+fun CoroutineScope.scopeDisposable(): Disposable {
+  val disposable = Disposer.newDisposable(service<ApplicationCoroutineScopeDisposable>())
+
+  // The disposable should be disposed of once the coroutine scope is ended
+  coroutineContext.job.invokeOnCompletion { Disposer.dispose(disposable) }
+  return disposable
+}
+
 /**
  * This application level service is used to ensure all Disposables created by
  * [CoroutineScope.scopeDisposable] get disposed when the application is disposed.
@@ -180,19 +202,9 @@ private class ApplicationCoroutineScopeDisposable : Disposable {
   override fun dispose() {}
 }
 
-/**
- * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned
- * [Disposable] can be used as the root. This is analogous to [AndroidCoroutineScope] where this
- * generates a [Disposable] for the given [CoroutineScope].
- */
-fun CoroutineScope.scopeDisposable(): Disposable {
-  val parentDisposable =
-    ApplicationManager.getApplication().getService(ApplicationCoroutineScopeDisposable::class.java)
-  val disposable = Disposer.newDisposable(parentDisposable)
-
-  // The disposable should be disposed of once the coroutine scope is ended
-  coroutineContext.job.invokeOnCompletion { Disposer.dispose(disposable) }
-  return disposable
+@Service(Service.Level.APP)
+private class ProjectDisposable : Disposable {
+  override fun dispose() {}
 }
 
 /**
@@ -262,11 +274,6 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
       return getUserData(CONTEXT) ?: putUserDataIfAbsent(CONTEXT, AndroidCoroutineScope(this).coroutineContext)
     }
 }
-
-private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName<AndroidCoroutinesAware>())
-
-val Project.coroutineScope: CoroutineScope
-  get() = getUserData(PROJECT_SCOPE) ?: (this as UserDataHolderEx).putUserDataIfAbsent(PROJECT_SCOPE, AndroidCoroutineScope(this))
 
 /**
  * A coroutine-based launcher that ensures that at most one task is running at any point in time. It cancels the previous task if a new is
@@ -451,12 +458,11 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
 fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null): Flow<Unit> =
   smartModeFlow(project, parentDisposable, logger, null)
 
-
 /**
  * A [callbackFlow] that produces an element when a [PsiFile] changes.
  */
 fun psiFileChangeFlow(psiManager: PsiManager, scope: CoroutineScope, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
-  disposableCallbackFlow<PsiFile>(debugName = "PsiFileChangeFlow", parentDisposable = scope.scopeDisposable(), logger = logger) {
+  disposableCallbackFlow(debugName = "PsiFileChangeFlow", parentDisposable = scope.scopeDisposable(), logger = logger) {
     psiManager.addPsiTreeChangeListener(
       object : PsiTreeAnyChangeAbstractAdapter() {
         override fun onChange(changedFile: PsiFile?) {
