@@ -194,7 +194,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne(first = , second = )
+        FoobarOne(${caret})
       }
       """
         .trimIndent()
@@ -348,9 +348,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne {
-
-        }
+        FoobarOne { ${caret} }
       }
       """
         .trimIndent(),
@@ -388,9 +386,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarTwo {
-          
-        }
+        FoobarTwo { ${caret} }
       }
       """
         .trimIndent(),
@@ -557,9 +553,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne {
-
-        }
+        FoobarOne { ${caret} }
       }
       """
         .trimIndent(),
@@ -616,9 +610,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        AppBarIcon(icon = ) {
-          
-        }
+        AppBarIcon(${caret}) { }
       }
       """
         .trimIndent(),
@@ -675,7 +667,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        RadioButton(text = , onClick = { /*TODO*/ })
+        RadioButton(${caret})
       }
       """
         .trimIndent(),
@@ -915,9 +907,7 @@ class ComposeCompletionContributorTest {
 
     @Composable
     fun Test() {
-      ObjectWithComposables.TestMethod {
-
-      }
+      ObjectWithComposables.TestMethod { ${caret} }
     }
     """
         .trimIndent(),
@@ -1050,7 +1040,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne(requiredArg = { /*TODO*/ })
+        FoobarOne(${caret})
       }
       """
         .trimIndent(),
@@ -1107,9 +1097,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne {
-
-        }
+        FoobarOne { ${caret} }
       }
       """
         .trimIndent(),
