@@ -40,6 +40,7 @@ import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.google.wireless.android.sdk.stats.BuildErrorMessage.ErrorType.UNKNOWN_ERROR_TYPE
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.BuildIssueEvent
@@ -49,6 +50,7 @@ import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.MessageEvent.Kind.ERROR
 import com.intellij.build.events.MessageEvent.Kind.WARNING
 import com.intellij.build.events.impl.FinishBuildEventImpl
+import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -62,6 +64,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 
 @RunsInEdt
 class JavaLanguageLevelDeprecationOutputParserTest {
@@ -92,27 +95,54 @@ class JavaLanguageLevelDeprecationOutputParserTest {
    */
   @Test
   fun testJava6CausesError() {
-    val sourceMessage = "Source option 6 is no longer supported. Use 7 or later."
-    val targetMessage = "Target option 6 is no longer supported. Use 7 or later."
-
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_6, expectSuccess = false)
 
-    buildEvents.filterIsInstance<MessageEvent>().let { events ->
-      expect.that(events).hasSize(2)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, ERROR, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 8)
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, ERROR, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 8)
-    }
-    expect.that(buildEvents.finishEventFailures()).isEmpty()
+    assertThat(buildEvents.printEvents()).isEqualTo("""
+root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Source option 6 is no longer supported. Use 7 or later.'
+root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Target option 6 is no longer supported. Use 7 or later.'
+root > 'failed'
+""".trimIndent())
 
-    val reportedFailureDetails = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
-    expect.that(reportedFailureDetails).hasSize(1)
-    reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
-      // TODO add proper error type for this.
-      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(UNKNOWN_ERROR_TYPE, UNKNOWN_ERROR_TYPE)
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Source option 6 is no longer supported. Use 7 or later.'",
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        Source option 6 is no longer supported. Use 7 or later.
+        <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.8">Set Java Toolchain to 8</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenSourceCompatibilityLinkQuickFix">More information about sourceCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
+      event.verifyQuickfix("set.java.toolchain.8") {
+        with(it as SetJavaToolchainQuickFix) {
+          expect.that(versionToSet).isEqualTo(8)
+          expect.that(gradleModules).containsExactly(":app")
+        }
+      }
+      event.verifyQuickfix("set.java.level.JDK_1_8.all") {
+        expect.that((it as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+      }
     }
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Target option 6 is no longer supported. Use 7 or later.'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        Target option 6 is no longer supported. Use 7 or later.
+        <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.8">Set Java Toolchain to 8</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenTargetCompatibilityLinkQuickFix">More information about targetCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
+    }
+    assertThat(buildEvents.finishEventFailures()).isEmpty()
+
+    // TODO add proper error type for this.
+    verifyStats(UNKNOWN_ERROR_TYPE, UNKNOWN_ERROR_TYPE)
   }
 
   /**
@@ -124,26 +154,73 @@ class JavaLanguageLevelDeprecationOutputParserTest {
    */
   @Test
   fun testJava7CausesWarning() {
-    val sourceMessage = "[options] source value 7 is obsolete and will be removed in a future release"
-    val targetMessage = "[options] target value 7 is obsolete and will be removed in a future release"
-    val suppressMessage = "[options] To suppress warnings about obsolete options, use -Xlint:-options."
-
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_7, expectSuccess = true)
 
-    buildEvents.filterIsInstance<MessageEvent>().let { events ->
-      expect.that(events).hasSize(9)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
-      verifyMessage(events[2], suppressMessage, WARNING)
-      verifyBuildIssue(events[3] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8,11)
-      verifyBuildIssue(events[4] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
-      verifyMessage(events[5], suppressMessage, WARNING)
-      verifyBuildIssue(events[6] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
-      verifyBuildIssue(events[7] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11)
-      verifyMessage(events[8], suppressMessage, WARNING)
+    assertThat(buildEvents.printEvents()).isEqualTo("""
+root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] source value 7 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] target value 7 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'
+root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] source value 7 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] target value 7 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'
+root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] source value 7 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] target value 7 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'
+root > 'finished'
+""".trimIndent())
+
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] source value 7 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] source value 7 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] source value 7 is obsolete and will be removed in a future release'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        [options] source value 7 is obsolete and will be removed in a future release
+        <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenSourceCompatibilityLinkQuickFix">More information about sourceCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
+      event.verifyQuickfix("set.java.toolchain.11") {
+        with(it as SetJavaToolchainQuickFix) {
+          expect.that(versionToSet).isEqualTo(11)
+          expect.that(gradleModules).containsExactly(":app")
+        }
+      }
+      event.verifyQuickfix("set.java.level.JDK_1_8.all") {
+        expect.that((it as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+      }
     }
-    expect.that(buildEvents.finishEventFailures()).isEmpty()
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] target value 7 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] target value 7 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] target value 7 is obsolete and will be removed in a future release'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        [options] target value 7 is obsolete and will be removed in a future release
+        <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenTargetCompatibilityLinkQuickFix">More information about targetCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
+    }
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'",
+      "root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'",
+      "root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      expect.that(event.description).isEqualTo("""
+        [options] To suppress warnings about obsolete options, use -Xlint:-options.
+      """.trimIndent())
+    }
+
+    assertThat(buildEvents.finishEventFailures()).isEmpty()
+    verifyNoStats()
   }
 
   /**
@@ -154,50 +231,51 @@ class JavaLanguageLevelDeprecationOutputParserTest {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_8, expectSuccess = true)
     // Make sure no error or warning events are generated
-    expect.that(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
-    expect.that(buildEvents.finishEventFailures()).isEmpty()
+    assertThat(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
+    assertThat(buildEvents.finishEventFailures()).isEmpty()
+    verifyNoStats()
   }
 
   @Test
   fun testJava7OnJDK21() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
-    buildEvents.filterIsInstance<MessageEvent>().let { events ->
-      expect.that(events).hasSize(1)
-      events.firstOrNull()?.let {
-        expect.that(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
-        expect.that(it.message).isEqualTo("Java compiler version 21 has removed support for compiling with source/target version 7")
-        expect.that(it).isInstanceOf(BuildIssueEvent::class.java)
-        val issue = (it as? BuildIssueEvent)?.issue
-        expect.that(issue).isNotNull()
-        issue?.let { issue ->
-          val fixes = issue.quickFixes
-          expect.that(fixes.map { it.javaClass }).containsExactly(
-            SetJavaToolchainQuickFix::class.java,
-            SetJavaLanguageLevelAllQuickFix::class.java,
-            PickLanguageLevelInPSDQuickFix::class.java,
-            DescribedOpenGradleJdkSettingsQuickfix::class.java,
-            OpenBuildJdkInfoLinkQuickFix::class.java
-          ).inOrder()
-          fixes.filterIsInstance<SetJavaLanguageLevelAllQuickFix>().firstOrNull()?.let {
-            expect.that(it.level).isEqualTo(LanguageLevel.JDK_11)
-          }
-          fixes.filterIsInstance<SetJavaToolchainQuickFix>().firstOrNull()?.let {
-            expect.that(it.versionToSet).isEqualTo(11)
-            expect.that(it.gradleModules).containsExactly(":app")
-          }
+    assertThat(buildEvents.printEvents()).isEqualTo("""
+root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Java compiler version 21 has removed support for compiling with source/target version 7'
+root > 'failed'
+""".trimIndent())
+
+    buildEvents.findBuildEvent(
+      "root > [Task :app:compileDebugJavaWithJavac] > ERROR:'Java compiler version 21 has removed support for compiling with source/target version 7'"
+    ).let { event ->
+      assertThat(event.description).isEqualTo("""
+Execution failed for task ':app:compileDebugJavaWithJavac'.
+> Java compiler version 21 has removed support for compiling with source/target version 7.
+  Try one of the following options:
+      1. [Recommended] Use Java toolchain with a lower language version
+      2. Set a higher source/target version
+      3. Use a lower version of the JDK running the build (if you're not using Java toolchain)
+  For more details on how to configure these settings, see https://developer.android.com/build/jdks.
+
+<a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
+<a href="set.java.level.JDK_11.all">Change Java language level and jvmTarget to 11 in all modules if using a lower level.</a>
+<a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+<a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+<a href="OpenBuildJdkInfoLinkQuickFix">More information...</a>
+      """.trimIndent())
+      event.verifyQuickfix("set.java.toolchain.11") {
+        with(it as SetJavaToolchainQuickFix) {
+          expect.that(versionToSet).isEqualTo(11)
+          expect.that(gradleModules).containsExactly(":app")
         }
       }
+      event.verifyQuickfix("set.java.level.JDK_11.all") {
+        expect.that((it as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_11)
+      }
     }
-    expect.that(buildEvents.finishEventFailures()).isEmpty()
-    val reportedFailureDetails = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
-    expect.that(reportedFailureDetails).hasSize(1)
-    reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
-      // TODO add proper error type for this.
-      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(UNKNOWN_ERROR_TYPE)
-    }
+    assertThat(buildEvents.finishEventFailures()).isEmpty()
+    // TODO add proper error type for this.
+    verifyStats(UNKNOWN_ERROR_TYPE)
   }
 
   @Test
@@ -226,83 +304,156 @@ class JavaLanguageLevelDeprecationOutputParserTest {
 
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
 
-    val sourceMessage = "Source option 7 is no longer supported. Use 8 or later."
-    val targetMessage = "Target option 7 is no longer supported. Use 8 or later."
-
-    buildEvents.filterIsInstance<MessageEvent>().let { events ->
-      expect.that(events).hasSize(2)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, ERROR, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11, ":lib")
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, ERROR, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11, ":lib")
+    assertThat(buildEvents.printEvents()).isEqualTo("""
+root > [Task :lib:compileJava] > ERROR:'Source option 7 is no longer supported. Use 8 or later.'
+root > [Task :lib:compileJava] > ERROR:'Target option 7 is no longer supported. Use 8 or later.'
+root > 'failed'
+""".trimIndent())
+    sequenceOf(
+      "root > [Task :lib:compileJava] > ERROR:'Source option 7 is no longer supported. Use 8 or later.'",
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        Source option 7 is no longer supported. Use 8 or later.
+        <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenSourceCompatibilityLinkQuickFix">More information about sourceCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
+      event.verifyQuickfix("set.java.toolchain.11") {
+        with(it as SetJavaToolchainQuickFix) {
+          expect.that(versionToSet).isEqualTo(11)
+          expect.that(gradleModules).containsExactly(":lib")
+        }
+      }
+      event.verifyQuickfix("set.java.level.JDK_1_8.all") {
+        expect.that((it as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_1_8)
+      }
+    }
+    sequenceOf(
+      "root > [Task :lib:compileJava] > ERROR:'Target option 7 is no longer supported. Use 8 or later.'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        Target option 7 is no longer supported. Use 8 or later.
+        <a href="set.java.level.JDK_1_8.all">Change Java language level and jvmTarget to 8 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.11">Set Java Toolchain to 11</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenTargetCompatibilityLinkQuickFix">More information about targetCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
     }
     expect.that(buildEvents.finishEventFailures()).isEmpty()
 
-    val reportedFailureDetails = usageTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
-    expect.that(reportedFailureDetails).hasSize(1)
-    reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
-      // TODO add proper error type for this.
-      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
-        .containsExactly(UNKNOWN_ERROR_TYPE, UNKNOWN_ERROR_TYPE)
-    }
+    // TODO add proper error type for this.
+    verifyStats(UNKNOWN_ERROR_TYPE, UNKNOWN_ERROR_TYPE)
   }
 
   @Test
   fun testJava8OnJDK21() {
-    val sourceMessage = "[options] source value 8 is obsolete and will be removed in a future release"
-    val targetMessage = "[options] target value 8 is obsolete and will be removed in a future release"
-    val suppressMessage = "[options] To suppress warnings about obsolete options, use -Xlint:-options."
-
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
     val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_8, expectSuccess = true)
-    buildEvents.filterIsInstance<MessageEvent>().let { events ->
-      expect.that(events).hasSize(9)
-      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
-      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
-      verifyMessage(events[2], suppressMessage, WARNING)
-      verifyBuildIssue(events[3] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
-      verifyBuildIssue(events[4] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
-      verifyMessage(events[5], suppressMessage, WARNING)
-      verifyBuildIssue(events[6] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
-      verifyBuildIssue(events[7] as BuildIssueEvent, targetMessage, WARNING, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
-      verifyMessage(events[8], suppressMessage, WARNING)
-
-    }
-    expect.that(buildEvents.finishEventFailures()).isEmpty()
-  }
-
-  private fun verifyBuildIssue(event: BuildIssueEvent,
-                               expectedMessage: String,
-                               expectedKind: MessageEvent.Kind,
-                               compatibilityFix: Class<out OpenLinkDescribedQuickFix>,
-                               suggestedLanguageLevel: LanguageLevel,
-                               suggestedToolchainVersion: Int,
-                               gradleModuleForToolchainQuickfix: String = ":app") {
-    expect.that(event.kind).isEqualTo(expectedKind)
-    expect.that(event.message).isEqualTo(expectedMessage)
-    expect.that(event.issue).isNotNull()
-    event.issue?.let { issue ->
-      val fixes = issue.quickFixes
-      expect.that(fixes.map { it.javaClass }).containsExactly(
-        SetJavaLanguageLevelAllQuickFix::class.java,
-        DescribedOpenGradleJdkSettingsQuickfix::class.java,
-        SetJavaToolchainQuickFix::class.java,
-        PickLanguageLevelInPSDQuickFix::class.java,
-        compatibilityFix,
-        OpenJavaLanguageSpecQuickFix::class.java
-      ).inOrder()
-      expect.that((fixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(suggestedLanguageLevel)
-      with(fixes[2] as SetJavaToolchainQuickFix) {
-        expect.that(versionToSet).isEqualTo(suggestedToolchainVersion)
-        expect.that(gradleModules).containsExactly(gradleModuleForToolchainQuickfix)
+    assertThat(buildEvents.printEvents()).isEqualTo("""
+root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] source value 8 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] target value 8 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'
+root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] source value 8 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] target value 8 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'
+root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] source value 8 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] target value 8 is obsolete and will be removed in a future release'
+root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'
+root > 'finished'
+""".trimIndent())
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] source value 8 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] source value 8 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] source value 8 is obsolete and will be removed in a future release'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        [options] source value 8 is obsolete and will be removed in a future release
+        <a href="set.java.level.JDK_11.all">Change Java language level and jvmTarget to 11 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.17">Set Java Toolchain to 17</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenSourceCompatibilityLinkQuickFix">More information about sourceCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
+      event.verifyQuickfix("set.java.toolchain.17") {
+        with(it as SetJavaToolchainQuickFix) {
+          expect.that(versionToSet).isEqualTo(17)
+          expect.that(gradleModules).containsExactly(":app")
+        }
+      }
+      event.verifyQuickfix("set.java.level.JDK_11.all") {
+        expect.that((it as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(LanguageLevel.JDK_11)
       }
     }
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] target value 8 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] target value 8 is obsolete and will be removed in a future release'",
+      "root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] target value 8 is obsolete and will be removed in a future release'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        [options] target value 8 is obsolete and will be removed in a future release
+        <a href="set.java.level.JDK_11.all">Change Java language level and jvmTarget to 11 in all modules if using a lower level.</a>
+        <a href="open.gradle.jdk.settings">Pick a different JDK to run Gradle...</a>
+        <a href="set.java.toolchain.17">Set Java Toolchain to 17</a>
+        <a href="PickLanguageLevelInPSD">Pick a different compatibility level...</a>
+        <a href="OpenTargetCompatibilityLinkQuickFix">More information about targetCompatibility...</a>
+        <a href="OpenJavaLanguageSpec">View Java Language Spec...</a>
+      """.trimIndent())
+    }
+    sequenceOf(
+      "root > [Task :app:compileDebugJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'",
+      "root > [Task :app:compileDebugUnitTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'",
+      "root > [Task :app:compileDebugAndroidTestJavaWithJavac] > WARNING:'[options] To suppress warnings about obsolete options, use -Xlint:-options.'"
+    ).map { buildEvents.findBuildEvent(it) }.forEach { event ->
+      assertThat(event.description).isEqualTo("""
+        [options] To suppress warnings about obsolete options, use -Xlint:-options.
+      """.trimIndent())
+    }
+
+    assertThat(buildEvents.finishEventFailures()).isEmpty()
+    verifyNoStats()
   }
 
-  private fun verifyMessage(event: MessageEvent,
-                            expectedMessage: String,
-                            expectedKind: MessageEvent.Kind) {
-    expect.that(event.kind).isEqualTo(expectedKind)
-    expect.that(event.message).isEqualTo(expectedMessage)
+  private fun verifyNoStats() {
+    val reportedFailureDetails = usageTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+    assertThat(reportedFailureDetails).hasSize(0)
+  }
+  private fun verifyStats(vararg expectedMessages: BuildErrorMessage.ErrorType) {
+    usageTracker.usages.map { it.studioEvent }.firstOrNull {
+      it.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS
+    }?.also {
+      assertThat(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        .containsExactly(*expectedMessages)
+    } ?: fail("No BUILD_OUTPUT_WINDOW_STATS event reported.")
+  }
+
+  private fun BuildEvent.verifyQuickfix(quickFixId: String, verify: (BuildIssueQuickFix) -> Unit) {
+    findQuickfix(quickFixId)?.let {verify(it) } ?: expect.fail("Quickfix with id '$quickFixId' not found")
+  }
+  private fun List<BuildEvent>.printEvents(): String {
+    return joinToString(separator = "\n") { it.toFullPathWithMessage() }
+  }
+  private fun BuildEvent.toFullPathWithMessage(): String {
+    val parentPath = when (val parentId = parentId) {
+      null -> "root"
+      else -> "root > ${parentId.toString().substringAfter(" > ")}"
+    }
+    val kind = if (this is MessageEvent) "$kind:" else ""
+    return "$parentPath > $kind'${message}'"
+  }
+
+  private fun List<BuildEvent>.findBuildEvent(eventPath: String): BuildEvent {
+    return single { it.toFullPathWithMessage() == eventPath }
+  }
+
+  private fun BuildEvent.findQuickfix(quickfixId: String): BuildIssueQuickFix? {
+    return (this as? BuildIssueEvent)?.issue?.quickFixes?.firstOrNull { it.id == quickfixId }
   }
 
   private fun PreparedTestProject.getBuildIssues(javaSdkVersion: JavaSdkVersion,
