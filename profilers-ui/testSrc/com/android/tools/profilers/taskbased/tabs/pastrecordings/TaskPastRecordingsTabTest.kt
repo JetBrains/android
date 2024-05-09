@@ -121,7 +121,8 @@ class TaskPastRecordingsTabTest {
     val session = Common.Session.getDefaultInstance()
     val artConfig = Trace.TraceConfiguration.newBuilder().setArtOptions(Trace.ArtOptions.getDefaultInstance()).build()
     val artTraceArtifact = SessionArtifactUtils.createCpuCaptureSessionArtifactWithConfig(myProfilers, session, 1L, 1L, artConfig)
-    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, "Recording 1", listOf(artTraceArtifact))
+    val sessionItem = SessionArtifactUtils.createSessionItem(myProfilers, session, 1L, "Recording 1",
+                                                             ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING, listOf(artTraceArtifact))
     // Populate recording list with a fake recording. The ART recording has two supported tasks.
     pastRecordingsTabModel.recordingListModel.setRecordingList(listOf(sessionItem))
 

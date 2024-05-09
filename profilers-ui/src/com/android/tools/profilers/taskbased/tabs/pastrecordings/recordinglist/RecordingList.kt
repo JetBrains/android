@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.android.tools.profilers.sessions.SessionItem
 import com.android.tools.profilers.taskbased.home.selections.recordings.RecordingListModel
 
 @Composable
@@ -28,7 +29,6 @@ fun RecordingList(recordingListModel: RecordingListModel, modifier: Modifier = M
     val selectedRecording by recordingListModel.selectedRecording.collectAsState()
     val recordingList by recordingListModel.recordingList.collectAsState()
     RecordingTable(recordingList = recordingList, selectedRecording = selectedRecording,
-                   onRecordingSelection = recordingListModel::onRecordingSelection,
-                   getSupportedTask = recordingListModel::getSupportedTask)
+                   onRecordingSelection = recordingListModel::onRecordingSelection)
   }
 }

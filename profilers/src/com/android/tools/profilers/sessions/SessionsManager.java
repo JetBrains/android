@@ -424,6 +424,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       .setProcessAbi(sessionData.getProcessAbi())
       .setJvmtiEnabled(sessionData.getJvmtiEnabled())
       .setSessionName(sessionData.getSessionName())
+      .setTaskType(sessionData.getTaskType())
       .setIsStartupTask(sessionData.getIsStartupTask())
       .build();
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);

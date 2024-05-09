@@ -50,9 +50,7 @@ import org.jetbrains.jewel.ui.Orientation
 import org.jetbrains.jewel.ui.component.Divider
 
 @Composable
-fun RecordingListRow(selectedRecording: SessionItem?,
-                     recording: SessionItem,
-                     supportedTask: ProfilerTaskType) {
+fun RecordingListRow(selectedRecording: SessionItem?, recording: SessionItem) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
@@ -69,7 +67,7 @@ fun RecordingListRow(selectedRecording: SessionItem?,
     leftAlignedColumnText(recording.name, rowScope = this)
     rightAlignedColumnText(text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
                            colWidth = RECORDING_TIME_COL_WIDTH_DP)
-    rightAlignedColumnText(text = supportedTask.description, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
+    rightAlignedColumnText(text = recording.getTaskType().description, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
 
@@ -91,8 +89,7 @@ fun RecordingListHeader() {
 }
 
 @Composable
-fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionItem?, onRecordingSelection: (SessionItem?) -> Unit,
-                   getSupportedTask: (SessionItem) -> ProfilerTaskType) {
+fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionItem?, onRecordingSelection: (SessionItem?) -> Unit) {
   val listState = rememberSelectableLazyListState()
 
   Box {
@@ -112,7 +109,7 @@ fun RecordingTable(recordingList: List<SessionItem>, selectedRecording: SessionI
         Divider(color = TABLE_SEPARATOR_COLOR, modifier = Modifier.fillMaxWidth(), thickness = 1.dp, orientation = Orientation.Horizontal)
       }
       items(items = recordingList) { recording ->
-        RecordingListRow(selectedRecording, recording, getSupportedTask(recording))
+        RecordingListRow(selectedRecording, recording)
       }
     }
 
