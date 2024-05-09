@@ -31,6 +31,7 @@ import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.Pro
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.addDeviceWithProcess
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createDevice
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.createProcess
+import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.stopProcess
 import com.android.tools.profilers.tasks.taskhandlers.TaskModelTestUtils.updateDeviceState
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -304,6 +305,48 @@ class ProcessListModelTest {
     // Make sure that despite being lexicographically greater than the "FakeProcess1", because it is the preferred process, "FakeProcess3"
     // is the first device process listed.
     assertThat(processListModel.getSelectedDeviceProcesses().first().name).isEqualTo("FakeProcess3")
+  }
+
+  @Test
+  fun `removing selected process revokes selection and selects preferred process`() {
+    assertThat(processListModel.deviceToProcesses.value).isEmpty()
+
+    val device = createDevice("FakeDevice", Common.Device.State.ONLINE)
+    // Select the device
+    processListModel.onDeviceSelection(device)
+
+    val process1 = createProcess(10, "FakeProcess1", Common.Process.State.ALIVE, device.deviceId)
+    val process2 = createProcess(20, "FakeProcess2", Common.Process.State.ALIVE, device.deviceId)
+    val process3 = createProcess(30, "FakeProcess3", Common.Process.State.ALIVE, device.deviceId)
+
+    // Once the added device is detected, it is auto-selected.
+    addDeviceWithProcess(device, process1, myTransportService, myTimer)
+    addDeviceWithProcess(device, process2, myTransportService, myTimer)
+    addDeviceWithProcess(device, process3, myTransportService, myTimer)
+
+    // Because the preferred process name will be set after the processes were added no reordering will be done.
+    assertThat(processListModel.getSelectedDeviceProcesses().first().name).isEqualTo("FakeProcess1")
+    // Now set preferred process name which should trigger a reordering of the processes.
+    myProfilers.preferredProcessName = "FakeProcess3"
+
+    assertThat(processListModel.preferredProcessName.value).isEqualTo("FakeProcess3")
+    assertThat(processListModel.deviceToProcesses.value).isNotEmpty()
+    assertThat(processListModel.deviceToProcesses.value.size).isEqualTo(1)
+    assertThat(processListModel.getSelectedDeviceProcesses().size).isEqualTo(3)
+    // Make sure that despite being lexicographically greater than the "FakeProcess1", because it is the preferred process, "FakeProcess3"
+    // is the first device process listed.
+    assertThat(processListModel.getSelectedDeviceProcesses().first().name).isEqualTo("FakeProcess3")
+
+    // Select process1
+    processListModel.onProcessSelection(process1)
+    // Make sure that process1's selection is registered and it is not the preferred process.
+    assertThat(processListModel.selectedProcess.value).isEqualTo(process1)
+    assertThat(processListModel.isPreferredProcessSelected.value).isFalse()
+    // Simulate removal of process1.
+    stopProcess(device, process1, myTransportService, myTimer)
+    // Make sure that removing the selected process resets the model's selection and auto-chooses the preferred process again, if present.
+    assertThat(processListModel.selectedProcess.value).isEqualTo(process3)
+    assertThat(processListModel.isPreferredProcessSelected.value).isTrue()
   }
 
   @Test

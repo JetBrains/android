@@ -85,6 +85,7 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
       autoSelectDevice()
     }
 
+    updateProcessSelection()
     reorderProcessList()
   }
 
@@ -94,6 +95,15 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
   private fun checkForPreferredProcess() {
     val isPreferredProcessPresent = getSelectedDeviceProcesses().find { it.name == _preferredProcessName.value } != null
     if (!isPreferredProcessPresent && _isPreferredProcessSelected.value) {
+      resetProcessSelection()
+    }
+  }
+
+  /**
+   * Resets the process selection if the process is no longer in the updated process list.
+   */
+  private fun updateProcessSelection() {
+    if (selectedProcess.value != Common.Process.getDefaultInstance() && !getSelectedDeviceProcesses().contains(selectedProcess.value)) {
       resetProcessSelection()
     }
   }

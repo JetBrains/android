@@ -27,6 +27,11 @@ object TaskModelTestUtils {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
 
+  fun stopProcess(device: Common.Device, process: Common.Process, transportService: FakeTransportService, timer: FakeTimer) {
+    transportService.stopProcess(device, process)
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+  }
+
   fun createDevice(deviceName: String, deviceState: Common.Device.State): Common.Device = createDevice(deviceName, deviceState, deviceName)
 
   fun createDevice(deviceName: String,
