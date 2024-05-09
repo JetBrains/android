@@ -303,7 +303,9 @@ class AddDestinationMenuTest {
 
   @Test
   fun testCreateBlank() {
-    model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
+    model.flattenComponents().map { it.id } .forEach {
+      if(it != null) model.pendingIds.add(it)
+    }
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
@@ -335,7 +337,9 @@ class AddDestinationMenuTest {
 
   @Test
   fun testCreateBlankNoLayout() {
-    model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
+    model.flattenComponents().map { it.id } .forEach {
+      if(it != null) model.pendingIds.add(it)
+    }
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
@@ -365,7 +369,9 @@ class AddDestinationMenuTest {
   @Test
   @RunsInEdt
   fun testCreateSettingsFragment() {
-    model.pendingIds.addAll(model.flattenComponents().map { it.id }.collect(Collectors.toList()))
+    model.flattenComponents().map { it.id } .forEach {
+      if(it != null) model.pendingIds.add(it)
+    }
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
