@@ -1673,7 +1673,7 @@ public final class StudioFlags {
       "crashlytics.show.insight",
       "Show insight for Crashlytics",
       "Show AI generated insights for Crashlytics issue",
-      false
+      true
     );
 
   public static final Flag<Boolean> PLAY_VITALS_ENABLED =
@@ -1714,7 +1714,7 @@ public final class StudioFlags {
       "play.vitals.show.insight",
       "Show insight for Play Vitals",
       "Show AI generated insights for Play Vitals issue",
-      false
+      true
     );
   // endregion App Insights
 
