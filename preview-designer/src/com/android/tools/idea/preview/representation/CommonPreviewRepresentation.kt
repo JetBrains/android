@@ -145,6 +145,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit,
   renderingTopic: RenderingTopic,
   useCustomInflater: Boolean = true,
+  private val createRefreshEventBuilder: (NlDesignSurface) -> PreviewRefreshEventBuilder? = { null },
 ) :
   PreviewRepresentation,
   AndroidCoroutinesAware,
@@ -624,6 +625,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         refreshType = type,
         delegateRefresh = { createRefreshJob(it as CommonPreviewRefreshRequest) },
         onRefreshCompleted = onRefreshCompleted,
+        refreshEventBuilder = createRefreshEventBuilder(surface),
       )
     refreshManager.requestRefresh(request)
   }

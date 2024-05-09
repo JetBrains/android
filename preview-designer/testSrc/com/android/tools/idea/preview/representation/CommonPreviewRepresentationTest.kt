@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.representation
 
 import com.android.testutils.delayUntilCondition
+import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.compile.fast.CompilationResult
 import com.android.tools.compile.fast.isSuccess
 import com.android.tools.configurations.Configuration
@@ -34,6 +35,9 @@ import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiTestPreviewElement
 import com.android.tools.idea.preview.TestPreviewRefreshRequest
 import com.android.tools.idea.preview.ZoomConstants
+import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
+import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
+import com.android.tools.idea.preview.analytics.PreviewRefreshTrackerForTest
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -54,6 +58,7 @@ import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.PreviewRefreshEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -343,6 +348,59 @@ class CommonPreviewRepresentationTest {
     }
   }
 
+  @Test
+  fun testPreviewRefreshMetricsAreTracked() {
+    // Turn off flag to make sure quality refreshes won't affect the asserts in this test
+    StudioFlags.PREVIEW_RENDER_QUALITY.override(false)
+
+    var refreshTrackerFailed = false
+    var successEventCount = 0
+    val refreshTracker = PreviewRefreshTrackerForTest {
+      if (
+        it.result != PreviewRefreshEvent.RefreshResult.SUCCESS || it.previewRendersList.isEmpty()
+      ) {
+        return@PreviewRefreshTrackerForTest
+      }
+      try {
+        assertTrue(it.hasInQueueTimeMillis())
+        assertTrue(it.hasRefreshTimeMillis())
+        assertTrue(it.hasType())
+        assertTrue(it.hasResult())
+        assertTrue(it.hasPreviewsCount())
+        assertTrue(it.hasPreviewsToRefresh())
+        assertTrue(it.previewRendersList.isNotEmpty())
+        assertTrue(
+          it.previewRendersList.all { render ->
+            render.hasResult()
+            render.hasRenderTimeMillis()
+            render.hasRenderQuality()
+            render.hasInflate()
+          }
+        )
+        successEventCount++
+      } catch (t: Throwable) {
+        refreshTrackerFailed = true
+      }
+    }
+
+    val previewRepresentation = createPreviewRepresentation()
+    try {
+      AnalyticsSettings.optedIn = true
+      runBlocking(workerThread) {
+        PreviewRefreshTracker.setInstanceForTest(
+          previewRepresentation.previewView.mainSurface,
+          refreshTracker,
+        )
+        previewRepresentation.compileAndWaitForRefresh()
+        delayUntilCondition(delayPerIterationMs = 1000, 5.seconds) { successEventCount > 0 }
+        assertFalse(refreshTrackerFailed)
+      }
+    } finally {
+      PreviewRefreshTracker.cleanAfterTesting(previewRepresentation.previewView.mainSurface)
+      AnalyticsSettings.optedIn = false
+    }
+  }
+
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
     TestPreviewRefreshRequest.log = StringBuilder()
@@ -383,6 +441,12 @@ class CommonPreviewRepresentationTest {
         viewModelConstructor = { _, _, _, _, _, _ -> previewViewModelMock },
         configureDesignSurface = {},
         renderingTopic = RenderAsyncActionExecutor.RenderingTopic.NOT_SPECIFIED,
+        createRefreshEventBuilder = { surface ->
+          PreviewRefreshEventBuilder(
+            PreviewRefreshEvent.PreviewType.UNKNOWN_TYPE,
+            PreviewRefreshTracker.getInstance(surface),
+          )
+        },
       )
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
     return previewRepresentation
