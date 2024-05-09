@@ -48,6 +48,7 @@ import com.android.tools.idea.preview.PsiPreviewElementInstance
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.RenderQualityPolicy
 import com.android.tools.idea.preview.SimpleRenderQualityManager
+import com.android.tools.idea.preview.ZoomConstants
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.animation.AnimationPreview
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
@@ -219,7 +220,12 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
               else -> null
             }
           }
-          .apply { configureDesignSurface() },
+          .apply {
+            setMaxZoomToFitLevel(ZoomConstants.MAX_ZOOM_TO_FIT_LEVEL)
+            setMinScale(ZoomConstants.MIN_SCALE)
+            setMaxScale(ZoomConstants.MAX_SCALE)
+            configureDesignSurface()
+          },
         this,
       )
       .also {

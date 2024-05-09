@@ -33,6 +33,7 @@ import com.android.tools.idea.preview.PreviewInvalidationManager
 import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.PsiTestPreviewElement
 import com.android.tools.idea.preview.TestPreviewRefreshRequest
+import com.android.tools.idea.preview.ZoomConstants
 import com.android.tools.idea.preview.fast.FastPreviewSurface
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroupManager
@@ -323,6 +324,24 @@ class CommonPreviewRepresentationTest {
       assertFalse(previewRepresentation.isInvalidatedForTest())
       blockingRefresh.runningRefreshJob!!.cancel()
     }
+
+  @Test
+  fun zoomIsInitializedProperly() {
+    runBlocking(workerThread) {
+      val preview = createPreviewRepresentation()
+      val surface = preview.previewView.mainSurface
+
+      assertEquals(
+        ZoomConstants.MAX_ZOOM_TO_FIT_LEVEL,
+        surface.zoomController.maxZoomToFitLevel,
+        0.001,
+      )
+      assertEquals(ZoomConstants.MIN_SCALE, surface.zoomController.minScale, 0.001)
+      assertEquals(ZoomConstants.MAX_SCALE, surface.zoomController.maxScale, 0.001)
+
+      preview.onDeactivate()
+    }
+  }
 
   private suspend fun blockRefreshManager(): TestPreviewRefreshRequest {
     // block the refresh manager with a high priority refresh that won't finish
