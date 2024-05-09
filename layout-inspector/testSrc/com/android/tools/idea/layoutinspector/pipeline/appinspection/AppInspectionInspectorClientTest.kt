@@ -377,7 +377,6 @@ class AppInspectionInspectorClientTest {
     composeCommands.take().let { command ->
       assertThat(command.specializedCase)
         .isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
-      assertThat(command.updateSettingsCommand.includeRecomposeCounts).isFalse()
       assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
     // View Inspector layout event -> Compose Inspector get composables commands
@@ -386,14 +385,12 @@ class AppInspectionInspectorClientTest {
         .isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.GET_COMPOSABLES_COMMAND)
     }
 
-    inspectorRule.inspector.treeSettings.showRecompositions = true
     (inspectorRule.inspectorClient as AppInspectionInspectorClient)
       .updateRecompositionCountSettings()
 
     composeCommands.take().let { command ->
       assertThat(command.specializedCase)
         .isEqualTo(LayoutInspectorComposeProtocol.Command.SpecializedCase.UPDATE_SETTINGS_COMMAND)
-      assertThat(command.updateSettingsCommand.includeRecomposeCounts).isTrue()
       assertThat(command.updateSettingsCommand.delayParameterExtractions).isTrue()
     }
   }

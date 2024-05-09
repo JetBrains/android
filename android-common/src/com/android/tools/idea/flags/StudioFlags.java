@@ -862,6 +862,11 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.extra.logging", "Add extra logging for problem detection",
     "When this flag is enabled, LayoutInspector will add extra logging for detection of various problems.",
     false);
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_COUNTS_DEFAULT = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.recomposition.counts.default", "Enable or disable recomposition counts by default",
+    "When this flag is enabled, recomposition counts will be enabled by default.",
+    true);
   //endregion
 
   //region Embedded Emulator

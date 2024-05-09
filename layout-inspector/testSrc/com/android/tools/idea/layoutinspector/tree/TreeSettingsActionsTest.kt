@@ -145,7 +145,7 @@ class TreeSettingsActionsTest {
   @Test
   fun testRecompositionCounts() {
     val event = createEvent()
-    assertThat(RecompositionCounts.isSelected(event)).isEqualTo(false)
+    assertThat(RecompositionCounts.isSelected(event)).isEqualTo(DEFAULT_RECOMPOSITIONS)
 
     RecompositionCounts.testActionVisibility(event, Capability.SUPPORTS_COMPOSE)
     capabilities.add(Capability.HAS_LINE_NUMBER_INFORMATION)
