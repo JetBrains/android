@@ -29,10 +29,10 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic
+import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixFactory
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixesList
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder
-import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.diagnosticFixFactoryFromIntentionActions
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
@@ -51,8 +51,8 @@ class KotlinAndroidResourceQuickFixRegistrarK2 : KotlinQuickFixRegistrar() {
     }
 }
 
-private val kotlinAndroidResourceQuickFixFactory = diagnosticFixFactoryFromIntentionActions { diagnostic: KtFirDiagnostic.UnresolvedReference ->
-    val ref = diagnostic.psi as? KtSimpleNameExpression ?: return@diagnosticFixFactoryFromIntentionActions emptyList<IntentionAction>()
+private val kotlinAndroidResourceQuickFixFactory = KotlinQuickFixFactory.IntentionBased { diagnostic: KtFirDiagnostic.UnresolvedReference ->
+    val ref = diagnostic.psi as? KtSimpleNameExpression ?: return@IntentionBased emptyList<IntentionAction>()
     buildList { buildKotlinAndroidResourceQuickFixActions(ref, ::add) }
 }
 
