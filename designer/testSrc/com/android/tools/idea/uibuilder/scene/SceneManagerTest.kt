@@ -32,6 +32,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.executeCapturingLoggedErrors
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil.model
 import com.android.tools.idea.uibuilder.getRoot
 import com.android.tools.idea.uibuilder.surface.TestSceneView
@@ -41,6 +42,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.CompletableFuture
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
@@ -51,7 +53,8 @@ class TestSceneManager(
   model: NlModel,
   surface: DesignSurface<*>,
   sceneComponentProvider: SceneComponentHierarchyProvider? = null,
-) : SceneManager(model, surface, sceneComponentProvider, null) {
+  sceneUpdateListener: SceneUpdateListener? = null,
+) : SceneManager(model, surface, sceneComponentProvider, sceneUpdateListener) {
   override fun doCreateSceneView(): SceneView = TestSceneView(100, 100, this)
 
   override fun getSceneScalingFactor(): Float = 1f
@@ -169,5 +172,57 @@ class SceneManagerTest {
 
     Disposer.dispose(sceneManager)
     Disposer.dispose(model)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSceneManagerListenerExceptionDoesNotBreakUpdate() {
+    var sceneListenerWasInvoked = false
+    val brokenListener =
+      SceneManager.SceneUpdateListener { _, _ ->
+        sceneListenerWasInvoked = true
+        throw NullPointerException()
+      }
+    var createHierarchyWasInvoked = false
+    val componentProvider =
+      object : SceneManager.SceneComponentHierarchyProvider {
+        override fun createHierarchy(
+          manager: SceneManager,
+          component: NlComponent,
+        ): List<SceneComponent> {
+          createHierarchyWasInvoked = true
+          return emptyList()
+        }
+
+        override fun syncFromNlComponent(sceneComponent: SceneComponent) {}
+      }
+
+    val model =
+      model(projectRule, "layout", "layout.xml", ComponentDescriptor(SdkConstants.FRAME_LAYOUT))
+        .build()
+        .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
+    val surface = TestDesignSurface(projectRule.project, projectRule.fixture.testRootDisposable)
+    surface.addModelWithoutRender(model)
+    val sceneManager =
+      TestSceneManager(model, surface, componentProvider, brokenListener).also {
+        Disposer.register(projectRule.fixture.testRootDisposable, it)
+      }
+
+    val sceneDisplayListVersionBeforeUpdate = sceneManager.scene.displayListVersion
+    sceneManager.updateSceneView()
+
+    // executeCapturingLoggedErrors prevents Logger.error from throwing.
+    // This allows us to simulate exactly the production behaviour where
+    // Logger.error does not throw.
+    executeCapturingLoggedErrors { sceneManager.update() }
+    assertTrue("SceneManager#update did not invoke SceneUpdateListener", sceneListenerWasInvoked)
+    assertTrue(
+      "SceneManager#update did not invoke SceneComponentHierarchyProvider#createHierarchy",
+      createHierarchyWasInvoked,
+    )
+    assertTrue(
+      "SceneManager#update did not invalidate the display list",
+      sceneManager.scene.displayListVersion > sceneDisplayListVersionBeforeUpdate,
+    )
   }
 }

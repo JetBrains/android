@@ -32,6 +32,7 @@ import com.android.tools.idea.res.ResourceNotificationManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.HashSet;
@@ -186,7 +187,13 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
       scene.removeAllComponents();
       scene.setRoot(null);
     }
-    mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
+
+    try {
+      mySceneUpdateListener.onUpdate(rootComponent, myDesignSurface);
+    } catch (Throwable t) {
+      // The listener throwing should not prevent the rest of the code from working
+      Logger.getInstance(SceneManager.class).error(t);
+    }
 
     List<SceneComponent> hierarchy = mySceneComponentProvider.createHierarchy(this, rootComponent);
     SceneComponent root;
