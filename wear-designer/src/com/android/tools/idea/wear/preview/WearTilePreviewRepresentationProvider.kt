@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.SdkConstants
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
 import com.android.tools.idea.flags.StudioFlags
@@ -71,7 +72,7 @@ class WearTilePreviewRepresentationProvider(
   /** Creates a [WearTilePreviewRepresentation] for the input [psiFile]. */
   override suspend fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
     return WearTilePreviewRepresentation(
-      TILE_SERVICE_VIEW_ADAPTER,
+      SdkConstants.CLASS_TILE_SERVICE_VIEW_ADAPTER,
       psiFile,
       { psiFilePointer -> FilePreviewElementProvider(psiFilePointer, filePreviewElementFinder) },
       WearTilePreviewElementModelAdapter(),

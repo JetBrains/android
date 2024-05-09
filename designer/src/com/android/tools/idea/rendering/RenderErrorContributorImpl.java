@@ -22,6 +22,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_FLEXBOX_LAYOUT;
+import static com.android.SdkConstants.CLASS_TILE_SERVICE_VIEW_ADAPTER;
 import static com.android.SdkConstants.CLASS_VIEW;
 import static com.android.SdkConstants.DOT_JAVA;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
@@ -1052,6 +1053,12 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         builder.newline().addNbsps(3);
         builder.addLink("Add ui-tooling library dependency to the project",
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
+        builder.add(", ");
+      }
+      else if (CLASS_TILE_SERVICE_VIEW_ADAPTER.equals(className)) {
+        builder.newline().addNbsps(3);
+        builder.addLink("Add tiles-tooling library dependency to the project",
+                        myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.WEAR_TILES_TOOLING));
         builder.add(", ");
       }
 
