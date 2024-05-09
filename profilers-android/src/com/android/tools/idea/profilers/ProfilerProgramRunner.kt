@@ -160,7 +160,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     // state is invalid.
     if (StudioFlags.PROFILER_TASK_BASED_UX.get()) {
       val taskHomeTabModel = AndroidProfilerToolWindowFactory.getProfilerToolWindow(environment.project)?.profilers?.taskHomeTabModel
-      taskHomeTabModel?.resetSelectionStateOnTaskEnter()
+      taskHomeTabModel?.resetSelectionStateAndClearStartupTaskConfigs()
     }
     // Cancel the profiling session.
     return resolvedPromise()

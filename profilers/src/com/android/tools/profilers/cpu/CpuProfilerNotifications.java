@@ -15,6 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.Notification.createError;
+import static com.android.tools.profilers.Notification.createWarning;
+
 import com.android.tools.profilers.Notification;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,27 +70,4 @@ final class CpuProfilerNotifications {
     "Your capture exceeded the buffer limit, some data may be missing. " +
     "Consider recording a shorter trace."
   );
-
-  @NotNull
-  private static Notification createNotification(@NotNull Notification.Severity severity,
-                                                @NotNull String title,
-                                                @NotNull String text,
-                                                boolean reportBug) {
-    if (reportBug) {
-      var url = new Notification.UrlData("https://issuetracker.google.com/issues/new?component=192708", "report a bug");
-      return new Notification(severity, title, text, url);
-    } else {
-      return new Notification(severity, title, text, null);
-    }
-  }
-
-  @NotNull
-  private static Notification createWarning(@NotNull String title, @NotNull String text) {
-    return createNotification(Notification.Severity.WARNING, title, text, false);
-  }
-
-  @NotNull
-  private static Notification createError(@NotNull String title, @NotNull String text) {
-    return createNotification(Notification.Severity.ERROR, title, text, true);
-  }
 }

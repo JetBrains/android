@@ -115,12 +115,12 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     _taskRecordingType.value = recordingType
   }
 
-  fun resetSelectionStateOnTaskEnter() {
+  fun resetSelectionStateAndClearStartupTaskConfigs() {
     selectionStateOnTaskEnter = null
-    // The call to disable startup tasks might already be done by the `AndroidProfilerTaskLaunchContributor` after consuming the config to
-    // start the task capture, but in other cases (such as when the user cancels a debuggable build via the dialog), it is not.
+    // The call to clearStartupTaskConfigs might already be done by the `AndroidProfilerTaskLaunchContributor` after consuming the config
+    // to start the task capture, but in other cases (such as when the user cancels a debuggable build via the dialog), it is not.
     // Nonetheless, it is harmless to call this method multiple times.
-    profilers.ideServices.disableStartupTasks()
+    profilers.ideServices.clearStartupTaskConfigs()
   }
 
   private fun setSelectionState() {
@@ -205,6 +205,9 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
     setSelectionState()
 
     val profilingProcessStartingPoint = _profilingProcessStartingPoint.value
+
+    // Reset the current task type as starting a new task should populate the current task type on processing of new session.
+    profilers.sessionsManager.currentTaskType = ProfilerTaskType.UNSPECIFIED
 
     when (profilingProcessStartingPoint) {
       ProfilingProcessStartingPoint.PROCESS_START -> {

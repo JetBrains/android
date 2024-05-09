@@ -281,11 +281,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     return selectedValue.get();
   }
 
-  @Override
-  public void openErrorDialog(@NotNull String message, @NotNull String title) {
-    Messages.showErrorDialog(message, title);
-  }
-
   /**
    * Gets a {@link List} of directories containing the symbol files corresponding to the architecture of the session currently selected.
    */
@@ -342,7 +337,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void disableStartupTasks() {
+  public void clearStartupTaskConfigs() {
     RunManager runManager = RunManager.getInstance(myProject);
     if (runManager != null) {
       RunnerAndConfigurationSettings configurationSettings = runManager.getSelectedConfiguration();

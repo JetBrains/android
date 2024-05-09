@@ -53,6 +53,7 @@ import com.android.tools.profilers.memory.MemoryProfiler;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
+import com.android.tools.profilers.taskbased.TaskNotifications;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection;
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ToolbarDeviceSelection;
@@ -339,7 +340,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
         if (isTaskBasedUXEnabled) {
           if (startupProfilingStarted()) {
-            getTaskHomeTabModel().resetSelectionStateOnTaskEnter();
+            getTaskHomeTabModel().resetSelectionStateAndClearStartupTaskConfigs();
           }
         }
         else {
@@ -856,7 +857,21 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       ProfilerTaskType selectedTaskType = mySessionsManager.getCurrentTaskType();
       Map<Long, SessionItem> sessionIdToSessionItems = mySessionsManager.getSessionIdToSessionItems();
+
       boolean isStartupTask = mySessionsManager.isCurrentTaskStartup();
+
+      // Regardless if the startup task is launched successfully, all state related to performing a startup task is reset to prevent usage
+      // of this outdated state by external deployment methods (anything besides clicking the "Start profiler task" button).
+      if (isStartupTask) {
+        myTaskHomeTabModel.resetSelectionStateAndClearStartupTaskConfigs();
+      }
+
+      if (isStartupTask && !startupProfilingStarted() && mySessionsManager.isSessionAlive()) {
+        mySessionsManager.endSelectedSession();
+        myIdeServices.showNotification(TaskNotifications.STARTUP_TASK_FAILURE);
+        return;
+      }
+
       ProfilerTaskLauncher.launchProfilerTask(selectedTaskType, isStartupTask, getTaskHandlers(), getSession(), sessionIdToSessionItems,
                                               myCreateTaskTab, myIdeServices);
     }

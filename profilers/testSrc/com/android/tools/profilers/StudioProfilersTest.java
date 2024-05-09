@@ -1706,10 +1706,42 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testStartupTaskWithTaskBasedUxEnabled() {
+  public void testStartupTaskAbortedWithNoStartTraceCommandIssuedWithTaskBasedUxEnabled() {
+    // Start startup task with no start trace event to simulate failure from AndroidProfilerLaunchTaskContributor to send start trace
+    // command on startup.
+    startSystemTraceStartupTask(false);
+
+    // Because on startup task abort, a call to end the selected session is made, another update must be triggered to pick up this change.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Check that setProcess was called on process change and thus the session pid is that of FAKE_PROCESS (pid=1).
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
+    // Make sure that the startup task is tied to the session created on startup.
+    assertThat(myProfilers.getSessionsManager().isCurrentTaskStartup()).isTrue();
+    assertThat(myProfilers.getSessionsManager().getCurrentTaskType()).isEqualTo(ProfilerTaskType.SYSTEM_TRACE);
+    // Because no underlying start trace command is sent (would be sent on startup via the AndroidProfilerLaunchTaskContributor), the
+    // startup task should be aborted and the session should be terminated.
+    assertThat(myProfilers.getSessionsManager().isSessionAlive()).isFalse();
+  }
+
+  @Test
+  public void testStartupTaskSucceedsWithTaskBasedUxEnabled() {
+    // Start startup task with start trace event to simulate successful start trace on startup via AndroidProfilerLaunchTaskContributor.
+    startSystemTraceStartupTask(true);
+
+    // Check that setProcess was called on process change and thus the session pid is that of FAKE_PROCESS (pid=1).
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
+    // Make sure that the startup task is tied to the session created on startup.
+    assertThat(myProfilers.getSessionsManager().isCurrentTaskStartup()).isTrue();
+    assertThat(myProfilers.getSessionsManager().getCurrentTaskType()).isEqualTo(ProfilerTaskType.SYSTEM_TRACE);
+    // Because an underlying start trace command is sent (would be sent on startup via the AndroidProfilerLaunchTaskContributor), the
+    // startup task should be successful and the session should be alive indicating so.
+    assertThat(myProfilers.getSessionsManager().isSessionAlive()).isTrue();
+  }
+
+  private void startSystemTraceStartupTask(Boolean addStartTraceEvent) {
     // Setup of conditions to allow for startup task to be performed. This includes enabling the Task-Based UX feature flag, the startup
     // task feature, setting a selected task handler (and supplying its corresponding task handler), and providing a preferred device.
-    myIdeProfilerServices.enableTaskBasedUx(true);
     myProfilers.getTaskHomeTabModel().setSelectionStateOnTaskEnter(
       new TaskHomeTabModel.SelectionStateOnTaskEnter(ProfilingProcessStartingPoint.PROCESS_START, ProfilerTaskType.SYSTEM_TRACE));
     myProfilers.addTaskHandler(ProfilerTaskType.SYSTEM_TRACE, new SystemTraceTaskHandler(myProfilers.getSessionsManager(), false));
@@ -1726,16 +1758,25 @@ public final class StudioProfilersTest {
       .build();
     myTransportService.addProcess(device, debuggableEvent);
 
+    if (addStartTraceEvent) {
+      // Mock the start trace event issued by the AndroidProfilerTaskLaunchContributor.
+      Trace.TraceInfo traceInfo = Trace.TraceInfo.newBuilder()
+        .setConfiguration(Trace.TraceConfiguration.newBuilder()
+                            .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP))
+        .build();
+      myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
+        .setGroupId(myTimer.getCurrentTimeNs())
+        .setPid(FAKE_PROCESS.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setTraceData(Trace.TraceData.newBuilder()
+                        .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo).build()))
+        .build());
+    }
+
     // Because there is a change in processes, the StudioProfiler#update loop will attempt to start a new session on the preferred device.
     // It will succeed because Task-Based UX is enabled, the startup tasks feature is enabled, a task is selected (SYSTEM_TRACE), and a
     // preferred device is supplied.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-
-    // Check that setProcess was called on process change and thus the session pid is that of FAKE_PROCESS (pid=1).
-    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
-    // Make sure that the startup task is tied to the session created on startup.
-    assertThat(myProfilers.getSessionsManager().isCurrentTaskStartup()).isTrue();
-    assertThat(myProfilers.getSessionsManager().getCurrentTaskType()).isEqualTo(ProfilerTaskType.SYSTEM_TRACE);
   }
 
   @Test
