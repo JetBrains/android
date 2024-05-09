@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.event.MouseListener
 import java.lang.Integer.min
 import javax.swing.JPanel
 
@@ -41,6 +42,7 @@ class AppInsightsContentPanel(
   cellRenderer: AppInsightsTableCellRenderer,
   name: String,
   secondaryToolWindows: List<ToolWindowDefinition<AppInsightsToolWindowContext>>,
+  tableMouseListener: MouseListener? = null,
   createCenterPanel: ((Int) -> Unit) -> Component,
 ) : JPanel(BorderLayout()), Disposable {
   private val issuesTableView: AppInsightsIssuesTableView
@@ -48,7 +50,8 @@ class AppInsightsContentPanel(
   init {
     Disposer.register(parentDisposable, this)
     val issuesModel = AppInsightsIssuesTableModel(cellRenderer)
-    issuesTableView = AppInsightsIssuesTableView(issuesModel, projectController, cellRenderer)
+    issuesTableView =
+      AppInsightsIssuesTableView(issuesModel, projectController, cellRenderer, tableMouseListener)
     Disposer.register(this, issuesTableView)
     val mainContentPanel = JPanel(BorderLayout())
     mainContentPanel.add(createCenterPanel(issuesTableView::setHeaderHeight))
