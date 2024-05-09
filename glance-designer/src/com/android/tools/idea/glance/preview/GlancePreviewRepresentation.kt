@@ -61,7 +61,13 @@ internal class GlancePreviewRepresentation(
   )
 
 private fun NlDesignSurface.Builder.configureDesignSurface() {
-  setActionManagerProvider(::CommonPreviewActionManager)
+  setActionManagerProvider { surface ->
+    CommonPreviewActionManager(
+      surface,
+      supportAnimationPreview = false,
+      supportInteractivePreview = false,
+    )
+  }
   setSupportedActions(GLANCE_APPWIDGET_SUPPORTED_ACTIONS)
   setScreenViewProvider(GLANCE_SCREEN_VIEW_PROVIDER, false)
 }

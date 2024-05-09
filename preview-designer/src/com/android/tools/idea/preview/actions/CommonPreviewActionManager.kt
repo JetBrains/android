@@ -25,8 +25,16 @@ import com.intellij.openapi.actionSystem.Separator
 import javax.swing.JComponent
 
 /** Common preview [ActionManager] for the [DesignSurface]. */
-class CommonPreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) :
-  ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+class CommonPreviewActionManager(
+  surface: DesignSurface<LayoutlibSceneManager>,
+  supportAnimationPreview: Boolean = true,
+  supportInteractivePreview: Boolean = true,
+) : ActionManager<DesignSurface<LayoutlibSceneManager>>(surface) {
+  private val animationPreviewAction =
+    if (supportAnimationPreview) AnimationInspectorAction() else null
+  private val interactivePreviewAction =
+    if (supportInteractivePreview) EnableInteractiveAction() else null
+
   override fun registerActionsShortcuts(component: JComponent) {}
 
   override fun getPopupMenuActions(leafComponent: NlComponent?) = DefaultActionGroup()
@@ -37,7 +45,7 @@ class CommonPreviewActionManager(surface: DesignSurface<LayoutlibSceneManager>) 
 
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
-      listOfNotNull(AnimationInspectorAction(), EnableInteractiveAction())
+      listOfNotNull(animationPreviewAction, interactivePreviewAction)
         .disabledIf { context -> isPreviewRefreshing(context) || hasSceneViewErrors(context) }
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()
