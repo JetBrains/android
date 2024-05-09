@@ -16,6 +16,7 @@
 
 #include "ui_settings.h"
 
+#include <cmath>
 #include <numeric>
 #include <regex>
 #include <set>
@@ -135,7 +136,7 @@ void ProcessFontScale(stringstream* stream, UiSettingsState* state) {
   if (getline(*stream, line, '\n')) {
     sscanf(line.c_str(), "%g", &font_scale);
   }
-  state->set_font_scale(font_scale * 100.);
+  state->set_font_scale(lround(font_scale * 100.));
 }
 
 void ReadDensity(stringstream* stream, const char* pattern, int* density) {
