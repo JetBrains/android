@@ -51,8 +51,7 @@ class KotlinAndroidResourceQuickFixRegistrarK2 : KotlinQuickFixRegistrar() {
     }
 }
 
-private val kotlinAndroidResourceQuickFixFactory = diagnosticFixFactoryFromIntentionActions(
-  KtFirDiagnostic.UnresolvedReference::class) { diagnostic ->
+private val kotlinAndroidResourceQuickFixFactory = diagnosticFixFactoryFromIntentionActions { diagnostic: KtFirDiagnostic.UnresolvedReference ->
     val ref = diagnostic.psi as? KtSimpleNameExpression ?: return@diagnosticFixFactoryFromIntentionActions emptyList<IntentionAction>()
     buildList { buildKotlinAndroidResourceQuickFixActions(ref, ::add) }
 }
