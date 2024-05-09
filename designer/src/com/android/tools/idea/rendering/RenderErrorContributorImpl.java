@@ -1050,7 +1050,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
       else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
         builder.newline().addNbsps(3);
-        builder.addLink("Add ui-tooling-preview library dependency to the project",
+        builder.addLink("Add ui-tooling library dependency to the project",
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
         builder.add(", ");
       }
