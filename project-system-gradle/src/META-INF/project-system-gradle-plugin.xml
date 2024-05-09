@@ -182,6 +182,7 @@
     <facetType implementation="com.android.tools.idea.gradle.project.facet.java.JavaFacetType"/>
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.facet.java.DoNotUseLegacyJavaFacetRemover" />
     <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
+    <spellchecker.support language="kotlin" implementationClass="org.jetbrains.kotlin.android.spellchecker.AndroidGradleKtsSpellcheckingStrategy" order="first"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij.properties">
     <implicitPropertyUsageProvider implementation="com.android.tools.idea.editors.GradleImplicitPropertyUsageProvider"/>
