@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.annotations.concurrency.Slow
+import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.IdeNetworkCacheUtils
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
@@ -126,8 +127,8 @@ object IdeGooglePlaySdkIndex : GooglePlaySdkIndex(getCacheDir()) {
   /***
    * Initialize the SDK index and set flags according to StudioFlags
    */
-  fun initializeAndSetFlags() {
-    initialize()
+  fun initializeAndSetFlags(googleMavenRepository: GoogleMavenRepository) {
+    initialize(googleMavenRepository)
     showPolicyIssues = StudioFlags.SHOW_SDK_INDEX_POLICY_ISSUES.get()
   }
 
