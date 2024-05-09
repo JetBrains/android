@@ -29,6 +29,7 @@ import com.intellij.util.ui.JButtonAction
 import icons.StudioIcons
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.UIManager
 
 private val CRASHLYTICS_GEMINI_PROMPT_FORMAT =
   """
@@ -70,6 +71,7 @@ object InsightAction :
     return super.createCustomComponent(presentation, place).apply {
       // Reset the property set by JButtonAction. It makes the button appear squished.
       putClientProperty("ActionToolbar.smallVariant", false)
+      setFont(UIManager.getFont("Button.font"))
     }
   }
 
