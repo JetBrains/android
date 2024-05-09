@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.common.model
 
-import com.android.ide.common.rendering.api.ViewInfo
-import com.intellij.psi.xml.XmlTag
+import com.android.tools.rendering.parsers.TagSnapshot
 
-/**
- * Responsible for updating [NlModel] once results from LayoutLibSceneManager is available as
- * [TagSnapshotTreeNode].
- */
-interface NlModelUpdaterInterface {
-  fun updateFromTagSnapshot(model: NlModel, newRoot: XmlTag?, roots: List<TagSnapshotTreeNode>)
+/** A node in a tree structure where each node provides a [TagSnapshot]. */
+interface TagSnapshotTreeNode {
+  val tagSnapshot: TagSnapshot?
 
-  fun updateFromViewInfo(model: NlModel, viewInfos: List<ViewInfo>)
+  val children: List<TagSnapshotTreeNode>
 }

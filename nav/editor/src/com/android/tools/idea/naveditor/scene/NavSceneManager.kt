@@ -26,6 +26,7 @@ import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.SelectionListener
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.common.model.scaledAndroidLength
 import com.android.tools.idea.common.scene.DefaultSceneManagerHierarchyProvider
 import com.android.tools.idea.common.scene.HitProvider
@@ -541,7 +542,7 @@ open class NavSceneManager(
 
 // TODO: this should be moved somewhere model-specific, since it is relevant even absent a Scene
 fun updateHierarchy(model: NlModel, newModel: NlModel?) {
-  var roots: List<NlModel.TagSnapshotTreeNode> = listOf()
+  var roots: List<TagSnapshotTreeNode> = listOf()
   var newRoot = AndroidPsiUtils.getRootTagSafely(model.file)
 
   newModel?.let {
@@ -555,16 +556,14 @@ fun updateHierarchy(model: NlModel, newModel: NlModel?) {
   }
 }
 
-private fun buildTree(roots: List<XmlTag>): List<NlModel.TagSnapshotTreeNode> {
+private fun buildTree(roots: List<XmlTag>): List<TagSnapshotTreeNode> {
   return roots.map {
-    object : NlModel.TagSnapshotTreeNode {
-      override fun getTagSnapshot(): TagSnapshot {
-        return TagSnapshot.createTagSnapshot(PsiXmlTag(it), null)
-      }
+    object : TagSnapshotTreeNode {
+      override val tagSnapshot: TagSnapshot?
+        get() = TagSnapshot.createTagSnapshot(PsiXmlTag(it), null)
 
-      override fun getChildren(): List<NlModel.TagSnapshotTreeNode> {
-        return buildTree(it.subTags.toList())
-      }
+      override val children: List<TagSnapshotTreeNode>
+        get() = buildTree(it.subTags.toList())
     }
   }
 }

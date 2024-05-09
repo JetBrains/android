@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -86,12 +87,13 @@ private fun createComponent(xmlTag: String, nlModel: NlModel): NlComponent {
   return nlComponent
 }
 
-private class StubTagSnapshotTreeNode(private val component: NlComponent) :
-  NlModel.TagSnapshotTreeNode {
-  override fun getTagSnapshot(): TagSnapshot? = component.snapshot
+private class StubTagSnapshotTreeNode(private val component: NlComponent) : TagSnapshotTreeNode {
 
-  override fun getChildren(): MutableList<NlModel.TagSnapshotTreeNode> =
-    component.children.map { StubTagSnapshotTreeNode(it) }.toMutableList()
+  override val children: List<TagSnapshotTreeNode>
+    get() = component.children.map { StubTagSnapshotTreeNode(it) }.toMutableList()
+
+  override val tagSnapshot: TagSnapshot?
+    get() = component.snapshot
 }
 
 private class LightLayoutFile(xmlContent: String) :

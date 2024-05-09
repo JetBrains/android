@@ -449,17 +449,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
     myListeners.forEach(listener -> listener.modelLiveUpdate(this, animate));
   }
 
-  /**
-   * A node in a tree structure where each node provides a {@link TagSnapshot}.
-   */
-  public interface TagSnapshotTreeNode {
-    @Nullable
-    TagSnapshot getTagSnapshot();
-
-    @NotNull
-    List<TagSnapshotTreeNode> getChildren();
-  }
-
   @NotNull
   public ImmutableList<NlComponent> findByOffset(int offset) {
     XmlTag tag = PsiTreeUtil.findElementOfClassAtOffset(getFile(), offset, XmlTag.class, false);

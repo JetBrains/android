@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
-import com.android.tools.idea.common.model.NlModel.TagSnapshotTreeNode
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar

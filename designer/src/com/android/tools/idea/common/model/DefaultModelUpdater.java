@@ -83,11 +83,11 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
   /**
    * Update the component hierarchy associated with this {@link NlModel} such
    * that the associated component list correctly reflects the latest versions of the
-   * XML PSI file, the given tag snapshot and {@link NlModel.TagSnapshotTreeNode} hierarchy
+   * XML PSI file, the given tag snapshot and {@link TagSnapshotTreeNode} hierarchy
    */
   @VisibleForTesting
   @Override
-  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<? extends NlModel.TagSnapshotTreeNode> roots) {
+  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<? extends TagSnapshotTreeNode> roots) {
     ModelUpdaterData data = new ModelUpdaterData();
 
     data.myModel = model;
@@ -105,7 +105,7 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
 
       // Next find the snapshots corresponding to the missing components.
       // We have to search among the view infos in the new components.
-      for (NlModel.TagSnapshotTreeNode root : roots) {
+      for (TagSnapshotTreeNode root : roots) {
         gatherTagsAndSnapshots(root, data.myTagToSnapshot);
       }
 
@@ -136,7 +136,7 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
     }
 
     // Update the components' snapshots
-    for (NlModel.TagSnapshotTreeNode root : roots) {
+    for (TagSnapshotTreeNode root : roots) {
       updateHierarchy(root, data);
     }
   }
@@ -301,13 +301,13 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
     }
   }
 
-  private static void gatherTagsAndSnapshots(@NotNull NlModel.TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
+  private static void gatherTagsAndSnapshots(@NotNull TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
     TagSnapshot snapshot = node.getTagSnapshot();
     if (snapshot != null && snapshot.tag instanceof PsiXmlTag xmlTag) {
       map.put(xmlTag.getPsiXmlTag(), snapshot);
     }
 
-    for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {
+    for (TagSnapshotTreeNode child : node.getChildren()) {
       gatherTagsAndSnapshots(child, map);
     }
   }
@@ -338,7 +338,7 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
     return component;
   }
 
-  private void updateHierarchy(@NotNull NlModel.TagSnapshotTreeNode node, ModelUpdaterData data) {
+  private void updateHierarchy(@NotNull TagSnapshotTreeNode node, ModelUpdaterData data) {
     TagSnapshot snapshot = ApplicationManager.getApplication().runReadAction((Computable<? extends TagSnapshot>)node::getTagSnapshot);
     NlComponent component;
     if (snapshot != null) {
@@ -354,7 +354,7 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
         component.setTag(((PsiXmlTag)snapshot.tag).getPsiXmlTag());
       }
     }
-    for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {
+    for (TagSnapshotTreeNode child : node.getChildren()) {
       updateHierarchy(child, data);
     }
   }

@@ -25,6 +25,7 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
@@ -204,7 +205,7 @@ private object EmptyModelUpdater : NlModelUpdaterInterface {
   override fun updateFromTagSnapshot(
     model: NlModel,
     newRoot: XmlTag?,
-    roots: List<NlModel.TagSnapshotTreeNode>,
+    roots: List<TagSnapshotTreeNode>,
   ) = Unit
 
   override fun updateFromViewInfo(model: NlModel, viewInfos: List<ViewInfo>) = Unit

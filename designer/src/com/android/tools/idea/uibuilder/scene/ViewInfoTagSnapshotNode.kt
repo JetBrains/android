@@ -16,21 +16,25 @@
 package com.android.tools.idea.uibuilder.scene
 
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.tools.idea.common.model.NlModel.TagSnapshotTreeNode
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.util.containers.ContainerUtil
 
 /** A TagSnapshot tree that mirrors the ViewInfo tree. */
 internal class ViewInfoTagSnapshotNode constructor(private val myViewInfo: ViewInfo) :
   TagSnapshotTreeNode {
-  override fun getTagSnapshot(): TagSnapshot? {
-    val result = myViewInfo.cookie
-    return if (result is TagSnapshot) result else null
-  }
 
-  override fun getChildren(): List<TagSnapshotTreeNode> {
-    return ContainerUtil.map<ViewInfo, TagSnapshotTreeNode>(myViewInfo.children) { info: ViewInfo ->
-      ViewInfoTagSnapshotNode(info)
+  override val children: List<TagSnapshotTreeNode>
+    get() {
+      return ContainerUtil.map<ViewInfo, TagSnapshotTreeNode>(myViewInfo.children) { info: ViewInfo
+        ->
+        ViewInfoTagSnapshotNode(info)
+      }
     }
-  }
+
+  override val tagSnapshot: TagSnapshot?
+    get() {
+      val result = myViewInfo.cookie
+      return if (result is TagSnapshot) result else null
+    }
 }

@@ -33,7 +33,7 @@ class AccessibilityModelUpdater : NlModelUpdaterInterface {
   override fun updateFromTagSnapshot(
     model: NlModel,
     newRoot: XmlTag?,
-    roots: List<NlModel.TagSnapshotTreeNode>,
+    roots: List<TagSnapshotTreeNode>,
   ) {
     var currentRootComponent = model.components.firstOrNull()
     if (newRoot != null) {

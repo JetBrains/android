@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.HeapSnapshotMemoryUseMeasurement
 import com.android.tools.rendering.RenderTask
@@ -132,7 +133,7 @@ class PerfgateVisualLintAnalyzerTest {
       filesToAnalyze.forEach { file ->
         val nlModel = SyncNlModel.create(projectRule.fixture.projectDisposable, NlComponentRegistrar, facet, file, configuration)
         val psiFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, file) as XmlFile
-        nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<NlModel.TagSnapshotTreeNode>())
+        nlModel.syncWithPsi(AndroidPsiUtils.getRootTagSafely(psiFile)!!, emptyList<TagSnapshotTreeNode>())
         RenderTestUtil.withRenderTask(facet, file, configuration) { task: RenderTask ->
           task.setDecorations(false)
           try {
