@@ -878,23 +878,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   // ---- Implements ModificationTracker ----
 
-  public enum ChangeType {
-    RESOURCE_EDIT,
-    EDIT,
-    RESOURCE_CHANGED,
-    ADD_COMPONENTS,
-    DELETE,
-    DND_COMMIT,
-    DND_END,
-    DROP,
-    RESIZE_END, RESIZE_COMMIT,
-    UPDATE_HIERARCHY,
-    BUILD,
-    CONFIGURATION_CHANGE,
-    /** When the model is not active, it will batch all the notifications and send this one on reactivation. */
-    MODEL_ACTIVATION,
-  }
-
   /**
    * Maintains multiple counter depending on what did change in the model
    */

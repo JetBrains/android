@@ -16,7 +16,7 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.TestNavEditor
@@ -124,7 +124,7 @@ class AddToExistingGraphActionTest : NavTestCase() {
     action.actionPerformed(TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null })
     UndoManager.getInstance(project).undo(TestNavEditor(model.virtualFile, project))
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     assertEquals(100, surface.scene?.getSceneComponent("f1")?.drawX)
     assertEquals(200, surface.scene?.getSceneComponent("f1")?.drawY)

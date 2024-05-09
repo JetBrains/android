@@ -36,6 +36,7 @@ import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.layout.LayoutManagerSwitcher;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
 import com.android.tools.idea.common.model.DnDTransferItem;
@@ -477,7 +478,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     getSceneManager().update();
     getSceneManager().layout(false);
     myZoomController.zoomToFit();
-    currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
+    currentNavigation.getModel().notifyModified(ChangeType.UPDATE_HIERARCHY);
     repaint();
   }
 

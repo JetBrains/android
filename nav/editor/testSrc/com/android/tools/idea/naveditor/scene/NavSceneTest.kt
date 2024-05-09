@@ -18,9 +18,9 @@ package com.android.tools.idea.naveditor.scene
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.DesignSurfaceTestUtil.createZoomControllerFake
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.common.model.Coordinates.getSwingRectDip
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -228,7 +228,7 @@ class NavSceneTest {
 
     root.fragment("fragment3")
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     val component1 = scene.getSceneComponent("fragment1")!!
     moveComponentTo(component1, 200, 20)
     val component2 = scene.getSceneComponent("fragment2")!!
@@ -274,7 +274,7 @@ class NavSceneTest {
     val undoManager = UndoManager.getInstance(projectRule.project)
     undoManager.undo(editor)
     PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     model.surface.sceneManager!!.update()
     scene.layout(0, sceneView.context)
 
@@ -916,7 +916,7 @@ class NavSceneTest {
     root?.fragment("fragment1")
 
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->

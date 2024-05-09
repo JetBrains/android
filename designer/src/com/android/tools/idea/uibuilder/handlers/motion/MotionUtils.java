@@ -39,6 +39,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -212,7 +213,7 @@ public class MotionUtils {
 
     // Let's warn we edited the model.
     NlModel nlModel = component.getModel();
-    nlModel.notifyModified(NlModel.ChangeType.EDIT);
+    nlModel.notifyModified(ChangeType.EDIT);
   }
 
   /**

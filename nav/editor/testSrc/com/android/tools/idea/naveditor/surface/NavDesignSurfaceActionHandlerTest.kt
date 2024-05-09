@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.surface
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -104,13 +105,13 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     fragment2.setPosition(987, 654)
     sceneManager.save(listOf(fragment2))
 
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
     sceneManager.update()
 
     // undo the move
     UndoManager.getInstance(project).undo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     assertNull(model.find("fragment"))
     assertNull(scene.getSceneComponent("fragment"))
@@ -118,7 +119,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     // undo the delete
     UndoManager.getInstance(project).undo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     nlComponent = model.find("fragment")!!
     sceneComponent = scene.getSceneComponent(nlComponent)!!
@@ -130,7 +131,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     // redo the delete
     UndoManager.getInstance(project).redo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     assertNull(model.find("fragment"))
     assertNull(scene.getSceneComponent("fragment"))
@@ -138,7 +139,7 @@ class NavDesignSurfaceActionHandlerTest : NavTestCase() {
     // undo again
     UndoManager.getInstance(project).undo(editor)
     PsiDocumentManager.getInstance(project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     nlComponent = model.find("fragment")!!
     sceneComponent = scene.getSceneComponent(nlComponent)!!

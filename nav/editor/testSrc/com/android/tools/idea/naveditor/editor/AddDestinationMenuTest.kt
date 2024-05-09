@@ -23,6 +23,7 @@ import com.android.SdkConstants.TAG_INCLUDE
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
@@ -200,7 +201,7 @@ class AddDestinationMenuTest {
 
     root.include("include1")
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     expected.remove(include1)
     destinations = AddDestinationMenu(surface).destinations
@@ -208,7 +209,7 @@ class AddDestinationMenuTest {
 
     root.fragment("fragment1", name = "mytest.navtest.fragment1")
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     expected.remove(fragment1)
     destinations = AddDestinationMenu(surface).destinations
@@ -216,7 +217,7 @@ class AddDestinationMenuTest {
 
     root.activity("activity2", name = "mytest.navtest.activity2")
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     expected.remove(activity2)
     destinations = AddDestinationMenu(surface).destinations
@@ -224,7 +225,7 @@ class AddDestinationMenuTest {
 
     root.activity("activity3", name = "mytest.navtest.activity3")
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     expected.remove(activity3)
     destinations = AddDestinationMenu(surface).destinations
@@ -233,7 +234,7 @@ class AddDestinationMenuTest {
     (root.findById("@+id/subnav2") as NavModelBuilderUtil.NavigationComponentDescriptor)
       .fragment("fragment2", name = "mytest.navtest.fragment2")
     modelBuilder.updateModel(model)
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     expected.remove(fragment2)
     destinations = AddDestinationMenu(surface).destinations
@@ -267,7 +268,7 @@ class AddDestinationMenuTest {
       cell0Bounds.centerX.toInt(), cell0Bounds.centerX.toInt(), 1, false))
 
     // ordinarily this would be done by the resource change listener
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     assertNotNull(destination.component)
     assertEquals(3, surface.currentNavigation.children.size)
@@ -275,7 +276,7 @@ class AddDestinationMenuTest {
     UndoManager.getInstance(projectRule.project).undo(TestNavEditor(model.virtualFile, projectRule.project))
 
     PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
-    model.notifyModified(NlModel.ChangeType.EDIT)
+    model.notifyModified(ChangeType.EDIT)
 
     assertEquals(2, surface.currentNavigation.children.size)
   }

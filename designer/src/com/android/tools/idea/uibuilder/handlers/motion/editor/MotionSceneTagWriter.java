@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
@@ -239,7 +240,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
   public static void saveAndNotify(PsiFile xmlFile, NlModel nlModel) {
     PsiFileUtil.saveFileIfNecessary(xmlFile);
     // Some tests need to read during notifyModified. The invokeLater avoids deadlocks.
-    ApplicationManager.getApplication().invokeLater(() -> nlModel.notifyModified(NlModel.ChangeType.EDIT));
+    ApplicationManager.getApplication().invokeLater(() -> nlModel.notifyModified(ChangeType.EDIT));
   }
 
   @Override

@@ -437,7 +437,7 @@ public class NlModelTest extends LayoutTestCase {
       () -> model.createComponent(recyclerViewTag, frameLayout, null, InsertType.CREATE
       ),
       model.getFile());
-    model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS);
+    model.notifyModified(ChangeType.ADD_COMPONENTS);
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
@@ -803,7 +803,7 @@ public class NlModelTest extends LayoutTestCase {
     NlModel model = createAndActivateModel(modelXml);
 
     notifyAndCheckListeners(model, NlModel::notifyListenersModelDerivedDataChanged, listener -> listener.modelDerivedDataChanged(any()));
-    notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
+    notifyAndCheckListeners(model, m -> m.notifyModified(ChangeType.EDIT), listener -> listener.modelChanged(any()));
   }
 
   public void testActivateDeactivateListeners() {
@@ -885,7 +885,7 @@ public class NlModelTest extends LayoutTestCase {
     NlModel model = createAndActivateModel(modelXml);
 
     long expectedModificationCount = model.getModificationCount();
-    for (NlModel.ChangeType changeType : NlModel.ChangeType.values()) {
+    for (ChangeType changeType : ChangeType.values()) {
       model.notifyModified(changeType);
       expectedModificationCount += 1;
       assertEquals(expectedModificationCount, model.getModificationCount());
@@ -904,9 +904,9 @@ public class NlModelTest extends LayoutTestCase {
     TestModelListener listener = new TestModelListener();
     model.addListener(listener);
 
-    model.notifyModified(NlModel.ChangeType.EDIT);
-    model.notifyModified(NlModel.ChangeType.EDIT);
-    model.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED);
+    model.notifyModified(ChangeType.EDIT);
+    model.notifyModified(ChangeType.EDIT);
+    model.notifyModified(ChangeType.RESOURCE_CHANGED);
     model.flushPendingUpdates();
     assertEquals("", listener.callLogToString());
 
@@ -917,7 +917,7 @@ public class NlModelTest extends LayoutTestCase {
         modelActivated (null)
         modelChanged (null)
         """, listener.callLogToString());
-    assertEquals(NlModel.ChangeType.MODEL_ACTIVATION, model.getLastChangeType());
+    assertEquals(ChangeType.MODEL_ACTIVATION, model.getLastChangeType());
   }
 
   @NotNull

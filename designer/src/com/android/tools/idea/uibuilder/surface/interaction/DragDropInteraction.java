@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.sdklib.AndroidCoordinate;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.NlComponent;
@@ -245,7 +246,7 @@ public class DragDropInteraction implements Interaction {
       boolean hasDragHandler = myDragHandler != null;
       mySceneView = myDesignSurface.getSceneViewAtOrPrimary(dropEvent.getLocation().x, dropEvent.getLocation().y);
       if (mySceneView != null && myDragReceiver != null && hasDragHandler) {
-        mySceneView.getSceneManager().getModel().notifyModified(NlModel.ChangeType.DND_END);
+        mySceneView.getSceneManager().getModel().notifyModified(ChangeType.DND_END);
 
         // We need to clear the selection otherwise the targets for the newly component are not added until
         // another component is selected and then this one reselected
@@ -399,7 +400,7 @@ public class DragDropInteraction implements Interaction {
 
         // TODO: Run this *after* making a copy
         myDragHandler.commit(ax, ay, modifiers, insertType);
-        model.notifyModified(NlModel.ChangeType.DND_COMMIT);
+        model.notifyModified(ChangeType.DND_COMMIT);
 
         // Do not select the created component at this point see b/124231532.
         // The commit above is executed asynchronously and may not have completed yet.

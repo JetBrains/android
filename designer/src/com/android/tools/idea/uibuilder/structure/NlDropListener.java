@@ -22,6 +22,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
@@ -227,7 +228,7 @@ public class NlDropListener extends DropTargetAdapter {
       event.accept(insertType);
 
       event.complete();
-      model.notifyModified(NlModel.ChangeType.DROP);
+      model.notifyModified(ChangeType.DROP);
 
       if (scene != null) {
         scene.getDesignSurface().getSelectionModel().setSelection(myDragged);

@@ -35,6 +35,7 @@ import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -272,7 +273,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
    */
   private boolean myCacheSuccessfulRenderImage = false;
 
-  protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
+  protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable ChangeType changeType) {
     if (changeType == null) {
       return null;
     }
@@ -647,12 +648,12 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
 
   /**
-   * Set of {@link com.android.tools.idea.common.model.NlModel.ChangeType}s that, when in Power Save Mode, will not refresh the
+   * Set of {@link com.android.tools.idea.common.model.ChangeType}s that, when in Power Save Mode, will not refresh the
    * scene automatically.
    */
-  private static final EnumSet<NlModel.ChangeType> powerModeChangesNotTriggeringRefresh = EnumSet.of(
-    NlModel.ChangeType.RESOURCE_CHANGED,
-    NlModel.ChangeType.RESOURCE_EDIT
+  private static final EnumSet<ChangeType> powerModeChangesNotTriggeringRefresh = EnumSet.of(
+    ChangeType.RESOURCE_CHANGED,
+    ChangeType.RESOURCE_EDIT
   );
 
   /**

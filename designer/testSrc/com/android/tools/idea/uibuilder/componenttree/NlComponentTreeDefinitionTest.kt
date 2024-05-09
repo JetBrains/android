@@ -46,12 +46,12 @@ import com.android.tools.idea.common.error.IssueProvider
 import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.error.TestIssue
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.DnDTransferItem
 import com.android.tools.idea.common.model.ItemTransferable
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentReference
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -185,7 +185,7 @@ class NlComponentTreeDefinitionTest {
     constraint.addChild(NlComponent(model, newTag))
 
     // Notify the component tree
-    model.notifyModified(NlModel.ChangeType.ADD_COMPONENTS)
+    model.notifyModified(ChangeType.ADD_COMPONENTS)
     UIUtil.dispatchAllInvocationEvents()
 
     assertThat(dumpTree(table.tree))

@@ -19,7 +19,7 @@ import com.android.AndroidXConstants
 import com.android.SdkConstants
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
-import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.ChangeType
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.google.common.truth.Truth.assertThat
@@ -254,7 +254,7 @@ class WidgetConstraintModelTest : SceneTest() {
     widgetModel.component = textView2
     count = 0 // reset the count which will be incremented after setting the component to textView2
 
-    myModel.notifyModified(NlModel.ChangeType.EDIT)
+    myModel.notifyModified(ChangeType.EDIT)
     assertThat(count).isAtLeast(1)
   }
 

@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.sdklib.AndroidCoordinate;
 import com.android.sdklib.AndroidDpCoordinate;
+import com.android.tools.idea.common.model.ChangeType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
@@ -383,24 +384,24 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
     for (ResourceNotificationManager.Reason reason : reasons) {
       switch (reason) {
         case RESOURCE_EDIT:
-          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.RESOURCE_EDIT);
+          myModel.notifyModifiedViaUpdateQueue(ChangeType.RESOURCE_EDIT);
           break;
         case EDIT:
-          myModel.notifyModifiedViaUpdateQueue(NlModel.ChangeType.EDIT);
+          myModel.notifyModifiedViaUpdateQueue(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
           RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
-          myModel.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED);
+          myModel.notifyModified(ChangeType.RESOURCE_CHANGED);
           break;
         case GRADLE_SYNC:
         case PROJECT_BUILD:
         case VARIANT_CHANGED:
         case SDK_CHANGED:
           RenderUtils.clearCache(ImmutableList.of(myModel.getConfiguration()));
-          myModel.notifyModified(NlModel.ChangeType.BUILD);
+          myModel.notifyModified(ChangeType.BUILD);
           break;
         case CONFIGURATION_CHANGED:
-          myModel.notifyModified(NlModel.ChangeType.CONFIGURATION_CHANGE);
+          myModel.notifyModified(ChangeType.CONFIGURATION_CHANGE);
           break;
       }
     }
