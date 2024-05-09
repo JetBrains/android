@@ -24,6 +24,7 @@ import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.uibuilder.type.TEMP_ANIMATED_SELECTOR_FOLDER
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
@@ -198,15 +199,15 @@ private class AnimationOptionComboBoxModel(ids: Set<String>) :
   override fun removeListener(listener: ValueChangedListener) = Unit
 }
 
-private object EmptyModelUpdater : NlModel.NlModelUpdaterInterface {
+private object EmptyModelUpdater : NlModelUpdaterInterface {
   // Do nothing because the file content will be re-wrote frequently.
   override fun updateFromTagSnapshot(
     model: NlModel,
     newRoot: XmlTag?,
-    roots: MutableList<NlModel.TagSnapshotTreeNode>,
+    roots: List<NlModel.TagSnapshotTreeNode>,
   ) = Unit
 
-  override fun updateFromViewInfo(model: NlModel, viewInfos: MutableList<ViewInfo>) = Unit
+  override fun updateFromViewInfo(model: NlModel, viewInfos: List<ViewInfo>) = Unit
 }
 
 private const val ID_ANIMATED_SELECTOR_MODEL = "Select Transition..."

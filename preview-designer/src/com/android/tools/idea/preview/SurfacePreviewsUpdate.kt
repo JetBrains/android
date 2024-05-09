@@ -20,6 +20,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelBuilder
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
@@ -171,7 +172,7 @@ suspend fun <T : PreviewElement<*>> NlDesignSurface.refreshExistingPreviewElemen
  * @param onRenderCompleted method called when all the elements created/updated by this call have
  *   finished rendering. The elements count is passed as an argument.
  * @param previewElementModelAdapter object to adapt the [PreviewElement]s to the [NlModel].
- * @param modelUpdater [NlModel.NlModelUpdaterInterface] to be used for updating the [NlModel]
+ * @param modelUpdater [NlModelUpdaterInterface] to be used for updating the [NlModel]
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a
  *   [LayoutlibSceneManager].
  * @param refreshEventBuilder optional [PreviewRefreshEventBuilder] used for collecting metrics
@@ -186,7 +187,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   progressIndicator: ProgressIndicator,
   onRenderCompleted: (Int) -> Unit,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
-  modelUpdater: NlModel.NlModelUpdaterInterface,
+  modelUpdater: NlModelUpdaterInterface,
   navigationHandler: PreviewNavigationHandler,
   configureLayoutlibSceneManager:
     (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,

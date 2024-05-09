@@ -94,16 +94,6 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class NlModel implements ModificationTracker, DataContextHolder {
 
-  /**
-   * Responsible for updating {@link NlModel} once results from LayoutLibSceneManager is available as {@link TagSnapshotTreeNode}.
-   */
-  public interface NlModelUpdaterInterface {
-
-    void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
-
-    void updateFromViewInfo(@NotNull NlModel model, @NotNull List<ViewInfo> viewInfos);
-  }
-
   public static final int DELAY_AFTER_TYPING_MS = 250;
 
   private final Set<String> myPendingIds = Sets.newHashSet();

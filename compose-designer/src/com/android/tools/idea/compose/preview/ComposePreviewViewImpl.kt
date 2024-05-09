@@ -24,6 +24,7 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
@@ -134,7 +135,7 @@ interface ComposePreviewView : PreviewRepresentationView {
     progressIndicator: ProgressIndicator,
     onRenderCompleted: (Int) -> Unit,
     previewElementModelAdapter: ComposePreviewElementModelAdapter,
-    modelUpdater: NlModel.NlModelUpdaterInterface,
+    modelUpdater: NlModelUpdaterInterface,
     navigationHandler: PreviewNavigationHandler,
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager,

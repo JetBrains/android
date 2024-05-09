@@ -68,7 +68,7 @@ class NlModelBuilder(
     BiFunction { project, virtualFile ->
       getDefaultFile(project, virtualFile)
     }
-  private var modelUpdater: NlModel.NlModelUpdaterInterface? = null
+  private var modelUpdater: NlModelUpdaterInterface? = null
   private var dataContext: DataContext = DataContext.EMPTY_CONTEXT
 
   fun withModelTooltip(modelTooltip: String): NlModelBuilder = also { this.tooltip = modelTooltip }
@@ -82,7 +82,7 @@ class NlModelBuilder(
       this.xmlFileProvider = xmlFileProvider
     }
 
-  fun withModelUpdater(modelUpdater: NlModel.NlModelUpdaterInterface): NlModelBuilder = also {
+  fun withModelUpdater(modelUpdater: NlModelUpdaterInterface): NlModelBuilder = also {
     this.modelUpdater = modelUpdater
   }
 

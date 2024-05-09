@@ -28,12 +28,12 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlTag
 
 /** Updates the [NlModel] for Compose Preview to match data coming following a render result. */
-class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
+class AccessibilityModelUpdater : NlModelUpdaterInterface {
   /** Updates the root component of the [NlModel]. */
   override fun updateFromTagSnapshot(
     model: NlModel,
     newRoot: XmlTag?,
-    roots: MutableList<NlModel.TagSnapshotTreeNode>,
+    roots: List<NlModel.TagSnapshotTreeNode>,
   ) {
     var currentRootComponent = model.components.firstOrNull()
     if (newRoot != null) {

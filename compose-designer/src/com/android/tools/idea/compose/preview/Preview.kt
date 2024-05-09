@@ -24,6 +24,7 @@ import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.updateSceneViewVisibilities
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
@@ -158,13 +159,13 @@ const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
  * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
  * render result, using the [View] hierarchy.
  */
-private val defaultModelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+private val defaultModelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 
 /**
  * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
  * render result, using the [AccessibilityNodeInfo] hierarchy.
  */
-private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = AccessibilityModelUpdater()
+private val accessibilityModelUpdater: NlModelUpdaterInterface = AccessibilityModelUpdater()
 
 /**
  * [NlModel] associated preview data

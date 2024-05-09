@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  * edits such that for example the selection (a set of {@link NlComponent} instances)
  * are preserved.
  */
-public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
+public class DefaultModelUpdater implements NlModelUpdaterInterface {
 
   private static class ModelUpdaterData {
     protected NlModel myModel;
@@ -87,7 +87,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
    */
   @VisibleForTesting
   @Override
-  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots) {
+  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<? extends NlModel.TagSnapshotTreeNode> roots) {
     ModelUpdaterData data = new ModelUpdaterData();
 
     data.myModel = model;
@@ -142,7 +142,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
   }
 
   @Override
-  public void updateFromViewInfo(@NotNull NlModel model, @NotNull List<ViewInfo> viewInfos) { }
+  public void updateFromViewInfo(@NotNull NlModel model, @NotNull List<? extends ViewInfo> viewInfos) { }
 
   private void mapOldToNew(
       @NotNull XmlTag newRootTag,
