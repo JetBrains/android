@@ -51,3 +51,4 @@ uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", versi
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidTest = { id = "com.android.test", version.ref = "agp" }
+composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
