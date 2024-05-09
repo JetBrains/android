@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.widget
 
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.ScrollingUtil
