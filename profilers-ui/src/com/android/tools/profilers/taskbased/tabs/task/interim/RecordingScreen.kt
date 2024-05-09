@@ -40,7 +40,8 @@ import org.jetbrains.jewel.ui.component.Text
 @Composable
 fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
   val elapsedNs by recordingScreenModel.elapsedNs.collectAsState()
-  val isStopRecordingEnabled by recordingScreenModel.isStopRecordingButtonEnabled.collectAsState()
+  val isStopButtonClicked by recordingScreenModel.isStopButtonClicked.collectAsState()
+  val canRecordingStop by recordingScreenModel.canRecordingStop.collectAsState()
   val isUserStoppable = recordingScreenModel.isUserStoppable
   Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.Center,
          horizontalAlignment = Alignment.CenterHorizontally) {
@@ -59,8 +60,10 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
     }
     Text(recordingScreenModel.formatElapsedTime(elapsedNs), modifier = Modifier.padding(bottom = 24.dp))
     if (isUserStoppable) {
-      DefaultButton(onClick = { recordingScreenModel.stopRecordingAction.run() }, enabled = isStopRecordingEnabled,
-                    modifier = Modifier.testTag("StopRecordingButton")) {
+      DefaultButton(onClick = { recordingScreenModel.onStopRecordingButtonClick() },
+                    enabled = canRecordingStop && !isStopButtonClicked,
+                    modifier = Modifier.testTag("StopRecordingButton"))
+      {
         Text(TaskBasedUxStrings.STOP_RECORDING)
       }
     }

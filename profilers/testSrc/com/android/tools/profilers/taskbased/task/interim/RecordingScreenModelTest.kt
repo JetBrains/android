@@ -104,11 +104,11 @@ class RecordingScreenModelTest {
     // There are two conditions for canStop to return true: isRecording == true && selectedOption?.stopAction != null
     // By default, isRecording should be set to false, and thus canStop should be false. This means the recording screen model will have
     // the stop button disabled.
-    assertThat(cpuRecordingScreenModel.isStopRecordingButtonEnabled.value).isEqualTo(false)
+    assertThat(cpuRecordingScreenModel.canRecordingStop.value).isEqualTo(false)
 
     // The following call to startRecording will simulate a recording with a valid stopAction, fulfilling all canStop conditions.
     startFakeRecording(cpuProfilerStage.recordingModel)
-    assertThat(cpuRecordingScreenModel.isStopRecordingButtonEnabled.value).isEqualTo(true)
+    assertThat(cpuRecordingScreenModel.canRecordingStop.value).isEqualTo(true)
   }
 
   companion object {

@@ -22,6 +22,8 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.compose.JewelTestTheme
@@ -42,6 +44,7 @@ import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.android.tools.profilers.tasks.taskhandlers.TaskHandlerTestUtils
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.cpu.SystemTraceTaskHandler
 import com.android.tools.profilers.tasks.taskhandlers.singleartifact.memory.HeapDumpTaskHandler
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -171,6 +174,34 @@ class RecordingScreenTest {
 
     composeTestRule.onNodeWithTag("RecordingScreenMessage").assertTextEquals("Saving a heap dump...").assertIsDisplayed()
     composeTestRule.onNodeWithTag("StopRecordingButton").assertDoesNotExist()
+  }
+
+  @Test
+  fun `test clicking stop button disables button`() {
+    val stage = CpuProfilerStage(myProfilers)
+    val recordingScreenModel = stage.recordingScreenModel!!
+    composeTestRule.setContent {
+      JewelTestTheme (darkMode = true) {
+        setupRecording(isStoppable = false)
+        RecordingScreen(recordingScreenModel)
+      }
+    }
+
+    composeTestRule.onNodeWithText(TaskBasedUxStrings.RECORDING_IN_PROGRESS).assertIsDisplayed().assertExists()
+    composeTestRule.onNodeWithTag("StopRecordingButton").assertIsDisplayed().assertExists().assertIsNotEnabled().assertHasClickAction()
+
+    // Enable the stop button by starting a fake recording to simulate an ongoing recording.
+    startFakeRecording(stage.recordingModel)
+    composeTestRule.onNodeWithTag("StopRecordingButton").assertIsDisplayed().assertExists().assertIsEnabled().assertHasClickAction()
+
+    // Make sure that the model shows the stop button has not been clicked yet.
+    assertThat(recordingScreenModel.isStopButtonClicked.value).isFalse()
+    composeTestRule.onNodeWithTag("StopRecordingButton").performClick()
+    // After clicking the stop button, the model state should reflect such click.
+    assertThat(recordingScreenModel.isStopButtonClicked.value).isTrue()
+
+    // Because the stop button has been clicked, the stop button should have been disabled to prevent further stop attempts.
+    composeTestRule.onNodeWithTag("StopRecordingButton").assertIsNotEnabled()
   }
 
   private fun setupRecording(isStoppable: Boolean) {
