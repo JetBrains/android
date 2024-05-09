@@ -20,27 +20,27 @@ import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
 import com.android.tools.idea.wearwhs.WhsDataType
 
-/**
- * Fake implementation of [WearHealthServicesDeviceManager] for testing.
- */
+/** Fake implementation of [WearHealthServicesDeviceManager] for testing. */
 internal class FakeDeviceManager(
-  internal val capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
+  internal val capabilities: List<WhsCapability> = WHS_CAPABILITIES
+) : WearHealthServicesDeviceManager {
   internal var failState = false
   internal val triggeredEvents = mutableListOf<EventTrigger>()
   internal var clearContentProviderInvocations = 0
   internal var overrideValuesInvocations = 0
-  private val onDeviceStates = capabilities.associate { it.dataType to CapabilityState(true, null) }.toMutableMap()
+  private val onDeviceStates =
+    capabilities.associate { it.dataType to CapabilityState(true, null) }.toMutableMap()
   internal var activeExercise = false
 
   override fun getCapabilities() = capabilities
 
-  override suspend fun loadActiveExercise() =
-    failOrWrapResult(activeExercise)
+  override suspend fun loadActiveExercise() = failOrWrapResult(activeExercise)
 
   override suspend fun setCapabilities(capabilityUpdates: Map<WhsDataType, Boolean>) =
     failOrWrapResult(Unit).also {
       capabilityUpdates.forEach { (dataType, enabled) ->
-        onDeviceStates[dataType] = CapabilityState(enabled, onDeviceStates[dataType]!!.overrideValue)
+        onDeviceStates[dataType] =
+          CapabilityState(enabled, onDeviceStates[dataType]!!.overrideValue)
       }
     }
 
@@ -48,12 +48,12 @@ internal class FakeDeviceManager(
     failOrWrapResult(Unit).also {
       overrideValuesInvocations++
       overrideUpdates.forEach { (dataType, value) ->
-        onDeviceStates[dataType] = CapabilityState(onDeviceStates[dataType]!!.enabled, value?.toFloat())
+        onDeviceStates[dataType] =
+          CapabilityState(onDeviceStates[dataType]!!.enabled, value?.toFloat())
       }
     }
 
-  override suspend fun loadCurrentCapabilityStates() =
-    failOrWrapResult(onDeviceStates)
+  override suspend fun loadCurrentCapabilityStates() = failOrWrapResult(onDeviceStates)
 
   override suspend fun clearContentProvider(): Result<Unit> =
     failOrWrapResult(Unit).also {
@@ -61,8 +61,7 @@ internal class FakeDeviceManager(
       onDeviceStates.clear()
     }
 
-  override suspend fun isWhsVersionSupported() =
-    failOrWrapResult(true)
+  override suspend fun isWhsVersionSupported() = failOrWrapResult(true)
 
   override fun setSerialNumber(serialNumber: String) {}
 
@@ -72,8 +71,7 @@ internal class FakeDeviceManager(
   private fun <T> failOrWrapResult(value: T) =
     if (failState) {
       Result.failure(ConnectionLostException("Failed to run command"))
-    }
-    else {
+    } else {
       Result.success(value)
     }
 }

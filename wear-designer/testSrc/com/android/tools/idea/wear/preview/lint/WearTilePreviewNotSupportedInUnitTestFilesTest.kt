@@ -30,8 +30,7 @@ import org.junit.Test
 class WearTilePreviewNotSupportedInUnitTestFilesTest {
   @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
 
-  @get:Rule
-  val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
+  @get:Rule val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
 
   private val fixture
     get() = projectRule.fixture

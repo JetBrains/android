@@ -25,6 +25,7 @@ import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
 import com.android.tools.idea.wearwhs.logger.WearHealthServicesEventLogger
 import com.intellij.openapi.Disposable
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,24 +36,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Default polling interval for updating the state manager with values from [WearHealthServicesDeviceManager].
+ * Default polling interval for updating the state manager with values from
+ * [WearHealthServicesDeviceManager].
  */
 private const val POLLING_INTERVAL_MILLISECONDS: Long = 5000
 
-/**
- * Maximum wait time for a command to get executed.
- */
+/** Maximum wait time for a command to get executed. */
 private const val MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS: Long = 5000
 
 internal class WearHealthServicesStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
   private val eventLogger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
-  @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS
-)
-  : WearHealthServicesStateManager, Disposable {
+  @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS,
+) : WearHealthServicesStateManager, Disposable {
 
   override var runPeriodicUpdates = false
 
@@ -60,9 +58,8 @@ internal class WearHealthServicesStateManagerImpl(
 
   override val capabilitiesList = deviceManager.getCapabilities()
 
-  private val capabilityToState = capabilitiesList.associateWith {
-    MutableStateFlow(CapabilityUIState())
-  }
+  private val capabilityToState =
+    capabilitiesList.associateWith { MutableStateFlow(CapabilityUIState()) }
 
   private val _status = MutableStateFlow<WhsStateManagerStatus>(WhsStateManagerStatus.Initializing)
   override val status = _status
@@ -92,14 +89,14 @@ internal class WearHealthServicesStateManagerImpl(
     workerScope.launch {
       preset.collect {
         when (it) {
-          Preset.STANDARD -> for (capability in capabilityToState.keys) {
-            setCapabilityEnabled(capability, capability.isStandardCapability)
-          }
-
-          Preset.ALL -> for (capability in capabilityToState.keys) {
-            setCapabilityEnabled(capability, true)
-          }
-
+          Preset.STANDARD ->
+            for (capability in capabilityToState.keys) {
+              setCapabilityEnabled(capability, capability.isStandardCapability)
+            }
+          Preset.ALL ->
+            for (capability in capabilityToState.keys) {
+              setCapabilityEnabled(capability, true)
+            }
           Preset.CUSTOM -> {}
         }
         // First time this runs, make status idle
@@ -123,16 +120,16 @@ internal class WearHealthServicesStateManagerImpl(
       if (activeExerciseResult.isFailure) {
         // Return early on failure
         activeExerciseResult
-      }
-      else {
+      } else {
         deviceManager.loadCurrentCapabilityStates().map { deviceStates ->
           // Go through all capabilities, not just the ones returned by the device
           capabilityToState.forEach { (capability, currentState) ->
             if (currentState.value.synced) {
               currentState.value =
                 currentState.value.copy(
-                  // If content provider doesn't return a capability, that means the capability is enabled with no overrides
-                  capabilityState = deviceStates[capability.dataType] ?: CapabilityState(true, null),
+                  // If content provider doesn't return a capability, that means the capability is
+                  // enabled with no overrides
+                  capabilityState = deviceStates[capability.dataType] ?: CapabilityState(true, null)
                 )
             }
           }
@@ -142,25 +139,24 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   /**
-   * Waits until state manager is idle, then executes the given block after setting the state manager
-   * status to [status]. It restores the status to [WhsStateManagerStatus.Idle] after the block is
-   * executed, or [WhsStateManagerStatus.ConnectionLost] if the block throws a [ConnectionLostException].
+   * Waits until state manager is idle, then executes the given block after setting the state
+   * manager status to [status]. It restores the status to [WhsStateManagerStatus.Idle] after the
+   * block is executed, or [WhsStateManagerStatus.ConnectionLost] if the block throws a
+   * [ConnectionLostException].
    */
-  private suspend fun runWithStatus(status: WhsStateManagerStatus, block: suspend () -> Result<Unit>) {
+  private suspend fun runWithStatus(
+    status: WhsStateManagerStatus,
+    block: suspend () -> Result<Unit>,
+  ) {
     try {
       withTimeout(MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS) {
-        _status.takeWhile {
-          !it.idle
-        }.collect {}
+        _status.takeWhile { !it.idle }.collect {}
         _status.value = status
-        block().onSuccess {
-          _status.value = WhsStateManagerStatus.Idle
-        }.onFailure {
-          _status.value = WhsStateManagerStatus.ConnectionLost
-        }
+        block()
+          .onSuccess { _status.value = WhsStateManagerStatus.Idle }
+          .onFailure { _status.value = WhsStateManagerStatus.ConnectionLost }
       }
-    }
-    catch (exception: TimeoutCancellationException) {
+    } catch (exception: TimeoutCancellationException) {
       _status.value = WhsStateManagerStatus.Timeout
     }
   }
@@ -169,9 +165,7 @@ internal class WearHealthServicesStateManagerImpl(
     deviceManager.isWhsVersionSupported().getOrDefault(false)
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
-    runWithStatus(WhsStateManagerStatus.Syncing) {
-      deviceManager.triggerEvent(eventTrigger)
-    }
+    runWithStatus(WhsStateManagerStatus.Syncing) { deviceManager.triggerEvent(eventTrigger) }
 
   override fun getState(capability: WhsCapability): StateFlow<CapabilityUIState> =
     capabilityToState[capability]?.asStateFlow() ?: throw IllegalArgumentException()
@@ -181,8 +175,11 @@ internal class WearHealthServicesStateManagerImpl(
     if (enabled == stateFlow.value.capabilityState.enabled) {
       return
     }
-    val newState = stateFlow.value.copy(capabilityState = CapabilityState(enabled, stateFlow.value.capabilityState.overrideValue),
-                                        synced = false)
+    val newState =
+      stateFlow.value.copy(
+        capabilityState = CapabilityState(enabled, stateFlow.value.capabilityState.overrideValue),
+        synced = false,
+      )
     stateFlow.value = newState
   }
 
@@ -191,14 +188,24 @@ internal class WearHealthServicesStateManagerImpl(
     if (value == stateFlow.value.capabilityState.overrideValue) {
       return
     }
-    val newState = stateFlow.value.copy(capabilityState = CapabilityState(stateFlow.value.capabilityState.enabled, value), synced = false)
+    val newState =
+      stateFlow.value.copy(
+        capabilityState = CapabilityState(stateFlow.value.capabilityState.enabled, value),
+        synced = false,
+      )
     stateFlow.value = newState
   }
 
   override suspend fun applyChanges() =
     runWithStatus(WhsStateManagerStatus.Syncing) {
-      val capabilityUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.capabilityState.enabled }
-      val overrideUpdates = capabilityToState.entries.associate { it.key.dataType to it.value.value.capabilityState.overrideValue }
+      val capabilityUpdates =
+        capabilityToState.entries.associate {
+          it.key.dataType to it.value.value.capabilityState.enabled
+        }
+      val overrideUpdates =
+        capabilityToState.entries.associate {
+          it.key.dataType to it.value.value.capabilityState.overrideValue
+        }
       // Return early if any of the updates fail
       deviceManager.setCapabilities(capabilityUpdates).onFailure {
         eventLogger.logApplyChangesFailure()
@@ -219,28 +226,30 @@ internal class WearHealthServicesStateManagerImpl(
 
   private fun resetUiState() =
     capabilityToState.forEach { (_, state) ->
-      state.value = CapabilityUIState(
-        capabilityState = CapabilityState(
-          enabled = if (ongoingExercise.value) state.value.capabilityState.enabled else true,
-          overrideValue = null
+      state.value =
+        CapabilityUIState(
+          capabilityState =
+            CapabilityState(
+              enabled = if (ongoingExercise.value) state.value.capabilityState.enabled else true,
+              overrideValue = null,
+            )
         )
-      )
     }
 
-  private suspend fun resetOverrides() = deviceManager.overrideValues(capabilityToState.entries.associate { it.key.dataType to null })
+  private suspend fun resetOverrides() =
+    deviceManager.overrideValues(capabilityToState.entries.associate { it.key.dataType to null })
 
   override suspend fun reset() =
     runWithStatus(WhsStateManagerStatus.Syncing) {
-      val reset = if (!ongoingExercise.value) {
-        preset.value = Preset.ALL
-        deviceManager.clearContentProvider()
-      } else {
-        resetOverrides()
-      }
+      val reset =
+        if (!ongoingExercise.value) {
+          preset.value = Preset.ALL
+          deviceManager.clearContentProvider()
+        } else {
+          resetOverrides()
+        }
 
-      return@runWithStatus reset.also {
-        if (it.isSuccess) resetUiState()
-      }
+      return@runWithStatus reset.also { if (it.isSuccess) resetUiState() }
     }
 
   override fun dispose() {}
@@ -257,7 +266,5 @@ internal class WearHealthServicesStateManagerImpl(
 }
 
 private fun WhsDataType.toCapability(): WhsCapability {
-  return WHS_CAPABILITIES.single {
-    it.dataType == this
-  }
+  return WHS_CAPABILITIES.single { it.dataType == this }
 }

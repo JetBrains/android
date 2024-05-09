@@ -32,18 +32,21 @@ const val whsConfigUri: String = "content://$whsPackage.dev.synthetic/synthetic_
 const val whsActiveExerciseUri: String = "content://$whsPackage.dev.exerciseinfo"
 const val whsDevVersionCode = 1
 const val whsMinimumVersionCode = 1447606
-val capabilityStatePattern = Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*)")
+val capabilityStatePattern =
+  Regex("Row: \\d+ data_type=(\\w+), is_enabled=(true|false), override_value=(\\d+\\.?\\d*)")
 val versionCodePattern = Regex("versionCode=(\\d+)")
 val activeExerciseRegex = Regex("active_exercise=(true|false)")
 
 /**
  * Content provider implementation of [WearHealthServicesDeviceManager].
  *
- * This class uses the content provider for the synthetic HAL in WHS to sync the current state
- * of the UI to the selected Wear OS device.
+ * This class uses the content provider for the synthetic HAL in WHS to sync the current state of
+ * the UI to the selected Wear OS device.
  */
-internal class ContentProviderDeviceManager(private val adbSessionProvider: () -> AdbSession,
-                                            private var capabilities: List<WhsCapability> = WHS_CAPABILITIES) : WearHealthServicesDeviceManager {
+internal class ContentProviderDeviceManager(
+  private val adbSessionProvider: () -> AdbSession,
+  private var capabilities: List<WhsCapability> = WHS_CAPABILITIES,
+) : WearHealthServicesDeviceManager {
   private var serialNumber: String? = null
   private val logger = Logger.getInstance(ContentProviderDeviceManager::class.java)
 
@@ -51,8 +54,7 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     get() {
       try {
         field.throwIfClosed()
-      }
-      catch (closedException: ClosedSessionException) {
+      } catch (closedException: ClosedSessionException) {
         field = adbSessionProvider()
       }
       return field
@@ -74,7 +76,8 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
         val isEnabled = match.groupValues[2].toBoolean()
         var overrideValue: Float? = match.groupValues[3].toFloat()
         if (!isEnabled && overrideValue == 0f) {
-          // If data type is disabled and override has not been set content provider returns override as 0, so ignore this value
+          // If data type is disabled and override has not been set content provider returns
+          // override as 0, so ignore this value
           overrideValue = null
         }
 
@@ -88,11 +91,13 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     runAdbShellCommandIfConnected("content delete --uri $whsConfigUri").map {}
 
   override suspend fun isWhsVersionSupported() =
-    runAdbShellCommandIfConnected("dumpsys package $whsPackage | grep versionCode | head -n1").map { output ->
-      val versionCode: Int? = versionCodePattern.find(output)?.groupValues?.get(1)?.toInt()
+    runAdbShellCommandIfConnected("dumpsys package $whsPackage | grep versionCode | head -n1")
+      .map { output ->
+        val versionCode: Int? = versionCodePattern.find(output)?.groupValues?.get(1)?.toInt()
 
-      versionCode != null && (versionCode == whsDevVersionCode || versionCode >= whsMinimumVersionCode)
-    }
+        versionCode != null &&
+          (versionCode == whsDevVersionCode || versionCode >= whsMinimumVersionCode)
+      }
 
   override fun setSerialNumber(serialNumber: String) {
     this.serialNumber = serialNumber
@@ -110,14 +115,15 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
         continue // Location does not have an override value
       }
 
-      val bindValue = when (value) {
-        is Boolean -> value // enable or disable capability
-        null -> "\"\"" // clear override by setting it to empty string
-        else -> { // set override
-          val override = value as Number
-          if (dataType == WhsDataType.STEPS) override.toInt() else override.toFloat()
+      val bindValue =
+        when (value) {
+          is Boolean -> value // enable or disable capability
+          null -> "\"\"" // clear override by setting it to empty string
+          else -> { // set override
+            val override = value as Number
+            if (dataType == WhsDataType.STEPS) override.toInt() else override.toFloat()
+          }
         }
-      }
 
       sb.append(bindString(dataType.name, bindValue))
     }
@@ -125,12 +131,13 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
   }
 
   private inline fun <reified T> bindString(key: String, value: T): String {
-    val type = when (value) {
-      is Boolean -> 'b'
-      is Int -> 'i'
-      is Float -> 'f'
-      else -> 's'
-    }
+    val type =
+      when (value) {
+        is Boolean -> 'b'
+        is Int -> 'i'
+        is Float -> 'f'
+        else -> 's'
+      }
     return " --bind $key:$type:$value"
   }
 
@@ -138,7 +145,7 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     runAdbShellCommandIfConnected(contentUpdateMultipleCapabilities(capabilityUpdates)).map {}
 
   override suspend fun triggerEvent(eventTrigger: EventTrigger) =
-    runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger)).map { }
+    runAdbShellCommandIfConnected(triggerEventCommand(eventTrigger)).map {}
 
   private fun triggerEventCommand(eventTrigger: EventTrigger): String {
     val commandStringBuilder = StringBuilder("am broadcast -a \"${eventTrigger.eventKey}\"")
@@ -161,24 +168,24 @@ internal class ContentProviderDeviceManager(private val adbSessionProvider: () -
     return try {
       var deviceOnline = false
       adbSession.hostServices.trackDevices().take(1).collect { devices ->
-        deviceOnline = devices.any { it.serialNumber == serialNumber && it.deviceState == DeviceState.ONLINE }
+        deviceOnline =
+          devices.any { it.serialNumber == serialNumber && it.deviceState == DeviceState.ONLINE }
       }
       if (!deviceOnline) {
         return loggedFailure(ConnectionLostException("Device is not online"))
       }
       // This can still fail, if the device becomes unreachable between these lines
       Result.success(
-        adbSession.deviceServices.shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), command).stdout)
-    }
-    catch (e: Exception) {
+        adbSession.deviceServices
+          .shellAsText(DeviceSelector.fromSerialNumber(serialNumber!!), command)
+          .stdout
+      )
+    } catch (e: Exception) {
       loggedFailure(e)
     }
   }
 
-  private fun <T> loggedFailure(e: Exception): Result<T> =
-    Result.failure(e.also {
-      logger.warn(e)
-    })
+  private fun <T> loggedFailure(e: Exception): Result<T> = Result.failure(e.also { logger.warn(e) })
 }
 
 private fun String.toDataType(): WhsDataType {

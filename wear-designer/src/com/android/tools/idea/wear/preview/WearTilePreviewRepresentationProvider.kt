@@ -54,6 +54,7 @@ class WearTilePreviewRepresentationProvider(
   init {
     DesignerTypeRegistrar.register(WearTileEditorFileType)
   }
+
   /**
    * Checks if the input [psiFile] contains wear tile previews and therefore can be provided with
    * the [PreviewRepresentation] of them.

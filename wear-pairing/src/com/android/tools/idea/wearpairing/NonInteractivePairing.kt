@@ -20,19 +20,22 @@ import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.NullOutputReceiver
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.Disposable
+import java.io.Closeable
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.Closeable
-import java.util.concurrent.TimeUnit
 
-class NonInteractivePairing private constructor(private val parentDisposable: Disposable,
-                                                private val phone: IDevice,
-                                                private val watchAvdName: String,
-                                                private val companionAppId: String,
-                                                private val watchNodeId: String) : MultiLineReceiver(), Closeable {
+class NonInteractivePairing
+private constructor(
+  private val parentDisposable: Disposable,
+  private val phone: IDevice,
+  private val watchAvdName: String,
+  private val companionAppId: String,
+  private val watchNodeId: String,
+) : MultiLineReceiver(), Closeable {
   private lateinit var logReaderJob: Job
   private var emulatorActivityStarted = false
   private val _pairingState = MutableStateFlow(PairingState.UNKNOWN)
@@ -41,27 +44,35 @@ class NonInteractivePairing private constructor(private val parentDisposable: Di
   companion object {
     private val STATE_LOG_PATTERN = "\\[EMULATOR_PAIRING:([^]]+)]".toRegex()
 
-    fun startPairing(parentDisposable: Disposable,
-                     phone: IDevice,
-                     watchAvdName: String,
-                     companionAppId: String,
-                     watchNodeId: String): NonInteractivePairing {
-      val nonInteractivePairing = NonInteractivePairing(parentDisposable, phone, watchAvdName, companionAppId, watchNodeId)
+    fun startPairing(
+      parentDisposable: Disposable,
+      phone: IDevice,
+      watchAvdName: String,
+      companionAppId: String,
+      watchNodeId: String,
+    ): NonInteractivePairing {
+      val nonInteractivePairing =
+        NonInteractivePairing(parentDisposable, phone, watchAvdName, companionAppId, watchNodeId)
       nonInteractivePairing.startPairing()
       return nonInteractivePairing
     }
   }
 
   private fun startPairing() {
-    logReaderJob = AndroidCoroutineScope(parentDisposable).launch(Dispatchers.IO) {
-      try {
-        phone.executeShellCommand("logcat -T 1", this@NonInteractivePairing, 0, TimeUnit.MILLISECONDS)
+    logReaderJob =
+      AndroidCoroutineScope(parentDisposable).launch(Dispatchers.IO) {
+        try {
+          phone.executeShellCommand(
+            "logcat -T 1",
+            this@NonInteractivePairing,
+            0,
+            TimeUnit.MILLISECONDS,
+          )
+        } catch (e: Throwable) {
+          _pairingState.value = PairingState.INTERNAL_ERROR
+          throw e
+        }
       }
-      catch (e: Throwable) {
-        _pairingState.value = PairingState.INTERNAL_ERROR
-        throw e
-      }
-    }
   }
 
   override fun isCancelled(): Boolean {
@@ -70,20 +81,22 @@ class NonInteractivePairing private constructor(private val parentDisposable: Di
 
   override fun processNewLines(lines: Array<out String>) {
     if (!emulatorActivityStarted) {
-      // To make sure we won't miss a log entry, we're going to start the activity after we have started listening for logs.
+      // To make sure we won't miss a log entry, we're going to start the activity after we have
+      // started listening for logs.
       emulatorActivityStarted = true
       phone.executeShellCommand(
         "am start -n $companionAppId/.EmulatorActivity --es emulator-name \"$watchAvdName\" --es emulator-id \"$watchNodeId\"",
-        NullOutputReceiver())
+        NullOutputReceiver(),
+      )
     }
     lines.forEach {
       STATE_LOG_PATTERN.find(it)?.groupValues?.get(1)?.let {
-        _pairingState.value = try {
-          PairingState.valueOf(it)
-        }
-        catch (ignore: IllegalArgumentException) {
-          PairingState.UNKNOWN
-        }
+        _pairingState.value =
+          try {
+            PairingState.valueOf(it)
+          } catch (ignore: IllegalArgumentException) {
+            PairingState.UNKNOWN
+          }
       }
     }
   }
@@ -106,8 +119,14 @@ class NonInteractivePairing private constructor(private val parentDisposable: Di
 
     fun hasFinished(): Boolean =
       when (this) {
-        INTERNAL_ERROR, SUCCESS, FAILURE, CANCELLED,  -> true
-        UNKNOWN, STARTED, CONSENT, PAIRING -> false
+        INTERNAL_ERROR,
+        SUCCESS,
+        FAILURE,
+        CANCELLED -> true
+        UNKNOWN,
+        STARTED,
+        CONSENT,
+        PAIRING -> false
       }
   }
 }

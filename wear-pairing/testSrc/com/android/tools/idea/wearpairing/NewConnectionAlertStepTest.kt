@@ -24,25 +24,36 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
+import java.awt.Dimension
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Dimension
-import java.util.concurrent.TimeUnit
-
 
 class NewConnectionAlertStepTest : LightPlatform4TestCase() {
 
   private val invokeStrategy = TestInvokeStrategy()
   private val model = WearDevicePairingModel()
-  private val phoneDevice = PairingDevice(
-    deviceID = "id1", displayName = "My Phone", apiLevel = 30, isWearDevice = false, isEmulator = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE
-  )
-  private val wearDevice = PairingDevice(
-    deviceID = "id2", displayName = "Round Watch", apiLevel = 30, isEmulator = true, isWearDevice = true, hasPlayStore = true,
-    state = ConnectionState.ONLINE
-  )
+  private val phoneDevice =
+    PairingDevice(
+      deviceID = "id1",
+      displayName = "My Phone",
+      apiLevel = 30,
+      isWearDevice = false,
+      isEmulator = true,
+      hasPlayStore = true,
+      state = ConnectionState.ONLINE,
+    )
+  private val wearDevice =
+    PairingDevice(
+      deviceID = "id2",
+      displayName = "Round Watch",
+      apiLevel = 30,
+      isEmulator = true,
+      isWearDevice = true,
+      hasPlayStore = true,
+      state = ConnectionState.ONLINE,
+    )
 
   override fun setUp() {
     super.setUp()
@@ -57,8 +68,7 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   override fun tearDown() {
     try {
       BatchInvoker.clearOverrideStrategy()
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }
@@ -67,7 +77,16 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   fun shouldShowIfWearMayNeedFactoryReset() {
     val previousPairedPhone = phoneDevice.copy(deviceID = "id4")
     val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking { WearPairingManager.getInstance().createPairedDeviceBridge(previousPairedPhone, iDevice, wearDevice, iDevice, connect = false) }
+    runBlocking {
+      WearPairingManager.getInstance()
+        .createPairedDeviceBridge(
+          previousPairedPhone,
+          iDevice,
+          wearDevice,
+          iDevice,
+          connect = false,
+        )
+    }
 
     val fakeUi = createNewConnectionAlertStepUi()
     fakeUi.waitForText("Wear OS Factory Reset")
@@ -85,7 +104,6 @@ class NewConnectionAlertStepTest : LightPlatform4TestCase() {
   }
 
   // The UI loads on asynchronous coroutine, we need to wait
-  private fun FakeUi.waitForText(text: String) = waitForCondition(5, TimeUnit.SECONDS) {
-    findComponent<JBLabel> { it.text == text } != null
-  }
+  private fun FakeUi.waitForText(text: String) =
+    waitForCondition(5, TimeUnit.SECONDS) { findComponent<JBLabel> { it.text == text } != null }
 }

@@ -28,6 +28,7 @@ import com.google.wireless.android.sdk.stats.WearHealthServicesEvent
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -38,27 +39,31 @@ import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
 
-private val capabilities = listOf(WhsCapability(
-  WhsDataType.HEART_RATE_BPM,
-  "wear.whs.capability.heart.rate.label",
-  "wear.whs.capability.heart.rate.unit",
-  isOverrideable = true,
-  isStandardCapability = true,
-), WhsCapability(
-  WhsDataType.LOCATION,
-  "wear.whs.capability.location.label",
-  "wear.whs.capability.unit.none",
-  isOverrideable = false,
-  isStandardCapability = true,
-), WhsCapability(
-  WhsDataType.STEPS,
-  "wear.whs.capability.steps.label",
-  "wear.whs.capability.steps.unit",
-  isOverrideable = true,
-  isStandardCapability = false,
-))
+private val capabilities =
+  listOf(
+    WhsCapability(
+      WhsDataType.HEART_RATE_BPM,
+      "wear.whs.capability.heart.rate.label",
+      "wear.whs.capability.heart.rate.unit",
+      isOverrideable = true,
+      isStandardCapability = true,
+    ),
+    WhsCapability(
+      WhsDataType.LOCATION,
+      "wear.whs.capability.location.label",
+      "wear.whs.capability.unit.none",
+      isOverrideable = false,
+      isStandardCapability = true,
+    ),
+    WhsCapability(
+      WhsDataType.STEPS,
+      "wear.whs.capability.steps.label",
+      "wear.whs.capability.steps.unit",
+      isOverrideable = true,
+      isStandardCapability = false,
+    ),
+  )
 
 class WearHealthServicesStateManagerTest {
   companion object {
@@ -66,17 +71,17 @@ class WearHealthServicesStateManagerTest {
     const val TEST_POLLING_INTERVAL_MILLISECONDS = 100L
   }
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val loggedEvents = mutableListOf<AndroidStudioEvent.Builder>()
   private val logger = WearHealthServicesEventLogger { loggedEvents.add(it) }
   private val deviceManager by lazy { FakeDeviceManager(capabilities) }
   private val stateManager by lazy {
-    WearHealthServicesStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS).also {
-      it.serialNumber = "test"
-      it.runPeriodicUpdates = false
-    }
+    WearHealthServicesStateManagerImpl(deviceManager, logger, TEST_POLLING_INTERVAL_MILLISECONDS)
+      .also {
+        it.serialNumber = "test"
+        it.runPeriodicUpdates = false
+      }
   }
 
   @Before
@@ -93,61 +98,80 @@ class WearHealthServicesStateManagerTest {
   }
 
   @Test
-  fun `test state manager has the correct list of capabilities enabled when preset is selected`() = runBlocking {
-    stateManager.preset.value = Preset.STANDARD
+  fun `test state manager has the correct list of capabilities enabled when preset is selected`() =
+    runBlocking {
+      stateManager.preset.value = Preset.STANDARD
 
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
-  }
-
-  @Test
-  fun `test state manager reports to the subscribers when all capabilities preset is selected`() = runBlocking {
-    stateManager.preset.value = Preset.STANDARD
-
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
-
-    stateManager.preset.value = Preset.ALL
-
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
-  }
+      stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
+    }
 
   @Test
-  fun `test state manager initialises all capabilities to synced, enabled and no override`() = runBlocking {
-    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(null)
-    stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(null)
-    stateManager.getState(capabilities[2]).map { it.capabilityState.overrideValue }.waitForValue(null)
-  }
+  fun `test state manager reports to the subscribers when all capabilities preset is selected`() =
+    runBlocking {
+      stateManager.preset.value = Preset.STANDARD
+
+      stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
+
+      stateManager.preset.value = Preset.ALL
+
+      stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
+    }
 
   @Test
-  fun `test state manager sets capabilities that are not returned by device manager to default state`() = runBlocking {
-    stateManager.runPeriodicUpdates = true
+  fun `test state manager initialises all capabilities to synced, enabled and no override`() =
+    runBlocking {
+      stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+      stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
+      stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
+      stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[1]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager
+        .getState(capabilities[0])
+        .map { it.capabilityState.overrideValue }
+        .waitForValue(null)
+      stateManager
+        .getState(capabilities[1])
+        .map { it.capabilityState.overrideValue }
+        .waitForValue(null)
+      stateManager
+        .getState(capabilities[2])
+        .map { it.capabilityState.overrideValue }
+        .waitForValue(null)
+    }
 
-    stateManager.setCapabilityEnabled(capabilities[0], false)
-    stateManager.setOverrideValue(capabilities[0], 3f)
+  @Test
+  fun `test state manager sets capabilities that are not returned by device manager to default state`() =
+    runBlocking {
+      stateManager.runPeriodicUpdates = true
 
-    stateManager.applyChanges()
+      stateManager.setCapabilityEnabled(capabilities[0], false)
+      stateManager.setOverrideValue(capabilities[0], 3f)
 
-    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(3f)
+      stateManager.applyChanges()
 
-    deviceManager.clearContentProvider()
+      stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+      stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(false)
+      stateManager
+        .getState(capabilities[0])
+        .map { it.capabilityState.overrideValue }
+        .waitForValue(3f)
 
-    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(null)
-  }
+      deviceManager.clearContentProvider()
+
+      stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+      stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager
+        .getState(capabilities[0])
+        .map { it.capabilityState.overrideValue }
+        .waitForValue(null)
+    }
 
   @Test
   fun `test getCapabilityEnabled has the correct value`() = runBlocking {
@@ -164,22 +188,26 @@ class WearHealthServicesStateManagerTest {
   }
 
   @Test
-  fun `test reset sets the preset to all, removes overrides and invokes device manager`() = runBlocking {
-    stateManager.preset.value = Preset.STANDARD
+  fun `test reset sets the preset to all, removes overrides and invokes device manager`() =
+    runBlocking {
+      stateManager.preset.value = Preset.STANDARD
 
-    stateManager.setOverrideValue(capabilities[1], 3f)
+      stateManager.setOverrideValue(capabilities[1], 3f)
 
-    assertEquals(0, deviceManager.clearContentProviderInvocations)
+      assertEquals(0, deviceManager.clearContentProviderInvocations)
 
-    stateManager.reset()
+      stateManager.reset()
 
-    stateManager.preset.waitForValue(Preset.ALL)
-    stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(null)
-    stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
+      stateManager.preset.waitForValue(Preset.ALL)
+      stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(true)
+      stateManager
+        .getState(capabilities[1])
+        .map { it.capabilityState.overrideValue }
+        .waitForValue(null)
+      stateManager.getState(capabilities[0]).map { it.synced }.waitForValue(true)
 
-    assertEquals(1, deviceManager.clearContentProviderInvocations)
-  }
+      assertEquals(1, deviceManager.clearContentProviderInvocations)
+    }
 
   @Test
   fun `when an exercise is ongoing reset only clears the overridden values`(): Unit = runBlocking {
@@ -194,7 +222,10 @@ class WearHealthServicesStateManagerTest {
 
     stateManager.preset.waitForValue(Preset.STANDARD)
     stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[1]).map { it.capabilityState.overrideValue }.waitForValue(null)
+    stateManager
+      .getState(capabilities[1])
+      .map { it.capabilityState.overrideValue }
+      .waitForValue(null)
     stateManager.getState(capabilities[2]).map { it.capabilityState.enabled }.waitForValue(false)
     assertEquals(1, deviceManager.overrideValuesInvocations)
   }
@@ -225,18 +256,20 @@ class WearHealthServicesStateManagerTest {
     stateManager.getState(capabilities[1]).map { it.synced }.waitForValue(true)
     stateManager.getState(capabilities[2]).map { it.synced }.waitForValue(true)
 
-    assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow()).containsEntry(
-      capabilities[0].dataType, CapabilityState(false, null)
-    )
-    assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow()).containsEntry(
-      capabilities[1].dataType, CapabilityState(true, 3f)
-    )
+    assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow())
+      .containsEntry(capabilities[0].dataType, CapabilityState(false, null))
+    assertThat(deviceManager.loadCurrentCapabilityStates().getOrThrow())
+      .containsEntry(capabilities[1].dataType, CapabilityState(true, 3f))
 
     assertThat(loggedEvents).hasSize(2)
-    assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
-    assertThat(loggedEvents[1].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[1].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
+    assertThat(loggedEvents[0].kind)
+      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind)
+      .isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
+    assertThat(loggedEvents[1].kind)
+      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[1].wearHealthServicesEvent.kind)
+      .isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_SUCCESS)
   }
 
   @Test
@@ -249,10 +282,14 @@ class WearHealthServicesStateManagerTest {
     stateManager.status.waitForValue(WhsStateManagerStatus.ConnectionLost)
 
     assertThat(loggedEvents).hasSize(2)
-    assertThat(loggedEvents[0].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[0].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
-    assertThat(loggedEvents[1].kind).isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
-    assertThat(loggedEvents[1].wearHealthServicesEvent.kind).isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_FAILURE)
+    assertThat(loggedEvents[0].kind)
+      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[0].wearHealthServicesEvent.kind)
+      .isEqualTo(WearHealthServicesEvent.EventKind.EMULATOR_BOUND)
+    assertThat(loggedEvents[1].kind)
+      .isEqualTo(AndroidStudioEvent.EventKind.WEAR_HEALTH_SERVICES_TOOL_WINDOW_EVENT)
+    assertThat(loggedEvents[1].wearHealthServicesEvent.kind)
+      .isEqualTo(WearHealthServicesEvent.EventKind.APPLY_CHANGES_FAILURE)
   }
 
   @Test
@@ -297,7 +334,10 @@ class WearHealthServicesStateManagerTest {
 
     // Verify that the value is updated
     stateManager.getState(capabilities[0]).map { it.capabilityState.enabled }.waitForValue(true)
-    stateManager.getState(capabilities[0]).map { it.capabilityState.overrideValue }.waitForValue(10f)
+    stateManager
+      .getState(capabilities[0])
+      .map { it.capabilityState.overrideValue }
+      .waitForValue(10f)
   }
 
   @Test
@@ -325,18 +365,22 @@ class WearHealthServicesStateManagerTest {
     stateManager.ongoingExercise.waitForValue(false)
   }
 
-  private suspend fun <T> Flow<T>.waitForValue(value: T, timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS) {
-    withTimeout(timeoutSeconds.seconds) { takeWhile { it != value }.collect { } }
+  private suspend fun <T> Flow<T>.waitForValue(
+    value: T,
+    timeoutSeconds: Long = TEST_MAX_WAIT_TIME_SECONDS,
+  ) {
+    withTimeout(timeoutSeconds.seconds) { takeWhile { it != value }.collect {} }
   }
 
   @Test
-  fun `test isWhsVersionSupported fail state reports whs version as not supported`(): Unit = runBlocking {
-    deviceManager.failState = true
+  fun `test isWhsVersionSupported fail state reports whs version as not supported`(): Unit =
+    runBlocking {
+      deviceManager.failState = true
 
-    val isSupported = stateManager.isWhsVersionSupported()
+      val isSupported = stateManager.isWhsVersionSupported()
 
-    assertFalse(isSupported)
-  }
+      assertFalse(isSupported)
+    }
 
   @Test
   fun `test triggered events are forwarded to device manager`(): Unit = runBlocking {

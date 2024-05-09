@@ -24,13 +24,12 @@ object WearPairingUsageTracker {
   fun log(eventKind: WearPairingEvent.EventKind) {
     logger<WearPairingManager>().warn(eventKind.name)
 
-    val event = WearPairingEvent.newBuilder()
-      .setKind(eventKind)
-      .build()
+    val event = WearPairingEvent.newBuilder().setKind(eventKind).build()
 
-    val builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.WEAR_PAIRING)
-      .setWearPairingEvent(event)
+    val builder =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.WEAR_PAIRING)
+        .setWearPairingEvent(event)
 
     UsageTracker.log(builder)
   }

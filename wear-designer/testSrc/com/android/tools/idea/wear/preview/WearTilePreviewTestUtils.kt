@@ -43,6 +43,7 @@ fun CodeInsightTestFixture.stubWearTilePreviewAnnotation() {
             val locale: String = "",
             @FloatRange(from = 0.01) val fontScale: Float = 1f,
         )
-        """.trimIndent(),
+        """
+      .trimIndent(),
   )
 }

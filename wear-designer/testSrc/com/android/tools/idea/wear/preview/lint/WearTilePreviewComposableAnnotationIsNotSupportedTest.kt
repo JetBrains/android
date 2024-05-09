@@ -35,11 +35,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewComposableAnnotationIsNotSupportedTest {
-  @get:Rule
-  val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
+  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
 
-  @get:Rule
-  val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
+  @get:Rule val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
 
   private val fixture
     get() = projectRule.fixture
@@ -90,10 +88,11 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
 
   @Test
   fun composableAnnotationOnATilePreviewResultsInAnErrorKotlin() {
-    composableAnnotationOnATilePreviewResultsInAnError(fixture.addFileToProject(
-      "src/main/test.kt",
-      // language=kotlin
-      """
+    composableAnnotationOnATilePreviewResultsInAnError(
+      fixture.addFileToProject(
+        "src/main/test.kt",
+        // language=kotlin
+        """
         import androidx.compose.runtime.Composable
         import androidx.wear.tiles.tooling.preview.Preview
         import androidx.wear.tiles.tooling.preview.TilePreviewData
@@ -110,16 +109,19 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
 
         @Composable
         fun validMethodWithComposableAnnotation() {}
-      """.trimIndent()
-    ))
+      """
+          .trimIndent(),
+      )
+    )
   }
 
   @Test
   fun composableAnnotationOnATilePreviewResultsInAnErrorJava() {
-    composableAnnotationOnATilePreviewResultsInAnError(fixture.addFileToProject(
-      "src/main/Test.java",
-      // language=java
-      """
+    composableAnnotationOnATilePreviewResultsInAnError(
+      fixture.addFileToProject(
+        "src/main/Test.java",
+        // language=java
+        """
         import androidx.compose.runtime.Composable;
         import androidx.wear.tiles.tooling.preview.Preview;
         import androidx.wear.tiles.tooling.preview.TilePreviewData;
@@ -144,8 +146,10 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
           @Composable
           void validMethodWithComposableAnnotation() {}
         }
-      """.trimIndent()
-    ))
+      """
+          .trimIndent(),
+      )
+    )
   }
 
   private fun composableAnnotationOnATilePreviewResultsInAnError(file: PsiFile) {
@@ -155,7 +159,10 @@ class WearTilePreviewComposableAnnotationIsNotSupportedTest {
 
     val error = errors.single()
     assertEquals("@Composable", error.text)
-    assertEquals(message("inspection.preview.annotation.composable.not.supported"), error.description)
+    assertEquals(
+      message("inspection.preview.annotation.composable.not.supported"),
+      error.description,
+    )
     assertEquals("invalidPreviewWithComposableAnnotation", file.containingMethodName(error))
   }
 }

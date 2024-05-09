@@ -31,7 +31,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.invocation.InvocationOnMock
 
-
 private const val OEM_COMPANION_APP_ID = "com.example"
 
 class PairingFeaturesTest : LightPlatform4TestCase() {
@@ -39,19 +38,16 @@ class PairingFeaturesTest : LightPlatform4TestCase() {
   fun onGettingCompanionAppId_settingsIsReadFirst() {
     val device = createDeviceWithShellCommandResult(OEM_COMPANION_APP_ID)
 
-    runBlocking {
-      assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_APP_ID)
-    }
+    runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_APP_ID) }
   }
 
   @Test
   fun onGettingCompanionAppId_nothingIsNotSet_systemPropertyIsRead() {
     val device = createDeviceWithShellCommandResult("null")
-    whenever(device.getSystemProperty(anyString())).thenReturn(Futures.immediateFuture(OEM_COMPANION_APP_ID))
+    whenever(device.getSystemProperty(anyString()))
+      .thenReturn(Futures.immediateFuture(OEM_COMPANION_APP_ID))
 
-    runBlocking {
-      assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_APP_ID)
-    }
+    runBlocking { assertThat(device.getCompanionAppIdForWatch()).isEqualTo(OEM_COMPANION_APP_ID) }
   }
 
   @Test
@@ -86,7 +82,10 @@ class HasPairingFeatureTest(private val pairingFeature: PairingFeature) : LightP
 
   @Test
   fun onHasPairingFeature_higherVersions_succeed() {
-    val device = createDeviceWithShellCommandResult("    versionCode=${pairingFeature.minVersion} minSdk=23 targetSdk=30")
+    val device =
+      createDeviceWithShellCommandResult(
+        "    versionCode=${pairingFeature.minVersion} minSdk=23 targetSdk=30"
+      )
 
     runBlocking {
       assertThat(device.hasPairingFeature(pairingFeature, OEM_COMPANION_FALLBACK_APP_ID)).isTrue()
@@ -97,11 +96,12 @@ class HasPairingFeatureTest(private val pairingFeature: PairingFeature) : LightP
 private fun createDeviceWithShellCommandResult(result: String): IDevice {
   val device = Mockito.mock(IDevice::class.java)
   doAnswer { invocation: InvocationOnMock ->
-    val outputReceiver = invocation.getArgument<IShellOutputReceiver>(1)
-    val data = result.toByteArray()
-    outputReceiver.addOutput(data, 0, data.size)
-    null
-  }.whenever(device).executeShellCommand(anyString(),
-                                       ArgumentMatchers.any())
+      val outputReceiver = invocation.getArgument<IShellOutputReceiver>(1)
+      val data = result.toByteArray()
+      outputReceiver.addOutput(data, 0, data.size)
+      null
+    }
+    .whenever(device)
+    .executeShellCommand(anyString(), ArgumentMatchers.any())
   return device
 }

@@ -16,10 +16,10 @@
 package com.android.tools.idea.wearpairing
 
 import com.intellij.AbstractBundle
-import org.jetbrains.annotations.PropertyKey
 import java.lang.ref.Reference
 import java.lang.ref.SoftReference
 import java.util.ResourceBundle
+import org.jetbrains.annotations.PropertyKey
 
 private const val BUNDLE_NAME = "messages.AndroidWearPairingBundle"
 
@@ -37,7 +37,10 @@ class AndroidWearPairingBundle private constructor() {
     }
 
     @JvmStatic
-    fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any?): String {
+    fun message(
+      @PropertyKey(resourceBundle = BUNDLE_NAME) key: String,
+      vararg params: Any?,
+    ): String {
       return AbstractBundle.message(getBundle(), key, *params)
     }
   }

@@ -136,7 +136,11 @@ private suspend fun findUMethodsWithTilePreviewSignature(
 ): List<UMethod> {
   val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
-      PsiTreeUtil.findChildrenOfAnyType(vFile.toPsiFile(project), PsiMethod::class.java, KtNamedFunction::class.java)
+      PsiTreeUtil.findChildrenOfAnyType(
+          vFile.toPsiFile(project),
+          PsiMethod::class.java,
+          KtNamedFunction::class.java,
+        )
         .map { pointerManager.createSmartPsiElementPointer(it) }
     }
     .filter { smartReadAction(project) { it.element?.isMethodWithTilePreviewSignature() } ?: false }

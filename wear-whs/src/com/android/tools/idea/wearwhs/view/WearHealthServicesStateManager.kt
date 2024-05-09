@@ -27,23 +27,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.PropertyKey
 
-/***
- * Interface for managing the state of the Wear Health Services tool window.
- */
+/** Interface for managing the state of the Wear Health Services tool window. */
 internal interface WearHealthServicesStateManager {
-  /**
-   * Capabilities of WHS.
-   */
+  /** Capabilities of WHS. */
   val capabilitiesList: List<WhsCapability>
 
-  /**
-   * State flow for the current preset.
-   */
+  /** State flow for the current preset. */
   val preset: MutableStateFlow<Preset>
 
-  /**
-   * Sets the current capability enabled state.
-   */
+  /** Sets the current capability enabled state. */
   suspend fun setCapabilityEnabled(capability: WhsCapability, enabled: Boolean)
 
   /**
@@ -54,49 +46,40 @@ internal interface WearHealthServicesStateManager {
 
   fun getState(capability: WhsCapability): StateFlow<CapabilityUIState>
 
-  /**
-   * Applies the changes on current device.
-   */
+  /** Applies the changes on current device. */
   suspend fun applyChanges()
 
-  /**
-   * Resets the state to the defaults, in this case, to selected preset.
-   */
+  /** Resets the state to the defaults, in this case, to selected preset. */
   suspend fun reset()
 
   /**
-   * State flow for the ongoing status updates, it's an instance of [WhsStateManagerStatus]
-   * which could be the syncing state, containing the capability that is currently being synced
-   * across to the device, an error state, or an idle state.
+   * State flow for the ongoing status updates, it's an instance of [WhsStateManagerStatus] which
+   * could be the syncing state, containing the capability that is currently being synced across to
+   * the device, an error state, or an idle state.
    */
   val status: StateFlow<WhsStateManagerStatus>
 
   /**
-   * Returns if the current WHS version is supported or not, so an error can be displayed by
-   * the UI.
+   * Returns if the current WHS version is supported or not, so an error can be displayed by the UI.
    */
   suspend fun isWhsVersionSupported(): Boolean
 
   /**
-   * State flow for the ongoing exercise status, emits a single boolean, true if there's an
-   * ongoing exercise on the device, false otherwise.
+   * State flow for the ongoing exercise status, emits a single boolean, true if there's an ongoing
+   * exercise on the device, false otherwise.
    */
   val ongoingExercise: StateFlow<Boolean>
 
-  /**
-   * Triggers given event on the device.
-   */
+  /** Triggers given event on the device. */
   suspend fun triggerEvent(eventTrigger: EventTrigger)
 
   /**
-   * Stores if the periodic updates should run. If this is set to false, periodic updates
-   * will be skipped.
+   * Stores if the periodic updates should run. If this is set to false, periodic updates will be
+   * skipped.
    */
   var runPeriodicUpdates: Boolean
 
-  /**
-   * Used to get/set the serial number of the currently running emulator.
-   */
+  /** Used to get/set the serial number of the currently running emulator. */
   var serialNumber: String?
 }
 
@@ -116,13 +99,13 @@ internal enum class Preset(@PropertyKey(resourceBundle = BUNDLE_NAME) val labelK
 }
 
 /**
- * Progress state of the Wear Health Services tool window, tells the user what is currently
- * being synced across to the device, if there's an error, or if the state is idle.
+ * Progress state of the Wear Health Services tool window, tells the user what is currently being
+ * synced across to the device, if there's an error, or if the state is idle.
  */
 internal sealed class WhsStateManagerStatus(val idle: Boolean) {
   /**
-   * Initial state, when the tool window is first opened. State manager will wait until
-   * it's idle to execute commands.
+   * Initial state, when the tool window is first opened. State manager will wait until it's idle to
+   * execute commands.
    */
   object Initializing : WhsStateManagerStatus(idle = false)
 
@@ -132,31 +115,21 @@ internal sealed class WhsStateManagerStatus(val idle: Boolean) {
    */
   object Busy : WhsStateManagerStatus(idle = false)
 
-  /**
-   * User action is currently being performed, such as applying changes to the device.
-   */
+  /** User action is currently being performed, such as applying changes to the device. */
   object Syncing : WhsStateManagerStatus(idle = false)
 
-  /**
-   * Connection is lost, this should be shown to the user if any of the actions fail.
-   */
+  /** Connection is lost, this should be shown to the user if any of the actions fail. */
   object ConnectionLost : WhsStateManagerStatus(idle = true)
 
-  /**
-   * Last action had a timeout, this should be shown to the user if any action times out.
-   */
-  object Timeout: WhsStateManagerStatus(idle = true)
+  /** Last action had a timeout, this should be shown to the user if any action times out. */
+  object Timeout : WhsStateManagerStatus(idle = true)
 
-  /**
-   * Panel is idle, ready to accept user input and/or execute the next task.
-   */
+  /** Panel is idle, ready to accept user input and/or execute the next task. */
   object Idle : WhsStateManagerStatus(idle = true)
 }
 
-/**
- * Data class representing current state of a WHS capability.
- */
+/** Data class representing current state of a WHS capability. */
 internal data class CapabilityUIState(
   val synced: Boolean = true,
-  val capabilityState: CapabilityState = CapabilityState(true, null)
+  val capabilityState: CapabilityState = CapabilityState(true, null),
 )

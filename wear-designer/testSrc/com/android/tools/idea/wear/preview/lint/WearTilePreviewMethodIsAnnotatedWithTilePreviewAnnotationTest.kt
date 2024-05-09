@@ -39,8 +39,7 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
 
   @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
 
-  @get:Rule
-  val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
+  @get:Rule val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
 
   private val fixture
     get() = projectRule.fixture
@@ -185,14 +184,17 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotationTest {
 
     val directPreviewError =
       errors.single {
-        it.description ==
-          message("inspection.preview.annotation.not.from.tile.package")
+        it.description == message("inspection.preview.annotation.not.from.tile.package")
       }
     assertEquals(
       "@Preview" to "tilePreviewWithInvalidPreviewAnnotation",
       directPreviewError.text to file.containingMethodName(directPreviewError),
     )
-    assertTrue(directPreviewError.findRegisteredQuickFix { desc, _ -> QuickFixWrapper.unwrap(desc.action) is ReplacePreviewAnnotationFix })
+    assertTrue(
+      directPreviewError.findRegisteredQuickFix { desc, _ ->
+        QuickFixWrapper.unwrap(desc.action) is ReplacePreviewAnnotationFix
+      }
+    )
 
     val multiPreviewError =
       errors.single {
