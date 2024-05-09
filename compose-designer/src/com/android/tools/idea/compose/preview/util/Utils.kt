@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.PsiComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.hasPreviewElements
+import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
 import com.android.tools.idea.projectsystem.isTestFile
@@ -30,8 +30,8 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Segment
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElementOfType
+import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.toUElement
 
 fun Segment?.containsOffset(offset: Int) =
   this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false
@@ -66,15 +66,16 @@ fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
 
 /**
  * Whether this function is not in a test file and is properly annotated with
- * [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when the Multipreview flag is
- * enabled, and validating the location of Previews
+ * [COMPOSE_PREVIEW_ANNOTATION_FQN], and validating the location of Previews.
  *
  * @see [isValidPreviewLocation]
  */
 internal fun KtNamedFunction.isValidComposePreview() =
   !isInTestFile() &&
     isValidPreviewLocation() &&
-    this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
+    annotationEntries.any { annotation ->
+      (annotation.toUElement() as? UAnnotation)?.isPreviewAnnotation() == true
+    }
 
 private fun KtNamedFunction.isInTestFile() =
   isTestFile(this.project, this.containingFile.virtualFile)
