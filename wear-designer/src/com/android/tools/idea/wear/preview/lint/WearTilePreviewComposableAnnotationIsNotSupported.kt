@@ -15,19 +15,13 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.hasTilePreviewAnnotation
 import com.android.tools.idea.wear.preview.isMethodWithTilePreviewSignature
-import com.intellij.codeInspection.AbstractBaseUastLocalInspectionTool
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.uast.UMethod
 
 const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
@@ -36,13 +30,7 @@ const val COMPOSABLE_ANNOTATION_FQN = "androidx.compose.runtime.Composable"
  * Inspection that checks that a user is not using the @Composable annotation on a method with a
  * Tile preview signature.
  */
-class WearTilePreviewComposableAnnotationIsNotSupported : AbstractBaseUastLocalInspectionTool() {
-  override fun isAvailableForFile(file: PsiFile): Boolean {
-    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
-      !isUnitTestFile(file.project, file.virtualFile) &&
-      file.language in setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
-  }
-
+class WearTilePreviewComposableAnnotationIsNotSupported : WearTilePreviewInspectionBase() {
   override fun checkMethod(
     method: UMethod,
     manager: InspectionManager,
@@ -74,6 +62,4 @@ class WearTilePreviewComposableAnnotationIsNotSupported : AbstractBaseUastLocalI
 
   override fun getStaticDescription() =
     message("inspection.preview.annotation.composable.not.supported")
-
-  override fun getGroupDisplayName() = message("inspection.group.name")
 }

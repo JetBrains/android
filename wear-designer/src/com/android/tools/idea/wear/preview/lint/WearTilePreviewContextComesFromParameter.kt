@@ -16,22 +16,16 @@
 package com.android.tools.idea.wear.preview.lint
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.hasTilePreviewAnnotation
 import com.android.tools.idea.wear.preview.isMethodWithTilePreviewSignature
-import com.intellij.codeInspection.AbstractBaseUastLocalInspectionTool
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.InheritanceUtil
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UMethod
@@ -49,13 +43,7 @@ import org.jetbrains.uast.visitor.AbstractUastVisitor
  * is used further down the call stack. This would be resource intensive. Instead, we let the
  * preview fail and surface the error in the designer errors panel instead in that case.
  */
-class WearTilePreviewContextComesFromParameter : AbstractBaseUastLocalInspectionTool() {
-  override fun isAvailableForFile(file: PsiFile): Boolean {
-    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
-      !isUnitTestFile(file.project, file.virtualFile) &&
-      file.language in setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
-  }
-
+class WearTilePreviewContextComesFromParameter : WearTilePreviewInspectionBase() {
   override fun checkMethod(
     method: UMethod,
     manager: InspectionManager,
@@ -78,8 +66,6 @@ class WearTilePreviewContextComesFromParameter : AbstractBaseUastLocalInspection
   }
 
   override fun getStaticDescription() = message("inspection.context.comes.from.parameter")
-
-  override fun getGroupDisplayName() = message("inspection.group.name")
 }
 
 private class InvalidContextUsageWithinUMethodVisitor(

@@ -15,21 +15,15 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.annotations.findAllAnnotationsInGraph
 import com.android.tools.idea.preview.quickfixes.ReplacePreviewAnnotationFix
-import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.wear.preview.TILE_PREVIEW_ANNOTATION_FQ_NAME
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.isMethodWithTilePreviewSignature
-import com.intellij.codeInspection.AbstractBaseUastLocalInspectionTool
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 
@@ -37,14 +31,7 @@ import org.jetbrains.uast.UMethod
  * Inspection that checks that any method with a Tile Preview signature is annotated with the tile
  * `@Preview` annotation, and not a `@Preview` annotation from a different package.
  */
-class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation :
-  AbstractBaseUastLocalInspectionTool() {
-
-  override fun isAvailableForFile(file: PsiFile): Boolean {
-    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
-      !isUnitTestFile(file.project, file.virtualFile) &&
-      file.language in setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
-  }
+class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation : WearTilePreviewInspectionBase() {
 
   override fun checkMethod(
     method: UMethod,
@@ -90,8 +77,6 @@ class WearTilePreviewMethodIsAnnotatedWithTilePreviewAnnotation :
 
   override fun getStaticDescription() =
     message("inspection.preview.annotation.not.from.tile.package")
-
-  override fun getGroupDisplayName() = message("inspection.group.name")
 }
 
 private fun UAnnotation.isMultiPreviewAnnotationFromInvalidPackage() =

@@ -15,32 +15,20 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.wear.preview.WearPreviewBundle.message
 import com.android.tools.idea.wear.preview.hasTilePreviewAnnotation
-import com.intellij.codeInspection.AbstractBaseUastLocalInspectionTool
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.uast.UMethod
 
 /**
  * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
  * in a unit test file.
  */
-class WearTilePreviewNotSupportedInUnitTestFiles : AbstractBaseUastLocalInspectionTool() {
-
-  override fun isAvailableForFile(file: PsiFile): Boolean {
-    // If the element is not in a unit test file, then this inspection has nothing to do
-    return StudioFlags.WEAR_TILE_PREVIEW.get() &&
-      isUnitTestFile(file.project, file.virtualFile) &&
-      file.language in setOf(KotlinLanguage.INSTANCE, JavaLanguage.INSTANCE)
-  }
+class WearTilePreviewNotSupportedInUnitTestFiles :
+  WearTilePreviewInspectionBase(isUnitTestInspection = true) {
 
   override fun checkMethod(
     method: UMethod,
@@ -66,6 +54,4 @@ class WearTilePreviewNotSupportedInUnitTestFiles : AbstractBaseUastLocalInspecti
   }
 
   override fun getStaticDescription() = message("inspection.unit.test.files")
-
-  override fun getGroupDisplayName() = message("inspection.group.name")
 }
