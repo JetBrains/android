@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output.integration.runsGradle
 
+import com.android.SdkConstants
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -29,6 +30,7 @@ import com.android.tools.idea.gradle.project.sync.idea.issues.OpenLinkDescribedQ
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaLanguageLevelAllQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SetJavaToolchainQuickFix
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
@@ -49,16 +51,17 @@ import com.intellij.build.events.MessageEvent.Kind.WARNING
 import com.intellij.build.events.impl.FinishBuildEventImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.JavaSdkVersion
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.ContainerUtil
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @RunsInEdt
 class JavaLanguageLevelDeprecationOutputParserTest {
@@ -92,7 +95,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
     val sourceMessage = "Source option 6 is no longer supported. Use 7 or later."
     val targetMessage = "Target option 6 is no longer supported. Use 7 or later."
 
-    val buildEvents = getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_6, expectSuccess = false)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_6, expectSuccess = false)
 
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(2)
@@ -123,7 +127,9 @@ class JavaLanguageLevelDeprecationOutputParserTest {
     val sourceMessage = "[options] source value 7 is obsolete and will be removed in a future release"
     val targetMessage = "[options] target value 7 is obsolete and will be removed in a future release"
     val suppressMessage = "[options] To suppress warnings about obsolete options, use -Xlint:-options."
-    val buildEvents = getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_7, expectSuccess = true)
+
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_7, expectSuccess = true)
 
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(9)
@@ -145,7 +151,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
    */
   @Test
   fun testJava8NoBuildIssues() {
-    val buildEvents = getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_8, expectSuccess = true)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_17, LanguageLevel.JDK_1_8, expectSuccess = true)
     // Make sure no error or warning events are generated
     expect.that(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
     expect.that(buildEvents.finishEventFailures()).isEmpty()
@@ -153,7 +160,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
 
   @Test
   fun testJava7OnJDK21() {
-    val buildEvents = getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(1)
       events.firstOrNull()?.let {
@@ -193,11 +201,59 @@ class JavaLanguageLevelDeprecationOutputParserTest {
   }
 
   @Test
+  fun testJava7OnJDK21WithJavaLib() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.root.resolve("lib").let { lib ->
+      lib.mkdirs()
+      lib.resolve(SdkConstants.FN_BUILD_GRADLE).writeText("""
+        plugins {
+            id 'java-library'
+        }
+        
+        java {
+            sourceCompatibility = JavaVersion.VERSION_1_7
+            targetCompatibility = JavaVersion.VERSION_1_7
+        }
+      """.trimIndent())
+      lib.resolve("src/main/java/org/example/").mkdirs()
+      lib.resolve("src/main/java/org/example/LibClass.java").writeText("""
+        package org.example;
+
+        public class LibClass {}
+      """.trimIndent())
+    }
+    preparedProject.root.resolve(SdkConstants.FN_SETTINGS_GRADLE).appendText("\ninclude ':lib'")
+
+    val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_7, expectSuccess = false)
+
+    val sourceMessage = "Source option 7 is no longer supported. Use 8 or later."
+    val targetMessage = "Target option 7 is no longer supported. Use 8 or later."
+
+    buildEvents.filterIsInstance<MessageEvent>().let { events ->
+      expect.that(events).hasSize(2)
+      verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, ERROR, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11, ":lib")
+      verifyBuildIssue(events[1] as BuildIssueEvent, targetMessage, ERROR, OpenTargetCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_1_8, 11, ":lib")
+    }
+    expect.that(buildEvents.finishEventFailures()).isEmpty()
+
+    val reportedFailureDetails = usageTracker.usages
+      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_WINDOW_STATS }
+    expect.that(reportedFailureDetails).hasSize(1)
+    reportedFailureDetails.map { it.studioEvent }.firstOrNull()?.let {
+      // TODO add proper error type for this.
+      expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
+        .containsExactly(UNKNOWN_ERROR_TYPE, UNKNOWN_ERROR_TYPE)
+    }
+  }
+
+  @Test
   fun testJava8OnJDK21() {
     val sourceMessage = "[options] source value 8 is obsolete and will be removed in a future release"
     val targetMessage = "[options] target value 8 is obsolete and will be removed in a future release"
     val suppressMessage = "[options] To suppress warnings about obsolete options, use -Xlint:-options."
-    val buildEvents = getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_8, expectSuccess = true)
+
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    val buildEvents = preparedProject.getBuildIssues(JavaSdkVersion.JDK_21, LanguageLevel.JDK_1_8, expectSuccess = true)
     buildEvents.filterIsInstance<MessageEvent>().let { events ->
       expect.that(events).hasSize(9)
       verifyBuildIssue(events[0] as BuildIssueEvent, sourceMessage, WARNING, OpenSourceCompatibilityLinkQuickFix::class.java, LanguageLevel.JDK_11, 17)
@@ -219,7 +275,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
                                expectedKind: MessageEvent.Kind,
                                compatibilityFix: Class<out OpenLinkDescribedQuickFix>,
                                suggestedLanguageLevel: LanguageLevel,
-                               suggestedToolchainVersion: Int) {
+                               suggestedToolchainVersion: Int,
+                               gradleModuleForToolchainQuickfix: String = ":app") {
     expect.that(event.kind).isEqualTo(expectedKind)
     expect.that(event.message).isEqualTo(expectedMessage)
     expect.that(event.issue).isNotNull()
@@ -235,8 +292,8 @@ class JavaLanguageLevelDeprecationOutputParserTest {
       ).inOrder()
       expect.that((fixes[0] as SetJavaLanguageLevelAllQuickFix).level).isEqualTo(suggestedLanguageLevel)
       with(fixes[2] as SetJavaToolchainQuickFix) {
-        assertThat(versionToSet).isEqualTo(suggestedToolchainVersion)
-        assertThat(gradleModules).containsExactly(":app")
+        expect.that(versionToSet).isEqualTo(suggestedToolchainVersion)
+        expect.that(gradleModules).containsExactly(gradleModuleForToolchainQuickfix)
       }
     }
   }
@@ -248,14 +305,10 @@ class JavaLanguageLevelDeprecationOutputParserTest {
     expect.that(event.message).isEqualTo(expectedMessage)
   }
 
-  private fun getBuildIssues(javaSdkVersion: JavaSdkVersion,
-                             languageLevel: LanguageLevel,
-                             expectSuccess: Boolean): MutableList<BuildEvent> {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
-
-    val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
-    val allBuildEventsProcessedLatch = CountDownLatch(1)
-    preparedProject.open(
+  private fun PreparedTestProject.getBuildIssues(javaSdkVersion: JavaSdkVersion,
+                                                 languageLevel: LanguageLevel,
+                                                 expectSuccess: Boolean): List<BuildEvent> {
+    return open(
       updateOptions = {
         it.copy(
           overrideProjectGradleJdkPath = getEmbeddedJdkPathWithVersion(javaSdkVersion)
@@ -276,20 +329,28 @@ class JavaLanguageLevelDeprecationOutputParserTest {
           projectBuildModel.applyChanges()
         }
       }
-      // Build
-      val result = project.buildAndWait(eventHandler = { event ->
-        if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
-        buildEvents.add(event)
-        // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
-        // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
-        if (event is FinishBuildEventImpl) {
-          allBuildEventsProcessedLatch.countDown()
-        }
-      }) { buildInvoker ->
-        buildInvoker.rebuild()
-      }
-      assertThat(result.isBuildSuccessful).isEqualTo(expectSuccess)
+
+      project.buildCollectingEvents(expectSuccess)
     }
+  }
+
+  private fun Project.buildCollectingEvents(expectSuccess: Boolean): List<BuildEvent> {
+    val buildEvents = ContainerUtil.createConcurrentList<BuildEvent>()
+    val allBuildEventsProcessedLatch = CountDownLatch(1)
+    // Build
+    val result = buildAndWait(eventHandler = { event ->
+      if (event !is BuildIssueEvent && event !is MessageEvent && event !is FinishBuildEvent) return@buildAndWait
+      buildEvents.add(event)
+      // Events are generated in a separate thread(s) and if we don't wait for the FinishBuildEvent
+      // some might not reach here by the time we inspect them below resulting in flakiness (like b/318490086).
+      if (event is FinishBuildEventImpl) {
+        allBuildEventsProcessedLatch.countDown()
+      }
+    }) { buildInvoker ->
+      buildInvoker.rebuild()
+    }
+    assertThat(result.isBuildSuccessful).isEqualTo(expectSuccess)
+    allBuildEventsProcessedLatch.await(10, TimeUnit.SECONDS)
     return buildEvents
   }
 
