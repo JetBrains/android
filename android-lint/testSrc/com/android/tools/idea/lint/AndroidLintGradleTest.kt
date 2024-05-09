@@ -35,19 +35,36 @@ import com.intellij.codeInspection.reference.RefEntity
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import java.io.File
 import java.util.Locale
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 
 class AndroidLintGradleTest : AndroidGradleTestCase() {
+  // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+  private val K2_KTS_KEY = "kotlin.k2.scripting.enabled"
+
   override fun setUp() {
     super.setUp()
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      Registry.get(K2_KTS_KEY).setValue(true)
+    }
     val analyticsSettings = AnalyticsSettingsData()
     analyticsSettings.optedIn = false
     setInstanceForTest(analyticsSettings)
     myFixture.allowTreeAccessForAllFiles()
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.isK2Mode()) {
+      Registry.get(K2_KTS_KEY).setValue(false)
+    }
   }
 
   fun `test lint warning in tests`() {
