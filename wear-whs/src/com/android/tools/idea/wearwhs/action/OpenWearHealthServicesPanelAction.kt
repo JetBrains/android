@@ -73,7 +73,6 @@ class OpenWearHealthServicesPanelAction :
           emulatorView.putUserData(WHS_STATE_KEY, it)
           Disposer.register(emulatorView, it)
           it.serialNumber = emulatorView.deviceSerialNumber
-          it.runPeriodicUpdates = true
         }
       }
 

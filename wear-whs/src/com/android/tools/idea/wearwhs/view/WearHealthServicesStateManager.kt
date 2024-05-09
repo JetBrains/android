@@ -73,12 +73,6 @@ internal interface WearHealthServicesStateManager {
   /** Triggers given event on the device. */
   suspend fun triggerEvent(eventTrigger: EventTrigger)
 
-  /**
-   * Stores if the periodic updates should run. If this is set to false, periodic updates will be
-   * skipped.
-   */
-  var runPeriodicUpdates: Boolean
-
   /** Used to get/set the serial number of the currently running emulator. */
   var serialNumber: String?
 }

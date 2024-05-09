@@ -16,6 +16,7 @@
 package com.android.tools.idea.wearwhs.view
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearwhs.EventTrigger
 import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
@@ -49,10 +50,10 @@ private const val MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS: Long = 5000
 internal class WearHealthServicesStateManagerImpl(
   private val deviceManager: WearHealthServicesDeviceManager,
   private val eventLogger: WearHealthServicesEventLogger = WearHealthServicesEventLogger(),
-  @VisibleForTesting private val pollingIntervalMillis: Long = POLLING_INTERVAL_MILLISECONDS,
+  @VisibleForTesting
+  private val pollingIntervalMillis: Long =
+    StudioFlags.WEAR_HEALTH_SERVICES_POLLING_INTERVAL_MS.get(),
 ) : WearHealthServicesStateManager, Disposable {
-
-  override var runPeriodicUpdates = false
 
   override val preset: MutableStateFlow<Preset> = MutableStateFlow(Preset.ALL)
 
@@ -108,10 +109,6 @@ internal class WearHealthServicesStateManagerImpl(
   }
 
   private suspend fun updateState() {
-    if (!runPeriodicUpdates) {
-      // Don't update the state if the tool window is hidden
-      return
-    }
     runWithStatus(WhsStateManagerStatus.Busy) {
       val activeExerciseResult =
         deviceManager.loadActiveExercise().map { activeExercise ->

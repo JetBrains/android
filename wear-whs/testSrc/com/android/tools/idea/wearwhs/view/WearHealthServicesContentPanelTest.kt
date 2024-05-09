@@ -64,10 +64,9 @@ class WearHealthServicesContentPanelTest {
   private val deviceManager by lazy { FakeDeviceManager() }
   private val stateManager by lazy {
     WearHealthServicesStateManagerImpl(
-        deviceManager,
-        pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
-      )
-      .apply { runPeriodicUpdates = true }
+      deviceManager,
+      pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
+    )
   }
   private val whsPanel by lazy {
     val uiScope: CoroutineScope =

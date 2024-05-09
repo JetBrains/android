@@ -36,6 +36,7 @@ import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
 
@@ -1444,6 +1445,12 @@ public final class StudioFlags {
     WEAR_HEALTH_SERVICES, "enable.panel", "Enable Wear Health Services panel",
     "If enabled, a button to display panel for modifying emulator sensors will appear",
     ChannelDefault.enabledUpTo(CANARY)
+  );
+
+  public static final Flag<Long> WEAR_HEALTH_SERVICES_POLLING_INTERVAL_MS = new LongFlag(
+    WEAR_HEALTH_SERVICES, "polling.interval", "Wear Health Services polling interval",
+    "The polling interval in milliseconds to be used when querying Wear Health Services for updates",
+    TimeUnit.SECONDS.toMillis(1)
   );
   // endregion
 
