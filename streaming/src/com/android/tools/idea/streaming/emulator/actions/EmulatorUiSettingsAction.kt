@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
 import com.android.tools.idea.streaming.emulator.EmulatorUiSettingsController
 import com.android.tools.idea.streaming.emulator.isReadyForAdbCommands
 import com.android.tools.idea.streaming.uisettings.data.hasLimitedUiSettingsSupport
@@ -47,7 +49,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     val project = event.project ?: return
     val serialNumber = getEmulatorController(event)?.emulatorId?.serialNumber ?: return
     val config = getEmulatorConfig(event) ?: return
-    val model = UiSettingsModel(config.displaySize, config.density, config.api)
+    val model = UiSettingsModel(config.displaySize, config.density, config.api, config.isWatch)
     val controller = EmulatorUiSettingsController(project, serialNumber, model, config, emulatorView)
     AndroidCoroutineScope(emulatorView).launch {
       controller.populateModel()
@@ -65,4 +67,7 @@ internal class EmulatorUiSettingsAction : AbstractEmulatorAction(configFilter = 
     val controller = getEmulatorController(event) ?: return false
     return isReadyForAdbCommands(project, controller.emulatorId.serialNumber)
   }
+
+  private val EmulatorConfiguration.isWatch: Boolean
+    get() = deviceType == DeviceType.WEAR
 }
