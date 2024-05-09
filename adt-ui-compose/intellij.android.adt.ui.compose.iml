@@ -35,19 +35,19 @@
     <orderEntry type="module-library" exported="">
       <library name="jewel-ide">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-241/0.18.1/jewel-foundation-241-0.18.1.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.18.1/jewel-ide-laf-bridge-241-0.18.1.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-241/0.18.1/jewel-ui-241-0.18.1.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-core-241/0.18.1/jewel-markdown-core-241-0.18.1.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-241/0.18.1/jewel-markdown-extension-gfm-alerts-241-0.18.1.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-241/0.18.1/jewel-markdown-ide-laf-bridge-styling-241-0.18.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-241/0.19.3/jewel-foundation-241-0.19.3.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.19.3/jewel-ide-laf-bridge-241-0.19.3.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-241/0.19.3/jewel-ui-241-0.19.3.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-core-241/0.19.3/jewel-markdown-core-241-0.19.3.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-extension-gfm-alerts-241/0.19.3/jewel-markdown-extension-gfm-alerts-241-0.19.3.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-ide-laf-bridge-styling-241/0.19.3/jewel-markdown-ide-laf-bridge-styling-241-0.19.3.jar!/" />
           <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/commonmark/commonmark/0.22.0/commonmark-0.22.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-241/0.18.1/jewel-foundation-241-0.18.1-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.18.1/jewel-ide-laf-bridge-241-0.18.1-sources.jar!/" />
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-241/0.18.1/jewel-ui-241-0.18.1-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-foundation-241/0.19.3/jewel-foundation-241-0.19.3-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ide-laf-bridge-241/0.19.3/jewel-ide-laf-bridge-241-0.19.3-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-ui-241/0.19.3/jewel-ui-241-0.19.3-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
@@ -96,11 +96,13 @@
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="jewel-standalone">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.18.1/jewel-int-ui-standalone-241-0.18.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.19.3/jewel-int-ui-standalone-241-0.19.3.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-241/0.19.3/jewel-markdown-int-ui-standalone-styling-241-0.19.3.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.18.1/jewel-int-ui-standalone-241-0.18.1-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-int-ui-standalone-241/0.19.3/jewel-int-ui-standalone-241-0.19.3-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/org/jetbrains/jewel/jewel-markdown-int-ui-standalone-styling-241/0.19.3/jewel-markdown-int-ui-standalone-styling-241-0.19.3-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
