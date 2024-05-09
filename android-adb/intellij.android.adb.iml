@@ -30,5 +30,6 @@
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="libadblib-tools-proto" level="project" />
+    <orderEntry type="module" module-name="analytics" />
   </component>
 </module>

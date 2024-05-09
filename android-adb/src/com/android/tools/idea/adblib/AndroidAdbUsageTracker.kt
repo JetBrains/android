@@ -17,13 +17,18 @@ package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.connectedDeviceToDeviceInfo
 import com.google.wireless.android.sdk.stats.AdbUsageEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 
 class AndroidAdbUsageTracker : AdbUsageTracker {
 
-  override fun logUsage(event: AdbUsageTracker.Event) {
+  override suspend fun logUsage(event: AdbUsageTracker.Event) {
     val androidStudioEvent = AndroidStudioEvent.newBuilder().setKind(AndroidStudioEvent.EventKind.ADB_USAGE_EVENT)
+
+    event.device?.let {
+      androidStudioEvent.setDeviceInfo(connectedDeviceToDeviceInfo(it))
+    }
 
     event.jdwpProcessPropertiesCollector?.let {
       androidStudioEvent.adbUsageEventBuilder.processPropertiesEventBuilder
