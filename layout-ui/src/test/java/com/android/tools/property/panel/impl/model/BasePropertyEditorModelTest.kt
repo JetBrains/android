@@ -113,7 +113,7 @@ class BasePropertyEditorModelTest {
 
     model.isUsedInRendererWithSelection = true
     assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!))
-      .isEqualTo(!ExperimentalUI.isNewUI())
+      .isEqualTo(ExperimentalUI.isNewUI())
   }
 
   @Test
