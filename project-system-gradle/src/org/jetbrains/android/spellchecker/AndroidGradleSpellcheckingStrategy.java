@@ -25,6 +25,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplic
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression;
 
 import static com.android.SdkConstants.DOT_GRADLE;
 import static com.android.utils.SdkUtils.endsWithIgnoreCase;
@@ -73,17 +74,20 @@ public class AndroidGradleSpellcheckingStrategy extends GroovySpellcheckingStrat
       parent2 = parent2.getParent();
     }
 
-    if (parent2 instanceof GrApplicationStatement) {
-      GrApplicationStatement call = (GrApplicationStatement)parent2;
+    GrExpression invokedExpression;
+    if (parent2 instanceof GrApplicationStatement call) {
+      invokedExpression = call.getInvokedExpression();
+    }
+    else if (parent2 instanceof GrMethodCallExpression call) {
+      invokedExpression = call.getInvokedExpression();
+    }
+    else {
+      return false;
+    }
 
-      GrExpression propertyExpression = call.getInvokedExpression();
-      if (propertyExpression instanceof GrReferenceExpression) {
-        GrReferenceExpression propertyRef = (GrReferenceExpression)propertyExpression;
-        String property = propertyRef.getReferenceName();
-        if ("print".equals(property) || "println".equals(property)) {
-          return true;
-        }
-      }
+    if (invokedExpression instanceof GrReferenceExpression propertyRef) {
+      String property = propertyRef.getReferenceName();
+      return "print".equals(property) || "println".equals(property);
     }
 
     return false;

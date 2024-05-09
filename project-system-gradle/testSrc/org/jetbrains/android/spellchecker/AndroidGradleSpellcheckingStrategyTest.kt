@@ -79,6 +79,7 @@ class AndroidGradleSpellcheckingStrategyTest : AndroidTestCase() {
       """.trimIndent()).virtualFile
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val typos = myFixture.doHighlighting(SpellCheckerSeveritiesProvider.TYPO)
-    // TODO: fix AndroidGradleSpellcheckingStrategy
+    assertThat(typos).hasSize(1)
+    assertThat(typos[0].description).isEqualTo("Typo: In word 'xyzzy'")
   }
 }
