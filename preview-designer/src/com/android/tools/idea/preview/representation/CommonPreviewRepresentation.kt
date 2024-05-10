@@ -123,7 +123,27 @@ import org.jetbrains.kotlin.psi.KtFile
 private val modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("PreviewElement")
 
-/** A generic [PreviewElement] [PreviewRepresentation]. */
+/**
+ * A generic [PreviewElement] [PreviewRepresentation], that can be configured and adapted to the
+ * needs of a given preview tool by the constructor parameters.
+ *
+ * @param adapterViewFqcn the fully qualified name of the view adapter associated with the previews.
+ * @param psiFile the file containing the code to preview.
+ * @param previewProviderConstructor the function to get a [PreviewElementProvider] to be used for
+ *   finding the previews.
+ * @param previewElementModelAdapterDelegate the [PreviewElementModelAdapter] to be used when
+ *   rendering previews.
+ * @param viewConstructor the function to get a [CommonNlDesignSurfacePreviewView] to be used for
+ *   displaying the previews.
+ * @param viewModelConstructor the function to get a [CommonPreviewViewModel] to be used for
+ *   tracking big part of the state of the previews.
+ * @param configureDesignSurface the function to configure the [NlDesignSurface] that is used for
+ *   displaying the previews.
+ * @param renderingTopic the [RenderingTopic] under which the preview renderings will be executed.
+ * @param useCustomInflater a configuration to apply when rendering the previews.
+ * @param createRefreshEventBuilder the function to get a [PreviewRefreshEventBuilder] to be used
+ *   for tracking refresh metrics.
+ */
 open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
