@@ -31,7 +31,6 @@ import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
-import com.android.tools.idea.perfetto.PerfettoTraceWebLoader;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace.TraceInitiationType;
@@ -481,14 +480,6 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
             getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_FAILURE);
           }
         }, 10000);
-    }
-
-    // Trace ID handled by the PerfettoTraceWebLoader
-    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false) &&
-        PerfettoTraceWebLoader.INSTANCE.getHandledTraceIds().contains(traceId)) {
-      getStudioProfilers().getIdeServices().getMainExecutor().execute(
-        () -> getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION))
-      );
     }
   }
 

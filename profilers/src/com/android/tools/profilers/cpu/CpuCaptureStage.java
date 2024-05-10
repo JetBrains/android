@@ -234,15 +234,6 @@ public class CpuCaptureStage extends Stage<Timeline> {
       return null;
     }
 
-    // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
-    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
-      var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
-      if (traceType == TraceType.PERFETTO) {
-        PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile, traceId);
-        return null; // prevent Profiler UI from opening the trace
-      }
-    }
-
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
     return new CpuCaptureStage(profilers, configuration, entryPoint, captureFile, traceId, captureProcessNameHint,
                                profilers.getSession().getPid());
@@ -359,6 +350,27 @@ public class CpuCaptureStage extends Stage<Timeline> {
     logEnterStage();
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
+
+    // (Experimental) code section that intercepts opening Perfetto traces and loads them in the Perfetto Web UI
+    if (Registry.is(PerfettoTraceWebLoader.FEATURE_REGISTRY_KEY, false)) {
+      File captureFile = myCpuCaptureHandler.getCaptureFile();
+      var traceType = CpuCaptureParserUtil.getFileTraceType(captureFile, TraceType.UNSPECIFIED);
+      if (traceType == TraceType.PERFETTO) {
+        // Pass the trace to the Perfetto Web UI
+        getStudioProfilers().getIdeServices().getMainExecutor().execute(
+          () -> PerfettoTraceWebLoader.INSTANCE.loadTrace(captureFile)
+        );
+        // Update the UI notifying the user that the trace is being loaded by the Perfetto Web UI
+        getStudioProfilers().getIdeServices().getMainExecutor().execute(
+          () -> {
+            getStudioProfilers().getSessionsManager().setSession(Common.Session.getDefaultInstance());
+            getStudioProfilers().setStage(new NullMonitorStage(getStudioProfilers(), PerfettoTraceWebLoader.TRACE_HANDLED_CAPTION));
+            setState(State.ANALYZING);
+          });
+        return; // prevent Profiler UI from opening the trace
+      }
+    }
+
     myCpuCaptureHandler.parse(capture -> {
       try {
         if (capture == null) {
