@@ -20,6 +20,7 @@ import static com.android.tools.configurations.AdditionalDevices.DEVICE_CLASS_TA
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.rendering.ProblemSeverity.WARNING;
 import static com.android.tools.rendering.RenderAsyncActionExecutor.DEFAULT_RENDER_THREAD_TIMEOUT_MS;
+import static com.intellij.openapi.application.ActionsKt.runReadAction;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -952,7 +953,7 @@ public class RenderTask {
               myModuleClassLoaderReference.getClassLoader().getStats()));
         }
         else {
-          if (xmlFile.isValid()) {
+          if (runReadAction(xmlFile::isValid)) {
             return RenderResult.createErrorRenderResult(Result.Status.ERROR_RENDER_TASK, myContext.getModule(), xmlFile, ex, myLogger);
           }
           else {
