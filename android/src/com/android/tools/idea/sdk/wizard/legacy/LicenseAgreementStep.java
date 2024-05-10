@@ -78,8 +78,7 @@ public class LicenseAgreementStep extends DynamicWizardStepWithDescription {
   private final Supplier<AndroidSdkHandler> mySdkHandlerSupplier;
 
   /**
-   * @param installRequestsProvider Provides a list of {@link RepoPackage#getPath() remote package} paths. See
-   *                                also {@link DetailsTypes.MavenType#getRepositoryPath(String, String, String)}
+   * @param installRequestsProvider Provides a list of {@link RepoPackage#getPath() remote package} paths
    */
   public LicenseAgreementStep(@NotNull Disposable parentDisposable,
                               @NotNull Supplier<List<String>> installRequestsProvider,

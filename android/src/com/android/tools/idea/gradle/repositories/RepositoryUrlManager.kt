@@ -255,17 +255,6 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       return versionFound.toString()
     }
 
-    // Maybe it's available for download as an SDK component.
-    val progress = StudioLoggerProgressIndicator(javaClass)
-    val allowPreview = dependency.explicitlyIncludesPreview
-    val sdkPackage = SdkMavenRepository.findLatestRemoteVersion(module, allowPreview, sdkHandler, filter, progress)
-    if (sdkPackage != null) {
-      val found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.path)
-      if (found != null) {
-        logger.debug("Resolved ${module.group}:${module.name}:${found.version} as an SDK component")
-        return found.version.toString()
-      }
-    }
 
     // Perform network lookup to resolve current best version, if possible.
     project ?: run {
@@ -273,6 +262,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
       return null
     }
     val client: LintClient = LintIdeSupport.get().createClient(project)
+    val allowPreview = dependency.explicitlyIncludesPreview
     val remoteRepoVersion = getLatestVersionFromRemoteRepo(client, dependency, filter, allowPreview)?.toString()
     if (remoteRepoVersion != null) {
       logger.debug("Resolved ${module.group}:${module.name}:$remoteRepoVersion from remote Maven")

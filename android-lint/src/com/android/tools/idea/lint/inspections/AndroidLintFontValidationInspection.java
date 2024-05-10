@@ -15,34 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections;
 
-import static com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID;
-
-import com.android.tools.idea.lint.quickFixes.UpgradeAppCompatV7Fix;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.lint.checks.FontDetector;
-import com.android.tools.lint.detector.api.LintFix;
-import com.intellij.psi.PsiElement;
-import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidLintFontValidationInspection extends AndroidLintInspectionBase {
   public AndroidLintFontValidationInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.font.validation"), FontDetector.FONT_VALIDATION);
-  }
-
-  @NotNull
-  @Override
-  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                         @NotNull PsiElement endElement,
-                                         @NotNull String message,
-                                         @Nullable LintFix fixData) {
-    if (Objects.equals(LintFix.getString(fixData, FontDetector.KEY_ARTIFACT_ID, null), APPCOMPAT_LIB_ARTIFACT_ID)) {
-      return new LintIdeQuickFix[]{new UpgradeAppCompatV7Fix()};
-    }
-
-    return super.getQuickFixes(startElement, endElement, message, fixData);
   }
 }

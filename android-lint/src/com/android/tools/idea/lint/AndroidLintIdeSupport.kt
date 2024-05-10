@@ -18,10 +18,7 @@ package com.android.tools.idea.lint
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
 import com.android.SdkConstants.EXT_GRADLE_DECLARATIVE
 import com.android.ide.common.gradle.Dependency
-import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
-import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.SdkMavenRepository
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -38,12 +35,7 @@ import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.lint.common.getModuleDir
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.sdk.AndroidSdks
-import com.android.tools.idea.sdk.StudioSdkUtil
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
@@ -176,26 +168,6 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun createEditorClient(lintResult: LintEditorResult) =
     AndroidLintIdeClient(lintResult.getModule().project, lintResult)
-
-  // Gradle
-  override fun updateToLatestStable(module: Module, externalModule: ExternalModule) {
-    // Based on UpgradeConstraintLayoutFix
-    StudioSdkUtil.reloadRemoteSdk(true)
-    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val progress = StudioLoggerProgressIndicator(AndroidLintIdeSupport::class.java)
-    val path =
-      SdkMavenRepository.findLatestVersion(externalModule, false, sdkHandler, null, progress)?.path
-        ?: return
-    val latestCoordinate =
-      SdkMavenRepository.getComponentFromSdkPath(path)
-        ?.toIdentifier()
-        ?.let(GradleCoordinate::parseCoordinateString) ?: return
-    module.getModuleSystem().updateLibrariesToVersion(listOf(latestCoordinate))
-    module.project
-      .getProjectSystem()
-      .getSyncManager()
-      .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_DEPENDENCY_UPDATED)
-  }
 
   override fun recommendedAgpVersion(project: Project): AgpVersion? {
     val current = project.findPluginInfo()?.pluginVersion ?: return null

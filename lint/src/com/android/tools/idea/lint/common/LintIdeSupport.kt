@@ -20,7 +20,6 @@ import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
 import com.android.ide.common.gradle.Dependency
-import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.lint.client.api.IssueRegistry
@@ -160,9 +159,6 @@ abstract class LintIdeSupport {
   open fun createEditorClient(lintResult: LintEditorResult): LintIdeClient {
     return LintIdeClient(lintResult.getModule().project, lintResult)
   }
-
-  // Gradle
-  open fun updateToLatestStable(module: Module, externalModule: ExternalModule) {}
 
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null
 
