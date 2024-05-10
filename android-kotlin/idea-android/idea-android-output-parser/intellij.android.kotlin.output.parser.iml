@@ -13,7 +13,7 @@
     <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" />
+    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.platform.util" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
   </component>

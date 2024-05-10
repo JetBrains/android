@@ -54,7 +54,7 @@
     <orderEntry type="module" module-name="intellij.android.inspectors-common.api" />
     <orderEntry type="module" module-name="intellij.android.profilers.atrace" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" />
+    <orderEntry type="module" module-name="intellij.maven.artifactResolver.m31" scope="PROVIDED" />
     <orderEntry type="module" module-name="intellij.maven.server.eventListener" />
     <orderEntry type="module" module-name="intellij.platform.core" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
