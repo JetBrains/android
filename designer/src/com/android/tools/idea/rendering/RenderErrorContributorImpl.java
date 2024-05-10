@@ -52,6 +52,7 @@ import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
+import com.android.tools.idea.rendering.errors.WearTileRenderErrorContributor;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
@@ -1126,6 +1127,11 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         continue;
       }
 
+      if (WearTileRenderErrorContributor.isHandledByWearTileContributor(throwable)) {
+        // This will be handled separately by WearTileRenderErrorContributor.reportWearTileErrors
+        continue;
+      }
+
       listContainsElements = true;
       builder.listItem()
         .add(className)
@@ -1319,6 +1325,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
     if (!myModule.isDisposed()) {
       myIssues.addAll(ComposeRenderErrorContributor.reportComposeErrors(logger, myLinkManager, myLinkHandler, myModule.getProject()));
     }
+    myIssues.addAll(WearTileRenderErrorContributor.reportWearTileErrors(logger, myLinkManager, myLinkHandler));
 
     return getIssues();
   }
