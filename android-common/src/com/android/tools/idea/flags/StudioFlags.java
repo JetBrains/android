@@ -1574,7 +1574,7 @@ public final class StudioFlags {
       "direct.access.monthly.quota",
       "Direct Access Monthly Quota",
       "Enable FTL DirectAccess Monthly Quota",
-      false);
+      true);
 
   public static final Flag<Boolean> DIRECT_ACCESS_CREATE_PROJECT =
     new BooleanFlag(
