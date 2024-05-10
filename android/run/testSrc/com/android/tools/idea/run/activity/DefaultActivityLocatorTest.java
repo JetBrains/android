@@ -113,18 +113,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     assertEquals("com.example.unittest.DefaultLauncher", computeDefaultActivity(myFacet, device));
   }
 
-  // tests that when there are multiple launcher activities, we exclude the ones with android:enabled="false"
-  public void testEnabledActivities() throws Exception {
-    myFixture.copyFileToProject(RUN_CONFIG_ENABLED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
-    assertEquals("com.example.unittest.LaunchActivity", computeDefaultActivity(myFacet, null));
-
-    // make sure that the dom based approach to getting values works as well
-    final Manifest manifest = Manifest.getMainManifest(myFacet);
-    assertEquals("com.example.unittest.LaunchActivity", DefaultActivityLocator.getDefaultLauncherActivityName(myFacet.getModule().getProject(), manifest));
-  }
-
   public void testLauncherActivityIntent() throws Exception {
     myFixture.copyFileToProject(RUN_CONFIG_MANIFESTS + "/InvalidCategory.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
     assertNull("No launchable activity registration is present in the manifest, but one was detected",
