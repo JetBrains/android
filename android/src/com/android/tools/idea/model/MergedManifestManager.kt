@@ -123,7 +123,7 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
     var result = MergeResult.FAILED
 
     try {
-      snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
+      snapshot = MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet)
       result = MergeResult.SUCCESS
     }
     catch (e: ProcessCanceledException) {

@@ -54,12 +54,9 @@ class MergedManifestSnapshot internal constructor(
   val document: Document?,
   val manifestFiles: List<VirtualFile>,
   val permissionHolder: ImmutablePermissionHolder,
-  val applicationHasCode: Boolean,
   val activities: List<Element>,
-  val activityAliases: List<Element>,
   val services: List<Element>,
   val actions: Actions?,
-  loggingRecords: List<MergingReport.Record>,
   /**
    * If the manifest merger did not encounter any errors when computing this snapshot.
    * `false` indicates that this snapshot contains dummy values that may not represent the merged
@@ -67,6 +64,7 @@ class MergedManifestSnapshot internal constructor(
    */
   val isValid: Boolean
 ) {
+
   private val nodeKeys: Map<String, NodeKey> = actions?.nodeKeys?.associateBy { it.toString() } ?: mapOf()
 
   fun getActivityAttributes(activity: String): ActivityAttributesSnapshot? {
@@ -96,8 +94,6 @@ class MergedManifestSnapshot internal constructor(
   fun getNodeKey(name: String?): NodeKey? = nodeKeys[name]
 
   fun findActivity(qualifiedName: String): Element? = activities.findActivityByQualifiedName(qualifiedName)
-
-  fun findActivityAlias(qualifiedName: String): Element? = activityAliases.findActivityByQualifiedName(qualifiedName)
 
   private fun List<Element>.findActivityByQualifiedName(name : String) : Element? =
     find { name == ActivityLocatorUtils.getQualifiedName(it) }

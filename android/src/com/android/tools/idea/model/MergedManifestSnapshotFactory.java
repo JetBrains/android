@@ -169,19 +169,17 @@ class MergedManifestSnapshotFactory {
                                       null,
                                       ImmutableList.of(),
                                       ImmutablePermissionHolder.EMPTY,
-                                      false,
-                                      ImmutableList.of(),
                                       ImmutableList.of(),
                                       ImmutableList.of(),
                                       null,
-                                      ImmutableList.of(),
                                       false
     );
   }
 
 
   @NotNull
-  static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet, @NotNull MergedManifestInfo mergedManifestInfo) {
+  static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet) {
+    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(facet);
     try {
       Document document = mergedManifestInfo.getXmlDocument();
       Element root = document == null ? null : document.getDocumentElement();
@@ -190,7 +188,6 @@ class MergedManifestSnapshotFactory {
       }
 
       // The package comes from the main manifest, NOT from the merged manifest.
-      final String appId = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
       final String packageName = ProjectSystemUtil.getModuleSystem(facet).getPackageName();
       if (packageName == null) {
         throw new MergedManifestException.MissingAttribute(TAG_MANIFEST, null, ATTRIBUTE_PACKAGE, mergedManifestInfo);
@@ -213,10 +210,8 @@ class MergedManifestSnapshotFactory {
       String manifestTheme = null;
       boolean supportsRtl = false;
       Boolean isAppDebuggable = null;
-      boolean appHasCode = true;
       HashMap<String, ActivityAttributesSnapshot> activityAttributesMap = new HashMap<>();
       ArrayList<Element> activities = new ArrayList<>();
-      ArrayList<Element> activityAliases = new ArrayList<>(4);
       ArrayList<Element> services = new ArrayList<>(4);
       AndroidVersion targetSdk = AndroidVersion.DEFAULT;
       AndroidVersion minSdk = AndroidVersion.DEFAULT;
@@ -237,9 +232,6 @@ class MergedManifestSnapshotFactory {
             String debuggable = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_DEBUGGABLE);
             isAppDebuggable = debuggable == null ? null : VALUE_TRUE.equals(debuggable);
 
-            String hasCode = getAttributeValue(application, ANDROID_URI, ATTRIBUTE_HASCODE);
-            appHasCode = hasCode == null || VALUE_TRUE.equals(hasCode);
-
             Node child = node.getFirstChild();
             while (child != null) {
               if (child.getNodeType() == Node.ELEMENT_NODE) {
@@ -249,9 +241,6 @@ class MergedManifestSnapshotFactory {
                   ActivityAttributesSnapshot attributes = createActivityAttributesSnapshot(element, packageName, namespace);
                   activityAttributesMap.put(attributes.getName(), attributes);
                   activities.add(element);
-                }
-                else if (NODE_ACTIVITY_ALIAS.equals(childNodeName)) {
-                  activityAliases.add((Element)child);
                 }
                 else if (NODE_SERVICE.equals(childNodeName)) {
                   services.add((Element)child);
@@ -307,15 +296,13 @@ class MergedManifestSnapshotFactory {
         ImmutableSet.copyOf(revocable));
 
         Actions actions = mergedManifestInfo.getActions();
-        ImmutableList<MergingReport.Record> loggingRecords = mergedManifestInfo.getLoggingRecords();
         return new MergedManifestSnapshot(facet.getModule(), packageName, versionCode, manifestTheme,
                                           ImmutableMap.copyOf(activityAttributesMap),
                                           mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
                                           ImmutableList.copyOf(mergedManifestInfo.getFiles()),
-                                          permissionHolder, appHasCode,
+                                          permissionHolder,
                                           ImmutableList.copyOf(activities),
-                                          ImmutableList.copyOf(activityAliases),
-                                          ImmutableList.copyOf(services), actions, loggingRecords, true);
+                                          ImmutableList.copyOf(services), actions, true);
     }
     catch (MergedManifestException|ProcessCanceledException e) {
       throw e;
