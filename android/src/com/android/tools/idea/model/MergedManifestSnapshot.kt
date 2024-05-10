@@ -62,7 +62,8 @@ class MergedManifestSnapshot internal constructor(
    * `false` indicates that this snapshot contains dummy values that may not represent the merged
    * manifest accurately.
    */
-  val isValid: Boolean
+  val isValid: Boolean,
+  val exception: Exception?
 ) {
 
   private val nodeKeys: Map<String, NodeKey> = actions?.nodeKeys?.associateBy { it.toString() } ?: mapOf()

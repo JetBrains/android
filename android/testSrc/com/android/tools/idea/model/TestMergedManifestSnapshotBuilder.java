@@ -17,7 +17,6 @@ package com.android.tools.idea.model;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.manifmerger.Actions;
-import com.android.manifmerger.MergingReport;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.google.common.collect.ImmutableList;
@@ -52,6 +51,7 @@ public class TestMergedManifestSnapshotBuilder {
   @Nullable private Actions myActions;
   @Nullable private AndroidVersion myMinSdk;
   private boolean myIsValid;
+  private Exception myException;
 
 
   private TestMergedManifestSnapshotBuilder(@NotNull Module module) {
@@ -172,6 +172,12 @@ public class TestMergedManifestSnapshotBuilder {
   }
 
   @NotNull
+  public TestMergedManifestSnapshotBuilder setIsValid(Exception exception) {
+    myException = exception;
+    return this;
+  }
+
+  @NotNull
   public MergedManifestSnapshot build() {
     return new MergedManifestSnapshot(myModule,
                                       myName, myVersionCode, myTheme,
@@ -187,6 +193,7 @@ public class TestMergedManifestSnapshotBuilder {
                                       myActivities != null ? myActivities : ImmutableList.of(),
                                       myServices != null ? myServices : ImmutableList.of(),
                                       myActions,
-                                      myIsValid);
+                                      myIsValid,
+                                      myException);
   }
 }

@@ -219,6 +219,17 @@ final class MergedManifestInfo {
     return new MergedManifestInfo(facet, document, modificationStamps, syncModificationCount, loggingRecords, actions);
   }
 
+  @NotNull
+  public static MergedManifestInfo createEmpty(@NotNull AndroidFacet facet) {
+    Project project = facet.getModule().getProject();
+
+    MergedManifestContributors contributors = ProjectSystemUtil.getModuleSystem(facet).getMergedManifestContributors();
+    ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
+    long syncModificationCount = ProjectSyncModificationTracker.getInstance(project).getModificationCount();
+
+    return new MergedManifestInfo(facet, null, modificationStamps, syncModificationCount, null, null);
+  }
+
   @Slow
   @Nullable
   private static ParsedMergeResult mergeManifests(@NotNull AndroidFacet facet, @NotNull MergedManifestContributors manifests) {

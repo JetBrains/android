@@ -341,6 +341,63 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals("com.android.unittest2", supplier.getNow().getPackage());
   }
 
+  public void testBadManifest() throws Exception {
+    @Language("xml") final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                                    "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                                                    "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                                                    "    <uses-permission\n" +
+                                                    "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                                                    "    <permission\n" +
+                                                    "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                                                    "        android:protectionLevel=\"dangerous\" />\n" +
+                                                    "</manifest>\n";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    MergedManifestSnapshot snapshot = supplier.get().get();
+    assertNotNull(snapshot);
+    assertNotNull(snapshot.getException());
+    assertNull(snapshot.getPackage());
+    assertNull(snapshot.getDocument());
+  }
+
+  public void testCachingWithBadManifest() throws Exception {
+    @Language("xml")
+    final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                   " $placeholder$ " +
+                                   "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
+                                   "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
+                                   "    <uses-permission\n" +
+                                   "        android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\" />\n" +
+                                   "    <permission\n" +
+                                   "        android:name=\"com.android.unittest.permission.DEADLY\"\n" +
+                                   "        android:protectionLevel=\"dangerous\" />\n" +
+                                   "</manifest>\n";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    // We've never loaded a snapshot so that must return null
+    assertNull(supplier.getNow());
+
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertNull(supplier.getNow().getPackage());
+    assertEquals(supplier.getNow(), supplier.getNow()); // check that cache works for failed try
+    assertFalse(supplier.getNow().isValid());
+    assertNotNull(supplier.getNow().getException());
+
+
+    // check failed to failed
+    updateManifestContents(originalContent.replace("unittest", "unittest2"));
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertNull(supplier.getNow().getPackage());
+
+    // check failed to merged
+    updateManifestContents(originalContent.replace("$placeholder$", " package='com.android.unittest'>"));
+    assertSame(Futures.getUnchecked(supplier.get()), supplier.getNow());
+    assertEquals("com.android.unittest", supplier.getNow().getPackage());
+    assertNull(supplier.getNow().getException());
+  }
+
   public void testNamespaceAndApplicationIdFromProjectSystem() throws Exception {
 
     TestProjectSystem projectSystem = new TestProjectSystem(getProject());

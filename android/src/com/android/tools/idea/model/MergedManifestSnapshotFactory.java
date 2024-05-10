@@ -146,20 +146,21 @@ class MergedManifestSnapshotFactory {
   }
 
   /**
-   * @deprecated This method only exists to preserve the behavior of legacy callers of
-   * {@link MergedManifestManager#getFreshSnapshot}. If we encounter an exception during
-   * merging or parsing the result, we should just allow that exception to propagate up
-   * to the caller.
+   * If we encounter a non ProcessCanceledException exception during merging or parsing the result we create special empty
+   * manifest snapshot that indicates that we should not retry with bad manifest before it's changed
    */
-  @Deprecated
   @NotNull
-  static MergedManifestSnapshot createEmptyMergedManifestSnapshot(@NotNull Module module) {
+  static MergedManifestSnapshot createEmptyMergedManifestSnapshot(
+    @NotNull Module module,
+    @Nullable AndroidFacet facet,
+    @Nullable Exception exception
+  ) {
     return new MergedManifestSnapshot(module,
                                       null,
                                       null,
                                       null,
                                       ImmutableMap.of(),
-                                      null,
+                                      (facet != null) ? MergedManifestInfo.createEmpty(facet) : null,
                                       AndroidVersion.DEFAULT,
                                       AndroidVersion.DEFAULT,
                                       null,
@@ -172,7 +173,8 @@ class MergedManifestSnapshotFactory {
                                       ImmutableList.of(),
                                       ImmutableList.of(),
                                       null,
-                                      false
+                                      false,
+                                      exception
     );
   }
 
@@ -295,14 +297,14 @@ class MergedManifestSnapshotFactory {
         ImmutableSet.copyOf(permissions),
         ImmutableSet.copyOf(revocable));
 
-        Actions actions = mergedManifestInfo.getActions();
-        return new MergedManifestSnapshot(facet.getModule(), packageName, versionCode, manifestTheme,
-                                          ImmutableMap.copyOf(activityAttributesMap),
-                                          mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
-                                          ImmutableList.copyOf(mergedManifestInfo.getFiles()),
-                                          permissionHolder,
-                                          ImmutableList.copyOf(activities),
-                                          ImmutableList.copyOf(services), actions, true);
+      Actions actions = mergedManifestInfo.getActions();
+      return new MergedManifestSnapshot(facet.getModule(), packageName, versionCode, manifestTheme,
+                                        ImmutableMap.copyOf(activityAttributesMap),
+                                        mergedManifestInfo, minSdk, targetSdk, appIcon, appLabel, supportsRtl, isAppDebuggable, document,
+                                        ImmutableList.copyOf(mergedManifestInfo.getFiles()),
+                                        permissionHolder,
+                                        ImmutableList.copyOf(activities),
+                                        ImmutableList.copyOf(services), actions, true, null);
     }
     catch (MergedManifestException|ProcessCanceledException e) {
       throw e;
