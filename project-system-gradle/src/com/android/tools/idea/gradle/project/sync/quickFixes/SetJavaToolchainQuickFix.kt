@@ -52,17 +52,5 @@ class SetJavaToolchainQuickFix(
     }
     return future
   }
-
-  companion object {
-    val recommendedToolchainVersionsMap = mapOf(
-      6 to 8,
-      7 to 11,
-      8 to 17,
-    )
-
-    fun forCurrentVersion(currentVersion: JavaVersion, modules: List<String>) = recommendedToolchainVersionsMap[currentVersion.feature]?.let {
-      SetJavaToolchainQuickFix(it, modules)
-    }
-  }
 }
 
