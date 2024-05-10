@@ -1452,6 +1452,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
           if (exception instanceof CompletionException && exception.getCause() != null) {
             exception = exception.getCause();
           }
+          if (getModel().isDisposed()) return null;
           return RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
         }
         return result;
