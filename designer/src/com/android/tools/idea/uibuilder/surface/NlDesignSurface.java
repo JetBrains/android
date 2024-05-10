@@ -364,8 +364,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutOption layoutOption = myLayoutOption != null
-                                                ? myLayoutOption
-                                                : SurfaceLayoutOption.Companion.getDEFAULT_OPTION();
+                                         ? myLayoutOption
+                                         : SurfaceLayoutOption.Companion.getDEFAULT_OPTION();
       if (myMinScale > myMaxScale) {
         throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
       }
@@ -930,38 +930,20 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     // If layout is grouped grid layout.
     boolean isGroupedGridLayout = layoutManager instanceof GroupedGridSurfaceLayoutManager || layoutManager instanceof GridLayoutManager;
 
-    if (isGroupedListLayout) { // new list mode
-      SceneView focusedSceneView = getFocusedSceneView();
-      if (focusedSceneView != null) {
-        focusPoint = new Point(focusedSceneView.getX(), focusedSceneView.getY());
-      }
-      if (focusPoint.x < 0 || focusPoint.y < 0) {
-        // zoom with top-left of the visible area as anchor
-        myViewportScroller = new TopLeftCornerScroller(
-          new Dimension(port.getViewSize()),
-          new Point(scrollPosition.x, Math.max(0, focusPoint.y)),
-          update.getPreviousScale(),
-          update.getNewScale()
-        );
-      } else {
-        // zoom with mouse position as anchor, and considering its relative position to the existing scene views
-        myViewportScroller = new ReferencePointScroller(
-          new Dimension(port.getViewSize()),
-          new Point(scrollPosition),
-          focusPoint,
-          update.getPreviousScale(),
-          update.getNewScale(),
-          findSceneViewRectangles(),
-          (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView, getExtentSize())
-        );
-      }
-    } else if (isGroupedGridLayout) { // new grid mode
-      // zoom with top-left corner of the visible area as anchor
-      myViewportScroller = new TopLeftCornerScroller(
-        new Dimension(port.getViewSize()),
-        new Point(scrollPosition),
-        update.getPreviousScale(),
-        update.getNewScale()
+    if (isGroupedListLayout) {
+      scrollGroupedLayoutToPosition(
+        port,
+        new Point(scrollPosition.x, Math.max(0, focusPoint.y)),
+        update,
+        scrollPosition
+      );
+    }
+    else if (isGroupedGridLayout) {
+      scrollGroupedLayoutToPosition(
+        port,
+        scrollPosition,
+        update,
+        scrollPosition
       );
     } else if (!(layoutManager instanceof GridSurfaceLayoutManager)) {
       Point zoomCenterInView;
@@ -974,6 +956,40 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       zoomCenterInView = new Point(scrollPosition.x + focusPoint.x, scrollPosition.y + focusPoint.y);
 
       myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
+    }
+  }
+
+  private void scrollGroupedLayoutToPosition(
+    DesignSurfaceViewport port,
+    Point x,
+    @NotNull ScaleChange update,
+    Point scrollPosition
+  ) {
+    SceneView focusedSceneView = getFocusedSceneView();
+    Point focusPoint = update.getFocusPoint();
+    if (focusedSceneView != null) {
+      focusPoint = new Point(focusedSceneView.getX(), focusedSceneView.getY());
+    }
+    if (focusPoint.x < 0 || focusPoint.y < 0) {
+      // zoom with top-left of the visible area as anchor
+      myViewportScroller = new TopLeftCornerScroller(
+        new Dimension(port.getViewSize()),
+        x,
+        update.getPreviousScale(),
+        update.getNewScale()
+      );
+    }
+    else {
+      // zoom with mouse position as anchor, and considering its relative position to the existing scene views
+      myViewportScroller = new ReferencePointScroller(
+        new Dimension(port.getViewSize()),
+        new Point(scrollPosition),
+        focusPoint,
+        update.getPreviousScale(),
+        update.getNewScale(),
+        findSceneViewRectangles(),
+        (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView, getExtentSize())
+      );
     }
   }
 
