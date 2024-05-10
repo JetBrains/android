@@ -24,7 +24,6 @@ import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.ChangeType
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
@@ -592,9 +591,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
                                                </FrameLayout>"
                                                """.trimIndent()) as XmlFile
 
-    val module = getAdditionalModuleByName("myLibrary")!!
-    val facet = module.androidFacet!!
-    val model = NavModelBuilderUtil.model("nav.xml", facet, myFixture, { navigation("root") }).build()
+    val model = NavModelBuilderUtil.model("nav.xml", myFacet, myFixture, { navigation("root") }).build()
 
     val surface = NavDesignSurface(project, testRootDisposable)
     PlatformTestUtil.waitForFuture(surface.setModel(model))
@@ -604,7 +601,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
     waitForResourceRepositoryUpdates()
 
     val menu = AddDestinationMenu(surface)
-    assertEquals(blankFragment, menu.destinations[1])
+    assertEquals(blankFragment, menu.destinations[2])
   }
 }
 
