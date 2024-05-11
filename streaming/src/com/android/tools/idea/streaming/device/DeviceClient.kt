@@ -350,7 +350,7 @@ internal class DeviceClient(
         // Use the agent built by running "Build > Make Project" in Studio.
         val facet = project.modules.firstNotNullOfOrNull { AndroidFacet.getInstance(it) }
         val buildVariant = facet?.properties?.SELECTED_BUILD_VARIANT ?: "debug"
-        val prefix = "app/build/intermediates/merged_native_libs/$buildVariant/merge${capitalize(buildVariant)}NativeLibs/out/lib"
+        val prefix = "app/build/intermediates/stripped_native_libs/$buildVariant/strip${capitalize(buildVariant)}DebugSymbols/out/lib"
         soFile = projectDir.resolve("$prefix/$deviceAbi/$SCREEN_SHARING_AGENT_SO_NAME")
         val apkName = if (buildVariant == "debug") "app-debug.apk" else "app-release-unsigned.apk"
         jarFile = projectDir.resolve("app/build/outputs/apk/$buildVariant/$apkName")
