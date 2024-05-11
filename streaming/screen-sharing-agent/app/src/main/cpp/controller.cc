@@ -343,9 +343,15 @@ void Controller::ProcessMessage(const ControlMessage& message) {
 void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   int32_t action = message.action();
   Log::V("Controller::ProcessMotionEvent action:%d", action);
+  int32_t display_id = message.display_id();
+  DisplayInfo display_info = Agent::GetDisplayInfo(display_id);
+  if (!display_info.IsValid()) {
+    return;
+  }
+
   int64_t now = UptimeMillis();
   MotionEvent event(jni_);
-  event.display_id = message.display_id();
+  event.display_id = display_id;
   event.action = action;
   event.button_state = message.button_state();
   event.event_time_millis = now;
@@ -372,11 +378,6 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     event.source = AINPUT_SOURCE_MOUSE;
   } else {
     event.source = AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
-  }
-
-  DisplayInfo display_info = Agent::GetDisplayInfo(message.display_id());
-  if (!display_info.IsValid()) {
-    return;
   }
 
   for (auto& pointer : message.pointers()) {
@@ -431,13 +432,14 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   }
   InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
 
-  if (event.action == AMOTION_EVENT_ACTION_UP) {
+  if (action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
-    Agent::SetVideoOrientation(message.display_id(), DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
+    Agent::SetVideoOrientation(display_id, DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
+  }
 
-    if (!display_info.IsOn()) {
-      ProcessKeyboardEvent(KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));  // Wakeup the display.
-    }
+  // Wake up the device if the display was turned off.
+  if (action == AMOTION_EVENT_ACTION_DOWN && !display_info.IsOn()) {
+    WakeUpDevice();
   }
 }
 
