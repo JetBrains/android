@@ -470,7 +470,6 @@ const string UiSettings::CreateResetCommand() {
   }
 
   vector<string> application_ids = initial_settings_.get_application_ids();
-  bool context_initialized = false;
   CommandContext context;
 
   string command;
