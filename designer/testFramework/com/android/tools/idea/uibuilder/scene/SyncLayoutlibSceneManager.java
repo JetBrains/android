@@ -134,8 +134,8 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @Override
   @NotNull
-  protected RenderModelModule createRenderModule(AndroidFacet facet) {
-    return new TestRenderModelModule(new AndroidFacetRenderModelModule(facet));
+  protected RenderModelModule wrapRenderModule(RenderModelModule core) {
+    return new TestRenderModelModule(core);
   }
 
   @Override

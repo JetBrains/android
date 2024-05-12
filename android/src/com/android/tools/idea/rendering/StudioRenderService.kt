@@ -23,6 +23,8 @@ import com.android.tools.sdk.getLayoutLibrary
 import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
+import com.android.tools.rendering.api.RenderModelModule
+import com.android.tools.sdk.getLayoutLibrary
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -31,6 +33,7 @@ import com.intellij.openapi.util.ShutDownTracker
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.annotations.TestOnly
+import org.jetbrains.kotlin.utils.identity
 
 /** Studio-specific [RenderService] management. */
 open class StudioRenderService {
@@ -73,14 +76,14 @@ open class StudioRenderService {
 /**
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
-fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(AndroidFacetRenderModelModule(facet), configuration, createLogger(facet.module.project))
-
-/**
- * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
- */
-fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderService.RenderTaskBuilder =
-  taskBuilder(AndroidFacetRenderModelModule(facet), configuration, logger)
+@JvmOverloads
+fun RenderService.taskBuilder(
+  facet: AndroidFacet,
+  configuration: Configuration,
+  logger: RenderLogger = createLogger(facet.module.project),
+  wrapRenderModule: (RenderModelModule) -> RenderModelModule = identity(),
+): RenderService.RenderTaskBuilder =
+  taskBuilder(wrapRenderModule(AndroidFacetRenderModelModule(facet)), configuration, logger)
 
 fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
   val context = StudioLayoutlibContext(module.project)
@@ -91,8 +94,7 @@ fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
 
   return try {
     getLayoutLibrary(target, platform, context)
-  }
-  catch (e: RenderingException) {
+  } catch (e: RenderingException) {
     null
   }
 }

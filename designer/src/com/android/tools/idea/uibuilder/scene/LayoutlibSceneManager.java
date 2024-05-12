@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.ShapePolicyKt.SQUARE_SHAPE_POLICY;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -1039,8 +1040,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
   }
 
   @VisibleForTesting
-  protected RenderModelModule createRenderModule(AndroidFacet facet) {
-    return new AndroidFacetRenderModelModule(facet);
+  protected RenderModelModule wrapRenderModule(RenderModelModule core) {
+    return core;
   }
 
   /**
@@ -1081,8 +1082,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? RenderServiceUtilsKt.createHtmlLogger(renderService, project) : renderService.getNopLogger();
-    RenderModelModule renderModule = createRenderModule(facet);
-    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, configuration, logger)
+    RenderService.RenderTaskBuilder renderTaskBuilder = taskBuilder(renderService, facet, configuration, logger, this::wrapRenderModule)
       .withPsiFile(new PsiXmlFile(getModel().getFile()))
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
       .withTopic(myRenderingTopic)
@@ -1108,7 +1108,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
                 if (exception instanceof ClassNotFoundException) {
                   logger.addMessage(RenderProblem.createHtml(ERROR,
                                                              "Error inflating the preview",
-                                                             renderModule.getProject(),
+                                                             facet.getModule().getProject(),
                                                              logger.getLinkManager(), exception, ShowFixFactory.INSTANCE));
                 }
                 else {
