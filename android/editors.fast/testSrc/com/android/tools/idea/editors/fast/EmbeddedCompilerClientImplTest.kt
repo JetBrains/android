@@ -23,6 +23,7 @@ import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.blockingContext
 import com.intellij.util.io.delete
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -245,10 +246,12 @@ internal class EmbeddedCompilerClientImplTest {
                                                 log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
                                                 isKotlinPluginBundled = true
       ) {
-        beforeCompileCallCount.incrementAndGet()
-        compilationHasStarted.complete(Unit)
-        while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
-          ProgressManager.checkCanceled()
+        blockingContext {
+          beforeCompileCallCount.incrementAndGet()
+          compilationHasStarted.complete(Unit)
+          while (!countDownLatch.await(1, TimeUnit.SECONDS)) {
+            ProgressManager.checkCanceled()
+          }
         }
       }
       launch(workerThread) {

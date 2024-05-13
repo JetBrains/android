@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
@@ -275,7 +276,7 @@ private object CompileScopeImpl : CompileScope {
  * phases.
  * Only one caller of this method will have access to the [CompileScope] at the moment.
  */
-fun <T> runWithCompileLock(callable: suspend CompileScope.() -> T) = runBlocking {
+fun <T> runWithCompileLock(callable: suspend CompileScope.() -> T) = runBlockingMaybeCancellable {
   CompileScopeImpl.compileLock.withPermit {
     CompileScopeImpl.callable()
   }
