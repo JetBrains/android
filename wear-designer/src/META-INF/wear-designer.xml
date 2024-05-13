@@ -61,5 +61,13 @@
                      key="inspection.context.comes.from.parameter"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewHasValidMethodSignature"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.invalid.signature"
+                     level="ERROR"/>
+
   </extensions>
 </idea-plugin>

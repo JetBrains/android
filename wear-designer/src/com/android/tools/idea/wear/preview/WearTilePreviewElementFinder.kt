@@ -50,7 +50,7 @@ import org.jetbrains.uast.toUElement
 private const val TILE_PREVIEW_ANNOTATION_NAME = "Preview"
 const val TILE_PREVIEW_ANNOTATION_FQ_NAME =
   "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
-private const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
+const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 
 /** Object that can detect wear tile preview elements in a file. */
 internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearTilePreviewElement> {
