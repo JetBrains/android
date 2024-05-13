@@ -26,6 +26,8 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.InheritanceUtil
+import com.intellij.util.lazyPub
+import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.UMethod
@@ -60,7 +62,8 @@ class WearTilePreviewContextComesFromParameter : WearTilePreviewInspectionBase()
         it.typeReference?.getQualifiedName() == SdkConstants.CLASS_CONTEXT
       }
 
-    val methodVisitor = InvalidContextUsageWithinUMethodVisitor(contextParameter, manager, isOnTheFly)
+    val methodVisitor =
+      InvalidContextUsageWithinUMethodVisitor(contextParameter, manager, isOnTheFly)
     method.accept(methodVisitor)
     return methodVisitor.issues.toTypedArray()
   }
@@ -74,6 +77,8 @@ private class InvalidContextUsageWithinUMethodVisitor(
   private val isOnTheFly: Boolean,
 ) : AbstractUastVisitor() {
 
+  val psiManager: PsiManager by lazyPub { PsiManager.getInstance(manager.project) }
+
   val issues = mutableSetOf<ProblemDescriptor>()
 
   override fun visitCallExpression(node: UCallExpression): Boolean {
@@ -82,9 +87,19 @@ private class InvalidContextUsageWithinUMethodVisitor(
         return@forEach
       }
 
+      val contextSourcePsi = contextFromPreviewParameter?.sourcePsi
+      val resolvedArgument = argument.tryResolve()
+
+      // TODO: depending on https://youtrack.jetbrains.com/issue/KT-68158,
+      //  source PSI equivalence check can be fully covered by LC-level equivalence check.
+      //  (ULC does, while SLC doesn't for now.)
       val contextUsedIsFromPreviewMethod =
-        PsiManager.getInstance(manager.project)
-          .areElementsEquivalent(contextFromPreviewParameter?.sourcePsi, argument.tryResolve())
+        // LC-level equivalence check
+        psiManager.areElementsEquivalent(contextSourcePsi, resolvedArgument) ||
+          // Source PSI equivalence check
+          (resolvedArgument as? KtLightElement<*, *>)
+            ?.kotlinOrigin
+            ?.isEquivalentTo(contextSourcePsi) == true
 
       if (contextUsedIsFromPreviewMethod) {
         return@forEach
@@ -113,9 +128,12 @@ private class InvalidContextUsageWithinUMethodVisitor(
         it.startsWith("android.") || it.startsWith("androidx.")
       } == true
 
-    // If we are accessing methods from a class that comes from android or androidx, it means we are probably using the context class
-    // in the wrong way. If the selector is coming from a user-declared method, it might be valid. In this case it's better to let
-    // the view adapter try to render the preview and surface any errors if it was used in the wrong way.
+    // If we are accessing methods from a class that comes from android or androidx, it means we are
+    // probably using the context class
+    // in the wrong way. If the selector is coming from a user-declared method, it might be valid.
+    // In this case it's better to let
+    // the view adapter try to render the preview and surface any errors if it was used in the wrong
+    // way.
     if (!isSelectorFromAndroidOrAndroidx) {
       return super.visitQualifiedReferenceExpression(node)
     }
