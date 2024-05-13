@@ -64,7 +64,7 @@ class JavaKotlinAllocationsTaskTest : ProfilersTestBase() {
 
         // Collecting the session data with Allocation tracking set to "Full" (which is by default)
         // Verifying if the task started.
-        verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+allocations\\s+capture\\s+start\\s+succeeded", 120)
+        verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+Allocations\\s+capture\\s+start\\s+succeeded", 120)
         studio.waitForComponentByClass("profilers.memory.AllocationTimelineComponent")
 
         Thread.sleep(4000) //For the session to run a few seconds.
@@ -72,7 +72,7 @@ class JavaKotlinAllocationsTaskTest : ProfilersTestBase() {
         // Since the java/kotlin allocations for O+ devices, stopTracking method is being invoked using stopJavaKotlinAllocationsTask.
         // For Pre-O devices, stopTask method should be invoked
         stopJavaKotlinAllocationsTask(studio)
-        verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+allocations\\s+capture\\s+stop\\s+succeeded", 300)
+        verifyIdeaLog(".*PROFILER\\:\\s+Java\\/Kotlin\\s+Allocations\\s+capture\\s+stop\\s+succeeded", 300)
         verifyIdeaLog(".*PROFILER\\:\\s+Session\\s+stopped.*support\\s+level\\s+\\=DEBUGGABLE\$", 300)
 
         // Verify if the session is displayed after session ended.
