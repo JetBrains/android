@@ -1034,7 +1034,6 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
       }
 
       if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
-        builder.newline().addNbsps(3);
         Project project = myModule.getProject();
         boolean useAndroidX = MigrateToAndroidxUtil.isAndroidx(project);
         GoogleMavenArtifactId artifact = useAndroidX ?
@@ -1045,19 +1044,16 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         builder.add(", ");
       }
       else if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
-        builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
                         myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
         builder.add(", ");
       }
       else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
-        builder.newline().addNbsps(3);
         builder.addLink("Add ui-tooling library dependency to the project",
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING));
         builder.add(", ");
       }
       else if (CLASS_TILE_SERVICE_VIEW_ADAPTER.equals(className)) {
-        builder.newline().addNbsps(3);
         builder.addLink("Add tiles-tooling library dependency to the project",
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.WEAR_TILES_TOOLING));
         builder.add(", ");
