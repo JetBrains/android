@@ -452,6 +452,12 @@ class FakeScreenSharingAgent(
     }
   }
 
+  suspend fun produceInvalidVideoFrame(displayId: Int) {
+    return withContext(singleThreadedDispatcher) {
+      displayStreamers[displayId]?.produceInvalidFrame()
+    }
+  }
+
   suspend fun beep(frequencyHz: Double, durationMillis: Int) {
     return withContext(singleThreadedDispatcher) {
       audioStreamer?.beep(frequencyHz, durationMillis)
@@ -724,6 +730,7 @@ class FakeScreenSharingAgent(
     var displayOrientationCorrection: Int = 0
     @Volatile var frameNumber: UInt = 0u
       private set
+    private var nextFrameIsInvalid = false
 
     /** Renders display content using the last used image flavor and sends all produced video frames. */
     suspend fun renderDisplay() {
@@ -807,6 +814,11 @@ class FakeScreenSharingAgent(
       }
     }
 
+    suspend fun produceInvalidFrame() {
+      nextFrameIsInvalid = true
+      renderDisplay()
+    }
+
     /** Sends the given frame or, if [frame] is null, sends the delayed frames. */
     private suspend fun sendFrame(encoderContext: AVCodecContext, frame: AVFrame?, packet: AVPacket) {
       if (avcodec_send_frame(encoderContext, frame) < 0) {
@@ -843,7 +855,13 @@ class FakeScreenSharingAgent(
         packetHeader.packetSize = packetSize
         val buffer = VideoPacketHeader.createBuffer(packetSize)
         packetHeader.serialize(buffer)
-        buffer.put(packetData)
+        if (nextFrameIsInvalid) {
+          nextFrameIsInvalid = false
+          buffer.fill(0, packetSize)
+        }
+        else {
+          buffer.put(packetData)
+        }
         buffer.flip()
         try {
           channel.writeFully(buffer)

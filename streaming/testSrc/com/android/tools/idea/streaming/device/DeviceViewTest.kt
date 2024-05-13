@@ -45,6 +45,7 @@ import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
 import com.android.tools.idea.testing.executeCapturingLoggedErrors
+import com.android.tools.idea.testing.executeCapturingLoggedWarnings
 import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.override
@@ -792,6 +793,21 @@ internal class DeviceViewTest {
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(19, 0, 462, 1000))
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
+  }
+
+  @Test
+  fun testInvalidFrameRecovery() {
+    createDeviceView(200, 300)
+    waitForFrame()
+
+    val loggedErrors = executeCapturingLoggedWarnings() {
+      runBlocking { agent.produceInvalidVideoFrame(PRIMARY_DISPLAY_ID) }
+      assertThat(agent.getNextControlMessage(2.seconds)).isEqualTo(StopVideoStreamMessage(PRIMARY_DISPLAY_ID))
+      assertThat(getNextControlMessageAndWaitForFrame(PRIMARY_DISPLAY_ID)).isEqualTo(
+          StartVideoStreamMessage(PRIMARY_DISPLAY_ID, Dimension(400, 600)))
+    }
+    assertThat(loggedErrors).hasSize(1)
+    assertThat(loggedErrors.first()).startsWith("Display 0: video packet was rejected by the decoder: ")
   }
 
   @Test

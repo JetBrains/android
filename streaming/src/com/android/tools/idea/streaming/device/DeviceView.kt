@@ -346,6 +346,9 @@ internal class DeviceView(
   }
 
   private fun getDisconnectionErrorMessage(exception: Throwable?): String {
+    if (exception is InvalidFrameException) {
+      return "Too many invalid video frames. See ${getShowLogHyperlink()} for details."
+    }
     return when ((exception as? AgentTerminatedException)?.exitCode) {
       AGENT_WEAK_VIDEO_ENCODER ->
           "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
@@ -560,6 +563,8 @@ internal class DeviceView(
 
   private inner class MyFrameListener : VideoDecoder.FrameListener {
 
+    private var consecutiveInvalidFrames = 0
+
     override fun onNewFrameAvailable() {
       EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
         connected()
@@ -570,6 +575,17 @@ internal class DeviceView(
     }
 
     override fun onEndOfVideoStream() {
+    }
+
+    override fun onInvalidFrame(e: InvalidFrameException) {
+      thisLogger().warn(e)
+      if (++consecutiveInvalidFrames <= MAX_INVALID_FRAME_RETRIES) {
+        deviceClient.stopVideoStream(project, displayId)
+        deviceClient.startVideoStream(project, displayId, maxVideoSize)
+      }
+      else {
+        disconnected(initialDisplayOrientation, e)
+      }
     }
   }
 
@@ -821,6 +837,7 @@ internal class DeviceView(
   }
 
   companion object {
+    private const val MAX_INVALID_FRAME_RETRIES = 3
     /**
      * This is how much we want to adjust the mouse scroll for Android. This number was chosen by
      * trying different numbers until scrolling felt usable.

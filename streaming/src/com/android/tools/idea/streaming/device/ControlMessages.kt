@@ -314,7 +314,7 @@ internal data class SetMaxVideoResolutionMessage(val displayId: Int, val maxVide
 }
 
 /** Starts video stream if it was stopped. */
-internal class StartVideoStreamMessage(val displayId: Int, val maxVideoSize: Dimension) : ControlMessage(TYPE) {
+internal data class StartVideoStreamMessage(val displayId: Int, val maxVideoSize: Dimension) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -339,7 +339,7 @@ internal class StartVideoStreamMessage(val displayId: Int, val maxVideoSize: Dim
 }
 
 /** Stops video stream. */
-internal class StopVideoStreamMessage(val displayId: Int) : ControlMessage(TYPE) {
+internal data class StopVideoStreamMessage(val displayId: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -497,7 +497,7 @@ internal data class ErrorResponse(override val requestId: Int, val errorMessage:
 }
 
 /** Screenshot of a device display. */
-internal class DisplayConfigurationResponse(override val requestId: Int, val displays: List<DisplayDescriptor>): CorrelatedMessage(TYPE) {
+internal data class DisplayConfigurationResponse(override val requestId: Int, val displays: List<DisplayDescriptor>): CorrelatedMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
@@ -675,7 +675,7 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
 /**
  * Queries the current UI settings from a device.
  */
-internal class UiSettingsRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
+internal data class UiSettingsRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
 
@@ -993,7 +993,7 @@ internal data class SetGestureNavigationRequest(override val requestId: Int, val
 /**
  * Changes the gesture navigation.
  */
-internal class ResetUiSettingsRequest(override val requestId: Int) : CorrelatedMessage(TYPE) {
+internal data class ResetUiSettingsRequest(override val requestId: Int) : CorrelatedMessage(TYPE) {
 
   constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
 
