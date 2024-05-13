@@ -34,17 +34,17 @@ suspend fun NlModel.updateFileContentBlocking(content: String): NlModel {
 }
 
 /**
- * Helper function to wrapped [NlModel.addComponents] to select the added [NlComponent]s when
+ * Helper function to wrapped [NlTreeWriter.addComponents] to select the added [NlComponent]s when
  * [insertType] is [InsertType.CREATE]. This happens when adding a new created [NlComponent]s into
  * [NlModel] but not moving the existing [NlComponent]s.
  *
- * We use [NlModel.addComponents] to create and moving [NlComponent]s, so we need to check the
+ * We use [NlTreeWriter.addComponents] to create and moving [NlComponent]s, so we need to check the
  * [insertType].
  *
  * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
  */
 @JvmOverloads
-fun NlModel.addComponentsAndSelectedIfCreated(
+fun NlTreeWriter.addComponentsAndSelectedIfCreated(
   toAdd: List<NlComponent>,
   receiver: NlComponent,
   before: NlComponent?,
@@ -67,14 +67,14 @@ fun NlModel.addComponentsAndSelectedIfCreated(
 }
 
 /**
- * Helper function to wrapped [NlModel.addComponents] to add and selected the added [NlComponent]s.
- * This is used to add a new created [NlComponent]s into [NlModel] but not moving the existing
- * [NlComponent]s.
+ * Helper function to wrapped [NlTreeWriter.addComponents] to add and selected the added
+ * [NlComponent]s. This is used to add a new created [NlComponent]s into [NlModel] but not moving
+ * the existing [NlComponent]s.
  *
  * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
  */
 @JvmOverloads
-fun NlModel.createAndSelectComponents(
+fun NlTreeWriter.createAndSelectComponents(
   toAdd: List<NlComponent>,
   receiver: NlComponent,
   before: NlComponent?,

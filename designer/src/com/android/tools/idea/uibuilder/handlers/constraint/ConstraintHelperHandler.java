@@ -86,7 +86,7 @@ public class ConstraintHelperHandler extends ViewGroupHandler implements Delegat
               tag.setAttribute(PREFIX_ANDROID + ATTR_ID, toDrag.getAttribute(ANDROID_URI, ATTR_ID));
               component = model.createComponent(tag);
             }
-            model.addTags(Collections.singletonList(component), receiver, before, insert);
+            model.getTreeWriter().addTags(Collections.singletonList(component), receiver, before, insert);
           }
         }
         else {

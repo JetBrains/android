@@ -220,12 +220,12 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public boolean canInsertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index) {
-    return getModel().canAddComponents(children, parent, getChild(parent, index));
+    return getModel().getTreeWriter().canAddComponents(children, parent, getChild(parent, index));
   }
 
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
-    UtilsKt.addComponentsAndSelectedIfCreated(getModel(),
+    UtilsKt.addComponentsAndSelectedIfCreated(getModel().getTreeWriter(),
                                               children,
                                               parent,
                                               getChild(parent, index),

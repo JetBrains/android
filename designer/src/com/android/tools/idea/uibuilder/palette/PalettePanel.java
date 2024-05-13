@@ -30,6 +30,7 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlTreeWriter;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
@@ -611,6 +612,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         return false;
       }
       NlModel model = surface.getModel();
+      NlTreeWriter treeWriter = model.getTreeWriter();
       if (model == null) {
         return false;
       }
@@ -624,16 +626,16 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
       DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
-      InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */, true /* generateIds */);
+      InsertType insertType = treeWriter.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */, true /* generateIds */);
 
-      List<NlComponent> toAdd = model.createComponents(dndItem, insertType);
+      List<NlComponent> toAdd = treeWriter.createComponents(dndItem, insertType);
 
       NlComponent root = roots.get(0);
-      if (!model.canAddComponents(toAdd, root, null, checkOnly)) {
+      if (!treeWriter.canAddComponents(toAdd, root, null, checkOnly)) {
         return false;
       }
       if (!checkOnly) {
-        UtilsKt.addComponentsAndSelectedIfCreated(model,
+        UtilsKt.addComponentsAndSelectedIfCreated(treeWriter,
                                                   toAdd,
                                                   root,
                                                   null,

@@ -526,7 +526,7 @@ fun moveIntoNestedGraph(surface: NavDesignSurface, newParent: () -> NlComponent?
         it.actionDestinationId = graph.id
       }
 
-    graph.model.addComponents(components, graph, null, InsertType.MOVE, null, null, ADD_NESTED_GROUP_ID)
+    graph.model.treeWriter.addComponents(components, graph, null, InsertType.MOVE, null, null, ADD_NESTED_GROUP_ID)
     if (graph.startDestinationId == null) {
       graph.startDestinationId = candidate
     }

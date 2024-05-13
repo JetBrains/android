@@ -67,7 +67,7 @@ class NavNlModelTest : NavTestCase() {
       }
     }
 
-    model.delete(listOf(model.treeReader.find("a1")))
+    model.treeWriter.delete(listOf(model.treeReader.find("a1")))
     FileDocumentManager.getInstance().saveAllDocuments()
     val result = String(model.virtualFile.contentsToByteArray())
     // ensure that we end up with a self-closing tag

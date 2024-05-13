@@ -45,7 +45,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.LanguageNamesValidation;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
@@ -68,8 +67,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
@@ -736,7 +733,7 @@ public class NlComponent implements NlAttributesHolder {
    */
   @NotNull
   public String assignId(@NotNull String baseName) {
-    return assignId(baseName, getModel().getIds());
+    return assignId(baseName, getModel().getTreeWriter().getIds());
   }
 
   /**
@@ -767,7 +764,7 @@ public class NlComponent implements NlAttributesHolder {
     attributes.setAttribute(ANDROID_URI, ATTR_ID, NEW_ID_PREFIX + newId);
 
     // TODO clear the pending ids
-    getModel().getPendingIds().add(newId);
+    getModel().getTreeWriter().getPendingIds().add(newId);
     return newId;
   }
 

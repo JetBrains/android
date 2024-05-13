@@ -27,6 +27,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.common.model.NlTreeWriter;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.NlTreeReader;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -62,6 +63,8 @@ public class NlDropInsertionPickerTest {
   private NlModel myModel;
 
   @Mock private NlTreeReader myTreeReader;
+  @Mock private NlTreeWriter myTreeWriter;
+
 
   private FakeNlComponentGroup ourRoot;
   private FakeTreePath[] myTreePaths;
@@ -128,10 +131,11 @@ public class NlDropInsertionPickerTest {
   @Before
   public void setUp() throws Exception {
     MockitoAnnotations.initMocks(this);
-    when(myModel.canAddComponents(anyList(), any(FakeNlComponent.class), any())).thenReturn(false);
-    when(myModel.canAddComponents(anyList(), any(FakeNlComponent.class), any(), anyBoolean())).thenReturn(false);
-    when(myModel.canAddComponents(anyList(), any(FakeNlComponentGroup.class), any())).thenReturn(true);
-    when(myModel.canAddComponents(anyList(), any(FakeNlComponentGroup.class), any(), anyBoolean())).thenReturn(true);
+    when(myTreeWriter.canAddComponents(anyList(), any(FakeNlComponent.class), any())).thenReturn(false);
+    when(myTreeWriter.canAddComponents(anyList(), any(FakeNlComponent.class), any(), anyBoolean())).thenReturn(false);
+    when(myTreeWriter.canAddComponents(anyList(), any(FakeNlComponentGroup.class), any())).thenReturn(true);
+    when(myTreeWriter.canAddComponents(anyList(), any(FakeNlComponentGroup.class), any(), anyBoolean())).thenReturn(true);
+    when(myModel.getTreeWriter()).thenReturn(myTreeWriter);
     when(myModel.getProject()).thenReturn(myRule.getProject());
 
     ourRoot = buildFakeComponentHierarchy();
@@ -233,9 +237,10 @@ public class NlDropInsertionPickerTest {
   @Test
   public void testInsertRowIsAfterChildren() {
     NlComponent receiver = ourRoot.getChild(2);
-    when(myModel.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
-    when(myModel.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
-    assertFalse(myModel.canAddComponents(myDragged, receiver, null));
+    NlTreeWriter treeWriter = myModel.getTreeWriter();
+    when(treeWriter.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
+    when(treeWriter.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
+    assertFalse(treeWriter.canAddComponents(myDragged, receiver, null));
     NlDropInsertionPicker.Result result = myPicker.findInsertionPointAt(new Point(15, 35), myDragged);
     assertEquals(ourRoot, result.receiver);
     assertEquals(ourRoot.getChild(3), result.nextComponent);
@@ -255,9 +260,10 @@ public class NlDropInsertionPickerTest {
     myTreePaths = buildFakeTreePathArray(root);
     FakeTree tree = new FakeTree();
     NlComponent receiver = root.getChild(0);
-    when(myModel.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
-    when(myModel.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
-    assertFalse(myModel.canAddComponents(myDragged, receiver, null));
+    NlTreeWriter treeWriter = myModel.getTreeWriter();
+    when(treeWriter.canAddComponents(eq(myDragged), eq(receiver), any())).thenReturn(false);
+    when(treeWriter.canAddComponents(eq(myDragged), eq(receiver), any(), anyBoolean())).thenReturn(false);
+    assertFalse(treeWriter.canAddComponents(myDragged, receiver, null));
     NlDropInsertionPicker picker = new NlDropInsertionPicker(tree);
     NlDropInsertionPicker.Result result = picker.findInsertionPointAt(new Point(15, 15), myDragged);
     assertEquals(root, result.receiver);

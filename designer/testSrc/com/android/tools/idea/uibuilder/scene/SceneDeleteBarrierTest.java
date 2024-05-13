@@ -35,7 +35,7 @@ public class SceneDeleteBarrierTest extends SceneTest {
     SceneComponent layout = myScene.getSceneComponent("root");
     NlComponent layoutComponent = layout.getNlComponent();
     NlComponent toDelete = myScene.getSceneComponent("button").getNlComponent();
-    layoutComponent.getModel().delete(Collections.singletonList(toDelete));
+    layoutComponent.getModel().getTreeWriter().delete(Collections.singletonList(toDelete));
 
     @Language("XML")
     @SuppressWarnings("XmlUnusedNamespaceDeclaration")

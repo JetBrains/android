@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.IOException;
 import java.util.List;
 
 public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutProvider, CopyProvider, PasteProvider {
@@ -108,7 +107,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
       return;
     }
     SelectionModel selectionModel = mySurface.getSelectionModel();
-    model.delete(selectionModel.getSelection());
+    model.getTreeWriter().delete(selectionModel.getSelection());
     selectionModel.clear();
   }
 
@@ -164,9 +163,9 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
     }
 
     DragType dragType = transferItem.isCut() ? DragType.MOVE : DragType.PASTE;
-    InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly, generateNewIds);
+    InsertType insertType = model.getTreeWriter().determineInsertType(dragType, transferItem, checkOnly, generateNewIds);
 
-    List<NlComponent> pasted = model.createComponents(transferItem, insertType);
+    List<NlComponent> pasted = model.getTreeWriter().createComponents(transferItem, insertType);
 
     NlComponent before = null;
     if (canHandleChildren(receiver, pasted)) {
@@ -182,14 +181,14 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
       }
     }
 
-    if (!model.canAddComponents(pasted, receiver, before, checkOnly)) {
+    if (!model.getTreeWriter().canAddComponents(pasted, receiver, before, checkOnly)) {
       return false;
     }
     if (checkOnly) {
       return true;
     }
     transferItem.consumeCut();
-    UtilsKt.addComponentsAndSelectedIfCreated(model, pasted, receiver, before, insertType, mySurface.getSelectionModel());
+    UtilsKt.addComponentsAndSelectedIfCreated(model.getTreeWriter(), pasted, receiver, before, insertType, mySurface.getSelectionModel());
     if (insertType == InsertType.PASTE) {
       mySurface.getSelectionModel().setSelection(pasted);
     }

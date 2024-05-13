@@ -396,12 +396,13 @@ public class NlModelTest extends LayoutTestCase {
     assertThat(button).isNotNull();
     assertThat(frameLayout).isNotNull();
 
-    assertThat(model.canAddComponents(Collections.singletonList(frameLayout), linearLayout, frameLayout)).isTrue();
-    assertThat(model.canAddComponents(Collections.singletonList(button), frameLayout, null)).isTrue();
-    assertThat(model.canAddComponents(Arrays.asList(frameLayout, button), linearLayout, frameLayout)).isTrue();
+    NlTreeWriter treeWriter = model.getTreeWriter();
+    assertThat(treeWriter.canAddComponents(Collections.singletonList(frameLayout), linearLayout, frameLayout)).isTrue();
+    assertThat(treeWriter.canAddComponents(Collections.singletonList(button), frameLayout, null)).isTrue();
+    assertThat(treeWriter.canAddComponents(Arrays.asList(frameLayout, button), linearLayout, frameLayout)).isTrue();
 
-    assertThat(model.canAddComponents(Collections.singletonList(linearLayout), frameLayout, null)).isFalse();
-    assertThat(model.canAddComponents(Collections.singletonList(linearLayout), linearLayout, null)).isFalse();
+    assertThat(treeWriter.canAddComponents(Collections.singletonList(linearLayout), frameLayout, null)).isFalse();
+    assertThat(treeWriter.canAddComponents(Collections.singletonList(linearLayout), linearLayout, null)).isFalse();
   }
 
   public void testCreateComponentWithDependencyCheck() {
@@ -435,7 +436,7 @@ public class NlModelTest extends LayoutTestCase {
 
     WriteCommandAction.runWriteCommandAction(
       model.getProject(), null, null,
-      () -> model.createComponent(recyclerViewTag, frameLayout, null, InsertType.CREATE
+      () -> model.getTreeWriter().createComponent(recyclerViewTag, frameLayout, null, InsertType.CREATE
       ),
       model.getFile());
     model.notifyModified(ChangeType.ADD_COMPONENTS);
@@ -476,9 +477,9 @@ public class NlModelTest extends LayoutTestCase {
       XmlElementFactory.getInstance(getProject()).createTagFromText("<" + RECYCLER_VIEW.defaultName() + " xmlns:android=\"" +
                                                                     ANDROID_URI + "\"/>");
     NlComponent recyclerView =
-      model.createComponent(recyclerViewTag, null, null, InsertType.CREATE);
+      model.getTreeWriter().createComponent(recyclerViewTag, null, null, InsertType.CREATE);
     List<NlComponent> toAdd = Collections.singletonList(recyclerView);
-    UtilsKt.createAndSelectComponents(model, toAdd, frameLayout, null, model.getSurface().getSelectionModel());
+    UtilsKt.createAndSelectComponents(model.getTreeWriter(), toAdd, frameLayout, null, model.getSurface().getSelectionModel());
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.
@@ -530,7 +531,7 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent recyclerView = linearLayout.getChild(1);
     assertThat(frameLayout).isNotNull();
 
-    model.addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, null);
+    model.getTreeWriter().addComponents(Collections.singletonList(recyclerView), frameLayout, null, InsertType.MOVE, null);
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.

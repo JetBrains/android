@@ -91,7 +91,14 @@ class FragmentHandlerTest : LayoutTestCase() {
       model.project,
       null,
       null,
-      { model.createComponent(tag, model.treeReader.find("outer"), null, InsertType.CREATE) },
+      {
+        model.treeWriter.createComponent(
+          tag,
+          model.treeReader.find("outer"),
+          null,
+          InsertType.CREATE,
+        )
+      },
       model.file,
     )
     val newFragment = model.treeReader.find("fragment")!!

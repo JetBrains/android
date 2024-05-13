@@ -708,7 +708,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
 
     NlModel selectedModel = Iterables.getFirst(selectedModels, null);
-    return new ItemTransferable(new DnDTransferItem(selectedModel != null ? selectedModel.getId() : 0, components));
+    return new ItemTransferable(new DnDTransferItem(selectedModel != null ? selectedModel.getTreeWriter().getId() : 0, components));
   }
 
   /**

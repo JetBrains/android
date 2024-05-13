@@ -152,8 +152,9 @@ class PreviewProvider(
         return null
       }
     val component =
-      runWriteAction { model.createComponent(tag, null, null, InsertType.CREATE_PREVIEW) }
-        ?: return null
+      runWriteAction {
+        model.treeWriter.createComponent(tag, null, null, InsertType.CREATE_PREVIEW)
+      } ?: return null
 
     // Some components require a parent to render correctly.
     val componentTag = component.tag ?: return null

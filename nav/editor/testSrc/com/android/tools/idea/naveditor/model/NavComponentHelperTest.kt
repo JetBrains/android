@@ -346,8 +346,10 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
+    val treeWriter = model.treeWriter
+
     TestNavUsageTracker.create(model).use { tracker ->
-      model.delete(listOf(model.treeReader.find("action")!!))
+      treeWriter.delete(listOf(model.treeReader.find("action")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_ACTION)
                                  .setActionInfo(NavActionInfo.newBuilder()
@@ -357,12 +359,12 @@ class NavComponentHelperTest2 : NavTestCase() {
                                                   .setCountFromSource(1))
                                  .build())
 
-      model.delete(listOf(model.treeReader.find("f1")!!.children[0]))
+      treeWriter.delete(listOf(model.treeReader.find("f1")!!.children[0]))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_ARGUMENT)
                                  .build())
 
-      model.delete(listOf(model.treeReader.find("f1")!!))
+      treeWriter.delete(listOf(model.treeReader.find("f1")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_DESTINATION)
                                  .setDestinationInfo(NavDestinationInfo.newBuilder()
@@ -370,17 +372,17 @@ class NavComponentHelperTest2 : NavTestCase() {
                                                        .setHasLayout(true))
                                  .build())
 
-      model.delete(listOf(model.treeReader.find("subnav")!!.children[0]))
+      treeWriter.delete(listOf(model.treeReader.find("subnav")!!.children[0]))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_DEEPLINK)
                                  .build())
 
-      model.delete(listOf(model.treeReader.find("subnav")!!))
+      treeWriter.delete(listOf(model.treeReader.find("subnav")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_NESTED)
                                  .build())
 
-      model.delete(listOf(model.treeReader.find("nav")!!))
+      treeWriter.delete(listOf(model.treeReader.find("nav")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_INCLUDE)
                                  .build())

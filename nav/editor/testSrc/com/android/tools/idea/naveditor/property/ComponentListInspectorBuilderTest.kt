@@ -185,7 +185,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     val listModel = componentList.list.model
     assertEquals(3, listModel.size)
 
-    fragment1.model.delete(listOf(fragment1.children[0]))
+    fragment1.model.treeWriter.delete(listOf(fragment1.children[0]))
     lineModel.refresh()
     assertEquals(2, listModel.size)
   }

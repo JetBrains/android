@@ -303,7 +303,7 @@ class AddDestinationMenuTest {
   @Test
   fun testCreateBlank() {
     model.treeReader.flattenComponents().map { it.id } .forEach {
-      if(it != null) model.pendingIds.add(it)
+      if(it != null) model.treeWriter.pendingIds.add(it)
     }
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
@@ -337,7 +337,7 @@ class AddDestinationMenuTest {
   @Test
   fun testCreateBlankNoLayout() {
     model.treeReader.flattenComponents().map { it.id } .forEach {
-      if(it != null) model.pendingIds.add(it)
+      if(it != null) model.treeWriter.pendingIds.add(it)
     }
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
@@ -369,7 +369,7 @@ class AddDestinationMenuTest {
   @RunsInEdt
   fun testCreateSettingsFragment() {
     model.treeReader.flattenComponents().map { it.id } .forEach {
-      if(it != null) model.pendingIds.add(it)
+      if(it != null) model.treeWriter.pendingIds.add(it)
     }
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {

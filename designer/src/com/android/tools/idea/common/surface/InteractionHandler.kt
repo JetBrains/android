@@ -182,7 +182,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
       return null
     }
 
-    val model = sceneView.sceneManager.model
+    val treeWriter = sceneView.sceneManager.model.treeWriter
     val item =
       DnDTransferItem.getTransferItem(event.getTransferable(), true /* allow placeholders */)
     if (item == null) {
@@ -192,13 +192,13 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
     val dragType =
       if (event.dropAction == DnDConstants.ACTION_COPY) DragType.COPY else DragType.MOVE
     val insertType =
-      model.determineInsertType(dragType, item, true /* preview */, true /* generate ids */)
+      treeWriter.determineInsertType(dragType, item, true /* preview */, true /* generate ids */)
 
     val dragged: List<NlComponent> =
       if (item.isFromPalette) {
         // remove selection when dragging from Palette.
         surface.selectionModel.clear()
-        model.createComponents(item, insertType)
+        treeWriter.createComponents(item, insertType)
       } else {
         // When dragging from ComponentTree, it should reuse the existing NlComponents rather than
         // creating the new ones.
@@ -363,7 +363,11 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
           surface.project,
           "Delete Components",
           null,
-          { modelComponentsMap.forEach { (model, nlComponents) -> model.delete(nlComponents) } },
+          {
+            modelComponentsMap.forEach { (model, nlComponents) ->
+              model.treeWriter.delete(nlComponents)
+            }
+          },
           *modelComponentsMap.keys.map { it.file }.toTypedArray(),
         )
       }

@@ -196,7 +196,7 @@ abstract class ComponentListInspectorBuilder(val tagName: String,
     : AnAction(text, text, AllIcons.General.Remove) {
     var model: InspectorLineModel? = null
     override fun actionPerformed(e: AnActionEvent) {
-      component.model.delete(list.selectedValuesList)
+      component.model.treeWriter.delete(list.selectedValuesList)
       builder.refresh(component, listModel)
       model?.refresh()
       model?.expanded = listModel.size > 0

@@ -419,7 +419,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
   fun applyPlaceholder(placeholder: Placeholder) {
     val parent = placeholder.host.authoritativeNlComponent
     val primaryNlComponent = myComponent.authoritativeNlComponent
-    val model = primaryNlComponent.model
+    val treeWriter = primaryNlComponent.model.treeWriter
     val componentsToAdd = draggedComponents.map { it.authoritativeNlComponent }
     val anchor = placeholder.findNextSibling(myComponent, placeholder.host)?.nlComponent
 
@@ -432,7 +432,7 @@ constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean 
         modification
       }
 
-    model.addComponentsAndSelectedIfCreated(
+    treeWriter.addComponentsAndSelectedIfCreated(
       componentsToAdd,
       parent,
       anchor,

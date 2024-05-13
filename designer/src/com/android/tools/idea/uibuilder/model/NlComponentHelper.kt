@@ -463,7 +463,7 @@ fun NlComponent.createChild(
 
   val tag = backend.tag ?: return null
   val childTag = tag.createChildTag(tagName, namespace, bodyText, enforceNamespacesDeep)
-  return model.createComponent(childTag, this, before, insertType)
+  return model.treeWriter.createComponent(childTag, this, before, insertType)
 }
 
 val NlComponent.hasNlComponentInfo: Boolean

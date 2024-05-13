@@ -440,7 +440,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       getSelectionModel().getSelection().stream()
         .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), 0, 0))
         .collect(toImmutableList());
-    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
+    return new ItemTransferable(new DnDTransferItem(model != null ? model.getTreeWriter().getId() : 0, components));
   }
 
   @NotNull

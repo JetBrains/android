@@ -25,7 +25,6 @@ import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.supportsActions
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import java.awt.datatransfer.DataFlavor
 import java.util.stream.Collectors
@@ -47,7 +46,7 @@ class NavDesignSurfaceActionHandler(val surface: NavDesignSurface) : DesignSurfa
           if (component.isDestination) {
             surface.sceneManager?.performUndoablePositionAction(component)
             val parent = component.parent ?: continue
-            model.delete(parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList()))
+            model.treeWriter.delete(parent.flatten().filter { it.isAction && it.actionDestination == component }.collect(Collectors.toList()))
             if (component.isStartDestination) {
               parent.removeAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_START_DESTINATION)
             }

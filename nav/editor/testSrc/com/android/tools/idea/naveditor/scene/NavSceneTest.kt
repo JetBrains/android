@@ -261,7 +261,7 @@ class NavSceneTest {
     moveComponentTo(component2, 20, 20)
     scene.sceneManager.layout(false)
 
-    model.delete(listOf(model.treeReader.find("fragment2")!!))
+    model.treeWriter.delete(listOf(model.treeReader.find("fragment2")!!))
 
     val sceneView = scene.sceneManager.sceneViews.first()
     scene.layout(0, sceneView.context)
@@ -923,7 +923,7 @@ class NavSceneTest {
     }
     assertThat(sceneManager.isEmpty).isFalse()
 
-    model.delete(listOf(model.treeReader.find("fragment1")!!))
+    model.treeWriter.delete(listOf(model.treeReader.find("fragment1")!!))
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
