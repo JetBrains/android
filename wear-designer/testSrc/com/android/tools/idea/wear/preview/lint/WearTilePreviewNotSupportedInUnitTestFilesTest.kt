@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -29,8 +26,6 @@ import org.junit.Test
 
 class WearTilePreviewNotSupportedInUnitTestFilesTest {
   @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
-
-  @get:Rule val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
 
   private val fixture
     get() = projectRule.fixture
@@ -57,32 +52,6 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
      """
         .trimIndent(),
     )
-  }
-
-  @Test
-  fun isAvailableForKotlinAndJavaUnitTestFiles() {
-    // supported types
-    val kotlinUnitTestFile = fixture.addFileToProject("src/test/test.kt", "")
-    val javaUnitTestFile = fixture.addFileToProject("src/test/Test.java", "")
-    assertTrue(inspection.isAvailableForFile(kotlinUnitTestFile))
-    assertTrue(inspection.isAvailableForFile(javaUnitTestFile))
-
-    // unsupported types
-    val xmlUnitTestFile = fixture.configureByText("src/test/test.xml", "")
-    val htmlUnitTestFile = fixture.configureByText("src/test/test.html", "")
-    assertFalse(inspection.isAvailableForFile(xmlUnitTestFile))
-    assertFalse(inspection.isAvailableForFile(htmlUnitTestFile))
-  }
-
-  @Test
-  fun canBeDisabled() {
-    val kotlinUnitTestFile = fixture.addFileToProject("src/test/Test.kt", "")
-    val javaUnitTestFile = fixture.configureByText("src/test/Test.java", "")
-
-    StudioFlags.WEAR_TILE_PREVIEW.override(false)
-
-    assertFalse(inspection.isAvailableForFile(kotlinUnitTestFile))
-    assertFalse(inspection.isAvailableForFile(javaUnitTestFile))
   }
 
   @Test
