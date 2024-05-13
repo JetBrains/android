@@ -146,7 +146,7 @@ value class MimeType(val mimeType: String) {
      * mime type
      */
     val RESOURCE = MimeType("$XML; $ATTR_ROLE=resource")
-    val MANIFEST = MimeType("$XML;$ATTR_ROLE=manifest; $ATTR_ROOT_TAG=manifest")
+    val MANIFEST = MimeType("$XML; $ATTR_ROLE=manifest; $ATTR_ROOT_TAG=manifest")
     val GRADLE = MimeType("$GROOVY; $ATTR_ROLE=gradle")
     val GRADLE_KTS = MimeType("$KOTLIN; $ATTR_ROLE=gradle")
     val VERSION_CATALOG = MimeType("$TOML; $ATTR_ROLE=version-catalog")
