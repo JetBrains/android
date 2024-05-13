@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectCloseListener;
 import com.intellij.openapi.wm.ToolWindow;
@@ -42,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
+public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction implements DumbAware {
   @NotNull
   private final AnAction myAction;
 
