@@ -375,6 +375,41 @@ class BasicCompileTest {
   }
 
   @Test
+  fun `modifying field annotations is allowed`() {
+    val file = projectRule.createKtFile("ModifyFieldValue.kt", """
+      @Target(AnnotationTarget.FIELD)
+      @Retention(AnnotationRetention.RUNTIME)
+      annotation class MyAnnotation
+
+      class MyClass() {
+        @MyAnnotation
+        val a = 100
+        val b = 200
+      }
+    """)
+    val cache = projectRule.initialCache(listOf(file))
+
+    projectRule.modifyKtFile(file, """
+      @Target(AnnotationTarget.FIELD)
+      @Retention(AnnotationRetention.RUNTIME)
+      annotation class MyAnnotation
+
+      class MyClass() {
+        val a = 100
+        @MyAnnotation
+        val b = 200
+      }
+    """)
+
+    try {
+      compile(file, cache)
+    }
+    catch (e: LiveEditUpdateException) {
+      fail("Modifying field annotations should be allowed: ${e.message}")
+    }
+  }
+
+  @Test
   fun modifyStaticInit() {
     val file = projectRule.createKtFile("ModifyStaticInit.kt", "val x = 1")
     val cache = projectRule.initialCache(listOf(file))
