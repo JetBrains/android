@@ -23,11 +23,12 @@ import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker.MemorySettingsNotification;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.IOException;
 import org.mockito.Mock;
 
-public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
+public class MemorySettingsPostSyncCheckerTest extends HeavyPlatformTestCase {
   @Mock
   private TimeBasedReminder myReminder;
 

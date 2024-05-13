@@ -19,12 +19,12 @@ import static com.android.tools.idea.apk.debugging.ApkDebugging.APK_DEBUGGING_PR
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
 /**
  * Tests for {@link ApkDebugging}.
  */
-public class ApkDebuggingTest extends PlatformTestCase {
+public class ApkDebuggingTest extends HeavyPlatformTestCase {
   public void testMarkAsApkDebuggingProject() {
     Project project = getProject();
     assertFalse(ApkDebugging.isMarkedAsApkDebuggingProject(project));

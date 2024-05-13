@@ -25,7 +25,8 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link DexFileDisassembler}.
  */
-public class DexFileDisassemblerTest extends PlatformTestCase {
+public class DexFileDisassemblerTest extends HeavyPlatformTestCase {
   private DexFileDisassembler myDisassembler;
 
   @Override

@@ -24,12 +24,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-public class IgnoredBuildScriptSetupStepTest extends PlatformTestCase {
+public class IgnoredBuildScriptSetupStepTest extends HeavyPlatformTestCase {
   @Mock private GradleSyncMessages myMessages;
   @Mock private FileTypeManager myFileTypeManager;
   @NotNull private IgnoredBuildScriptSetupStep mySetupStep = new IgnoredBuildScriptSetupStep();

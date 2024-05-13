@@ -43,7 +43,8 @@ import com.android.tools.sdk.Annotations;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,7 +56,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidSdks}.
  */
-public class AndroidSdksTest extends PlatformTestCase {
+public class AndroidSdksTest extends HeavyPlatformTestCase {
   @Mock IdeInfo myIdeInfo;
 
   private AndroidSdks myAndroidSdks;

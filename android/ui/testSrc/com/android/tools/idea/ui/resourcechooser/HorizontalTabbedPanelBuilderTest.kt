@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.ui.resourcechooser
 
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import java.awt.Dimension
 import java.lang.IllegalArgumentException
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
 
-class HorizontalTabbedPanelBuilderTest : PlatformTestCase() {
+class HorizontalTabbedPanelBuilderTest : HeavyPlatformTestCase() {
 
   fun testSize() {
     run {

@@ -30,7 +30,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +41,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link AndroidGeneratedSourcesFilter}.
  */
-public class AndroidGeneratedSourcesFilterTest extends PlatformTestCase {
+public class AndroidGeneratedSourcesFilterTest extends HeavyPlatformTestCase {
   @Mock private Info myInfo;
   private AndroidGeneratedSourcesFilter myGeneratedSourcesFilter;
 

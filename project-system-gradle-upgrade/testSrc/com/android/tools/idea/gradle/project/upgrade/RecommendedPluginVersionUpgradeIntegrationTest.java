@@ -29,7 +29,7 @@ import com.android.tools.idea.gradle.project.upgrade.ui.ContentManagerImpl;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -38,7 +38,7 @@ import org.mockito.MockedStatic;
  * Tests for {@link GradlePluginUpgrade#performRecommendedPluginUpgrade(Project)} and
  * {@link GradlePluginUpgrade#shouldRecommendPluginUpgrade(Project)}.
  */
-public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTestCase {
+public class RecommendedPluginVersionUpgradeIntegrationTest extends HeavyPlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private RecommendedUpgradeReminder myUpgradeReminder;
   private ContentManager myContentManager;

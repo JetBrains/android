@@ -20,11 +20,11 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import junit.framework.TestCase
 import org.junit.Test
 
-class KotlinParserTest : PlatformTestCase() {
+class KotlinParserTest : HeavyPlatformTestCase() {
   @Test
   fun testKotlinParserEnabledByDefault() {
     runWriteAction {

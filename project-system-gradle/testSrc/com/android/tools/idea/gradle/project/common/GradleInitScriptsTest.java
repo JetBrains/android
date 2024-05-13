@@ -25,7 +25,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleInitScripts}.
  */
-public class GradleInitScriptsTest extends PlatformTestCase {
+public class GradleInitScriptsTest extends HeavyPlatformTestCase {
   @Mock private GradleInitScripts.ContentCreator myContentCreator;
 
   private File myInitScriptPath;

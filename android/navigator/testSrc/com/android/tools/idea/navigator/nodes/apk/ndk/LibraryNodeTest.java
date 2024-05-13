@@ -30,7 +30,8 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link LibraryNode}.
  */
-public class LibraryNodeTest extends PlatformTestCase {
+public class LibraryNodeTest extends HeavyPlatformTestCase {
   private IdeSdks myIdeSdks;
 
   @Override

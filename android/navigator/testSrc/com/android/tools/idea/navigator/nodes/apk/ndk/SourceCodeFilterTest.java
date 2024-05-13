@@ -22,7 +22,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +32,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link SourceCodeFilter}.
  */
-public class SourceCodeFilterTest extends PlatformTestCase {
+public class SourceCodeFilterTest extends HeavyPlatformTestCase {
   @Mock private PsiDirectory myItem;
 
   private VirtualFile mySrcFolder;

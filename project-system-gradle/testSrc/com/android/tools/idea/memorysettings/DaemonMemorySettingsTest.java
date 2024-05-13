@@ -21,13 +21,14 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 
-public class DaemonMemorySettingsTest extends PlatformTestCase {
+public class DaemonMemorySettingsTest extends HeavyPlatformTestCase {
 
   private String myGradleUserHome;
   private GradleProperties myGradleProperties;

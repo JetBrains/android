@@ -24,13 +24,13 @@ import com.intellij.facet.ModifiableFacetModel;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 /**
  * Tests for {@link Facets}.
  */
-public class FacetsTest extends PlatformTestCase {
+public class FacetsTest extends HeavyPlatformTestCase {
   public void testRemoveAllFacetsWithAndroidFacets() throws Exception {
     createAndAddAndroidFacet(myModule);
     FacetManager facetManager = FacetManager.getInstance(myModule);

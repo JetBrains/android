@@ -25,7 +25,7 @@ import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.ui.SimpleTextAttributes;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link LibraryFileNode}.
  */
-public class LibraryFileNodeTest extends PlatformTestCase {
+public class LibraryFileNodeTest extends HeavyPlatformTestCase {
   private NativeLibrary myLibrary;
   private PresentationData myPresentation;
   private LibraryFileNode myNode;

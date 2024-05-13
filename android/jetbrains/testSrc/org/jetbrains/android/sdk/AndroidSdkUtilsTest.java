@@ -29,7 +29,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.EnvironmentUtil;
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -39,7 +39,7 @@ import org.mockito.Mockito;
 /**
  * Tests for {@link AndroidSdkUtils}.
  */
-public class AndroidSdkUtilsTest extends PlatformTestCase {
+public class AndroidSdkUtilsTest extends HeavyPlatformTestCase {
 
   @Override
   protected void setUp() throws Exception {

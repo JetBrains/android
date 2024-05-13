@@ -20,13 +20,13 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link AbstractSyncMessages}.
  */
-public class AbstractSyncMessagesTest extends PlatformTestCase {
+public class AbstractSyncMessagesTest extends HeavyPlatformTestCase {
   private static final String TEST_GROUP = "Test";
   private SyncMessages mySyncMessages;
 

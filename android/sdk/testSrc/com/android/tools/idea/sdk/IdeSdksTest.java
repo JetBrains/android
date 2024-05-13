@@ -51,7 +51,8 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -70,7 +71,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link IdeSdks}.
  */
-public class IdeSdksTest extends PlatformTestCase {
+public class IdeSdksTest extends HeavyPlatformTestCase {
   private IdeInfo myIdeInfo;
 
   private File myAndroidSdkPath;

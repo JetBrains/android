@@ -20,13 +20,14 @@ import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectR
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.IOException;
 
 /**
  * Tests for {@link LibraryFolder}.
  */
-public class LibraryFolderTest extends PlatformTestCase {
+public class LibraryFolderTest extends HeavyPlatformTestCase {
   public void testGetName() {
     assertEquals("lib", LibraryFolder.getName());
   }

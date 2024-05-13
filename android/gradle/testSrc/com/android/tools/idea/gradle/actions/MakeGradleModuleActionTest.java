@@ -36,14 +36,15 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link MakeGradleModuleAction}.
  */
-public class MakeGradleModuleActionTest extends PlatformTestCase {
+public class MakeGradleModuleActionTest extends HeavyPlatformTestCase {
   @Mock private Info myInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AnActionEvent myActionEvent;

@@ -24,14 +24,14 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.File
 
-class BuildOutputParsersIntegrationTest : PlatformTestCase() {
+class BuildOutputParsersIntegrationTest : HeavyPlatformTestCase() {
   private lateinit var myTaskId: ExternalSystemTaskId
 
   private lateinit var scheduler: VirtualTimeScheduler

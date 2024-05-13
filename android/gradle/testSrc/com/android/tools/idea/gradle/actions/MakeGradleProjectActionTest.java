@@ -23,7 +23,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.TestActionEvent;
 import org.mockito.Mock;
@@ -31,7 +31,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link MakeGradleProjectAction}.
  */
-public class MakeGradleProjectActionTest extends PlatformTestCase {
+public class MakeGradleProjectActionTest extends HeavyPlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   private MakeGradleProjectAction myAction;
 

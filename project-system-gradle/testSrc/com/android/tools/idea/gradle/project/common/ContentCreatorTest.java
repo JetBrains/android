@@ -21,7 +21,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.util.Arrays;
 import java.util.List;
 import kotlin.reflect.KType;
@@ -30,7 +31,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link com.android.tools.idea.gradle.project.common.GradleInitScripts.ContentCreator}.
  */
-public class ContentCreatorTest extends PlatformTestCase {
+public class ContentCreatorTest extends HeavyPlatformTestCase {
   @Mock private GradleInitScripts.AndroidStudioToolingPluginJars myJavaLibraryPluginJars;
   private GradleInitScripts.ContentCreator myContentCreator;
 

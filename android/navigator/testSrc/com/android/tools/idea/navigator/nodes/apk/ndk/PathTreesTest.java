@@ -29,7 +29,8 @@ import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tests for {@link PathTrees}.
  */
-public class PathTreesTest extends PlatformTestCase {
+public class PathTreesTest extends HeavyPlatformTestCase {
   private VirtualFile myNdkFolder;
   private VirtualFile myPlatformsFolder;
   private VirtualFile myPrebuiltsFolder;

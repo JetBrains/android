@@ -39,7 +39,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
 import java.io.File;
@@ -49,7 +49,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link SmaliFileNotificationProvider}.
  */
-public class SmaliFileNotificationProviderTest extends PlatformTestCase {
+public class SmaliFileNotificationProviderTest extends HeavyPlatformTestCase {
   @Mock private FileEditor myFileEditor;
   private SmaliFileNotificationProvider myNotificationProvider;
 

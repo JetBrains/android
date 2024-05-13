@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationsConfiguration
 import com.intellij.notification.impl.NotificationsConfigurationImpl
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import java.util.Calendar
 import java.util.GregorianCalendar
 
-class TimeBasedReminderTest : PlatformTestCase() {
+class TimeBasedReminderTest : HeavyPlatformTestCase() {
   private lateinit var calendar: Calendar
   private lateinit var reminder: TimeBasedReminder
   private val NOTIFICATION_ID = "testTimeBasedReminderGroupId"

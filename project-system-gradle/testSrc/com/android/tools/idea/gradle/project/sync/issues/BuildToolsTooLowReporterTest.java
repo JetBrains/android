@@ -28,7 +28,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.mockito.Mock;
@@ -36,7 +37,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link BuildToolsTooLowReporter}.
  */
-public class BuildToolsTooLowReporterTest extends PlatformTestCase {
+public class BuildToolsTooLowReporterTest extends HeavyPlatformTestCase {
   @Mock private IdeSyncIssue mySyncIssue;
   private BuildToolsTooLowReporter myIssueReporter;
 

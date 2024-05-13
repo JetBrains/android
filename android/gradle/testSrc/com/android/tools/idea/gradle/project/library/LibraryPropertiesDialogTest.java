@@ -23,7 +23,7 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.roots.ui.configuration.libraryEditor.LibraryEditor;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -33,7 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 
-public class LibraryPropertiesDialogTest extends PlatformTestCase {
+public class LibraryPropertiesDialogTest extends HeavyPlatformTestCase {
   private Library createLibrary(@NotNull String name) {
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(myProject);
     LibraryTable.ModifiableModel libraryTableModel = libraryTable.getModifiableModel();

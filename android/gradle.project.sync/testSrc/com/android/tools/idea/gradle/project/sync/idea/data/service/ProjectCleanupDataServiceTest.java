@@ -26,7 +26,8 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanup;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.mockito.Mock;
@@ -34,7 +35,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link ProjectCleanupDataService}.
  */
-public class ProjectCleanupDataServiceTest extends PlatformTestCase {
+public class ProjectCleanupDataServiceTest extends HeavyPlatformTestCase {
   @Mock private IdeInfo myIdeInfo;
   @Mock private ProjectCleanup myProjectCleanup;
   @Mock private IdeModifiableModelsProvider myModelsProvider;

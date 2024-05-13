@@ -17,13 +17,13 @@ package com.android.tools.idea.gradle.project.sync.issues.processor
 
 import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty.MIN
 import com.intellij.openapi.module.Module
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewBundle
 import org.junit.Test
 import org.mockito.Mockito.mock
 
-class RemoveSdkFromManifestProcessorTest : PlatformTestCase() {
+class RemoveSdkFromManifestProcessorTest : HeavyPlatformTestCase() {
   @Test
   fun testUsageViewDescriptor() {
     val processor = RemoveSdkFromManifestProcessor(project, listOf(), MIN)

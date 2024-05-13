@@ -19,12 +19,12 @@ import static com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_
 
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
 /**
  * Tests for {@link GradleSyncMessages}.
  */
-public class GradleSyncMessagesTest extends PlatformTestCase {
+public class GradleSyncMessagesTest extends HeavyPlatformTestCase {
   private GradleSyncMessages mySyncMessages;
 
   @Override

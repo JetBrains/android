@@ -35,14 +35,14 @@ import com.android.tools.idea.gradle.structure.model.android.PsLibraryAndroidDep
 import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.AndroidProjectModels;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.ui.ColumnInfo;
 import java.io.File;
 
 /**
  * Tests for {@link AbstractDeclaredDependenciesTableModel}.
  */
-public class AbstractDeclaredDependenciesTableModelTest extends PlatformTestCase {
+public class AbstractDeclaredDependenciesTableModelTest extends HeavyPlatformTestCase {
   private PsLibraryAndroidDependency myLibraryDependency;
   private PsUISettings myUISettings;
 

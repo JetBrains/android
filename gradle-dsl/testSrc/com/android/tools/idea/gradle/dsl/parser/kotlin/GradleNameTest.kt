@@ -16,10 +16,10 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.jetbrains.kotlin.psi.KtPsiFactory
 
-class GradleNameTest : PlatformTestCase() {
+class GradleNameTest : HeavyPlatformTestCase() {
   fun gradleNameFromString(string : String) : String? {
     val psiFactory = KtPsiFactory(myProject, false)
     val expression = psiFactory.createExpression(string)

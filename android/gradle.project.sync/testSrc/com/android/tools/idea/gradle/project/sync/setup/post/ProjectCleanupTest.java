@@ -27,13 +27,13 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link ProjectCleanup}.
  */
-public class ProjectCleanupTest extends PlatformTestCase {
+public class ProjectCleanupTest extends HeavyPlatformTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private IdeModifiableModelsProvider myModelsProvider;
   @Mock private ProjectCleanupStep myStep1;

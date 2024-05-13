@@ -31,7 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +48,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class GoToApkLocationTaskForSignedApkTest extends PlatformTestCase {
+public class GoToApkLocationTaskForSignedApkTest extends HeavyPlatformTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
   @Mock private AndroidNotification myMockNotification;
   private GoToApkLocationTask myTask;

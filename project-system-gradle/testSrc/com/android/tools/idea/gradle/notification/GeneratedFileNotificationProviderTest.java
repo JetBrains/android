@@ -30,7 +30,7 @@ import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.ide.GeneratedSourceFileChangeTrackerImpl;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.ui.EditorNotificationPanel;
 import java.io.IOException;
 import org.mockito.Mock;
@@ -38,7 +38,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GeneratedFileNotificationProvider}.
  */
-public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
+public class GeneratedFileNotificationProviderTest extends HeavyPlatformTestCase {
   @Mock private GeneratedSourceFileChangeTrackerImpl myGeneratedSourceFileChangeTracker;
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleAndroidModel myAndroidModuleModel;

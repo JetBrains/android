@@ -42,14 +42,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
-public class BuildBundleActionTest extends PlatformTestCase {
+public class BuildBundleActionTest extends HeavyPlatformTestCase {
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private AndroidNotification myAndroidNotification;
   private BuildBundleAction myAction;

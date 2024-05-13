@@ -19,11 +19,11 @@ import com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.roots.ModuleRootModificationUtil
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import org.junit.Test
 
 
-class MergedManifestRefreshListenerTest : PlatformTestCase() {
+class MergedManifestRefreshListenerTest : HeavyPlatformTestCase() {
   @Test
   fun testTopLevelDependents() {
     // Build up modules with dependencies,

@@ -38,7 +38,7 @@ import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.ui.JBColor;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -53,7 +53,7 @@ import org.mockito.Mock;
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
  */
 @RunWith(Parameterized.class)
-public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
+public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private GradleVersionCatalogDetector myVersionCatalogDetector;
   @Mock private GradleFiles myGradleFiles;

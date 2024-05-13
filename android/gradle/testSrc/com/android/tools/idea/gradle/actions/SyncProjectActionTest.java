@@ -29,14 +29,14 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.mockito.Mock;
 import java.awt.event.KeyEvent;
 
 /**
  * Tests for {@link SyncProjectAction}.
  */
-public class SyncProjectActionTest extends PlatformTestCase {
+public class SyncProjectActionTest extends HeavyPlatformTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock GradleSyncState mySyncState;
   @Mock private AnActionEvent myEvent;

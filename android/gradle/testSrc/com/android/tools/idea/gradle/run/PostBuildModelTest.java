@@ -22,7 +22,8 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.InstantAppProjectBuildOutput;
 import com.android.builder.model.ProjectBuildOutput;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link PostBuildModel}.
  */
-public class PostBuildModelTest extends PlatformTestCase {
+public class PostBuildModelTest extends HeavyPlatformTestCase {
   @Mock private ProjectBuildOutput myAppOutput;
   @Mock private ProjectBuildOutput myLibOutput;
   @Mock private InstantAppProjectBuildOutput myInstantAppOutput;

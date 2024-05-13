@@ -20,10 +20,11 @@ import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.getKotl
 import static com.android.tools.idea.memorysettings.GradlePropertiesUtil.setDaemonXmx;
 
 import com.android.tools.idea.gradle.util.GradleProperties;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 
-public class GradlePropertiesUtilTest extends PlatformTestCase {
+public class GradlePropertiesUtilTest extends HeavyPlatformTestCase {
 
   public void testHasJvmArgs() throws Exception {
     File propertiesFilePath = createTempFile("gradle.properties", "");

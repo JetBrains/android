@@ -19,12 +19,12 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.JDK_
 import com.intellij.notification.NotificationsConfiguration
 import com.intellij.notification.impl.NotificationSettings
 import com.intellij.notification.impl.NotificationsConfigurationImpl
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 
 /**
  * Tests for [DoNotShowJdkHomeWarningAgainHyperlink].
  */
-class DoNotShowJdkHomeWarningAgainHyperlinkTest : PlatformTestCase() {
+class DoNotShowJdkHomeWarningAgainHyperlinkTest : HeavyPlatformTestCase() {
   private lateinit var myOriginalSettings: NotificationSettings
 
   override fun setUp() {

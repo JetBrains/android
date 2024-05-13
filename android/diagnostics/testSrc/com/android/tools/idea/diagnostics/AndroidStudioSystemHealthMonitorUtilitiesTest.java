@@ -24,9 +24,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.extensions.PluginId;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 
-public class AndroidStudioSystemHealthMonitorUtilitiesTest extends PlatformTestCase {
+public class AndroidStudioSystemHealthMonitorUtilitiesTest extends HeavyPlatformTestCase {
 
   public void testGetActionName() {
     // normal class in our packages should yield simple name

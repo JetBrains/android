@@ -26,13 +26,13 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link CleanProjectAction}.
  */
-public class CleanProjectActionTest extends PlatformTestCase {
+public class CleanProjectActionTest extends HeavyPlatformTestCase {
   private CleanProjectAction myAction;
 
   @Mock private GradleBuildInvoker myGradleBuildInvoker;

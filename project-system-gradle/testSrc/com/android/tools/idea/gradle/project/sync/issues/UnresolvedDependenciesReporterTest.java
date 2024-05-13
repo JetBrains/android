@@ -27,7 +27,8 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
@@ -36,7 +37,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link UnresolvedDependenciesReporter}.
  */
-public class UnresolvedDependenciesReporterTest extends PlatformTestCase {
+public class UnresolvedDependenciesReporterTest extends HeavyPlatformTestCase {
   @Mock private GradleSettings myGradleSettings;
 
   private UnresolvedDependenciesReporter myReporter;

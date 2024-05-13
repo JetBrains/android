@@ -33,14 +33,14 @@ import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link SupportedModuleChecker}.
  */
-public class SupportedModuleCheckerTest extends PlatformTestCase {
+public class SupportedModuleCheckerTest extends HeavyPlatformTestCase {
   @Mock private Info myGradleProjectInfo;
   private SupportedModuleChecker myModuleChecker;
 

@@ -33,11 +33,12 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import org.jetbrains.android.facet.AndroidFacet;
 
-public class InfoTest extends PlatformTestCase {
+public class InfoTest extends HeavyPlatformTestCase {
   private Info myInfo;
 
   @Override

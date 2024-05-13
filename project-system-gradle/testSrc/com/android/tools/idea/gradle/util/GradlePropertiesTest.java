@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.util;
 
 import com.google.common.collect.Comparators;
 import com.google.common.collect.ContiguousSet;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.net.HttpConfigurable;
 import java.io.File;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import java.util.Properties;
 /**
  * Tests for {@link GradleProperties}.
  */
-public class GradlePropertiesTest extends PlatformTestCase {
+public class GradlePropertiesTest extends HeavyPlatformTestCase {
   private GradleProperties myProperties;
   private HttpConfigurable myOriginalIdeSettings;
 

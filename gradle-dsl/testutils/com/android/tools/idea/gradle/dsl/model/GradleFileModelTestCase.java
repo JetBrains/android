@@ -79,7 +79,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.util.io.PathKt;
 import java.io.File;
 import java.io.IOException;
@@ -103,7 +103,7 @@ import org.junit.runners.Parameterized;
 
 @Ignore // Needs to be ignored so bazel doesn't try to run this class as a test and fail with "No tests found".
 @RunWith(Parameterized.class)
-public abstract class GradleFileModelTestCase extends PlatformTestCase {
+public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   protected GradleFileModelTestCase() {
     super();
     myTestDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser";

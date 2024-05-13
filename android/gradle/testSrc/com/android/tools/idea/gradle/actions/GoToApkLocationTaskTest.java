@@ -32,7 +32,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class GoToApkLocationTaskTest extends PlatformTestCase {
+public class GoToApkLocationTaskTest extends HeavyPlatformTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
   private boolean isShowFilePathActionSupported;
   @Mock private AndroidNotification myMockNotification;
