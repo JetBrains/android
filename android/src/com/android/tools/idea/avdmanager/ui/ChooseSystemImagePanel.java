@@ -17,9 +17,9 @@ package com.android.tools.idea.avdmanager.ui;
 
 import static com.android.sdklib.AndroidVersion.MAX_32_BIT_API;
 import static com.android.sdklib.AndroidVersion.MIN_4K_TV_API;
+import static com.android.sdklib.AndroidVersion.MIN_EMULATOR_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_FREEFORM_DEVICE_API;
-import static com.android.sdklib.AndroidVersion.MIN_HINGE_FOLDABLE_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_PIXEL_4A_DEVICE_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_API;
 import static com.android.sdklib.AndroidVersion.MIN_RECOMMENDED_WEAR_API;
@@ -248,9 +248,11 @@ public class ChooseSystemImagePanel extends JPanel
     List<IdDisplay> imageTags = image.getTags();
 
     // Foldable device requires Q preview or API29 and above.
-    if (device.getDefaultHardware().getScreen().isFoldable() &&
-        image.getVersion().getFeatureLevel() < MIN_FOLDABLE_DEVICE_API) {
-      return false;
+    if (device.getDefaultHardware().getScreen().isFoldable()) {
+      if (image.getVersion().getFeatureLevel() < MIN_FOLDABLE_DEVICE_API ||
+          image.getVersion().getFeatureLevel() < MIN_EMULATOR_FOLDABLE_DEVICE_API) {
+        return false;
+      }
     }
 
     // Freeform display device requires R preview DP2 or API30 and above.
@@ -262,16 +264,6 @@ public class ChooseSystemImagePanel extends JPanel
         if (image.getRevision() == null || image.getRevision().compareTo(new Revision(2, 0, 0)) <= 0) {
           return false;
         }
-      }
-    }
-
-    // hinge foldable device requires API30 and above
-    if (deviceId.equals("7.6in Foldable") ||
-        deviceId.equals("8in Foldable") ||
-        deviceId.equals("6.7in Foldable") ||
-        deviceId.equals("7.4in Rollable")) {
-      if (image.getVersion().getFeatureLevel() < MIN_HINGE_FOLDABLE_DEVICE_API) {
-        return false;
       }
     }
 
