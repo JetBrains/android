@@ -22,9 +22,10 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.project.DumbAware;
 import org.jetbrains.annotations.NotNull;
 
-public class MeetAndroidStudioHelpAction extends AnAction {
+public class MeetAndroidStudioHelpAction extends AnAction implements DumbAware {
 
   public MeetAndroidStudioHelpAction() {
     super("Android Studio Help", "Help", AllIcons.Actions.Help);
