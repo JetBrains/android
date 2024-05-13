@@ -30,7 +30,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.property.MotionSelection
 import com.intellij.psi.xml.XmlFile
 
 class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
-  private val motionLayout = nlModel.components.single()
+  private val motionLayout = nlModel.treeReader.components.single()
   private val motionScene =
     MotionSceneTag.parse(
       motionLayout,
@@ -46,12 +46,12 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     return MotionSelection(
       MotionEditorSelector.Type.CONSTRAINT_SET,
       arrayOf(tag),
-      nlModel.components,
+      nlModel.treeReader.components,
     )
   }
 
   fun createConstraint(setId: String, id: String): MotionSelection {
-    val component = nlModel.find(id) ?: throw error("NlComponent not found: $id")
+    val component = nlModel.treeReader.find(id) ?: throw error("NlComponent not found: $id")
     val componentTag = convertToNlComponentTag(component)
     val constraintSet = findConstraintSet(setId)
     val tag = findConstraint(constraintSet, id) ?: componentTag
@@ -69,7 +69,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     return MotionSelection(
       MotionEditorSelector.Type.TRANSITION,
       arrayOf(tag),
-      nlModel.components,
+      nlModel.treeReader.components,
     )
   }
 
@@ -80,7 +80,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     framePosition: Int,
     target: String,
   ): MotionSelection {
-    val component = nlModel.find(target) ?: motionLayout
+    val component = nlModel.treeReader.find(target) ?: motionLayout
     val keyFrameSet = findKeyFrameSet(start, end)
     val keyFrame =
       findKeyFrame(keyFrameSet, keyType, framePosition, target) as MTag

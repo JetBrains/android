@@ -26,6 +26,7 @@ import static com.android.SdkConstants.LINEAR_LAYOUT;
 import static com.android.SdkConstants.TEXT_VIEW;
 import static com.android.SdkConstants.VALUE_VERTICAL;
 import static com.android.testutils.AsyncTestUtils.waitForCondition;
+import static com.android.tools.idea.common.model.NlTreeReaderKt.findAttributeByPsi;
 import static com.android.tools.idea.projectsystem.TestRepositories.NON_PLATFORM_SUPPORT_LAYOUT_LIBS;
 import static com.android.tools.idea.projectsystem.TestRepositories.PLATFORM_SUPPORT_LIBS;
 import static com.google.common.truth.Truth.assertThat;
@@ -130,7 +131,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
 
     modelBuilder.updateModel(model);
@@ -139,7 +140,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testRemoveFirstChild() {
@@ -149,7 +150,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Remove first child
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
@@ -159,26 +160,26 @@ public class NlModelTest extends LayoutTestCase {
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testFindViewByPsi() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(true);
     NlModel model = modelBuilder.build();
-    NlComponent component1 = model.find("myText1");
+    NlComponent component1 = model.getTreeReader().find("myText1");
     XmlAttribute attribute = component1.getTagDeprecated().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
-    NlComponent component2 = model.findViewByPsi(attribute.getFirstChild());
+    NlComponent component2 = model.getTreeReader().findViewByPsi(attribute.getFirstChild());
     assertThat(component1).isSameAs(component2);
   }
 
   public void testFindAttributeByPsi() {
     ModelBuilder modelBuilder = createDefaultModelBuilder(true);
     NlModel model = modelBuilder.build();
-    NlComponent component1 = model.find("myText1");
+    NlComponent component1 = model.getTreeReader().find("myText1");
     XmlAttribute attribute = component1.getTagDeprecated().getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI);
 
-    ResourceReference reference = model.findAttributeByPsi(attribute.getFirstChild());
+    ResourceReference reference = findAttributeByPsi(attribute.getFirstChild());
     assertThat(reference.getName()).isEqualTo(ATTR_LAYOUT_WIDTH);
     assertThat(reference.getNamespace().getXmlNamespaceUri()).isEqualTo(ANDROID_URI);
   }
@@ -190,7 +191,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Remove last child
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
@@ -200,7 +201,7 @@ public class NlModelTest extends LayoutTestCase {
 
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testTransposeChildren() {
@@ -210,7 +211,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Remove last child
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
@@ -225,7 +226,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=3}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testAddChild() {
@@ -235,7 +236,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Add child
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
@@ -250,7 +251,7 @@ public class NlModelTest extends LayoutTestCase {
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}\n" +
                  "    NlComponent{tag=<EditText>, bounds=[100,100:100x100, instance=3}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testMoveInHierarchy() {
@@ -260,7 +261,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Move button to be child of the text view instead
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
@@ -276,7 +277,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "        NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   @SuppressWarnings("ConstantConditions")
@@ -290,7 +291,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Change some attributes; this means that our finger print comparison (which
     // hashes all tag names and attributes) won't work
@@ -307,7 +308,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   @SuppressWarnings("ConstantConditions")
@@ -320,7 +321,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Change a single attribute in an element without id's.
     ComponentDescriptor layout = modelBuilder.findByPath(LINEAR_LAYOUT);
@@ -332,7 +333,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testAddRemove() {
@@ -344,7 +345,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     // Add child
     ComponentDescriptor parent = modelBuilder.findByPath(LINEAR_LAYOUT);
@@ -364,7 +365,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<EditText>, bounds=[100,100:100x100, instance=3}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[100,100:100x100, instance=1}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testCanAdd() {
@@ -386,9 +387,9 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[100,100:100x100, instance=1}\n" +
                  "    NlComponent{tag=<Button>, bounds=[100,200:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
-    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent linearLayout = model.getTreeReader().getComponents().get(0);
     NlComponent frameLayout = linearLayout.getChild(0);
     NlComponent button = linearLayout.getChild(1);
     assertThat(linearLayout).isNotNull();
@@ -424,7 +425,7 @@ public class NlModelTest extends LayoutTestCase {
       .build();
     model.activate(this);
 
-    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent linearLayout = model.getTreeReader().getComponents().get(0);
     NlComponent frameLayout = linearLayout.getChild(0);
     assertThat(frameLayout).isNotNull();
 
@@ -442,7 +443,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
                  "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x72, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   // b/156479695
@@ -467,7 +468,7 @@ public class NlModelTest extends LayoutTestCase {
       ))
       .build();
 
-    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent linearLayout = model.getTreeReader().getComponents().get(0);
     NlComponent frameLayout = linearLayout.getChild(0);
     assertThat(frameLayout).isNotNull();
 
@@ -493,7 +494,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
                  "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x70, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   // b/156479695
@@ -524,7 +525,7 @@ public class NlModelTest extends LayoutTestCase {
 
     LayoutTestUtilities.createScreen(model);
 
-    NlComponent linearLayout = model.getComponents().get(0);
+    NlComponent linearLayout = model.getTreeReader().getComponents().get(0);
     NlComponent frameLayout = linearLayout.getChild(0);
     NlComponent recyclerView = linearLayout.getChild(1);
     assertThat(frameLayout).isNotNull();
@@ -545,7 +546,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:768x1280, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:200x200, instance=1}\n" +
                  "        NlComponent{tag=<android.support.v7.widget.RecyclerView>, bounds=[0,0:200x200, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testMoveInHierarchyWithWrongXmlTags() {
@@ -571,7 +572,7 @@ public class NlModelTest extends LayoutTestCase {
     assertEquals("NlComponent{tag=<LinearLayout>, bounds=[0,0:1000x1000, instance=0}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[100,100:100x100, instance=1}\n" +
                  "        NlComponent{tag=<Button>, bounds=[100,100:100x100, instance=2}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
 
     XmlTag originalRoot = model.getFile().getRootTag();
     assertThat(originalRoot).isNotNull();
@@ -630,7 +631,7 @@ public class NlModelTest extends LayoutTestCase {
                  // since before the reparse instance=1 was associated with a <FrameLayout> !
                  "    NlComponent{tag=<Button>, bounds=[0,0:500x500, instance=2}\n" +
                  "    NlComponent{tag=<FrameLayout>, bounds=[0,0:300x300, instance=3}",
-                 myTreeDumper.toTree(model.getComponents()));
+                 myTreeDumper.toTree(model.getTreeReader().getComponents()));
   }
 
   public void testThemeSelection() throws Exception {
@@ -704,7 +705,7 @@ public class NlModelTest extends LayoutTestCase {
 
     NlModelHierarchyUpdater.updateHierarchy(list, model);
 
-    NlComponent rootComponent = model.getComponents().get(0);
+    NlComponent rootComponent = model.getTreeReader().getComponents().get(0);
     assertNotNull(rootComponent);
     assertEquals(2, rootComponent.getChildCount());
     assertNull(NlComponentHelperKt.getViewInfo(rootComponent.getChild(0)));
@@ -736,7 +737,7 @@ public class NlModelTest extends LayoutTestCase {
     NlModelHierarchyUpdater.updateHierarchy(ImmutableList.of(rootViewInfo), model);
 
     //noinspection OptionalGetWithoutIsPresent
-    NlComponent searchViewComponent = model.flattenComponents().filter(c -> c.getTagName().equals("SearchView")).findFirst().get();
+    NlComponent searchViewComponent = model.getTreeReader().flattenComponents().filter(c -> c.getTagName().equals("SearchView")).findFirst().get();
     assertEquals("android.widget.SearchView", NlComponentHelperKt.getViewInfo(searchViewComponent).getClassName());
   }
 

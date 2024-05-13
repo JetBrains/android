@@ -82,9 +82,10 @@ object ComponentUtil {
     when (resourceFolder) {
       SdkConstants.FD_RES_XML ->
         descriptors.mapNotNullTo(result) { descriptor ->
-          nlModel.find { it.tagName == descriptor.tagName }
+          nlModel.treeReader.find { it.tagName == descriptor.tagName }
         }
-      else -> descriptors.mapNotNullTo(result) { nlModel.find(stripPrefixFromId(it.id!!)) }
+      else ->
+        descriptors.mapNotNullTo(result) { nlModel.treeReader.find(stripPrefixFromId(it.id!!)) }
     }
     return result
   }

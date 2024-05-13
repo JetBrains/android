@@ -35,14 +35,14 @@ class AccessibilityModelUpdater : NlModelUpdaterInterface {
     newRoot: XmlTag?,
     roots: List<TagSnapshotTreeNode>,
   ) {
-    var currentRootComponent = model.components.firstOrNull()
+    var currentRootComponent = model.treeReader.components.firstOrNull()
     if (newRoot != null) {
       val currentRoot = currentRootComponent?.let { runReadAction { it.tag } }
       if (newRoot != currentRoot) {
         currentRootComponent = newRoot.let { model.createComponent(it) }
       }
     }
-    model.setRootComponent(currentRootComponent)
+    model.treeReader.setRootComponent(currentRootComponent)
   }
 
   /**
@@ -55,7 +55,7 @@ class AccessibilityModelUpdater : NlModelUpdaterInterface {
       val tag = (it.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return@forEach
       tagToViewInfo[tag.psiXmlTag] = it
     }
-    model.components.forEach {
+    model.treeReader.components.forEach {
       val tag = runReadAction { it.tag }
       val viewInfo = tagToViewInfo[tag]
       it.accessibilityId = viewInfo?.getAccessibilitySourceId() ?: return@forEach

@@ -65,14 +65,14 @@ class DesignerIssueNodeVisitorTest {
     val issue1 =
       createTestVisualLintRenderIssue(
         errorType,
-        model.components.first().children,
+        model.treeReader.components.first().children,
         issueProvider,
         "summaryA",
       )
     val issue2 =
       createTestVisualLintRenderIssue(
         errorType,
-        model.components.first().children,
+        model.treeReader.components.first().children,
         issueProvider,
         "summaryB",
       )

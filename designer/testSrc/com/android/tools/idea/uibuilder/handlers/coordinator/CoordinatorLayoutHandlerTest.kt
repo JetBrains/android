@@ -136,10 +136,10 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
       )
     val handler = CoordinatorLayoutHandler()
     val editor = mock(ViewEditor::class.java)
-    handler.onChildInserted(myModel.components.first(), bottomAppBar, InsertType.CREATE)
+    handler.onChildInserted(myModel.treeReader.components.first(), bottomAppBar, InsertType.CREATE)
     UIUtil.dispatchAllInvocationEvents()
 
-    val fab = myModel.find("fab")!!
+    val fab = myModel.treeReader.find("fab")!!
     assertThat(fab.getAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR))
       .isEqualTo("@id/bottomAppBar")
     assertThat(fab.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_GRAVITY))
@@ -215,7 +215,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
           ),
       )
     val model = builder.build()
-    assertEquals(1, model.components.size)
+    assertEquals(1, model.treeReader.components.size)
     assertEquals(
       "NlComponent{tag=<androidx.coordinatorlayout.widget.CoordinatorLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
@@ -224,7 +224,7 @@ class CoordinatorLayoutHandlerTest : SceneTest() {
         "    NlComponent{tag=<LinearLayout>, bounds=[900,900:100x100}\n" +
         "    NlComponent{tag=<Button>, bounds=[900,900:100x100}\n" +
         "    NlComponent{tag=<FrameLayout>, bounds=[500,500:400x400}",
-      NlTreeDumper.dumpTree(model.components),
+      NlTreeDumper.dumpTree(model.treeReader.components),
     )
 
     format(model.file)

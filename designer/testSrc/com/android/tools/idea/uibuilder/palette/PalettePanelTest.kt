@@ -323,7 +323,7 @@ public class MyWebView extends android.webkit.WebView {
     val event: ActionEvent = mock()
     listener.actionPerformed(event)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(myTreeDumper.toTree(surface.model!!.components))
+    assertThat(myTreeDumper.toTree(surface.model!!.treeReader.components))
       .isEqualTo(
         """NlComponent{tag=<LinearLayout>, instance=0}
     NlComponent{tag=<TextView>, instance=1}
@@ -375,7 +375,7 @@ public class MyWebView extends android.webkit.WebView {
     val event: AnActionEvent = mock()
     myPanel!!.addToDesignAction.actionPerformed(event)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    assertThat(myTreeDumper.toTree(surface.model!!.components))
+    assertThat(myTreeDumper.toTree(surface.model!!.treeReader.components))
       .isEqualTo(
         """NlComponent{tag=<LinearLayout>, instance=0}
     NlComponent{tag=<TextView>, instance=1}

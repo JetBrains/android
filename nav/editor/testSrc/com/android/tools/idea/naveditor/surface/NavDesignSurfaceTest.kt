@@ -115,12 +115,12 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
-      surface.notifyComponentActivate(model.find("fragment1")!!)
+      surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("activity_main.xml", editorManager.openFiles[0].name)
 
       editorManager.closeFile(editorManager.openFiles[0])
-      surface.notifyComponentActivate(model.find("fragment2")!!)
+      surface.notifyComponentActivate(model.treeReader.find("fragment2")!!)
       assertEquals("fragment_blank.xml", editorManager.openFiles[0].name)
       verify(tracker, times(2)).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT).build())
     }
@@ -136,11 +136,11 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
-      surface.notifyComponentActivate(model.find("fragment1")!!)
+      surface.notifyComponentActivate(model.treeReader.find("fragment1")!!)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("MainActivity.java", editorManager.openFiles[0].name)
       editorManager.closeFile(editorManager.openFiles[0])
-      surface.notifyComponentActivate(model.find("fragment2")!!)
+      surface.notifyComponentActivate(model.treeReader.find("fragment2")!!)
       assertEquals("BlankFragment.java", editorManager.openFiles[0].name)
       verify(tracker, times(2)).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS).build())
     }
@@ -158,8 +158,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
-      assertEquals(model.components[0], surface.currentNavigation)
-      val subnav = model.find("subnav")!!
+      assertEquals(model.treeReader.components[0], surface.currentNavigation)
+      val subnav = model.treeReader.find("subnav")!!
       surface.notifyComponentActivate(subnav)
       assertEquals(subnav, surface.currentNavigation)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED).build())
@@ -175,7 +175,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     TestNavUsageTracker.create(model).use { tracker ->
-      surface.notifyComponentActivate(model.find("nav")!!)
+      surface.notifyComponentActivate(model.treeReader.find("nav")!!)
       val editorManager = FileEditorManager.getInstance(project)
       assertEquals("navigation.xml", editorManager.openFiles[0].name)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE).build())
@@ -197,8 +197,8 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surfaceListener = mock(DesignSurfaceListener::class.java)
     model.addListener(modelListener)
     surface.addListener(surfaceListener)
-    assertEquals(model.components[0], surface.currentNavigation)
-    val root = model.find("root")!!
+    assertEquals(model.treeReader.components[0], surface.currentNavigation)
+    val root = model.treeReader.find("root")!!
     surface.notifyComponentActivate(root)
     assertEquals(root, surface.currentNavigation)
     verifyNoMoreInteractions(modelListener)
@@ -252,9 +252,9 @@ class NavDesignSurfaceTest : NavTestCase() {
       null
     }.whenever(surface).setScrollPosition(anyInt(), anyInt())
 
-    val f1 = model.find("fragment1")!!
-    val f2 = model.find("fragment2")!!
-    val f3 = model.find("fragment3")!!
+    val f1 = model.treeReader.find("fragment1")!!
+    val f2 = model.treeReader.find("fragment2")!!
+    val f3 = model.treeReader.find("fragment3")!!
 
     surface.scene!!.getSceneComponent(f1)!!.setPosition(0, 0)
     surface.scene!!.getSceneComponent(f2)!!.setPosition(100, 100)
@@ -299,7 +299,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val sceneView = NavView(surface, surface.sceneManager!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
-    model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
     val manager = GuiInputHandler(
       surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
     )
@@ -365,17 +365,17 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = NavDesignSurface(project, project)
     PlatformTestUtil.waitForFuture(surface.setModel(model))
 
-    val root = model.components[0]
+    val root = model.treeReader.components[0]
     assertEquals(root, surface.currentNavigation)
     surface.refreshRoot()
     assertEquals(root, surface.currentNavigation)
 
-    val subnav = model.find("subnav")!!
+    val subnav = model.treeReader.find("subnav")!!
     surface.currentNavigation = subnav
     surface.refreshRoot()
     assertEquals(subnav, surface.currentNavigation)
 
-    val orig = model.find("othersubnav")!!.getChild(0)!!
+    val orig = model.treeReader.find("othersubnav")!!.getChild(0)!!
     surface.currentNavigation = orig
     val model2 = model("nav.xml") {
       navigation("foo") {
@@ -391,7 +391,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     }
 
     updateHierarchy(model, model2)
-    val newVersion = model.find("othersubnav")!!.getChild(0)!!
+    val newVersion = model.treeReader.find("othersubnav")!!.getChild(0)!!
     assertNotEquals(orig, newVersion)
     surface.refreshRoot()
     assertEquals(newVersion, surface.currentNavigation)
@@ -410,10 +410,10 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = NavDesignSurface(project, project)
     PlatformTestUtil.waitForFuture(surface.setModel(model))
 
-    var root = model.components[0]
+    var root = model.treeReader.components[0]
     assertEquals(root, surface.currentNavigation)
 
-    var navigation1 = model.find("navigation1")!!
+    var navigation1 = model.treeReader.find("navigation1")!!
     surface.currentNavigation = navigation1
     assertEquals(navigation1, surface.currentNavigation)
 
@@ -430,7 +430,7 @@ class NavDesignSurfaceTest : NavTestCase() {
       manager.commitAllDocuments()
     }
 
-    navigation1 = model.find("navigation1")!!
+    navigation1 = model.treeReader.find("navigation1")!!
     assertEquals(navigation1, surface.currentNavigation)
 
     // Paste in xml that invalidates the current navigation and verify that the current navigation gets reset to the root
@@ -448,7 +448,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     updateHierarchy(model, model)
 
-    root = model.components[0]
+    root = model.treeReader.components[0]
     val component = surface.currentNavigation
     assertEquals(root, component)
   }
@@ -505,7 +505,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val sceneView = NavView(surface, surface.sceneManager!!)
     whenever(surface.focusedSceneView).thenReturn(sceneView)
 
-    model.surface.selectionModel.setSelection(ImmutableList.of(model.find("fragment1")!!))
+    model.surface.selectionModel.setSelection(ImmutableList.of(model.treeReader.find("fragment1")!!))
 
     val manager = GuiInputHandler(
       surface, TestInteractable(surface, JPanel(), JPanel()), NavInteractionHandler(surface)
@@ -616,12 +616,12 @@ class NavDesignSurfaceTest : NavTestCase() {
     val surface = NavDesignSurface(project, project)
     PlatformTestUtil.waitForFuture(surface.setModel(model))
 
-    val root = model.find("root")!!
-    val fragment1 = model.find("fragment1")!!
-    val nested1 = model.find("nested1")!!
-    val fragment2 = model.find("fragment2")!!
-    val nested2 = model.find("nested2")!!
-    val fragment3 = model.find("fragment3")!!
+    val root = model.treeReader.find("root")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val nested1 = model.treeReader.find("nested1")!!
+    val fragment2 = model.treeReader.find("fragment2")!!
+    val nested2 = model.treeReader.find("nested2")!!
+    val fragment3 = model.treeReader.find("fragment3")!!
 
     testCurrentNavigation(surface, root, root)
     testCurrentNavigation(surface, root, fragment1)

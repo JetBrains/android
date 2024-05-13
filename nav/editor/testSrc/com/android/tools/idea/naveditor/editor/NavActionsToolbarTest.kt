@@ -53,16 +53,16 @@ class NavActionsToolbarTest : NavTestCase() {
     whenever(actionManager.getToolbarActions(Mockito.any() ?: Collections.emptyList())).thenReturn(DefaultActionGroup())
     ActionsToolbar(project, surface)
 
-    val components = listOf(model.find("root")!!)
+    val components = listOf(model.treeReader.find("root")!!)
 
     verify(actionManager).getToolbarActions(eq(components))
 
-    val f1 = listOf(model.find("f1")!!)
+    val f1 = listOf(model.treeReader.find("f1")!!)
     surface.selectionModel.setSelection(f1)
 
     verify(actionManager).getToolbarActions(eq(f1))
 
-    val f1AndRoot = listOf(model.find("f1")!!, model.components[0])
+    val f1AndRoot = listOf(model.treeReader.find("f1")!!, model.treeReader.components[0])
     surface.selectionModel.setSelection(f1AndRoot)
 
     verify(actionManager).getToolbarActions(eq(f1AndRoot))

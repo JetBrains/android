@@ -47,8 +47,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
-    val expected = arrayOf("action2", "action3", "action1").mapNotNull(model::find)
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val expected = arrayOf("action2", "action3", "action1").mapNotNull{ model.treeReader.find(it) }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ActionListInspectorBuilder(propertiesModel), expected)
   }
@@ -64,7 +64,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     val expected = arrayOf("argument2", "argument3", "argument1").map { name -> fragment1.children.first { it.argumentName == name } }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, ArgumentInspectorBuilder(), expected)
@@ -82,7 +82,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val navRoot = model.find("root")!!
+    val navRoot = model.treeReader.find("root")!!
     val expected = arrayOf("argumentRoot").map { name -> navRoot.children.first { it.argumentName == name } }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(navRoot, propertiesModel, ArgumentInspectorBuilder(), expected)
@@ -99,8 +99,8 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
-    val expected = arrayOf("deepLink2", "deepLink3", "deepLink1").mapNotNull(model::find)
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val expected = arrayOf("deepLink2", "deepLink3", "deepLink1").mapNotNull { model.treeReader.find(it) }
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     verifyPanel(fragment1, propertiesModel, DeepLinkInspectorBuilder(), expected)
   }
@@ -137,7 +137,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
 
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     val provider = NlPropertiesProvider(myFacet)
@@ -171,7 +171,7 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
 
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     val provider = NlPropertiesProvider(myFacet)

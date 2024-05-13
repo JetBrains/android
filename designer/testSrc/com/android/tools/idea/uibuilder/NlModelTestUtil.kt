@@ -67,7 +67,7 @@ fun createNlModelFromTagName(
 }
 
 /** Returns the root component (aka, the first child of the model). */
-fun NlModel.getRoot() = this.components[0]!!
+fun NlModel.getRoot() = this.treeReader.components[0]!!
 
 /** Creates a new component from the provided String. */
 fun NlComponent.addChild(xmlTag: String): NlComponent {

@@ -46,7 +46,7 @@ class ScoutInferTestWithIncludeTest : SceneTest() {
   // Regression test for b/219886505
   fun testInferWithIncludeDoesNotThrow() {
     runWriteCommandAction(myFacet.module.project) {
-      Scout.inferConstraintsAndCommit(myModel.components)
+      Scout.inferConstraintsAndCommit(myModel.treeReader.components)
     }
     myScreen
       .get("@+id/content_main")

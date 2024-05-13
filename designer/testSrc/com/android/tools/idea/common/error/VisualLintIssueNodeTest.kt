@@ -81,7 +81,7 @@ class VisualLintIssueNodeTest {
     val issue =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
-        model.components.first().children,
+        model.treeReader.components.first().children,
         issueProvider,
       )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
@@ -135,7 +135,11 @@ class VisualLintIssueNodeTest {
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue =
-      createTestVisualLintRenderIssue(errorType, model.components.first().children, issueProvider)
+      createTestVisualLintRenderIssue(
+        errorType,
+        model.treeReader.components.first().children,
+        issueProvider,
+      )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWindowSizeDevicesNavigatable>(node.getNavigatable())
   }
@@ -162,7 +166,7 @@ class VisualLintIssueNodeTest {
     val issue =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.WEAR_MARGIN,
-        model.components.first().children,
+        model.treeReader.components.first().children,
         issueProvider,
       )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
@@ -217,7 +221,11 @@ class VisualLintIssueNodeTest {
 
     val issueProvider = ViewVisualLintIssueProvider(rule.testRootDisposable)
     val issue =
-      createTestVisualLintRenderIssue(errorType, model.components.first().children, issueProvider)
+      createTestVisualLintRenderIssue(
+        errorType,
+        model.treeReader.components.first().children,
+        issueProvider,
+      )
     val node = VisualLintIssueNode(issue, CommonIssueTestParentNode(rule.projectRule.project))
     assertInstanceOf<SelectWearDevicesNavigatable>(node.getNavigatable())
   }

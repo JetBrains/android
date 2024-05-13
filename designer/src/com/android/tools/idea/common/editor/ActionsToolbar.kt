@@ -164,7 +164,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
     if (view != null) {
       var selection = view.selectionModel.selection
       if (selection.isEmpty()) {
-        val roots = view.sceneManager.model.components
+        val roots = view.sceneManager.model.treeReader.components
         roots.singleOrNull()?.let { selection = listOf(it) }
       }
       updateActions(selection)
@@ -230,7 +230,7 @@ class ActionsToolbar(private val parent: Disposable, private val surface: Design
       if (surface.project.isDisposed) {
         return@invokeLater
       }
-      if (model.components.size == 1) {
+      if (model.treeReader.components.size == 1) {
         updateActions()
       }
     }

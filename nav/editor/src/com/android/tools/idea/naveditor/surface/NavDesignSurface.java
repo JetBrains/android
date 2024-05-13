@@ -466,7 +466,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       current = parent;
     }
 
-    List<NlComponent> components = getModel().getComponents();
+    List<NlComponent> components = getModel().getTreeReader().getComponents();
     assert (components.size() == 1);
 
     return (current == components.get(0));
@@ -664,12 +664,12 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
     if (model == null) {
       return;
     }
-    NlComponent match = model.getComponents().get(0);
+    NlComponent match = model.getTreeReader().getComponents().get(0);
     if (myCurrentNavigation != null) {
       boolean includingParent = false;
       TagSnapshot currentSnapshot = myCurrentNavigation.getSnapshot();
       NlComponent currentParent = myCurrentNavigation.getParent();
-      for (NlComponent component : (Iterable<NlComponent>)model.flattenComponents()::iterator) {
+      for (NlComponent component : (Iterable<NlComponent>)model.getTreeReader().flattenComponents()::iterator) {
         if (!NavComponentHelperKt.isNavigation(component)) {
           continue;
         }

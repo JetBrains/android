@@ -80,7 +80,7 @@ class NavigatingInteractionHandler(
     val y = mouseEvent.y
     val sceneView = surface.getSceneViewAt(x, y)
     if (sceneView != null) {
-      val component = sceneView.sceneManager.model.components.firstOrNull()
+      val component = sceneView.sceneManager.model.treeReader.components.firstOrNull()
       if (isSelectionEnabled() && component != null) {
         val wasSelected = sceneView.selectionModel.isSelected(component)
         sceneView.selectComponent(component, allowToggle = false, ignoreIfAlreadySelected = true)
@@ -104,7 +104,7 @@ class NavigatingInteractionHandler(
     if (isSelectionEnabled()) {
       val sceneView = surface.getSceneViewAt(x, y)
       if (sceneView != null) {
-        val component = sceneView.sceneManager.model.components.firstOrNull()
+        val component = sceneView.sceneManager.model.treeReader.components.firstOrNull()
         // If this is not a "toggle" click and the preview is already selected,
         // then it is a navigation click, and shouldn't impact the selected components.
         val allowToggle = isShiftDown(modifiersEx)

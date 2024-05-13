@@ -85,7 +85,7 @@ class NlPropertiesModelTest {
     val model = createModel()
     val nlModelA = createNlModel(IMAGE_VIEW)
     val nlModelB = createNlModel(TEXT_VIEW)
-    val textView = nlModelB.find(TEXT_VIEW)!!
+    val textView = nlModelB.treeReader.find(TEXT_VIEW)!!
     nlModelB.surface.selectionModel.setSelection(listOf(textView))
     model.surface = nlModelA.surface
     waitUntilLastSelectionUpdateCompleted(model)
@@ -107,7 +107,7 @@ class NlPropertiesModelTest {
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
 
     // test
     nlModel.surface.selectionModel.setSelection(listOf(textView))
@@ -127,7 +127,7 @@ class NlPropertiesModelTest {
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
 
     // test
     nlModel.surface.selectionModel.setSelection(listOf(textView))
@@ -143,7 +143,7 @@ class NlPropertiesModelTest {
       mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
@@ -166,7 +166,7 @@ class NlPropertiesModelTest {
       mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
 
@@ -188,7 +188,7 @@ class NlPropertiesModelTest {
       mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
@@ -206,7 +206,7 @@ class NlPropertiesModelTest {
     // setup
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
     val property =
@@ -246,7 +246,7 @@ class NlPropertiesModelTest {
       mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
     val property =
@@ -301,7 +301,7 @@ class NlPropertiesModelTest {
     // Make sure that ConcurrentModificationException is NOT generated from the code below:
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
-    val textView = nlModel.find(TEXT_VIEW)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
@@ -318,8 +318,8 @@ class NlPropertiesModelTest {
   fun testDoNotUpdateWhenOnlySecondarySelectionIsChanged() {
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW, BUTTON)
-    val textView = nlModel.find(TEXT_VIEW)!!
-    val button = nlModel.find(BUTTON)!!
+    val textView = nlModel.treeReader.find(TEXT_VIEW)!!
+    val button = nlModel.treeReader.find(BUTTON)!!
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
 

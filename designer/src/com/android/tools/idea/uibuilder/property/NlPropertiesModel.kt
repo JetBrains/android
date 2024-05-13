@@ -340,8 +340,9 @@ open class NlPropertiesModel(
   }
 
   private fun getRootComponent(surface: DesignSurface<*>?): List<NlComponent> {
-    return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let { listOf(it) }
-      ?: return emptyList()
+    return surface?.models?.singleOrNull()?.treeReader?.components?.singleOrNull()?.let {
+      listOf(it)
+    } ?: return emptyList()
   }
 
   protected open fun wantSelectionUpdate(

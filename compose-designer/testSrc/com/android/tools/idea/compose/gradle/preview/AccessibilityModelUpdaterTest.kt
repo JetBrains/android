@@ -129,6 +129,7 @@ class AccessibilityModelUpdaterTest {
     val twoElementsPreviewRoot =
       previewView.mainSurface.models
         .first { it.modelDisplayName == "Medium Phone - TwoElementsPreview" }
+        .treeReader
         .components[0]
 
     assertNotEquals(-1, twoElementsPreviewRoot.accessibilityId)

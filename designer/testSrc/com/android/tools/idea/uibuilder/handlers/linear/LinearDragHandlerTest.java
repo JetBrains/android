@@ -20,7 +20,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.GuiInputHandler;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.common.LayoutTestUtilities;
 import com.google.common.collect.ImmutableList;
@@ -56,7 +55,7 @@ public class LinearDragHandlerTest extends LayoutTestCase {
                                                 .withBounds(10, 0, 10, 10),
                                               component("TextView")
                                                 .withBounds(20, 0, 10, 10)))).build();
-    NlComponent button = model.find("button");
+    NlComponent button = model.getTreeReader().find("button");
     DesignSurface<?> surface = LayoutTestUtilities.createScreen(model).getSurface();
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
@@ -65,9 +64,9 @@ public class LinearDragHandlerTest extends LayoutTestCase {
     GuiInputHandler manager = surface.getGuiInputHandler();
     manager.startListening();
     LayoutTestUtilities.dragDrop(manager, 0, 0, 7, 0, transferable, DnDConstants.ACTION_MOVE);
-    assertEquals(3, model.find("inner").getChildCount());
-    assertEquals("button", model.find("inner").getChild(1).getId());
-    assertEquals(1, model.find("outer").getChildCount());
+    assertEquals(3, model.getTreeReader().find("inner").getChildCount());
+    assertEquals("button", model.getTreeReader().find("inner").getChild(1).getId());
+    assertEquals(1, model.getTreeReader().find("outer").getChildCount());
   }
 
   private static android.widget.LinearLayout linearLayout() {

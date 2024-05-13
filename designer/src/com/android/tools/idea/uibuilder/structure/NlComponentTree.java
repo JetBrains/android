@@ -306,8 +306,8 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
           mySelectionIsUpdating.set(true);
 
           // TODO b/157095734 resolve multi-selection in motion layout
-          int selectionModel = myModel.getComponents().isEmpty() ||
-                               !NlComponentHelperKt.isOrHasSuperclass(myModel.getComponents().get(0), AndroidXConstants.MOTION_LAYOUT)
+          int selectionModel = myModel.getTreeReader().getComponents().isEmpty() ||
+                               !NlComponentHelperKt.isOrHasSuperclass(myModel.getTreeReader().getComponents().get(0), AndroidXConstants.MOTION_LAYOUT)
                                ? TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION
                                : TreeSelectionModel.SINGLE_TREE_SELECTION;
           getSelectionModel().setSelectionMode(selectionModel);

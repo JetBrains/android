@@ -73,7 +73,7 @@ class ActionHitProviderTest : NavTestCase() {
     LayoutTestUtilities.clickMouse(guiInputHandler, BUTTON1, 1, Coordinates.getSwingXDip(view, 300),
                                    Coordinates.getSwingYDip(view, component.centerY), 0)
 
-    assertEquals(model.find("action1"), surface.selectionModel.primary)
+    assertEquals(model.treeReader.find("action1"), surface.selectionModel.primary)
     guiInputHandler.stopListening()
   }
 
@@ -110,7 +110,7 @@ class ActionHitProviderTest : NavTestCase() {
     }
     verifier(ACTION_COLOR)
 
-    model.surface.selectionModel.setSelection(listOf(model.find("action1")!!))
+    model.surface.selectionModel.setSelection(listOf(model.treeReader.find("action1")!!))
     verifier(SELECTED_COLOR)
   }
 

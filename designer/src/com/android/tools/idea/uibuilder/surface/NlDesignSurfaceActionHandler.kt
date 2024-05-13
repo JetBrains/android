@@ -55,7 +55,7 @@ constructor(
 
     if (receiver == null) {
       // In the case where there is no selection but we only have a root component, use that one
-      val components = sceneView.sceneManager.model.components
+      val components = sceneView.sceneManager.model.treeReader.components
       if (components.size == 1) {
         receiver = components[0]
       }

@@ -36,8 +36,8 @@ class DefaultValueTableModelTest : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
-    val action1 = model.find("action1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
+    val action1 = model.treeReader.find("action1")!!
 
     val table = DefaultValueTableModel(fragment1.children
                                          .sortedBy { it.argumentName }

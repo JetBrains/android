@@ -93,12 +93,12 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
     data.myModel = model;
 
     if (newRoot == null) {
-      data.myModel.setRootComponent(null);
+      data.myModel.getTreeReader().setRootComponent(null);
       return;
     }
 
     // Make sure the root is valid during these operation.
-    data.myModel.setRootComponent(ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
+    data.myModel.getTreeReader().setRootComponent(ApplicationManager.getApplication().runReadAction((Computable<NlComponent>)() -> {
       if (!newRoot.isValid()) {
         return null;
       }
@@ -153,7 +153,7 @@ public class DefaultModelUpdater implements NlModelUpdaterInterface {
     // If there have been no structural changes, these map 1-1 from the previous hierarchy.
     // We first attempt to do it based on the XmlTags:
     //  (1) record a map from XmlTag to NlComponent in the previous component list
-    for (NlComponent component : data.myModel.getComponents()) {
+    for (NlComponent component : data.myModel.getTreeReader().getComponents()) {
       gatherTagsAndSnapshots(component, data);
     }
 

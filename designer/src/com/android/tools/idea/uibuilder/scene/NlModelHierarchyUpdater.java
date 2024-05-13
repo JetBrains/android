@@ -84,7 +84,7 @@ public class NlModelHierarchyUpdater {
     model.syncWithPsi(rootTag, ContainerUtil.map(views, ViewInfoTagSnapshotNode::new));
     model.updateAccessibility(views);
     updateBounds(views, model);
-    ImmutableList<NlComponent> components = model.getComponents();
+    ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
     if (!components.isEmpty()) {
       return updateScroll(components.get(0));
     }
@@ -113,20 +113,20 @@ public class NlModelHierarchyUpdater {
 
   // TODO: we shouldn't be going back in and modifying NlComponents here
   private static void updateBounds(@NotNull List<ViewInfo> rootViews, @NotNull NlModel model) {
-    model.flattenComponents().forEach(NlModelHierarchyUpdater::clearDerivedData);
+    model.getTreeReader().flattenComponents().forEach(NlModelHierarchyUpdater::clearDerivedData);
     Map<TagSnapshot, NlComponent> snapshotToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
+      model.getTreeReader().flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
     Map<XmlTag, NlComponent> tagToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity(), (n1, n2) -> n1));
+      model.getTreeReader().flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity(), (n1, n2) -> n1));
     Map<Long, NlComponent> sourceIdToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getAccessibilityId, Function.identity(), (n1, n2) -> n1));
+      model.getTreeReader().flattenComponents().collect(Collectors.toMap(NlComponent::getAccessibilityId, Function.identity(), (n1, n2) -> n1));
 
     // Update the bounds. This is based on the ViewInfo instances.
     for (ViewInfo view : rootViews) {
       updateBounds(view, 0, 0, snapshotToComponent, tagToComponent, sourceIdToComponent);
     }
 
-    ImmutableList<NlComponent> components = model.getComponents();
+    ImmutableList<NlComponent> components = model.getTreeReader().getComponents();
     if (!rootViews.isEmpty() && !components.isEmpty()) {
       // Finally, fix up bounds: ensure that all components not found in the view
       // info hierarchy inherit position from parent

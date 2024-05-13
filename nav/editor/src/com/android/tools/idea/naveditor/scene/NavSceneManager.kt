@@ -547,7 +547,7 @@ fun updateHierarchy(model: NlModel, newModel: NlModel?) {
 
   newModel?.let {
     newRoot = AndroidPsiUtils.getRootTagSafely(it.file)
-    roots = buildTree(it.components.map { c -> c.tagDeprecated })
+    roots = buildTree(it.treeReader.components.map { c -> c.tagDeprecated })
   }
 
   newRoot?.let {

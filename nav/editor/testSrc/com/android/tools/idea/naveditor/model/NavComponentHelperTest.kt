@@ -79,16 +79,16 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    val root = model.find("root")
-    val f1 = model.find("f1")
-    val f2 = model.find("f2")
-    val f3 = model.find("f3")
-    val f4 = model.find("f4")
-    val f5 = model.find("f5")
-    val a1 = model.find("activity1")
-    val subnav1 = model.find("subnav1")
-    val subnav2 = model.find("subnav2")
-    val subsubnav = model.find("subsubnav")
+    val root = model.treeReader.find("root")
+    val f1 = model.treeReader.find("f1")
+    val f2 = model.treeReader.find("f2")
+    val f3 = model.treeReader.find("f3")
+    val f4 = model.treeReader.find("f4")
+    val f5 = model.treeReader.find("f5")
+    val a1 = model.treeReader.find("activity1")
+    val subnav1 = model.treeReader.find("subnav1")
+    val subnav2 = model.treeReader.find("subnav2")
+    val subsubnav = model.treeReader.find("subsubnav")
 
     var map = f1!!.visibleDestinations
     assertSameElements(map.keys, setOf(f1, root))
@@ -141,9 +141,9 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    assertEquals(model.components[0].getChild(0), model.find("activity1")!!.findVisibleDestination("f1"))
-    assertEquals(model.components[0].getChild(0), model.find("f3")!!.findVisibleDestination("f1"))
-    assertEquals(model.find("subnav2")!!.getChild(0), model.find("f5")!!.findVisibleDestination("f1"))
+    assertEquals(model.treeReader.components[0].getChild(0), model.treeReader.find("activity1")!!.findVisibleDestination("f1"))
+    assertEquals(model.treeReader.components[0].getChild(0), model.treeReader.find("f3")!!.findVisibleDestination("f1"))
+    assertEquals(model.treeReader.find("subnav2")!!.getChild(0), model.treeReader.find("f5")!!.findVisibleDestination("f1"))
   }
 
   fun testActionDestination() {
@@ -171,8 +171,8 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    assertEquals("val1", model.find("a1")?.actionDestination?.getAttribute(null, "test1"))
-    assertEquals("val2", model.find("a2")?.actionDestination?.getAttribute(null, "test2"))
+    assertEquals("val1", model.treeReader.find("a1")?.actionDestination?.getAttribute(null, "test1"))
+    assertEquals("val2", model.treeReader.find("a2")?.actionDestination?.getAttribute(null, "test2"))
   }
 
   fun testActionDestinationId() {
@@ -184,8 +184,8 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    val action = model.find("a1")!!
-    val fragment = model.find("f1")!!
+    val action = model.treeReader.find("a1")!!
+    val fragment = model.treeReader.find("f1")!!
 
     assertNull(action.actionDestinationId)
 
@@ -213,12 +213,12 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    val action1 = model.find("a1")!!
-    assertEquals(action1.effectiveDestination, model.find("f1"))
-    val action2 = model.find("a2")!!
+    val action1 = model.treeReader.find("a1")!!
+    assertEquals(action1.effectiveDestination, model.treeReader.find("f1"))
+    val action2 = model.treeReader.find("a2")!!
     assertNull(action2.effectiveDestination)
-    val action3 = model.find("a3")!!
-    assertEquals(action3.effectiveDestination, model.find("f1"))
+    val action3 = model.treeReader.find("a3")!!
+    assertEquals(action3.effectiveDestination, model.treeReader.find("f1"))
   }
 
   fun testEffectiveDestinationId() {
@@ -236,11 +236,11 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    val action1 = model.find("a1")!!
+    val action1 = model.treeReader.find("a1")!!
     assertEquals(action1.effectiveDestinationId, "f1")
-    val action2 = model.find("a2")!!
+    val action2 = model.treeReader.find("a2")!!
     assertNull(action2.effectiveDestinationId)
-    val action3 = model.find("a3")!!
+    val action3 = model.treeReader.find("a3")!!
     assertEquals(action3.effectiveDestinationId, "f1")
   }
 
@@ -252,8 +252,8 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    val f1 = model.find("f1")!!
-    val root = model.components[0]!!
+    val f1 = model.treeReader.find("f1")!!
+    val root = model.treeReader.components[0]!!
     WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_to_f2", f1.createAction("f2")?.id) }
     WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self", f1.createAction("f1")?.id) }
     WriteCommandAction.runWriteCommandAction(project) { assertEquals("action_f1_self2", f1.createAction("f1")?.id) }
@@ -284,26 +284,26 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", null, false))
-    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", "f2", false))
-    assertEquals("action_f1_self", generateActionId(model.find("f1")!!, "f1", "f2", true))
+    assertEquals("action_f1_self", generateActionId(model.treeReader.find("f1")!!, "f1", null, false))
+    assertEquals("action_f1_self", generateActionId(model.treeReader.find("f1")!!, "f1", "f2", false))
+    assertEquals("action_f1_self", generateActionId(model.treeReader.find("f1")!!, "f1", "f2", true))
 
-    assertEquals("action_subnav_self", generateActionId(model.find("subnav")!!, "subnav", "f2", true))
+    assertEquals("action_subnav_self", generateActionId(model.treeReader.find("subnav")!!, "subnav", "f2", true))
 
-    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", null, false))
-    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", "f1", false))
-    assertEquals("action_f1_to_f2", generateActionId(model.find("f1")!!, "f2", "f3", true))
+    assertEquals("action_f1_to_f2", generateActionId(model.treeReader.find("f1")!!, "f2", null, false))
+    assertEquals("action_f1_to_f2", generateActionId(model.treeReader.find("f1")!!, "f2", "f1", false))
+    assertEquals("action_f1_to_f2", generateActionId(model.treeReader.find("f1")!!, "f2", "f3", true))
 
-    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, "f1", null, false))
-    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, "f1", "f2", false))
-    assertEquals("action_global_f1", generateActionId(model.find("subnav")!!, null, "f1", false))
+    assertEquals("action_global_f1", generateActionId(model.treeReader.find("subnav")!!, "f1", null, false))
+    assertEquals("action_global_f1", generateActionId(model.treeReader.find("subnav")!!, "f1", "f2", false))
+    assertEquals("action_global_f1", generateActionId(model.treeReader.find("subnav")!!, null, "f1", false))
 
-    assertEquals("action_f1_pop", generateActionId(model.find("f1")!!, null, "f1", true))
-    assertEquals("action_f1_pop_including_f2", generateActionId(model.find("f1")!!, null, "f2", true))
+    assertEquals("action_f1_pop", generateActionId(model.treeReader.find("f1")!!, null, "f1", true))
+    assertEquals("action_f1_pop_including_f2", generateActionId(model.treeReader.find("f1")!!, null, "f2", true))
 
-    assertEquals("action_nav_pop_including_f1", generateActionId(model.components[0]!!, null, "f1", true))
+    assertEquals("action_nav_pop_including_f1", generateActionId(model.treeReader.components[0]!!, null, "f1", true))
 
-    assertEquals("", generateActionId(model.find("f1")!!, null, null, true))
+    assertEquals("", generateActionId(model.treeReader.find("f1")!!, null, null, true))
   }
 
   fun testCreateAction() {
@@ -314,9 +314,9 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    val f1 = model.find("f1")!!
+    val f1 = model.treeReader.find("f1")!!
     WriteCommandAction.runWriteCommandAction(project) { f1.createAction("f2") }
-    var newAction = model.find("action_f1_to_f2")!!
+    var newAction = model.treeReader.find("action_f1_to_f2")!!
     assertEquals(f1, newAction.parent)
     assertEquals("f2", newAction.actionDestinationId)
 
@@ -326,7 +326,7 @@ class NavComponentHelperTest2 : NavTestCase() {
         inclusive = true
       }
     }
-    newAction = model.find("action_f1_pop")!!
+    newAction = model.treeReader.find("action_f1_pop")!!
     assertEquals(f1, newAction.parent)
     assertNull(newAction.actionDestinationId)
     assertEquals("f1", newAction.popUpTo)
@@ -347,7 +347,7 @@ class NavComponentHelperTest2 : NavTestCase() {
     }
 
     TestNavUsageTracker.create(model).use { tracker ->
-      model.delete(listOf(model.find("action")!!))
+      model.delete(listOf(model.treeReader.find("action")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_ACTION)
                                  .setActionInfo(NavActionInfo.newBuilder()
@@ -357,12 +357,12 @@ class NavComponentHelperTest2 : NavTestCase() {
                                                   .setCountFromSource(1))
                                  .build())
 
-      model.delete(listOf(model.find("f1")!!.children[0]))
+      model.delete(listOf(model.treeReader.find("f1")!!.children[0]))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_ARGUMENT)
                                  .build())
 
-      model.delete(listOf(model.find("f1")!!))
+      model.delete(listOf(model.treeReader.find("f1")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_DESTINATION)
                                  .setDestinationInfo(NavDestinationInfo.newBuilder()
@@ -370,17 +370,17 @@ class NavComponentHelperTest2 : NavTestCase() {
                                                        .setHasLayout(true))
                                  .build())
 
-      model.delete(listOf(model.find("subnav")!!.children[0]))
+      model.delete(listOf(model.treeReader.find("subnav")!!.children[0]))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_DEEPLINK)
                                  .build())
 
-      model.delete(listOf(model.find("subnav")!!))
+      model.delete(listOf(model.treeReader.find("subnav")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_NESTED)
                                  .build())
 
-      model.delete(listOf(model.find("nav")!!))
+      model.delete(listOf(model.treeReader.find("nav")!!))
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(NavEditorEvent.NavEditorEventType.DELETE_INCLUDE)
                                  .build())
@@ -406,13 +406,13 @@ class NavComponentHelperTest2 : NavTestCase() {
     testIcon(model, "action", ACTION)
     testIcon(model, "nav", NESTED_GRAPH)
 
-    val root = model.find("root")!!
+    val root = model.treeReader.find("root")!!
     val include = root.children.first { it.isInclude }
     testIcon(include, INCLUDE_GRAPH)
   }
 
   private fun testIcon(model: SyncNlModel, name: String, expected: Icon) {
-    val component = model.find(name)!!
+    val component = model.treeReader.find(name)!!
     testIcon(component, expected)
   }
 
@@ -432,7 +432,7 @@ class NavComponentHelperTest2 : NavTestCase() {
       }
     }
 
-    val fragment1 = model.find("fragment1")!!
+    val fragment1 = model.treeReader.find("fragment1")!!
     val arguments = fragment1.getArgumentNames()
     Truth.assertThat(arguments).containsExactlyElementsIn(arrayOf("argument1", "argument2", "argument3"))
   }

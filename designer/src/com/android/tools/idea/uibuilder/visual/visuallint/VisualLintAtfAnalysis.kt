@@ -94,7 +94,7 @@ class VisualLintAtfAnalysis(private val model: NlModel) {
     val issues = ArrayList<VisualLintAtfIssue>()
 
     try {
-      val components = model.components
+      val components = model.treeReader.components
       if (components.isEmpty()) {
         // Result not available.
         return issues

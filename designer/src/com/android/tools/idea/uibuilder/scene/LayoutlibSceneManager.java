@@ -58,7 +58,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.modes.essentials.EssentialsMode;
-import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
@@ -360,7 +359,7 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     model.getConfiguration().addListener(myConfigurationChangeListener);
 
-    List<NlComponent> components = model.getComponents();
+    List<NlComponent> components = model.getTreeReader().getComponents();
     if (!components.isEmpty()) {
       NlComponent rootComponent = components.get(0).getRoot();
 

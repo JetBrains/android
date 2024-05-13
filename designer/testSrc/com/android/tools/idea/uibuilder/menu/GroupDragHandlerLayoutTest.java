@@ -54,7 +54,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(1, 576));
 
     NlModel model = model("menu.xml", menuDescriptor).build();
-    NlComponent menuComponent = model.getComponents().get(0);
+    NlComponent menuComponent = model.getTreeReader().getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
     XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
     NlComponentBackend backend = new NlComponentBackendXml(model.getProject(), tag);
@@ -84,7 +84,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(10, 480));
 
     NlModel model = model("menu.xml", menuDescriptor).build();
-    NlComponent menuComponent = model.getComponents().get(0);
+    NlComponent menuComponent = model.getTreeReader().getComponents().get(0);
     NlComponent item = LayoutTestUtilities.createMockComponent();
     XmlTag tag = XmlTagUtil.createTag(getProject(), "<" + TAG_ITEM + "/>");
     NlComponentBackend backend = new NlComponentBackendXml(model.getProject(), tag);
@@ -114,7 +114,7 @@ public final class GroupDragHandlerLayoutTest extends LayoutTestCase {
         item(2, 576),
         item(1, 480));
 
-    NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getComponents().get(0);
+    NlComponent menuComponent = model("menu.xml", menuDescriptor).build().getTreeReader().getComponents().get(0);
 
     NlComponent item = menuComponent.getChild(0);
     assert item != null;

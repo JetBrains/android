@@ -614,7 +614,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       if (model == null) {
         return false;
       }
-      List<NlComponent> roots = model.getComponents();
+      List<NlComponent> roots = model.getTreeReader().getComponents();
       if (roots.isEmpty()) {
         return false;
       }

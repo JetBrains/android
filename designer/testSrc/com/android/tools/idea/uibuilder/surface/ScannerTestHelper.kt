@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.NlTreeReader
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.validator.ValidatorData
@@ -91,14 +92,14 @@ class ScannerTestHelper {
    * Generate the [RenderResult] with appropriate [ViewInfo] as well as matching [ValidatorResult]
    * based on [NlModel].
    *
-   * It creates a [ValidatorData.Issue] per [NlModel.flattenComponents]
+   * It creates a [ValidatorData.Issue] per [NlModel.treeReader.flattenComponents]
    */
   fun mockRenderResult(model: NlModel, injectedResult: ValidatorResult? = null): RenderResult {
     val result = Mockito.mock(RenderResult::class.java)
     val validatorResult = ValidatorResult.Builder()
     val viewInfos = ImmutableList.Builder<ViewInfo>()
 
-    model.components.forEach {
+    model.treeReader.components.forEach {
       generateResult(it, validatorResult)
       validatorResult.mIssues.add(createTestIssueBuilder().setSrcId(lastUsedIssueId).build())
 
@@ -127,7 +128,9 @@ class ScannerTestHelper {
     val model = Mockito.mock(NlModel::class.java)
     val builder = ImmutableList.Builder<NlComponent>()
     if (size == 0) {
-      whenever(model.components).thenReturn(builder.build())
+      val treeReader = Mockito.mock(NlTreeReader::class.java)
+      whenever(treeReader.components).thenReturn(builder.build())
+      whenever(model.treeReader).thenReturn(treeReader)
       return model
     }
 
@@ -141,7 +144,9 @@ class ScannerTestHelper {
       children.add(component)
     }
     whenever(root.children).thenReturn(children)
-    whenever(model.components).thenReturn(builder.build())
+    val treeReader = Mockito.mock(NlTreeReader::class.java)
+    whenever(treeReader.components).thenReturn(builder.build())
+    whenever(model.treeReader).thenReturn(treeReader)
 
     val module = Mockito.mock(Module::class.java)
     whenever(module.isDisposed).thenReturn(false)

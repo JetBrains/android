@@ -56,7 +56,8 @@ open class NlDependencyManagerTest : LayoutTestCase() {
         GoogleMavenArtifactId.CONSTRAINT_LAYOUT.getCoordinate("+"),
         GoogleMavenArtifactId.CARDVIEW_V7.getCoordinate("+"),
       )
-    NlDependencyManager.getInstance().addDependencies(model.components, model.facet, false)
+    NlDependencyManager.getInstance()
+      .addDependencies(model.treeReader.components, model.facet, false)
     assertSameElements(
       projectSystem.getAddedDependencies(model.module).map { it.coordinate },
       depsShouldBeAdded,

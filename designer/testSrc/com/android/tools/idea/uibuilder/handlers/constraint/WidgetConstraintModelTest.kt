@@ -125,7 +125,7 @@ class WidgetConstraintModelTest : SceneTest() {
 
   fun testDeleteAttribute() {
     val widgetModel = WidgetConstraintModel {}
-    val textView2 = myModel.find("textView2")!!
+    val textView2 = myModel.treeReader.find("textView2")!!
     widgetModel.component = textView2
 
     // Test deleting vertical constraints
@@ -188,13 +188,13 @@ class WidgetConstraintModelTest : SceneTest() {
     val widgetModel = WidgetConstraintModel {}
 
     // Test a Widget which is fully constrained
-    widgetModel.component = myModel.find("textView2")
+    widgetModel.component = myModel.treeReader.find("textView2")
     assertFalse(widgetModel.isMissingHorizontalConstrained)
     assertFalse(widgetModel.isMissingVerticalConstrained)
     assertFalse(widgetModel.isOverConstrained)
 
     // Test a Widget which isn't constrained.
-    val linear = myModel.find("linear")!!
+    val linear = myModel.treeReader.find("linear")!!
     widgetModel.component = linear
 
     assertTrue(widgetModel.isMissingHorizontalConstrained)
@@ -228,7 +228,7 @@ class WidgetConstraintModelTest : SceneTest() {
     assertTrue(widgetModel.isOverConstrained)
 
     // Test Constraint Guideline doesn't need to constrained vertically and horizontally.
-    val guideline = myModel.find("guideline")!!
+    val guideline = myModel.treeReader.find("guideline")!!
     widgetModel.component = guideline
     assertFalse(widgetModel.isMissingHorizontalConstrained)
     assertFalse(widgetModel.isMissingVerticalConstrained)
@@ -250,7 +250,7 @@ class WidgetConstraintModelTest : SceneTest() {
     var count = 0
     val updateUICallback = Runnable { count++ }
     val widgetModel = WidgetConstraintModel(updateUICallback)
-    val textView2 = myModel.find("textView2")!!
+    val textView2 = myModel.treeReader.find("textView2")!!
     widgetModel.component = textView2
     count = 0 // reset the count which will be incremented after setting the component to textView2
 
@@ -263,7 +263,7 @@ class WidgetConstraintModelTest : SceneTest() {
     var count = 0
     val updateUICallback = Runnable { count++ }
     val widgetModel = WidgetConstraintModel(updateUICallback)
-    val textView2 = myModel.find("textView2")!!
+    val textView2 = myModel.treeReader.find("textView2")!!
     widgetModel.component = textView2
     count = 0 // reset the count which will be incremented after setting the component to textView2
 
@@ -273,7 +273,7 @@ class WidgetConstraintModelTest : SceneTest() {
 
   fun testSetLeftMarginMinApi16() {
     val widgetModel = WidgetConstraintModel {}
-    val component = myModel.find("textView2")!!
+    val component = myModel.treeReader.find("textView2")!!
     widgetModel.component = component
     widgetModel.setMargin(WidgetConstraintModel.CONNECTION_LEFT, "16dp")
     widgetModel.timer.stop()
@@ -292,7 +292,7 @@ class WidgetConstraintModelTest : SceneTest() {
 
   fun testSetLeftMarginMinApi16TargetApi1() {
     val widgetModel = WidgetConstraintModel {}
-    val component = myModel.find("textView2")!!
+    val component = myModel.treeReader.find("textView2")!!
     widgetModel.component = component
     widgetModel.setMargin(WidgetConstraintModel.CONNECTION_LEFT, "16dp")
     widgetModel.timer.stop()
@@ -307,7 +307,7 @@ class WidgetConstraintModelTest : SceneTest() {
 
   fun testSetLeftMarginMinApi17() {
     val widgetModel = WidgetConstraintModel {}
-    val component = myModel.find("textView2")!!
+    val component = myModel.treeReader.find("textView2")!!
     widgetModel.component = component
     widgetModel.setMargin(WidgetConstraintModel.CONNECTION_LEFT, "16dp")
     widgetModel.timer.stop()
@@ -326,7 +326,7 @@ class WidgetConstraintModelTest : SceneTest() {
 
   fun testSetVerticalMargin() {
     val widgetModel = WidgetConstraintModel {}
-    val component = myModel.find("textView2")!!
+    val component = myModel.treeReader.find("textView2")!!
     widgetModel.component = component
     widgetModel.setMargin(WidgetConstraintModel.CONNECTION_TOP, "8dp")
     widgetModel.setMargin(WidgetConstraintModel.CONNECTION_BOTTOM, "16dp")

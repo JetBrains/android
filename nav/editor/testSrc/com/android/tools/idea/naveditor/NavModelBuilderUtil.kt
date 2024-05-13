@@ -43,7 +43,6 @@ import com.android.tools.idea.naveditor.model.NavComponentRegistrar
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.naveditor.surface.NavDesignSurfaceZoomController
 import com.android.tools.idea.naveditor.surface.NavInteractionHandler
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.dom.navigation.NavigationSchema
@@ -82,7 +81,7 @@ object NavModelBuilderUtil {
         throw RuntimeException(e)
       }
 
-      whenever(surface.currentNavigation).then { model.components[0] }
+      whenever(surface.currentNavigation).then { model.treeReader.components[0] }
       whenever(surface.extentSize).thenReturn(extentSize)
       whenever(surface.scrollPosition).thenAnswer { Point(0, 0) }
       whenever(surface.zoomController).thenReturn(createZoomControllerFake(returnScale = 0.5))

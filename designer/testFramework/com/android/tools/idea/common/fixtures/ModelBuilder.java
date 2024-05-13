@@ -251,7 +251,7 @@ public class ModelBuilder {
   public void updateModel(@NotNull NlModel model) {
     assertThat(model).isNotNull();
     myModelUpdater.accept(model);
-    for (NlComponent component : model.getComponents()) {
+    for (NlComponent component : model.getTreeReader().getComponents()) {
       checkStructure(component);
     }
   }

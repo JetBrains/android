@@ -136,7 +136,7 @@ public class ScreenFixture {
       fail("Found multiple components with matcher " +
            match +
            ": component hierarchy is " +
-           NlTreeDumper.dumpTree(myModel.getComponents()));
+           NlTreeDumper.dumpTree(myModel.getTreeReader().getComponents()));
     }
   }
 
@@ -145,14 +145,14 @@ public class ScreenFixture {
       fail("Could not find component with matcher " +
            match +
            ": component hierarchy is " +
-           NlTreeDumper.dumpTree(myModel.getComponents()));
+           NlTreeDumper.dumpTree(myModel.getTreeReader().getComponents()));
     }
   }
 
   @NotNull
   private List<NlComponent> findAllById(@NotNull String id) {
     List<NlComponent> list = new ArrayList<>();
-    for (NlComponent root : myModel.getComponents()) {
+    for (NlComponent root : myModel.getTreeReader().getComponents()) {
       findById(list, root, id);
     }
 
@@ -162,7 +162,7 @@ public class ScreenFixture {
   @NotNull
   private List<NlComponent> findAllByTag(@NotNull String tag) {
     List<NlComponent> list = new ArrayList<>();
-    for (NlComponent root : myModel.getComponents()) {
+    for (NlComponent root : myModel.getTreeReader().getComponents()) {
       findByTag(list, root, tag);
     }
 

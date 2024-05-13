@@ -103,7 +103,7 @@ class NavLogEventTest : NavTestCase() {
   private fun validateActionInfo(model: NlModel, actionId: String, expected: NavActionInfo) {
     val tracker = mock(NavUsageTracker::class.java)
     val proto = NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
-      .withActionInfo(model.find(actionId)!!)
+      .withActionInfo(model.treeReader.find(actionId)!!)
       .getProtoForTest().actionInfo
     assertEquals(expected, proto)
   }
@@ -151,7 +151,7 @@ class NavLogEventTest : NavTestCase() {
   private fun validateDestinationInfo(model: NlModel, destinationId: String, expected: NavDestinationInfo) {
     val tracker = mock(NavUsageTracker::class.java)
     val proto = NavLogEvent(NavEditorEvent.NavEditorEventType.UNKNOWN_EVENT_TYPE, tracker)
-      .withDestinationInfo(model.find(destinationId)!!)
+      .withDestinationInfo(model.treeReader.find(destinationId)!!)
       .getProtoForTest().destinationInfo
     assertEquals(expected, proto)
   }
@@ -237,37 +237,37 @@ class NavLogEventTest : NavTestCase() {
       }
     }
 
-    validatePropertyInfo(ATTR_ID, ANDROID_URI, false, model.find("f1")!!,
+    validatePropertyInfo(ATTR_ID, ANDROID_URI, false, model.treeReader.find("f1")!!,
                          NavPropertyInfo.newBuilder()
                            .setContainingTag(NavPropertyInfo.TagType.FRAGMENT_TAG)
                            .setProperty(NavPropertyInfo.Property.ID)
                            .setWasEmpty(false).build())
 
-    validatePropertyInfo("foo", AUTO_URI, false, model.find("f1")!!,
+    validatePropertyInfo("foo", AUTO_URI, false, model.treeReader.find("f1")!!,
                          NavPropertyInfo.newBuilder()
                            .setContainingTag(NavPropertyInfo.TagType.FRAGMENT_TAG)
                            .setProperty(NavPropertyInfo.Property.CUSTOM)
                            .setWasEmpty(false).build())
 
-    validatePropertyInfo(ATTR_NAME, ANDROID_URI, true, model.find("customactivity")!!,
+    validatePropertyInfo(ATTR_NAME, ANDROID_URI, true, model.treeReader.find("customactivity")!!,
                          NavPropertyInfo.newBuilder()
                            .setContainingTag(NavPropertyInfo.TagType.ACTIVITY_TAG)
                            .setProperty(NavPropertyInfo.Property.NAME)
                            .setWasEmpty(true).build())
 
-    validatePropertyInfo(ATTR_LABEL, ANDROID_URI, true, model.find("customdestination")!!,
+    validatePropertyInfo(ATTR_LABEL, ANDROID_URI, true, model.treeReader.find("customdestination")!!,
                          NavPropertyInfo.newBuilder()
                            .setContainingTag(NavPropertyInfo.TagType.CUSTOM_TAG)
                            .setProperty(NavPropertyInfo.Property.LABEL)
                            .setWasEmpty(true).build())
 
-    validatePropertyInfo(NavigationSchema.ATTR_DEFAULT_VALUE, AUTO_URI, false, model.find { it.isArgument }!!,
+    validatePropertyInfo(NavigationSchema.ATTR_DEFAULT_VALUE, AUTO_URI, false, model.treeReader.find { it.isArgument }!!,
                          NavPropertyInfo.newBuilder()
                            .setContainingTag(NavPropertyInfo.TagType.ARGUMENT_TAG)
                            .setProperty(NavPropertyInfo.Property.DEFAULT_VALUE)
                            .setWasEmpty(false).build())
 
-    validatePropertyInfo(ATTR_URI, AUTO_URI, false, model.find { it.tagName == TAG_DEEP_LINK }!!,
+    validatePropertyInfo(ATTR_URI, AUTO_URI, false, model.treeReader.find { it.tagName == TAG_DEEP_LINK }!!,
                          NavPropertyInfo.newBuilder()
                            .setContainingTag(NavPropertyInfo.TagType.DEEPLINK_TAG)
                            .setProperty(NavPropertyInfo.Property.URI)

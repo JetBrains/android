@@ -34,7 +34,7 @@ class StartDestinationToolbarActionTest : NavTestCase() {
       }
     }
 
-    val component = model.find("fragment1")!!
+    val component = model.treeReader.find("fragment1")!!
 
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf(component))
@@ -49,7 +49,7 @@ class StartDestinationToolbarActionTest : NavTestCase() {
         NlComponent{tag=<navigation>, instance=0}
             NlComponent{tag=<fragment>, instance=1}
       """.trimIndent(),
-      NlTreeDumper().toTree(model.components)
+      NlTreeDumper().toTree(model.treeReader.components)
     )
 
     assert(component.isStartDestination)

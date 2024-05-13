@@ -287,7 +287,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
       myIncludeIds = includeIds;
       myIncludeCustomViews = includeCustomViews;
       myLayout = target;
-      myRoot = myScreenView.getSceneManager().getModel().getComponents().get(0);
+      myRoot = myScreenView.getSceneManager().getModel().getTreeReader().getComponents().get(0);
       myEditor = new ViewEditorImpl(myScreenView);
     }
 
@@ -350,8 +350,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         DependencyManagementUtil.mapAndroidxName(model.getModule(), CLASS_CONSTRAINT_LAYOUT));
 
       // syncWithPsi (called by layout()) can cause the components to be recreated, so update our root and layout.
-      myRoot = model.findViewByTag(rootTag);
-      myLayout = model.findViewByTag(layoutTag);
+      myRoot = model.getTreeReader().findViewByTag(rootTag);
+      myLayout = model.getTreeReader().findViewByTag(layoutTag);
 
       tag = CodeStyleManager.getInstance(getProject()).reformat(tag);
       myLayout.getModel().syncWithPsi((XmlTag)tag, Collections.emptyList());
@@ -362,7 +362,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
           @Override
           public void onRenderCompleted() {
             assert id != null;
-            NlComponent layout = myScreenView.getSceneManager().getModel().find(id);
+            NlComponent layout = myScreenView.getSceneManager().getModel().getTreeReader().find(id);
 
             if (layout != null) {
               manager.removeRenderListener(this);

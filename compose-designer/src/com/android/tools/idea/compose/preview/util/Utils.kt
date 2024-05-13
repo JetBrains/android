@@ -41,7 +41,7 @@ fun Segment?.containsOffset(offset: Int) =
  * ComposeViewAdapter.
  */
 fun SceneView.getRootComponent(): NlComponent? {
-  val root = sceneManager.model.components.firstOrNull()
+  val root = sceneManager.model.treeReader.components.firstOrNull()
   assert(root == null || root.tagName == COMPOSE_VIEW_ADAPTER_FQN) {
     "Expected the root component of a Compose Preview to be a $COMPOSE_VIEW_ADAPTER_FQN, but found ${root!!.tagName}"
   }

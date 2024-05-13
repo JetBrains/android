@@ -35,7 +35,6 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.resolveResourceNamespace
 import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirectExecutor
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -52,9 +51,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
@@ -68,8 +64,6 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.BiFunction
 import java.util.function.Consumer
-import java.util.function.Predicate
-import java.util.stream.Stream
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
@@ -111,8 +105,6 @@ protected constructor(
   /** Text to display when displaying a tooltip related to this model */
   var modelTooltip: String? = null
     private set
-
-  private var myRootComponent: NlComponent? = null
 
   // Deliberately not rev'ing the model version and firing changes here;
   // we know only the warnings layer cares about this change and can be
@@ -174,6 +166,8 @@ protected constructor(
    * rendering or layouting.
    */
   var organizationGroup: OrganizationGroup? = null
+
+  val treeReader = NlTreeReader { file }
 
   init {
     Disposer.register(parent, this)
@@ -316,10 +310,6 @@ protected constructor(
     myModelUpdater.updateFromViewInfo(this, viewInfos)
   }
 
-  fun setRootComponent(root: NlComponent?) {
-    myRootComponent = root
-  }
-
   /**
    * Adds a new [ModelListener]. If the listener already exists, this method will make sure that the
    * listener is only added once.
@@ -360,15 +350,6 @@ protected constructor(
   val project: Project
     get() = module.project
 
-  val components: ImmutableList<NlComponent>
-    get() = myRootComponent?.let { ImmutableList.of(it) } ?: ImmutableList.of()
-
-  fun flattenComponents(): Stream<NlComponent> {
-    return if (myRootComponent != null)
-      Stream.of(myRootComponent).flatMap { obj: NlComponent? -> obj!!.flatten() }
-    else Stream.empty()
-  }
-
   /**
    * This will warn model listeners that the model has been changed "live", without the attributes
    * of components being actually committed. Listeners such as Scene Managers will likely want for
@@ -378,59 +359,6 @@ protected constructor(
    */
   fun notifyLiveUpdate(animate: Boolean) {
     myListeners.forEach { listener -> listener.modelLiveUpdate(this, animate) }
-  }
-
-  fun findByOffset(offset: Int): ImmutableList<NlComponent> {
-    val tag = PsiTreeUtil.findElementOfClassAtOffset(file, offset, XmlTag::class.java, false)
-    return if ((tag != null)) findViewsByTag(tag) else ImmutableList.of()
-  }
-
-  fun findViewByTag(tag: XmlTag): NlComponent? {
-    return myRootComponent?.findViewByTag(tag)
-  }
-
-  fun findViewByAccessibilityId(id: Long): NlComponent? {
-    return myRootComponent?.findViewByAccessibilityId(id)
-  }
-
-  fun find(id: String): NlComponent? {
-    return flattenComponents().filter { c: NlComponent? -> id == c!!.id }.findFirst().orElse(null)
-  }
-
-  fun find(condition: Predicate<NlComponent>): NlComponent? {
-    return flattenComponents().filter(condition).findFirst().orElse(null)
-  }
-
-  private fun findViewsByTag(tag: XmlTag): ImmutableList<NlComponent> {
-    return myRootComponent?.findViewsByTag(tag) ?: ImmutableList.of()
-  }
-
-  fun findViewByPsi(element: PsiElement?): NlComponent? {
-    assert(ApplicationManager.getApplication().isReadAccessAllowed)
-    var nextElement = element
-    while (nextElement != null) {
-      if (nextElement is XmlTag) {
-        return findViewByTag(nextElement)
-      }
-      // noinspection AssignmentToMethodParameter
-      nextElement = nextElement.parent
-    }
-
-    return null
-  }
-
-  fun findAttributeByPsi(element: PsiElement): ResourceReference? {
-    assert(ApplicationManager.getApplication().isReadAccessAllowed)
-    var nextElement = element
-    while (nextElement != null) {
-      if (nextElement is XmlAttribute) {
-        val attribute = nextElement
-        val namespace = attribute.resolveResourceNamespace(attribute.namespacePrefix) ?: return null
-        return ResourceReference.attr(namespace, attribute.localName)
-      }
-      nextElement = nextElement.parent
-    }
-    return null
   }
 
   fun delete(components: Collection<NlComponent?>) {

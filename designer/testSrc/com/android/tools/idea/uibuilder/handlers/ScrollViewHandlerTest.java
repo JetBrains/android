@@ -35,7 +35,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
 
   public void testAcceptChild() throws Exception {
     SyncNlModel model = createModel();
-    NlComponent scrollView = model.getComponents().get(0);
+    NlComponent scrollView = model.getTreeReader().getComponents().get(0);
     ScrollViewHandler handler = new ScrollViewHandler();
     NlComponent component = model.createComponent(XmlTagUtil.createTag(myModule.getProject(), "<TextView />"));
 
@@ -47,7 +47,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   public void testScrollNothing() throws Exception {
     SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView =
-      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getTreeReader().getComponents().get(0)).getViewObject();
 
     screen(model)
       .get("@id/myText1")
@@ -64,7 +64,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   public void testCancel() throws Exception {
     SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView =
-      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getTreeReader().getComponents().get(0)).getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
     doAnswer((invocation -> {
@@ -88,7 +88,7 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
   public void testScroll() throws Exception {
     SyncNlModel model = createModel();
     android.view.ViewGroup mockScrollView =
-      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getComponents().get(0)).getViewObject();
+      (android.view.ViewGroup)NlComponentHelperKt.getViewInfo(model.getTreeReader().getComponents().get(0)).getViewObject();
 
     AtomicInteger savedValue = new AtomicInteger(0);
     doAnswer((invocation -> {
@@ -144,13 +144,13 @@ public class ScrollViewHandlerTest extends LayoutTestCase {
                                                    .height("40dp")
                                        )));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<ScrollView>, bounds=[0,0:90x90}\n" +
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:90x120}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,0:40x40}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,40:40x40}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,80:40x40}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     format(model.getFile());
     return model;
   }

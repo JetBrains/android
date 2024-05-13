@@ -173,7 +173,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
    * This includes marking the display list as dirty.
    */
   public void update() {
-    List<NlComponent> components = getModel().getComponents();
+    List<NlComponent> components = getModel().getTreeReader().getComponents();
     Scene scene = getScene();
     if (components.isEmpty()) {
       scene.removeAllComponents();
@@ -234,7 +234,7 @@ abstract public class SceneManager implements Disposable, ResourceNotificationMa
 
   @NotNull
   protected NlComponent getRoot() {
-    return getModel().getComponents().get(0).getRoot();
+    return getModel().getTreeReader().getComponents().get(0).getRoot();
   }
 
   /**

@@ -40,7 +40,6 @@ import com.android.tools.idea.common.model.StringAutoAttributeDelegate
 import com.android.tools.idea.naveditor.analytics.MetricsLoggingAttributeDelegate
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.model.createChild
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
@@ -86,7 +85,6 @@ import org.jetbrains.android.dom.navigation.NavigationSchema.get
 import java.io.File
 import java.util.function.Consumer
 import javax.swing.Icon
-import kotlin.streams.toList
 
 private const val ADD_NESTED_COMMAND_NAME = "Add to Nested Graph"
 private const val ADD_NESTED_GROUP_ID = "ADD_NESTED_GROUP_ID"
@@ -153,7 +151,7 @@ fun NlComponent.findVisibleDestination(id: String): NlComponent? {
     p = p.parent
   }
   // The above won't pick up the root
-  return model.components.firstOrNull { c -> c.id == id }
+  return model.treeReader.components.firstOrNull { c -> c.id == id }
 }
 
 /**

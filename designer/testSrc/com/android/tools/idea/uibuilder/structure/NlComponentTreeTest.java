@@ -588,13 +588,13 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .width("400dp")
                                        .height("500dp")));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:200x200}\n" +
                  "        NlComponent{tag=<Button>, bounds=[0,0:100x100}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,200:100x100}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     return model;
   }
 
@@ -620,7 +620,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                                    .text("@string/stuff"))));
 
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<android.support.design.widget.CoordinatorLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<android.support.design.widget.AppBarLayout>, bounds=[0,0:1000x192}\n" +
                  "        NlComponent{tag=<android.support.design.widget.CollapsingToolbarLayout>, bounds=[0,0:1000x192}\n" +
@@ -628,7 +628,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
                  "            NlComponent{tag=<android.support.v7.widget.Toolbar>, bounds=[0,0:1000x18}\n" +
                  "    NlComponent{tag=<android.support.v4.widget.NestedScrollView>, bounds=[0,192:1000x808}\n" +
                  "        NlComponent{tag=<TextView>, bounds=[0,192:1000x808}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     return model;
   }
 
@@ -661,13 +661,13 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .wrapContentWidth()
                                        .wrapContentHeight()));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<android.support.constraint.ConstraintLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<android.support.constraint.Chain>, bounds=[0,0:200x200}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     return model;
   }
 
@@ -741,7 +741,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
     ((DeleteProvider)checkNotNull(tree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())))
       .deleteElement(DataContext.EMPTY_CONTEXT);
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    String constraintReferences = checkNotNull(model.find("barrier")).getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
+    String constraintReferences = checkNotNull(model.getTreeReader().find("barrier")).getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
     assertThat(constraintReferences).isEqualTo("button3");
   }
 
@@ -778,13 +778,13 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                        .withAttribute(AUTO_URI, ATTR_LAYOUT_START_TO_END_OF, "@id/barrier")
                                    ));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<android.support.constraint.ConstraintLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<Button>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<android.support.constraint.ConstraintHelper>, bounds=[0,0:200x200}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,0:200x200}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     return model;
   }
 
@@ -802,7 +802,7 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
   @NotNull
   private NlComponent findFirst(@NotNull NlModel model, @NotNull String tagName) {
-    NlComponent component = findFirst(tagName, model.getComponents());
+    NlComponent component = findFirst(tagName, model.getTreeReader().getComponents());
     assert component != null;
     return component;
   }

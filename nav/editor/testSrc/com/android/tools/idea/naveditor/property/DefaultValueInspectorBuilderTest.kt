@@ -39,7 +39,7 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val action1 = model.find("action1")!!
+    val action1 = model.treeReader.find("action1")!!
 
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     val provider = NlPropertiesProvider(myFacet)
@@ -69,7 +69,7 @@ class DefaultValueInspectorBuilderTest : NavTestCase() {
       }
     }
 
-    val action1 = model.find("action1")!!
+    val action1 = model.treeReader.find("action1")!!
 
     val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
     val provider = NlPropertiesProvider(myFacet)

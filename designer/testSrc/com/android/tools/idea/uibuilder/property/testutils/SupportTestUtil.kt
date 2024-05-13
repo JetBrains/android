@@ -237,20 +237,20 @@ private constructor(
 
   fun selectById(id: String): SupportTestUtil {
     components.clear()
-    components.add(nlModel.find(id)!!)
+    components.add(nlModel.treeReader.find(id)!!)
     model.surface?.selectionModel?.setSelection(components)
     return this
   }
 
   fun select(condition: Predicate<NlComponent>): SupportTestUtil {
     components.clear()
-    components.add(nlModel.find(condition)!!)
+    components.add(nlModel.treeReader.find(condition)!!)
     model.surface?.selectionModel?.setSelection(components)
     return this
   }
 
   fun clearSnapshots(): SupportTestUtil {
-    nlModel.flattenComponents().forEach { it.snapshot = null }
+    nlModel.treeReader.flattenComponents().forEach { it.snapshot = null }
     return this
   }
 
@@ -334,7 +334,7 @@ private constructor(
       val model =
         NlModelBuilderUtil.model(facet, fixture, resourceFolder, fileName, descriptor).build()
       val root = model.getRoot()
-      return if (root.childCount > 0) root.children else model.components
+      return if (root.childCount > 0) root.children else model.treeReader.components
     }
 
     private fun createComponents(

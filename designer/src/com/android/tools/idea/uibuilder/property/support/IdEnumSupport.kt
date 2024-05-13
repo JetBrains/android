@@ -142,6 +142,7 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
     property.components
       .firstOrNull()
       ?.model
+      ?.treeReader
       ?.flattenComponents()
       ?.map { it.id }
       .notNullize()
@@ -154,6 +155,7 @@ class IdEnumSupport(val property: NlPropertyItem) : EnumSupport {
     property.components
       .firstOrNull()
       ?.model
+      ?.treeReader
       ?.flattenComponents()
       ?.filter { !property.components.contains(it) }
       ?.map { it.id }

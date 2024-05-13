@@ -74,7 +74,6 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
 import java.awt.event.MouseEvent
 import java.io.File
-import java.util.stream.Collectors
 
 // TODO: testing with custom navigators
 @RunsInEdt
@@ -162,7 +161,7 @@ class AddDestinationMenuTest {
 
     addDestination("NavHostFragmentChild", "androidx.navigation.fragment.NavHostFragment")
 
-    val parent = model.components[0]
+    val parent = model.treeReader.components[0]
 
     val placeHolder = Destination.PlaceholderDestination(parent)
 
@@ -303,7 +302,7 @@ class AddDestinationMenuTest {
 
   @Test
   fun testCreateBlank() {
-    model.flattenComponents().map { it.id } .forEach {
+    model.treeReader.flattenComponents().map { it.id } .forEach {
       if(it != null) model.pendingIds.add(it)
     }
     val createdFiles = mutableListOf<File>()
@@ -321,7 +320,7 @@ class AddDestinationMenuTest {
     TestNavUsageTracker.create(model).use { tracker ->
       createFragmentFileTask()
 
-      val added = model.find("frag")!!
+      val added = model.treeReader.find("frag")!!
       assertEquals("fragment", added.tagName)
       assertEquals("@layout/frag_layout", added.layout)
       assertEquals("mytest.navtest.Frag", added.className)
@@ -337,7 +336,7 @@ class AddDestinationMenuTest {
 
   @Test
   fun testCreateBlankNoLayout() {
-    model.flattenComponents().map { it.id } .forEach {
+    model.treeReader.flattenComponents().map { it.id } .forEach {
       if(it != null) model.pendingIds.add(it)
     }
     val createdFiles = mutableListOf<File>()
@@ -353,7 +352,7 @@ class AddDestinationMenuTest {
     TestNavUsageTracker.create(model).use { tracker ->
       createFragmentFileTask.invoke()
 
-      val added = model.find("frag")!!
+      val added = model.treeReader.find("frag")!!
       assertEquals("fragment", added.tagName)
       assertNull(added.layout)
       assertEquals("mytest.navtest.Frag", added.className)
@@ -369,7 +368,7 @@ class AddDestinationMenuTest {
   @Test
   @RunsInEdt
   fun testCreateSettingsFragment() {
-    model.flattenComponents().map { it.id } .forEach {
+    model.treeReader.flattenComponents().map { it.id } .forEach {
       if(it != null) model.pendingIds.add(it)
     }
     val createdFiles = mutableListOf<File>()
@@ -387,7 +386,7 @@ class SettingsFragment : PreferenceFragmentCompat()
     TestNavUsageTracker.create(model).use { tracker ->
       createFragmentFileTask()
 
-      val added = model.find("settingsFragment")!!
+      val added = model.treeReader.find("settingsFragment")!!
       assertEquals("fragment", added.tagName)
       assertEquals("mytest.navtest.SettingsFragment", added.className)
       verify(tracker).logEvent(NavEditorEvent.newBuilder().setType(CREATE_FRAGMENT).build())
@@ -431,7 +430,7 @@ class SettingsFragment : PreferenceFragmentCompat()
       assertNotNull(component2)
       assertEquals(listOf(component2!!), surface.selectionModel.selection)
       assertEquals("placeholder2", component2.id)
-      assertContainsElements(surface.model?.components?.get(0)?.children?.map { it.id }!!, "placeholder", "placeholder2")
+      assertContainsElements(surface.model?.treeReader?.components?.get(0)?.children?.map { it.id }!!, "placeholder", "placeholder2")
     }
   }
 
@@ -452,7 +451,7 @@ class SettingsFragment : PreferenceFragmentCompat()
   @Test
   fun testAddDestination() {
     val destination = MockitoKt.mock<Destination.IncludeDestination>()
-    val component = model.find("fragment")!!
+    val component = model.treeReader.find("fragment")!!
     MockitoKt.whenever(destination.component).thenReturn(component)
     TestNavUsageTracker.create(model).use { tracker ->
       menu.addDestination(destination)
@@ -466,7 +465,7 @@ class SettingsFragment : PreferenceFragmentCompat()
   @Test
   fun testAddInclude() {
     val destination = MockitoKt.mock<Destination.IncludeDestination>()
-    val component = spy(model.find("fragment")!!)
+    val component = spy(model.treeReader.find("fragment")!!)
     MockitoKt.whenever(component.tagName).thenReturn(TAG_INCLUDE)
     MockitoKt.whenever(destination.component).thenReturn(component)
     TestNavUsageTracker.create(model).use { tracker ->
@@ -480,14 +479,14 @@ class SettingsFragment : PreferenceFragmentCompat()
   fun testAddDynamicFragment() {
     addFragment("DynamicFragment", "dynamicfeaturemodule")
     val dynamicFragment =
-      Destination.RegularDestination(model.components[0], "fragment", null,
+      Destination.RegularDestination(model.treeReader.components[0], "fragment", null,
                                      findClass("mytest.navtest.DynamicFragment"), dynamicModuleName = "dynamicfeaturemodule")
 
     WriteCommandAction.runWriteCommandAction(surface.project) {
       dynamicFragment.addToGraph()
     }
 
-    val fragment = model.find("dynamicFragment")!!
+    val fragment = model.treeReader.find("dynamicFragment")!!
     assertEquals("dynamicfeaturemodule", fragment.getAttribute(AUTO_URI, ATTR_MODULE_NAME))
   }
 
@@ -603,7 +602,7 @@ class AddDestinationMenuDependencyTest : NavTestCase() {
     PlatformTestUtil.waitForFuture(surface.setModel(model))
 
     val blankFragment = Destination.RegularDestination(
-      model.components[0], "fragment", null, psiClass, layoutFile = xmlFile)
+      model.treeReader.components[0], "fragment", null, psiClass, layoutFile = xmlFile)
     waitForResourceRepositoryUpdates()
 
     val menu = AddDestinationMenu(surface)

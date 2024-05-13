@@ -383,7 +383,7 @@ class DecoratorTest : NavTestCase() {
     PlatformTestUtil.waitForFuture(surface.setModel(model))
     val sceneView = surface.focusedSceneView!!
 
-    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().find(id)!!, Mockito.mock(HitProvider::class.java))
+    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().treeReader.find(id)!!, Mockito.mock(HitProvider::class.java))
     if (drawState == SceneComponent.DrawState.SELECTED) {
       sceneComponent.isSelected = true
     }
@@ -416,7 +416,7 @@ class DecoratorTest : NavTestCase() {
   }
 
   private fun makeSceneComponent(id: String, state: SceneComponent.DrawState): SceneComponent {
-    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().find(id)!!, Mockito.mock(HitProvider::class.java))
+    val sceneComponent = SceneComponent(surface.scene!!, surface.models.first().treeReader.find(id)!!, Mockito.mock(HitProvider::class.java))
 
     sceneComponent.setPosition(40, 40)
     sceneComponent.setSize(80, 120)

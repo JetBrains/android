@@ -168,7 +168,7 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
       tagPositionMap.inverse().remove(newPositions)
       setPosition(runReadAction { component.nlComponent.tag }, newPositions)
       val fileName = component.nlComponent.model.virtualFile.name
-      rectifyIds(model.components.flatMap { it.children }, storage.state[fileName]!!)
+      rectifyIds(model.treeReader.components.flatMap { it.children }, storage.state[fileName]!!)
     }
   }
 

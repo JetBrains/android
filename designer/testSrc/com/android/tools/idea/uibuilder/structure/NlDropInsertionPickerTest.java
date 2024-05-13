@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlTreeReader;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.designer.model.EmptyXmlTag;
@@ -59,6 +60,8 @@ public class NlDropInsertionPickerTest {
 
   @Mock
   private NlModel myModel;
+
+  @Mock private NlTreeReader myTreeReader;
 
   private FakeNlComponentGroup ourRoot;
   private FakeTreePath[] myTreePaths;
@@ -133,7 +136,8 @@ public class NlDropInsertionPickerTest {
 
     ourRoot = buildFakeComponentHierarchy();
     myTreePaths = buildFakeTreePathArray(ourRoot);
-    when(myModel.getComponents()).thenReturn(ImmutableList.of(ourRoot));
+    when(myTreeReader.getComponents()).thenReturn(ImmutableList.of(ourRoot));
+    when(myModel.getTreeReader()).thenReturn(myTreeReader);
 
     myPicker = getDefaultPicker();
     myDragged = ImmutableList.of(new FakeNlComponent(-1, myModel, false));

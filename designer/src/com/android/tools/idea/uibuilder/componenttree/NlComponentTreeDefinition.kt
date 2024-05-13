@@ -209,20 +209,20 @@ private class ComponentTreePanel(
     model = surface?.model
     model?.addListener(modelChangeListener)
     facet = model?.facet
-    componentTree.model.treeRoot = model?.components?.firstOrNull()
+    componentTree.model.treeRoot = model?.treeReader?.components?.firstOrNull()
     invokeLater { TreeUtil.expandAll(componentTree.tree) }
   }
 
   private fun setSurfaceSelection(selection: List<Any>) {
     val references = selection.filterIsInstance(NlComponentReference::class.java)
-    val highlighted = references.mapNotNull { model?.find(it.id) }
+    val highlighted = references.mapNotNull { model?.treeReader?.find(it.id) }
     val selected = selection.filterIsInstance(NlComponent::class.java)
     surface?.selectionModel?.setHighlightSelection(highlighted, selected)
     surface?.repaint()
   }
 
   private fun fireHierarchyChanged(model: NlModel?) {
-    componentTree.model.treeRoot = model?.components?.firstOrNull()
+    componentTree.model.treeRoot = model?.treeReader?.components?.firstOrNull()
   }
 
   private fun activateComponent(component: Any) =
@@ -421,7 +421,7 @@ private class ComponentTreePanel(
 
       // Then add/move the referenced component to the corresponding constraint layout:
       val layout = node.parent ?: return
-      val beforeComponent = before?.let { model?.find(it.id) }
+      val beforeComponent = before?.let { model?.treeReader?.find(it.id) }
       model?.addComponents(components, layout, beforeComponent, insertType, null)
     }
 

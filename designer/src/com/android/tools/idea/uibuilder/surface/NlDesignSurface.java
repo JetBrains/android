@@ -1075,7 +1075,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   public List<NlComponent> getSelectableComponents() {
     NlComponent root = getModels()
       .stream()
-      .flatMap((model) -> model.getComponents().stream())
+      .flatMap((model) -> model.getTreeReader().getComponents().stream())
       .findFirst()
       .orElse(null);
     if (root == null) {

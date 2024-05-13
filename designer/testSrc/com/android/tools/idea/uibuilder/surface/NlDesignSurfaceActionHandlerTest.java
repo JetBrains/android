@@ -127,7 +127,7 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     // Need to use the real copyPasteManager for checking the result of selection model.
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface);
 
-    assertEquals(3, myModel.getComponents().get(0).getChildCount());
+    assertEquals(3, myModel.getTreeReader().getComponents().get(0).getChildCount());
 
     mySurface.getSelectionModel().toggle(myTextView);
     assertEquals(1, mySurface.getSelectionModel().getSelection().size());
@@ -136,12 +136,12 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
     mySurfaceActionHandler.performCopy(context);
     mySurfaceActionHandler.performPaste(context);
 
-    assertEquals(4, myModel.getComponents().get(0).getChildCount());
+    assertEquals(4, myModel.getTreeReader().getComponents().get(0).getChildCount());
     assertEquals(1, mySurface.getSelectionModel().getSelection().size());
     // Paste will put the item before the original one
-    assertEquals(myModel.getComponents().get(0).getChild(1), myTextView);
-    assertEquals(myModel.getComponents().get(0).getChild(2), mySurface.getSelectionModel().getSelection().get(0));
-    assertNotEquals(myModel.getComponents().get(0).getChild(2), myTextView);
+    assertEquals(myModel.getTreeReader().getComponents().get(0).getChild(1), myTextView);
+    assertEquals(myModel.getTreeReader().getComponents().get(0).getChild(2), mySurface.getSelectionModel().getSelection().get(0));
+    assertNotEquals(myModel.getTreeReader().getComponents().get(0).getChild(2), myTextView);
   }
 
   public void testPasteResourceUrl() {
@@ -197,19 +197,19 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
                                        .width("400dp")
                                        .height("500dp")));
     final SyncNlModel model = builder.build();
-    assertEquals(1, model.getComponents().size());
+    assertEquals(1, model.getTreeReader().getComponents().size());
     assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
                  "    NlComponent{tag=<LinearLayout>, bounds=[0,0:200x200}\n" +
                  "        NlComponent{tag=<Button>, bounds=[0,0:100x100}\n" +
                  "    NlComponent{tag=<TextView>, bounds=[0,200:100x100}\n" +
                  "    NlComponent{tag=<AbsoluteLayout>, bounds=[0,300:400x500}",
-                 NlTreeDumper.dumpTree(model.getComponents()));
+                 NlTreeDumper.dumpTree(model.getTreeReader().getComponents()));
     return model;
   }
 
   @NotNull
   private NlComponent findFirst(@NotNull String tagName) {
-    NlComponent component = findFirst(tagName, myModel.getComponents());
+    NlComponent component = findFirst(tagName, myModel.getTreeReader().getComponents());
     assert component != null;
     return component;
   }

@@ -191,14 +191,14 @@ class DesignerCommonIssueProviderTest {
     val visualLintIssue1 =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
-        model1.components,
+        model1.treeReader.components,
         issueProvider,
         "",
       )
     val visualLintIssue2 =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
-        model2.components,
+        model2.treeReader.components,
         issueProvider,
         "",
       )
@@ -240,14 +240,14 @@ class DesignerCommonIssueProviderTest {
     val visualLintIssue1 =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
-        model1.components,
+        model1.treeReader.components,
         issueProvider,
         "",
       )
     val visualLintIssue2 =
       createTestVisualLintRenderIssue(
         VisualLintErrorType.BOUNDS,
-        model2.components,
+        model2.treeReader.components,
         issueProvider,
         "",
       )

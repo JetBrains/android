@@ -117,11 +117,11 @@ class SelectActionsTest : LayoutTestCase() {
     PlatformTestUtil.waitForFuture(surface.addModelWithoutRender(model))
     surface.selectionModel.setSelection(ImmutableList.of())
 
-    val outer = model.find("outer")!!
-    val button = model.find("button")!!
-    val inner = model.find("inner")!!
-    val textView1 = model.find("textView1")!!
-    val textView2 = model.find("textView2")!!
+    val outer = model.treeReader.find("outer")!!
+    val button = model.treeReader.find("button")!!
+    val inner = model.treeReader.find("inner")!!
+    val textView1 = model.treeReader.find("textView1")!!
+    val textView2 = model.treeReader.find("textView2")!!
 
     val action = SelectAllAction()
 
@@ -138,7 +138,7 @@ class SelectActionsTest : LayoutTestCase() {
     action.actionPerformed(
       TestActionEvent.createTestEvent { if (DESIGN_SURFACE.`is`(it)) surface else null }
     )
-    val component = surface.model?.find(id)!!
+    val component = surface.model?.treeReader?.find(id)!!
     assertEquals(listOf(component), surface.selectionModel.selection)
   }
 }
