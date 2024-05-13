@@ -21,12 +21,12 @@ import com.intellij.spellchecker.SpellCheckerSeveritiesProvider
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.ExtensionTestUtil.maskExtensions
 import org.jetbrains.android.AndroidTestCase
-import org.junit.Before
 
 class AndroidGradleKtsSpellcheckingStrategyTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     maskExtensions(ProblemHighlightFilter.EP_NAME, listOf(), myFixture.projectDisposable)
+    unmaskKotlinHighlightVisitor()
   }
 
   fun testNoTypoInDependencyCallExpression() {

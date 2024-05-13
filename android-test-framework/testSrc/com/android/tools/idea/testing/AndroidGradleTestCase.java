@@ -61,6 +61,7 @@ import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -92,6 +93,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemDependent;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
 
 /**
  * Base class for unit tests that operate on Gradle projects
@@ -148,6 +150,12 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     super.setUp();
 
     TestApplicationManager.getInstance();
+
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
+      Registry.get(K2_KTS_KEY).setValue(true);
+    }
+
     ensureSdkManagerAvailable();
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");

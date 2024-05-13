@@ -21,6 +21,7 @@ import com.android.tools.tests.AdtTestProjectDescriptor;
 import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
+import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.FacetManager;
@@ -41,12 +42,14 @@ import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.testFramework.ExtensionTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
@@ -77,6 +80,10 @@ import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
+import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
+import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
+import org.jetbrains.kotlin.idea.highlighting.KotlinSemanticHighlightingVisitor;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -123,6 +130,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // this is handled by JavaCodeInsightTestFixture#setUp(), but TestApplicationManager will only
     // be initialized once, so putting in this early initialize call won't cause any harm later.
     TestApplicationManager.getInstance();
+
+    // TODO: Clean up this once K2 scripting support is enabled (ETA: 242)
+    if (KotlinPluginModeProvider.Companion.isK2Mode()) {
+      Registry.get(K2_KTS_KEY).setValue(true);
+    }
 
     AdtTestProjectDescriptor descriptor;
     if (myProjectDescriptor == null) {
@@ -210,6 +222,26 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       });
     });
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
+  }
+
+  protected void unmaskKotlinHighlightVisitor() {
+    List<HighlightVisitor> highlightVisitors = HighlightVisitor.EP_HIGHLIGHT_VISITOR.getExtensionList(myFixture.getProject()).stream()
+      .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
+    ExtensionTestUtil.maskExtensions(
+      HighlightVisitor.EP_HIGHLIGHT_VISITOR,
+      highlightVisitors,
+      myFixture.getProjectDisposable(),
+      false,
+      myFixture.getProject()
+    );
+  }
+
+  private boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
+    // K1: a subtype of [AbstractKotlinHighlightVisitor]
+    // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
+    return visitor instanceof AbstractKotlinHighlightVisitor
+           || visitor instanceof KotlinDiagnosticHighlightVisitor
+           || visitor instanceof KotlinSemanticHighlightingVisitor;
   }
 
   private void cleanJdkTable() {
