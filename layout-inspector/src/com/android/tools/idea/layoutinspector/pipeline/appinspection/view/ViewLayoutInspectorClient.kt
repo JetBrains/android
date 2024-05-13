@@ -413,11 +413,9 @@ class ViewLayoutInspectorClient(
   }
 
   private fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
-    val start = System.currentTimeMillis()
     try {
       launchWithProgress { fetchAndSaveSnapshotAsync(path, snapshotMetadata) }
     } catch (cancellationException: CancellationException) {
-      snapshotMetadata.saveDuration = System.currentTimeMillis() - start
       LayoutInspectorSessionMetrics(project, processDescriptor, snapshotMetadata)
         .logEvent(
           DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.SNAPSHOT_CANCELLED,
