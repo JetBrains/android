@@ -164,7 +164,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     assertSize(2, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
+      "<DD>-&nbsp;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)</DL>", issues.get(0));
     assertHtmlEquals(
@@ -190,7 +190,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     assertSize(2, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
+      "<DD>-&nbsp;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)</DL>", issues.get(0));
     assertHtmlEquals(
@@ -217,7 +217,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     assertSize(1, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;Bitton (<A HREF=\"replaceTags:Bitton/Button\">Change to Button</A>" +
+      "<DD>-&nbsp;Bitton (<A HREF=\"replaceTags:Bitton/Button\">Change to Button</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)</DL>", issues.get(0));
 
@@ -572,7 +572,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
-                     "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
+                     "<DL><DD>-&nbsp;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
                      "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(0));
 
     operation = (logger, render) -> {
@@ -583,7 +583,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     assertSize(2, issues);
     // The ERROR should go first in the list (higher priority)
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
-                     "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
+                     "<DL><DD>-&nbsp;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
                      "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
     assertBottomPanelEquals(
       List.of(
@@ -634,8 +634,8 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     List<RenderErrorModel.Issue> issues =
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
-    assertHtmlEquals("The following classes could not be instantiated:<DL><DD>-&NBS" +
-                     "P;com.example.myapplication.MyButton (<A HREF=\"openClass:com." +
+    assertHtmlEquals("The following classes could not be instantiated:<DL><DD>-&nbs" +
+                     "p;com.example.myapplication.MyButton (<A HREF=\"openClass:com." +
                      "example.myapplication.MyButton\">Open Class</A>, <A HREF=\"" +
                      "\">Show Exception</A>, <A HREF=\"clearCacheAndNotify\">Clear Cac" +
                      "he</A>)<BR/><BR/><font style=\"font-weight:bold; color:#005" +
@@ -710,7 +710,7 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     assertSize(1, issues);
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
-      "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
+      "<DD>-&nbsp;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)</DL>",
       issues.get(0));
     assertBottomPanelEquals(
