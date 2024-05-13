@@ -26,7 +26,7 @@ import org.mockito.Mockito.`when`
 /**
  * Unit test for [AndroidTestConfigurationProducer]
  */
-class AndroidTestConfigurationProducerUnitTest {
+class AndroidTestProducerUtilsTest {
 
   @Test
   fun extraOptionsAreAddedByExtension() {
@@ -34,7 +34,7 @@ class AndroidTestConfigurationProducerUnitTest {
     `when`(extension.getExtraOptions(any())).thenReturn(listOf("-e key_only", "-e key3 value3"))
       .thenThrow(IllegalStateException())
 
-    val options = AndroidTestConfigurationProducer.getOptions(
+    val options = getOptions(
       existingOptions = "-e key1 value1",
       mock(),
       listOf(extension),
@@ -52,7 +52,7 @@ class AndroidTestConfigurationProducerUnitTest {
     `when`(extensionThatThrowsException.getExtraOptions(any()))
       .thenThrow(IllegalStateException())
 
-    val options = AndroidTestConfigurationProducer.getOptions(
+    val options = getOptions(
       existingOptions = "-e key1 value1",
       mock(),
       listOf(extensionThatThrowsException),
