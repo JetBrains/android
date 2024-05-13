@@ -59,9 +59,12 @@ class DeviceUiSettingsControllerTest {
   @Before
   fun before() {
     agent.foregroundProcess = APPLICATION_ID1
-    val appLanguageServices = AppLanguageService { listOf(
-      AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru"))),
-      AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es"))))
+    val appLanguageServices = AppLanguageService { _, applicationId ->
+      when (applicationId) {
+        APPLICATION_ID1 -> AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru")))
+        APPLICATION_ID2 -> AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es")))
+        else -> null
+      }
     }
     project.registerOrReplaceServiceInstance(AppLanguageService::class.java, appLanguageServices, testRootDisposable)
   }
@@ -258,7 +261,7 @@ class DeviceUiSettingsControllerTest {
     val view = createDeviceView(device)
     view.setBounds(0, 0, 600, 800)
     waitForCondition(10.seconds) { view.isConnected }
-    return DeviceUiSettingsController(view.deviceController!!, view.deviceClient.deviceConfig, project, model, view)
+    return DeviceUiSettingsController(view.deviceController!!, device.serialNumber, view.deviceClient.deviceConfig, project, model, view)
   }
 
   private fun createDeviceView(device: FakeDevice): DeviceView {

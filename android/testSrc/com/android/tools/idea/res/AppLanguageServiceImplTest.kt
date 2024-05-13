@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res
 
+import com.android.ddmlib.testing.FakeAdbRule
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
@@ -29,10 +30,10 @@ import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProj
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RuleChain
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.io.File
 
 class AppLanguageServiceImplTest {
@@ -46,6 +47,8 @@ class AppLanguageServiceImplTest {
       AndroidModuleModelBuilder(":two", "debug", createApp("com.example.two")),
     ).onEdt()
 
+  private val adbRule = FakeAdbRule()
+
   private val pseudoLocalesToken = object : PseudoLocalesToken {
     override fun isPseudoLocalesEnabled(applicationProjectContext: ApplicationProjectContext): PseudoLocalesToken.PseudoLocalesState =
       when (applicationProjectContext.applicationId) {
@@ -58,7 +61,9 @@ class AppLanguageServiceImplTest {
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val ruleChain = RuleChain(projectRule, adbRule, EdtRule())
+
+  private val serialNumber = "42"
 
   @Before
   fun before() {
@@ -69,6 +74,9 @@ class AppLanguageServiceImplTest {
     val extensionPoint = projectRule.project.extensionArea.getExtensionPoint(PseudoLocalesToken.EP_NAME)
     extensionPoint.unregisterExtension(GradlePseudoLocalesToken::class.java)
     extensionPoint.registerExtension(pseudoLocalesToken, projectRule.testRootDisposable)
+    val state = adbRule.attachDevice(serialNumber, "Google", "Pixel6", "versionX", "33")
+    state.startClient(12, 24, "com.example.one", isWaiting = true)
+    state.startClient(14, 28, "com.example.two", isWaiting = true)
   }
 
   private fun createStringsFile(helloTranslation: String): String {
@@ -83,8 +91,10 @@ class AppLanguageServiceImplTest {
   @Test
   fun testLanguageServices() {
     val services = AppLanguageService.getInstance(projectRule.project)
-    assertThat(services.getAppLanguageInfo()).containsExactly(
-      AppLanguageInfo("com.example.one", setOf(LocaleQualifier("da"))),
+    assertThat(services.getAppLanguageInfo(serialNumber, "com.example.one")).isEqualTo(
+      AppLanguageInfo("com.example.one", setOf(LocaleQualifier("da")))
+    )
+    assertThat(services.getAppLanguageInfo(serialNumber, "com.example.two")).isEqualTo(
       AppLanguageInfo("com.example.two", setOf(
         LocaleQualifier("ru"),
         LocaleQualifier(null, "en", "XA", null),

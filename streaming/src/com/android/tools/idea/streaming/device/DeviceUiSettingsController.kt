@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
  */
 internal class DeviceUiSettingsController(
   private val deviceController: DeviceController,
+  private val deviceSerialNumber: String,
   deviceConfig: DeviceConfiguration,
   private val project: Project,
   model: UiSettingsModel,
@@ -54,9 +55,8 @@ internal class DeviceUiSettingsController(
     model.screenDensitySettable.setFromController(response.densitySettable)
     model.screenDensity.setFromController(response.density)
     model.differentFromDefault.setFromController(!response.originalValues)
-    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
-    languageInfo[response.foregroundApplicationId]?.localeConfig?.let { config ->
-      addLanguage(response.foregroundApplicationId, config, response.appLocale)
+    AppLanguageService.getInstance(project).getAppLanguageInfo(deviceSerialNumber, response.foregroundApplicationId)?.let {
+      addLanguage(it.applicationId, it.localeConfig, response.appLocale)
     }
   }
 

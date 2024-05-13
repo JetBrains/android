@@ -45,9 +45,12 @@ const val APPLICATION_ID2 = "com.example.test.app2"
  * Supplies fakes for UI settings tests
  */
 class UiSettingsRule : ExternalResource() {
-  private val appLanguageServices = AppLanguageService { listOf(
-    AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru"))),
-    AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es"))))
+  private val appLanguageServices = AppLanguageService { _, applicationId ->
+    when (applicationId) {
+      APPLICATION_ID1 -> AppLanguageInfo(APPLICATION_ID1, setOf(LocaleQualifier("da"), LocaleQualifier("ru")))
+      APPLICATION_ID2 -> AppLanguageInfo(APPLICATION_ID2, setOf(LocaleQualifier("es")))
+      else -> null
+    }
   }
   private val projectRule = ProjectRule()
   private val emulatorRule = FakeEmulatorRule()

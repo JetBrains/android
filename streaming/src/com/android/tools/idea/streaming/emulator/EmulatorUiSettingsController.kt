@@ -21,7 +21,6 @@ import com.android.adblib.shellAsLines
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.res.AppLanguageInfo
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
@@ -137,10 +136,10 @@ internal class EmulatorUiSettingsController(
   private var lastDensity = readPhysicalDensity
 
   override suspend fun populateModel() {
-    val context = CommandContext(project)
+    val context = CommandContext()
     executeCommand(POPULATE_COMMAND, context)
 
-    if (context.applicationId.isNotEmpty() && context.languageInfo.keys.contains(context.applicationId)) {
+    if (context.applicationId.isNotEmpty()) {
       executeCommand(POPULATE_LANGUAGE_COMMAND.format(context.applicationId), context)
     }
     processAccessibility(context.enabled, context.buttons)
@@ -164,7 +163,7 @@ internal class EmulatorUiSettingsController(
         FONT_SCALE_DIVIDER -> processFontScale(iterator)
         DENSITY_DIVIDER -> processScreenDensity(iterator)
         FOREGROUND_APPLICATION_DIVIDER -> processForegroundApplication(iterator, context)
-        APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator, context.languageInfo)
+        APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator)
       }
     }
   }
@@ -221,7 +220,7 @@ internal class EmulatorUiSettingsController(
     lastDensity = overrideDensity
   }
 
-  private fun processAppLanguage(iterator: ListIterator<String>, info: Map<String, AppLanguageInfo>) {
+  private fun processAppLanguage(iterator: ListIterator<String>) {
     val appLanguageLine = (if (iterator.hasNext()) iterator.next() else "")
     if (appLanguageLine.startsWith(DIVIDER_PREFIX)) {
       iterator.previous()
@@ -230,8 +229,9 @@ internal class EmulatorUiSettingsController(
     val match = Regex(APP_LANGUAGE_PATTERN).find(appLanguageLine) ?: return
     val applicationId = match.groupValues[1]
     val localeTag = match.groupValues[2].split(",").firstOrNull().takeIf { it != "null" } ?: ""
-    val localeConfig = info[applicationId]?.localeConfig ?: return
-    addLanguage(applicationId, localeConfig, localeTag)
+    AppLanguageService.getInstance(project).getAppLanguageInfo(deviceSerialNumber, applicationId)?.let {
+      addLanguage(applicationId, it.localeConfig, localeTag)
+    }
     readApplicationId = applicationId
     lastLocaleTag = localeTag
   }
@@ -384,10 +384,9 @@ internal class EmulatorUiSettingsController(
   /**
    * Context for handling adb commands.
    */
-  private class CommandContext(project: Project) {
+  private class CommandContext {
     val enabled = AccessibilityData()
     val buttons = AccessibilityData()
     var applicationId = ""
-    val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
   }
 }
