@@ -53,6 +53,7 @@ internal class DeviceUiSettingsController(
     model.fontScaleInPercent.setFromController(response.fontScale)
     model.screenDensitySettable.setFromController(response.densitySettable)
     model.screenDensity.setFromController(response.density)
+    model.differentFromDefault.setFromController(!response.originalValues)
     val languageInfo = AppLanguageService.getInstance(project).getAppLanguageInfo().associateBy { it.applicationId }
     languageInfo[response.foregroundApplicationId]?.localeConfig?.let { config ->
       addLanguage(response.foregroundApplicationId, config, response.appLocale)

@@ -86,6 +86,7 @@ class DeviceUiSettingsControllerTest {
 
   @Test
   fun testReadCustomValue() {
+    agent.setOriginalValues()
     agent.originalValues = false
     agent.darkMode = true
     agent.gestureNavigation = false
@@ -95,11 +96,10 @@ class DeviceUiSettingsControllerTest {
     agent.selectToSpeakOn = true
     agent.fontScale = CUSTOM_FONT_SCALE
     agent.screenDensity = CUSTOM_DENSITY
-    agent.setOriginalValues()
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = true)
-    assertThat(model.differentFromDefault.value).isFalse()
+    assertThat(model.differentFromDefault.value).isTrue()
   }
 
   @Test

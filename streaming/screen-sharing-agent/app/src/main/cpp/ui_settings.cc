@@ -401,6 +401,7 @@ void UiSettings::Get(UiSettingsResponse* response) {
   response->set_app_locale(state.app_locale_of(foreground_application_id));
   response->set_font_scale_settable(IsFontScaleSettable(state.font_scale()));
   response->set_density_settable(IsScreenDensitySettable(state.density()));
+  response->set_original_values(has_original_values());
 }
 
 void UiSettings::StoreInitialSettings(const UiSettingsState& state) {
