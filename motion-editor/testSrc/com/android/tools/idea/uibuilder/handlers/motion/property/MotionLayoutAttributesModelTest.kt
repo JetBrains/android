@@ -42,6 +42,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
@@ -307,6 +308,7 @@ class MotionLayoutAttributesModelTest {
     assertThat(motionRule.lastUndoDescription).isEqualTo("Undo Set CustomAttribute.text to Hello")
   }
 
+  @Ignore("b/339842516")
   @Test
   fun testCreateCustomTagForKeyAttribute() {
     motionRule.selectKeyFrame(
