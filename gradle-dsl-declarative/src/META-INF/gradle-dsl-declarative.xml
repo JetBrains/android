@@ -23,6 +23,7 @@
     <annotator language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeAnnotator"/>
 
     <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.declarative.DeclarativeVersionCatalogReferenceContributor"/>
+    <lang.commenter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeCommenter"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.uast">
     <uastLanguagePlugin implementation="com.android.tools.idea.gradle.declarative.DeclarativeUastLanguagePlugin"/>
