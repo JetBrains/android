@@ -32,9 +32,8 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.progress.coroutineToIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.platform.ide.progress.withBackgroundProgress
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.RunsInEdt
-import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
@@ -88,11 +87,9 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
     Truth.assertThat(svsAndroidModel!!.variants.size).isEqualTo(1)
 
     // Run AllVariantsSync using the GradleSyncExecutor.
-    val gradleModules = runBlocking {
-      withBackgroundProgress(project, "Test Android Gradle Sync") {
-        coroutineToIndicator {
-          syncExecutor.fetchGradleModels()
-        }
+    val gradleModules = runWithModalProgressBlocking(project, "Test Android Gradle Sync") {
+      coroutineToIndicator {
+        syncExecutor.fetchGradleModels()
       }
     }
     val allVariantsSyncAndroidModel = gradleModules.modules[0].findModel(GradleAndroidModelData::class.java)
