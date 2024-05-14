@@ -1133,7 +1133,7 @@ def _intellij_plugin_import_impl(ctx):
                 mac_arm = plugin_files_mac_arm,
                 win = plugin_files_win,
             ),
-            overwrite_plugin_version = False,
+            overwrite_plugin_version = ctx.attr.overwrite_plugin_version,
         ),
         # Force 'chkplugin' to run by marking its output as a validation output.
         # See https://bazel.build/extending/rules#validation_actions for details.
@@ -1150,6 +1150,7 @@ _intellij_plugin_import = rule(
         "resources_dirs": attr.string_list(),
         "exports": attr.label_list(providers = [JavaInfo], mandatory = True),
         "compress": attr.bool(),
+        "overwrite_plugin_version": attr.bool(),
         "_check_plugin": attr.label(
             default = Label("//tools/adt/idea/studio:check_plugin"),
             cfg = "host",
@@ -1162,7 +1163,7 @@ _intellij_plugin_import = rule(
     implementation = _intellij_plugin_import_impl,
 )
 
-def intellij_plugin_import(name, target_dir, exports, files = [], strip_prefix = "", resources = {}, **kwargs):
+def intellij_plugin_import(name, target_dir, exports, files = [], strip_prefix = "", resources = {}, overwrite_plugin_version = False, **kwargs):
     """This macro is for prebuilt IntelliJ plugins that are not already part of intellij-sdk."""
     resources_dirs, resources_list = _dict_to_lists(resources)
     _intellij_plugin_import(
@@ -1174,6 +1175,7 @@ def intellij_plugin_import(name, target_dir, exports, files = [], strip_prefix =
         resources_dirs = resources_dirs,
         exports = exports,
         compress = is_release(),
+        overwrite_plugin_version = overwrite_plugin_version,
         **kwargs
     )
 
