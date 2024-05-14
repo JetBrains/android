@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoPackage
 import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
@@ -71,7 +72,7 @@ class SystemImageTest {
     MockitoKt.whenever(details.androidVersion).thenReturn(AndroidVersion(30))
     MockitoKt.whenever(details.tags).thenReturn(listOf(SystemImageTags.WEAR_TAG))
 
-    val repoPackage = MockitoKt.mock<RepoPackage>()
+    val repoPackage = MockitoKt.mock<RemotePackage>()
     MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
 
     MockitoKt.whenever(repoPackage.path)
@@ -132,7 +133,7 @@ class SystemImageTest {
 
   private companion object {
     private fun mockRepoPackage(details: TypeDetails): RepoPackage {
-      val repoPackage = MockitoKt.mock<RepoPackage>()
+      val repoPackage = MockitoKt.mock<RemotePackage>()
       MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
 
       return repoPackage

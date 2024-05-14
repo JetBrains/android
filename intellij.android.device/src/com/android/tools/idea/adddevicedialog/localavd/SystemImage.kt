@@ -16,7 +16,10 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Immutable
+import com.android.repository.api.LocalPackage
+import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoPackage
+import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.devices.Abi
@@ -33,6 +36,7 @@ import kotlinx.collections.immutable.toImmutableSet
 internal data class SystemImage
 @VisibleForTesting
 internal constructor(
+  internal val isRemote: Boolean,
   internal val androidVersion: AndroidVersion,
   internal val services: Services,
   internal val abis: ImmutableCollection<Abi>,
@@ -50,7 +54,8 @@ internal constructor(
         StudioSettingsController.getInstance(),
       )
 
-      return manager.packages.remotePackages.values
+      return manager.packages.consolidatedPkgs.values
+        .map(UpdatablePackage::getRepresentative)
         .filter(RepoPackage::hasSystemImage)
         .map(::from)
         .toList()
@@ -58,9 +63,17 @@ internal constructor(
 
     @VisibleForTesting
     internal fun from(repoPackage: RepoPackage): SystemImage {
+      val isRemote =
+        when (repoPackage) {
+          is RemotePackage -> true
+          is LocalPackage -> false
+          else -> throw IllegalArgumentException(repoPackage.toString())
+        }
+
       val details = repoPackage.typeDetails as ApiDetailsType
 
       return SystemImage(
+        isRemote,
         details.androidVersion,
         repoPackage.getServices(details.androidVersion),
         details.abis.map(::valueOfString).toImmutableSet(),

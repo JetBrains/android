@@ -33,11 +33,13 @@ import com.android.tools.idea.adddevicedialog.TableColumnWidth
 import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
+import com.intellij.icons.ExpUiIcons
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.separator
@@ -133,6 +135,9 @@ private fun SystemImageTable(
 ) {
   val columns =
     listOf(
+      TableColumn("", TableColumnWidth.Weighted(1F), Comparator.comparing(SystemImage::isRemote)) {
+        if (it.isRemote) DownloadIcon()
+      },
       TableColumn(
         "System Image",
         TableColumnWidth.Weighted(1F),
@@ -185,6 +190,11 @@ internal constructor(
         else -> throw IllegalArgumentException(architecture.toString())
       }
   }
+}
+
+@Composable
+private fun DownloadIcon() {
+  Icon("expui/general/download.svg", null, ExpUiIcons::class.java)
 }
 
 @Composable
