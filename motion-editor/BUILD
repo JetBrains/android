@@ -6,7 +6,11 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.motion-editor.iml"],
     lint_baseline = "lint_baseline.xml",
-    tags = ["no_test_windows"],
+    tags = [
+        "no_test_linux",  # b/339842516
+        "no_test_mac",  # b/339842516
+        "no_test_windows",  # b/339842516
+    ],
     test_class = "com.android.tools.idea.uibuilder.handlers.motion.MotionTestSuite",
     test_data = [
         "//prebuilts/studio/layoutlib:build.prop",
