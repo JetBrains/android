@@ -113,7 +113,7 @@ private class MyClient(
 
   override fun refresh() {}
 
-  override fun saveSnapshot(path: Path) {}
+  override suspend fun saveSnapshot(path: Path) {}
 
   override val treeLoader: TreeLoader = mock()
   override val inLiveMode = false

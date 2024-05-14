@@ -41,10 +41,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileWrapper
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.io.write
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.nio.file.Path
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -55,9 +58,11 @@ class SnapshotActionTest {
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(fileOpenCaptureRule)!!
+  @get:Rule val edtRule = EdtRule()
 
   private var isConnected = false
 
+  @RunsInEdt
   @Test
   fun testSaveSnapshot() {
     val event = createEvent()
@@ -88,7 +93,7 @@ class SnapshotActionTest {
     fileOpenCaptureRule.checkEditorOpened(tempFile.name, focusEditor = true)
   }
 
-  private fun createEvent(): AnActionEvent {
+  private fun createEvent(): AnActionEvent = runBlocking {
     val inspector: LayoutInspector = mock()
     val model: InspectorModel = mock()
     val client: InspectorClient = mock()
@@ -108,7 +113,7 @@ class SnapshotActionTest {
     val dataContext = DataContext { dataId ->
       if (dataId == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null
     }
-    return AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), mock(), 0)
+    AnActionEvent(null, dataContext, ActionPlaces.UNKNOWN, Presentation(), mock(), 0)
   }
 
   @Suppress("SameParameterValue")

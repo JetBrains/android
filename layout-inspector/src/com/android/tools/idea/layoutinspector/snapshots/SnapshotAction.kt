@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
@@ -32,11 +33,13 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.platform.ide.progress.ModalTaskOwner
+import com.intellij.platform.ide.progress.TaskCancellation
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import icons.StudioIcons
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.intellij.openapi.application.invokeLater
 
 object SnapshotAction :
   DropDownAction(null, "Snapshot Export/Import", StudioIcons.LayoutInspector.Toolbar.SNAPSHOT),
@@ -91,14 +94,17 @@ object ExportSnapshotAction :
     val result = saveFileDialog.save(outputDir, fileName) ?: return
     val vFile = result.getVirtualFile(true)
     val path = vFile?.toNioPath() ?: return
-    val saveAndOpenSnapshot = Runnable {
+
+    runWithModalProgressBlocking(
+      ModalTaskOwner.project(project),
+      "Saving snapshot",
+      TaskCancellation.cancellable(),
+    ) {
       inspector.currentClient.saveSnapshot(path)
       invokeLater {
         FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), false)
       }
     }
-    ProgressManager.getInstance()
-      .runProcessWithProgressSynchronously(saveAndOpenSnapshot, "Saving snapshot", true, project)
   }
 }
 

@@ -788,7 +788,7 @@ private open class FakeInspectorClient(
 
   override fun refresh() = throw NotImplementedError()
 
-  override fun saveSnapshot(path: Path) = throw NotImplementedError()
+  override suspend fun saveSnapshot(path: Path) = throw NotImplementedError()
 
   override suspend fun doConnect() {}
 

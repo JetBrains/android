@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection
 
-import com.android.annotations.concurrency.Slow
 import com.android.sdklib.SystemImageTags
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
@@ -375,8 +374,7 @@ class AppInspectionInspectorClient(
     coroutineScope.launch(loggingExceptionHandler) { composeInspector?.updateSettings() }
   }
 
-  @Slow
-  override fun saveSnapshot(path: Path) {
+  override suspend fun saveSnapshot(path: Path) {
     val startTime = System.currentTimeMillis()
     val metadata = viewInspector?.saveSnapshot(path)
     metadata?.saveDuration = System.currentTimeMillis() - startTime

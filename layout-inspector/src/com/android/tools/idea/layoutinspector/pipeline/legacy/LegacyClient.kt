@@ -28,6 +28,7 @@ import com.android.tools.idea.layoutinspector.snapshots.saveLegacySnapshot
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.LEGACY_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
+import com.intellij.util.concurrency.ThreadingAssertions.assertBackgroundThread
 import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
 
@@ -119,8 +120,8 @@ class LegacyClient(
     reloadAllWindows()
   }
 
-  @Slow
-  override fun saveSnapshot(path: Path) {
+  override suspend fun saveSnapshot(path: Path) {
+    assertBackgroundThread()
     val startTime = System.currentTimeMillis()
     val snapshotMetadata =
       saveLegacySnapshot(

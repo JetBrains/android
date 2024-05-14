@@ -181,7 +181,7 @@ interface InspectorClient : Disposable {
    * Save a snapshot of the current view, including all data needed to reconstitute it (e.g.
    * properties information) to the given [path].
    */
-  fun saveSnapshot(path: Path)
+  suspend fun saveSnapshot(path: Path)
 
   /** The type of client (app inspection or legacy client) */
   val clientType: ClientType
@@ -246,7 +246,7 @@ object DisconnectedClient : InspectorClient {
 
   override fun refresh() {}
 
-  override fun saveSnapshot(path: Path) {}
+  override suspend fun saveSnapshot(path: Path) {}
 
   override val clientType: ClientType = ClientType.UNKNOWN_CLIENT_TYPE
 
