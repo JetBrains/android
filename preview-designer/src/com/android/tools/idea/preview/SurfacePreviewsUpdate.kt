@@ -362,11 +362,13 @@ private suspend fun renderAndTrack(
   val startMs = System.currentTimeMillis()
   sceneManager.render {
     onCompleteCallback(it)
+    val renderResult = sceneManager.renderResult
     refreshEventBuilder?.addPreviewRenderDetails(
-      sceneManager.renderResult?.isErrorResult() ?: false,
+      renderResult?.isErrorResult() ?: false,
       inflate,
       quality,
       System.currentTimeMillis() - startMs,
+      renderResult?.logger?.messages?.singleOrNull()?.throwable?.javaClass?.simpleName,
     )
   }
 }
