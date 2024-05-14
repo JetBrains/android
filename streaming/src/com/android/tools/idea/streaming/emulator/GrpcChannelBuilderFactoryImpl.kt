@@ -18,12 +18,10 @@ package com.android.tools.idea.streaming.emulator
 import com.android.tools.idea.io.grpc.ManagedChannelBuilder
 import com.android.tools.idea.io.grpc.netty.NettyChannelBuilder
 
-/**
- * A container of properties that may have different values in production environment and in tests.
- */
-open class RuntimeConfiguration {
+/** Default implementation of [GrpcChannelBuilderFactory]. */
+class GrpcChannelBuilderFactoryImpl : GrpcChannelBuilderFactory {
 
-  open fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {
+  override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {
     return NettyChannelBuilder.forAddress(host, port)
   }
 }

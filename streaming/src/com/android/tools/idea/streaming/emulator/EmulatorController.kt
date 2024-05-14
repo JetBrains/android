@@ -71,8 +71,8 @@ import com.android.tools.idea.protobuf.InvalidProtocolBufferException
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.protobuf.UnsafeByteOperations
 import com.android.tools.idea.protobuf.WireFormat
-import com.android.tools.idea.streaming.emulator.RuntimeConfigurationOverrider.getRuntimeConfiguration
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.Disposer
@@ -258,7 +258,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
   @Slow
   fun connectGrpc(maxInboundMessageSize: Int = 4 * 1024 * 1024) {
     connectionState = ConnectionState.CONNECTING
-    val channel = getRuntimeConfiguration()
+    val channel = service<GrpcChannelBuilderFactory>()
       .newGrpcChannelBuilder("localhost", emulatorId.grpcPort)
       .usePlaintext() // TODO: Add support for TLS encryption.
       .maxInboundMessageSize(maxInboundMessageSize)

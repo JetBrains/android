@@ -57,8 +57,12 @@ class FakeEmulatorRule : TestRule {
 
   private val emulatorResource = object : ExternalResource() {
     override fun before() {
-      val disposable = Disposer.newDisposable().also { disposable = it }
-      RuntimeConfigurationOverrider.overrideConfiguration(FakeEmulatorTestConfiguration())
+      val disposable = Disposer.newDisposable("FakeEmulatorRule").also { disposable = it }
+      val grpcFactory = object : GrpcChannelBuilderFactory {
+        override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> =
+            InProcessChannelBuilder.forName(FakeEmulator.grpcServerName(port))
+      }
+      ApplicationManager.getApplication().registerOrReplaceServiceInstance(GrpcChannelBuilderFactory::class.java, grpcFactory, disposable)
       val emulatorCatalog = RunningEmulatorCatalog.getInstance()
       System.setProperty("user.home", userHome.toString())
       Files.createDirectories(userHome.resolve("Desktop"))
@@ -86,7 +90,6 @@ class FakeEmulatorRule : TestRule {
         registrationDirectory = null
         val emulatorCatalog = RunningEmulatorCatalog.getInstance()
         emulatorCatalog.overrideRegistrationDirectory(null)
-        RuntimeConfigurationOverrider.clearOverride()
         AvdManagerConnection.resetConnectionFactory()
       }
     }
@@ -103,13 +106,6 @@ class FakeEmulatorRule : TestRule {
     val emulator = FakeEmulator(avdFolder, availableGrpcPort++, dir)
     emulators.add(emulator)
     return emulator
-  }
-
-  private inner class FakeEmulatorTestConfiguration : RuntimeConfiguration() {
-
-    override fun newGrpcChannelBuilder(host: String, port: Int): ManagedChannelBuilder<*> {
-      return InProcessChannelBuilder.forName(FakeEmulator.grpcServerName(port))
-    }
   }
 
   private inner class TestAvdManagerConnection(

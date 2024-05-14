@@ -44,6 +44,8 @@
     <keymapExtension implementation="com.android.tools.idea.streaming.actions.StreamingKeymapExtension"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.streaming.device.AudioSystemService"/>
+    <applicationService serviceInterface="com.android.tools.idea.streaming.emulator.GrpcChannelBuilderFactory"
+                        serviceImplementation="com.android.tools.idea.streaming.emulator.GrpcChannelBuilderFactoryImpl"/>
   </extensions>
 
   <actions>
