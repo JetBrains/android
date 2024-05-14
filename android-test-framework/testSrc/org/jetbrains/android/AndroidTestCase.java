@@ -6,7 +6,6 @@ import static com.android.tools.idea.testing.ThreadingAgentTestUtilKt.maybeCheck
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
@@ -21,7 +20,6 @@ import com.android.tools.tests.AdtTestProjectDescriptor;
 import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
-import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.FacetManager;
@@ -49,7 +47,6 @@ import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.ExtensionTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
@@ -81,9 +78,6 @@ import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider;
-import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
-import org.jetbrains.kotlin.idea.highlighting.KotlinDiagnosticHighlightVisitor;
-import org.jetbrains.kotlin.idea.highlighting.KotlinSemanticHighlightingVisitor;
 
 /**
  * NOTE: If you are writing a new test, consider using JUnit4 with
@@ -222,26 +216,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
       });
     });
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
-  }
-
-  protected void unmaskKotlinHighlightVisitor() {
-    List<HighlightVisitor> highlightVisitors = HighlightVisitor.EP_HIGHLIGHT_VISITOR.getExtensionList(myFixture.getProject()).stream()
-      .filter((x) -> !isKotlinHighlightVisitor(x)).toList();
-    ExtensionTestUtil.maskExtensions(
-      HighlightVisitor.EP_HIGHLIGHT_VISITOR,
-      highlightVisitors,
-      myFixture.getProjectDisposable(),
-      false,
-      myFixture.getProject()
-    );
-  }
-
-  private boolean isKotlinHighlightVisitor(HighlightVisitor visitor) {
-    // K1: a subtype of [AbstractKotlinHighlightVisitor]
-    // K2: [KotlinDiagnosticHighlightVisitor] and [KotlinSemanticHighlightingVisitor]
-    return visitor instanceof AbstractKotlinHighlightVisitor
-           || visitor instanceof KotlinDiagnosticHighlightVisitor
-           || visitor instanceof KotlinSemanticHighlightingVisitor;
   }
 
   private void cleanJdkTable() {
