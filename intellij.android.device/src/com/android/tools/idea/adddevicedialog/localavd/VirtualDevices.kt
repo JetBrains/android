@@ -80,7 +80,7 @@ internal class VirtualDevices(
       /* systemImageDescription= */ SystemImageDescription(systemImage),
       /* orientation= */ device.orientation,
       /* isCircular= */ false,
-      /* sdCard= */ device.expandedStorage.toString().ifEmpty { null },
+      /* sdCard= */ null, // TODO(341790805): pass SD card settings
       /* skinFolder= */ skin,
       /* hardwareProperties= */ properties,
       /* userSettings= */ null,

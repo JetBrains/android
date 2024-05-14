@@ -55,7 +55,7 @@ class VirtualDevicesTest {
         /* systemImageDescription = */ any(),
         /* orientation = */ eq(ScreenOrientation.PORTRAIT), // TODO: This seems wrong
         /* isCircular = */ eq(false),
-        /* sdCard = */ any(),
+        /* sdCard = */ isNull(),
         /* skinFolder = */ any(),
         /* hardwareProperties = */ hardwarePropertiesCaptor.capture(),
         /* userSettings = */ isNull(),

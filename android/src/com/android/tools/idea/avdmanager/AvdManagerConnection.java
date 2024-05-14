@@ -19,33 +19,9 @@ import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.SdkConstants.FD_LIB;
 import static com.android.SdkConstants.FN_HARDWARE_INI;
-import static com.android.sdklib.devices.Device.isAutomotive;
-import static com.android.sdklib.devices.Device.isAutomotiveDistantDisplay;
-import static com.android.sdklib.devices.Device.isRollable;
 import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
 import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISPLAY_SETTINGS_FILE;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_COUNT;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_DEFAULTS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_DIRECTION;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RADIUS;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RANGES;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_1_AT_POSTURE;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_ROLL_RESIZE_2_AT_POSTURE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_WIDTH;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_HEIGHT;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_DENSITY;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_CLUSTER_FLAG;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_WIDTH;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_HEIGHT;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_DENSITY;
-import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DISTANT_DISPLAY_FLAG;
 
 import static java.nio.file.StandardOpenOption.WRITE;
 
@@ -72,6 +48,7 @@ import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.internal.avd.SdCard;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
@@ -949,7 +926,7 @@ public class AvdManagerConnection {
                                    @NotNull SystemImageDescription systemImageDescription,
                                    @NotNull ScreenOrientation orientation,
                                    boolean isCircular,
-                                   @Nullable String sdCard,
+                                   @Nullable SdCard sdCard,
                                    @Nullable Path skinFolder,
                                    @NotNull Map<String, String> hardwareProperties,
                                    @Nullable Map<String, String> userSettings,
