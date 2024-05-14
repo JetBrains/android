@@ -27,7 +27,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
-import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.progress.ProgressManager
@@ -80,29 +79,21 @@ object ExportSnapshotAction :
       )
 
     // Open the Dialog which returns a VirtualFileWrapper when closed
-    val saveFileDialog: FileSaverDialog =
-      FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
-
-    var fileName: String =
-      inspector.currentClient.process.name +
-        "_" +
-        SimpleDateFormat("yyyy.MM.dd_HH.mm", Locale.US).format(Date())
-    fileName = fileName.replace(Regex("[^._A-Za-z0-9]"), "")
-    // Append extension manually to file name on MacOS because FileSaverDialog does not do it
-    // automatically.
-    fileName += if (SystemInfo.isMac) DOT_EXT_LAYOUT_INSPECTOR else ""
-    val result = saveFileDialog.save(outputDir, fileName) ?: return
-    val vFile = result.getVirtualFile(true)
-    val path = vFile?.toNioPath() ?: return
+    val saveFileDialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, project)
+    val fileName = getFileName(inspector.currentClient.process.name)
+    val saveFileResult = saveFileDialog.save(outputDir, fileName) ?: return
+    val virtualFile = saveFileResult.getVirtualFile(true)
+    val filePath = virtualFile?.toNioPath() ?: return
 
     runWithModalProgressBlocking(
       ModalTaskOwner.project(project),
       "Saving snapshot",
       TaskCancellation.cancellable(),
     ) {
-      inspector.currentClient.saveSnapshot(path)
+      inspector.currentClient.saveSnapshot(filePath)
       invokeLater {
-        FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), false)
+        FileEditorManager.getInstance(project)
+          .openEditor(OpenFileDescriptor(project, virtualFile), false)
       }
     }
   }
@@ -140,4 +131,16 @@ object ImportSnapshotAction :
     ProgressManager.getInstance()
       .runProcessWithProgressSynchronously(saveAndOpenSnapshot, "Opening snapshot", true, project)
   }
+}
+
+private fun getFileName(processName: String): String {
+  val currentDate = SimpleDateFormat("yyyy.MM.dd_HH.mm", Locale.US).format(Date())
+  var fileName = "${processName}_${currentDate}"
+  // Remove all characters that are not alphanumeric, dot or underscore.
+  // This reduces the risk of having an invalid filename across different OSs.
+  fileName = fileName.replace(Regex("[^._A-Za-z0-9]"), "")
+  // Append extension manually to file name on MacOS because FileSaverDialog does not do it
+  // automatically.
+  fileName += if (SystemInfo.isMac) DOT_EXT_LAYOUT_INSPECTOR else ""
+  return fileName
 }
