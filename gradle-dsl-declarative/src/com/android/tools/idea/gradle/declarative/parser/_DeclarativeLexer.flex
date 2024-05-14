@@ -43,10 +43,10 @@ TOKEN=[a-z][a-zA-Z0-9]*
 
 %%
 <IN_BLOCK_COMMENT> {
-  {BLOCK_COMMENT_START} { commentLevel++; return BLOCK_COMMENT_START; }
-  {BLOCK_COMMENT_END}  { if (--commentLevel == 0) yybegin(YYINITIAL); return BLOCK_COMMENT_END; }
-  [^*/]+               { return BLOCK_COMMENT_CONTENTS; }
-  [^]                  { return BLOCK_COMMENT_CONTENTS; }
+  {BLOCK_COMMENT_START} { commentLevel++; }
+  {BLOCK_COMMENT_END}  { if (--commentLevel == 0) { yybegin(YYINITIAL); return BLOCK_COMMENT; } }
+  [^*/]+               { }
+  [^]                  { }
 }
 
 <YYINITIAL> {
@@ -62,7 +62,7 @@ TOKEN=[a-z][a-zA-Z0-9]*
   "null"               { return NULL; }
 
   {LINE_COMMENT}       { return LINE_COMMENT; }
-  {BLOCK_COMMENT_START} { startBlockComment(); return BLOCK_COMMENT_START; }
+  "/*"                 { startBlockComment(); }
   {NUMBER}             { return NUMBER; }
   {STRING}             { return STRING; }
   {BOOLEAN}            { return BOOLEAN; }

@@ -169,6 +169,114 @@ class DeclarativeParserTest : ParsingTestCase("no_data_path_needed", "dcl", Decl
       )
   }
 
+  fun testOnlyComments() {
+    assertThat(
+      """
+        // comment
+        /* Some comment
+         foo()
+        */
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+          FILE
+            PsiComment(DeclarativeTokenType.line_comment)('// comment')
+            PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')
+        """.trimIndent()
+      )
+  }
+
+  fun testCommentsAfterEntity() {
+    assertThat(
+      """
+        dependencies {
+        }
+        /* Some comment
+         foo()
+        */
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+        FILE
+          DeclarativeBlockImpl(BLOCK)
+            DeclarativeIdentifierImpl(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('dependencies')
+            DeclarativeBlockGroupImpl(BLOCK_GROUP)
+              PsiElement(DeclarativeTokenType.{)('{')
+              PsiElement(DeclarativeTokenType.})('}')
+          PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')
+            """.trimIndent()
+      )
+  }
+
+
+  fun testCommentInsideBlock() {
+    assertThat(
+      """
+        // comment
+        dependencies {
+        /* Some comment
+         foo()
+        */
+        }
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+        FILE
+          PsiComment(DeclarativeTokenType.line_comment)('// comment')
+          DeclarativeBlockImpl(BLOCK)
+            DeclarativeIdentifierImpl(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('dependencies')
+            DeclarativeBlockGroupImpl(BLOCK_GROUP)
+              PsiElement(DeclarativeTokenType.{)('{')
+              PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/* Some comment\n foo()\n*/')
+              PsiElement(DeclarativeTokenType.})('}')
+        """.trimIndent()
+      )
+  }
+  fun testCommentInsideBlock2() {
+    assertThat(
+      """
+        plugins{
+         /*apply(libs.plugins.app)*/
+         apply(libs.plugins.lib)
+        }
+      """.toParseTreeText()
+    )
+      .isEqualTo(
+        """
+        FILE
+          DeclarativeBlockImpl(BLOCK)
+            DeclarativeIdentifierImpl(IDENTIFIER)
+              PsiElement(DeclarativeTokenType.token)('plugins')
+            DeclarativeBlockGroupImpl(BLOCK_GROUP)
+              PsiElement(DeclarativeTokenType.{)('{')
+              PsiComment(DeclarativeTokenType.BLOCK_COMMENT)('/*apply(libs.plugins.app)*/')
+              DeclarativeFactoryImpl(FACTORY)
+                DeclarativeIdentifierImpl(IDENTIFIER)
+                  PsiElement(DeclarativeTokenType.token)('apply')
+                PsiElement(DeclarativeTokenType.()('(')
+                DeclarativeArgumentsListImpl(ARGUMENTS_LIST)
+                  DeclarativeQualifiedImpl(QUALIFIED)
+                    DeclarativeQualifiedImpl(QUALIFIED)
+                      DeclarativeBareImpl(BARE)
+                        DeclarativeIdentifierImpl(IDENTIFIER)
+                          PsiElement(DeclarativeTokenType.token)('libs')
+                      PsiElement(DeclarativeTokenType..)('.')
+                      DeclarativeIdentifierImpl(IDENTIFIER)
+                        PsiElement(DeclarativeTokenType.token)('plugins')
+                    PsiElement(DeclarativeTokenType..)('.')
+                    DeclarativeIdentifierImpl(IDENTIFIER)
+                      PsiElement(DeclarativeTokenType.token)('lib')
+                PsiElement(DeclarativeTokenType.))(')')
+              PsiElement(DeclarativeTokenType.})('}')
+        """.trimIndent()
+      )
+  }
+
   fun testMultiArgumentFactory() {
     assertThat(
       """

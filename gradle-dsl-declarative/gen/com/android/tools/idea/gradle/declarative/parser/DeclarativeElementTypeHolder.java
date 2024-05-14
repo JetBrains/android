@@ -36,9 +36,7 @@ public interface DeclarativeElementTypeHolder {
   IElementType PROPERTY = new DeclarativeElementType("PROPERTY");
   IElementType QUALIFIED = new DeclarativeElementType("QUALIFIED");
 
-  IElementType BLOCK_COMMENT_CONTENTS = new DeclarativeTokenType("BLOCK_COMMENT_CONTENTS");
-  IElementType BLOCK_COMMENT_END = new DeclarativeTokenType("*/");
-  IElementType BLOCK_COMMENT_START = new DeclarativeTokenType("/*");
+  IElementType BLOCK_COMMENT = new DeclarativeTokenType("BLOCK_COMMENT");
   IElementType BOOLEAN = new DeclarativeTokenType("boolean");
   IElementType LINE_COMMENT = new DeclarativeTokenType("line_comment");
   IElementType NULL = new DeclarativeTokenType("null");

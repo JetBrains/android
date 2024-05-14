@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT_CONTENTS
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT_END
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT_START
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder
+import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BOOLEAN
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LINE_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.NULL
@@ -51,9 +50,7 @@ class DeclarativeHighlighter: SyntaxHighlighterBase() {
       NUMBER -> DeclarativeTextAttributes.NUMBER.keys
       BOOLEAN -> DeclarativeTextAttributes.KEYWORD.keys
       LINE_COMMENT -> DeclarativeTextAttributes.LINE_COMMENT.keys
-      BLOCK_COMMENT_START,
-      BLOCK_COMMENT_CONTENTS,
-      BLOCK_COMMENT_END -> DeclarativeTextAttributes.BLOCK_COMMENT.keys
+      BLOCK_COMMENT -> DeclarativeTextAttributes.BLOCK_COMMENT.keys
       NULL -> DeclarativeTextAttributes.KEYWORD.keys
       else -> return TextAttributesKey.EMPTY_ARRAY
     }
