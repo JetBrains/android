@@ -2,6 +2,3 @@
 # Bug component: 540609
 # See go/studio-test-owners for more.
 include platform/tools/base:/owners/design_tools_OWNERS
-
-paulmilian@google.com
-kovalp@google.com
