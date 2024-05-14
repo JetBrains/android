@@ -366,13 +366,13 @@ internal class DeviceView(
   }
 
   override fun canZoom(): Boolean =
-    connectionState == ConnectionState.CONNECTED
+      connectionState == ConnectionState.CONNECTED
 
   override fun computeActualSize(): Dimension =
-    computeActualSize(displayOrientationQuadrants)
+      computeActualSize(displayOrientationQuadrants)
 
   private fun computeActualSize(rotationQuadrants: Int): Dimension =
-    deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
+      deviceDisplaySize.rotatedByQuadrants(rotationQuadrants)
 
   override fun paintComponent(graphics: Graphics) {
     super.paintComponent(graphics)
@@ -534,7 +534,7 @@ internal class DeviceView(
   }
 
   private fun isInsideDisplay(event: MouseEvent) =
-    displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
+      displayRectangle?.contains(event.x * screenScale, event.y * screenScale) ?: false
 
   /**
    * Adds a [listener] to receive callbacks when the state of the agent's connection changes.
@@ -732,6 +732,7 @@ internal class DeviceView(
   }
 
   private inner class MyMouseListener : MouseAdapter() {
+
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (!isInsideDisplay(event)) return
@@ -848,12 +849,12 @@ internal class DeviceView(
 
     private fun modifiersToMetaState(modifiers: Int): Int {
       return modifierToMetaState(modifiers, SHIFT_DOWN_MASK, AMETA_SHIFT_ON) or
-        modifierToMetaState(modifiers, CTRL_DOWN_MASK, AMETA_CTRL_ON) or
-        modifierToMetaState(modifiers, META_DOWN_MASK, AMETA_META_ON) or
-        modifierToMetaState(modifiers, ALT_DOWN_MASK, AMETA_ALT_ON)
+          modifierToMetaState(modifiers, CTRL_DOWN_MASK, AMETA_CTRL_ON) or
+          modifierToMetaState(modifiers, META_DOWN_MASK, AMETA_META_ON) or
+          modifierToMetaState(modifiers, ALT_DOWN_MASK, AMETA_ALT_ON)
     }
 
     private fun modifierToMetaState(modifiers: Int, modifierMask: Int, metaState: Int) =
-      if ((modifiers and modifierMask) != 0) metaState else 0
+        if ((modifiers and modifierMask) != 0) metaState else 0
   }
 }

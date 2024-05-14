@@ -429,7 +429,7 @@ class EmulatorView(
   override fun canZoom(): Boolean = isConnected
 
   override fun computeActualSize(): Dimension =
-    computeActualSize(screenshotShape.orientation)
+      computeActualSize(screenshotShape.orientation)
 
   private fun computeActualSize(orientationQuadrants: Int): Dimension {
     val skin = emulator.getSkin(currentPosture?.posture)
@@ -558,8 +558,7 @@ class EmulatorView(
       val fh = frameRectangle.height.scaled(scale)
       val w = screenshotShape.width.scaled(scale)
       val h = screenshotShape.height.scaled(scale)
-      Rectangle((physicalWidth - fw) / 2 - frameRectangle.x.scaled(scale), (physicalHeight - fh) / 2 - frameRectangle.y.scaled(scale),
-                w, h)
+      Rectangle((physicalWidth - fw) / 2 - frameRectangle.x.scaled(scale), (physicalHeight - fh) / 2 - frameRectangle.y.scaled(scale), w, h)
     }
     else {
       val scale = roundScale(min(maxWidth.toDouble() / screenshotShape.width, maxHeight.toDouble() / screenshotShape.height))
@@ -600,11 +599,11 @@ class EmulatorView(
 
       cancelScreenshotFeed()
       val imageFormat = ImageFormat.newBuilder()
-        .setDisplay(displayId)
-        .setFormat(ImageFormat.ImgFormat.RGB888)
-        .setWidth(maxImageSize.width)
-        .setHeight(maxImageSize.height)
-        .build()
+          .setDisplay(displayId)
+          .setFormat(ImageFormat.ImgFormat.RGB888)
+          .setWidth(maxImageSize.width)
+          .setHeight(maxImageSize.height)
+          .build()
       val receiver = ScreenshotReceiver(maxImageSize, orientationQuadrants)
       screenshotReceiver = receiver
       screenshotFeed = emulator.streamScreenshot(imageFormat, receiver)
