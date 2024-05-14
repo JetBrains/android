@@ -66,6 +66,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.accessibility.AccessibleContext;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -407,6 +408,10 @@ public class StudioInteractionService {
         Collections.addAll(componentsToSearch, container.getComponents());
       }
       componentsFound.add(c);
+      if (c.getClass().toString().contains("Compose")) {
+        Set<AccessibleContext> contexts = getAllAccessibleContext(c.getAccessibleContext());
+        componentsFound.addAll(getComponentsFromContext(contexts));
+      }
     }
     return componentsFound;
   }
@@ -537,6 +542,44 @@ public class StudioInteractionService {
         invokeHyperlinkViaListener();
       }
     }
+  }
+
+  /**
+   * Given a set of AccessibleContext returns the Set of wrapper components from @ComposeJComponentsWrapper.kt if one
+   * exists
+   */
+  private Set<Component> getComponentsFromContext(Set<AccessibleContext> contexts) {
+    Set<Component> components = new HashSet<>();
+    for (AccessibleContext context : contexts) {
+      if (context.getAccessibleRole() != null && context.getAccessibleRole().toString().contains("label")) {
+        JLabel label = new ComposeJLabelWrapper(context);
+        components.add(label);
+      }
+      else if (context.getAccessibleRole() != null && context.getAccessibleRole().toString().contains("push button")) {
+        JButton button = new ComposeJButtonWrapper(context);
+        components.add(button);
+      }
+    }
+    return components;
+  }
+
+  /**
+   * Gets all the AccessibleContext from the children of the passed in context
+   */
+  private Set<AccessibleContext> getAllAccessibleContext(AccessibleContext context) {
+    Set<AccessibleContext> allContext = new HashSet<>();
+    if (context == null) {
+      return allContext;
+    }
+    allContext.add(context);
+    if (context.getAccessibleChildrenCount() == 0) {
+      return allContext;
+    }
+    for (int i = 0; i < context.getAccessibleChildrenCount(); i++) {
+      AccessibleContext c = context.getAccessibleChild(i).getAccessibleContext();
+      allContext.addAll(getAllAccessibleContext(c));
+    }
+    return allContext;
   }
 
   private static class JListItemComponent extends Component {

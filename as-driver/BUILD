@@ -1,6 +1,7 @@
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 
 java_binary(
     name = "as_driver",
@@ -33,6 +34,7 @@ java_binary(
     ],
     main_class = "NoMain",
     deps = [
+        "wrapper_class_file",
         "//tools/adt/idea/as-driver/proto:asdriver_proto",
         # "@maven//:io.grpc.grpc-all",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
@@ -41,7 +43,13 @@ java_binary(
         "//tools/adt/idea/bleak:intellij.android.bleak",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config_testlib",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
     ],
+)
+
+kotlin_library(
+    name = "wrapper_class_file",
+    srcs = glob(["agent/testSrc/com/android/tools/asdriver/inject/*.kt"]),
 )
 
 # managed by go/iml_to_build
@@ -59,6 +67,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/bleak:intellij.android.bleak[module]",
         "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module]",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
     ],
 )
 

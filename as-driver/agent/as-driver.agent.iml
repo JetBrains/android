@@ -22,5 +22,6 @@
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="module" module-name="intellij.android.bleak" />
     <orderEntry type="module" module-name="intellij.android.bleak-config" />
+    <orderEntry type="module" module-name="intellij.android.adt.ui.compose" />
   </component>
 </module>
