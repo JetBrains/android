@@ -23,6 +23,7 @@ import com.android.tools.adtui.status.InformationPopup
 import com.android.tools.adtui.status.InformationPopupImpl
 import com.android.tools.adtui.status.IssueNotificationAction
 import com.android.tools.idea.actions.BrowserHelpAction
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
@@ -221,7 +222,18 @@ private fun shouldHideImpl(status: IdeStatus, dataContext: DataContext): Boolean
   // Only show for running devices tool window.
   val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
   val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
-  val device = AndroidDebugBridge.getBridge()?.devices?.find { it.serialNumber == serial } ?: return true
+  val bridge = AdbService.getInstance().getDebugBridge(project).let {
+    if (!it.isDone || it.isCancelled) {
+      null
+    } else {
+      try {
+        it.get()
+      } catch (e: Exception) {
+        null
+      }
+    }
+  }
+  val device = bridge?.devices?.find { it.serialNumber == serial } ?: return true
   // Hide status when the device doesn't support Live Edit.
   if (!LiveEditProjectMonitor.supportLiveEdits(device)) {
     return true
