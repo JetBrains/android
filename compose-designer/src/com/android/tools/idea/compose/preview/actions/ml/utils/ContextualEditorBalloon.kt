@@ -318,7 +318,7 @@ private constructor(
       when (e?.keyCode) {
         VK_ENTER -> {
           panel.apply()
-          text.takeIf(String::isNotEmpty)?.let(::handle)
+          text.trim().takeIf(String::isNotEmpty)?.let(::handle)
           hide()
         }
         VK_UP -> previousConfig()
