@@ -22,20 +22,19 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.platform.ide.progress.ModalTaskOwner
 import com.intellij.platform.ide.progress.TaskCancellation
 import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import icons.StudioIcons
+import java.awt.EventQueue.invokeLater
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -123,13 +122,15 @@ object ImportSnapshotAction :
     val vFiles = openFileDialog.choose(project, VfsUtil.getUserHomeDir())
     if (vFiles.isEmpty()) return
     val vFile = vFiles[0]
-    val saveAndOpenSnapshot = Runnable {
+    runWithModalProgressBlocking(
+      ModalTaskOwner.project(project),
+      "Opening snapshot",
+      TaskCancellation.cancellable(),
+    ) {
       invokeLater {
         FileEditorManager.getInstance(project).openEditor(OpenFileDescriptor(project, vFile), true)
       }
     }
-    ProgressManager.getInstance()
-      .runProcessWithProgressSynchronously(saveAndOpenSnapshot, "Opening snapshot", true, project)
   }
 }
 

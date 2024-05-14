@@ -80,6 +80,7 @@ class SnapshotActionTest {
     fileOpenCaptureRule.checkEditorOpened(tempFile.name, focusEditor = false)
   }
 
+  @RunsInEdt
   @Test
   fun testLoadSnapshot() {
     val event = createEvent()
