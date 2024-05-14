@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -294,7 +295,7 @@ public final class DevicesSelectedService {
   static final class MapState {
     @NotNull
     @XMap
-    public Map<String, State> value = new HashMap<>();
+    public Map<String, State> value = new ConcurrentHashMap<>();
 
     @Override
     public int hashCode() {
