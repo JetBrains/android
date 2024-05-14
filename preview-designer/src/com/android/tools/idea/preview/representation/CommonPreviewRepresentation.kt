@@ -611,7 +611,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
       if (it is CancellationException && invalidateIfCancelled.get()) {
         invalidate()
       }
-      Disposer.dispose(refreshProgressIndicator)
+      // Progress indicators must be disposed in the ui thread
+      launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       previewViewModel.refreshCompleted(it is CancellationException, System.nanoTime() - startTime)
     }
     return refreshJob
