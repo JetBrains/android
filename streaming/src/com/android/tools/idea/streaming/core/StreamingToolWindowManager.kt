@@ -125,7 +125,6 @@ import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.EventQueue
 import java.awt.event.KeyEvent
-import java.text.Collator
 import java.time.Duration
 import java.util.function.Supplier
 
@@ -139,10 +138,6 @@ private val ID_KEY = Key.create<DeviceId>("device-id")
 
 private val ATTENTION_REQUEST_EXPIRATION = Duration.ofSeconds(30)
 private val REMOTE_DEVICE_REQUEST_EXPIRATION = Duration.ofSeconds(60)
-
-private val COLLATOR = Collator.getInstance()
-
-private val TAB_COMPARATOR = compareBy<Content, Any?>(COLLATOR) { it.tabName ?: "" }.thenBy { ID_KEY.get(it) }
 
 private val INACTIVE_ICON = StudioIcons.Shell.ToolWindows.EMULATOR
 @Suppress("UnstableApiUsage")
