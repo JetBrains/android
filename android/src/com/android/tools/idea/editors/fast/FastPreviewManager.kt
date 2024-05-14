@@ -257,12 +257,16 @@ class FastPreviewManager private constructor(
   val isDisposed: Boolean
     get() = _isDisposed.get()
 
-  private val scope = AndroidCoroutineScope(this, workerThread)
+  private val scope: CoroutineScope by lazy {
+    AndroidCoroutineScope(this, workerThread)
+  }
   private val daemonFactory: ((String) -> CompilerDaemonClient) = { version ->
     alternativeDaemonFactory?.invoke(version, project, log, scope) ?: embeddedDaemonFactory(project, log)
   }
-  private val daemonRegistry = DaemonRegistry(scope, daemonFactory).also {
-    Disposer.register(this@FastPreviewManager, it)
+  private val daemonRegistry : DaemonRegistry by lazy {
+    DaemonRegistry(scope, daemonFactory).also {
+      Disposer.register(this@FastPreviewManager, it)
+    }
   }
 
   /**
