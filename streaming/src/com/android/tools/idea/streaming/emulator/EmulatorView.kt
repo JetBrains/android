@@ -33,7 +33,6 @@ import com.android.emulator.control.Touch.EventExpiration.NEVER_EXPIRE
 import com.android.emulator.control.TouchEvent
 import com.android.emulator.control.WheelEvent
 import com.android.ide.common.util.Cancelable
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.analytics.toProto
@@ -1279,7 +1278,7 @@ class EmulatorView(
           alarm.addRequest({ recycledImage.set(null) }, CACHED_IMAGE_LIVE_TIME_MILLIS, ModalityState.any())
         }
         else if (!isSameAspectRatio(it.width, it.height, screenshot.displayShape.width, screenshot.displayShape.height, 0.01)) {
-          zoom(ZoomType.FIT) // Display dimensions changed - reset zoom level.
+          resetZoom() // Display dimensions changed - reset zoom level.
         }
       }
 

@@ -123,6 +123,12 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     return roundedScale < scaleToFit
   }
 
+  fun resetZoom() {
+    preferredSize = null
+    fractionalScaleRange = 0.0
+    revalidate()
+  }
+
   override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
     super.setBounds(x, y, width, height)
     if (fractionalScaleRange != 0.0 && fractionalScaleRange != roundDownIfGreaterThanOne(computeScaleToFit(computeMaxImageSize()))) {
