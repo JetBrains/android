@@ -24,6 +24,7 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceConnectedNotificationEvent
+import com.intellij.notification.BrowseNotificationAction
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
@@ -83,7 +84,7 @@ class DeviceCableMonitor : ProjectActivity {
 
       if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
         if (isStudioNotificationEnabled) {
-          showNotification(project,  "'${it.model}' is capable of faster USB connectivity. Upgrade the cable from ${speedToString(negotiatedSpeed)} to  ${speedToString(maxSpeed)}. <a href='https://d.android.com/r/studio-ui/usb-check'>Learn more</a>.")
+          showNotification(project,  "'${it.model}' is capable of faster USB connectivity. Upgrade the cable from ${speedToString(negotiatedSpeed)} to ${speedToString(maxSpeed)}.")
         }
       }
 
@@ -103,6 +104,8 @@ class DeviceCableMonitor : ProjectActivity {
 
   private fun showNotification(project: Project, text: String) {
     val notification = createNotification(text)
+    notification.addAction(BrowseNotificationAction("Learn more", "https://d.android.com/r/studio-ui/usb-check"))
+
     Notifications.Bus.notify(notification, project)
   }
 
