@@ -34,7 +34,7 @@ public class StudioCrashDetails {
   public final static StudioCrashDetails
     UNKNOWN = new StudioCrashDetails("<unknown>", false, -1, "", "", "", "", "");
   private final static String JVM_CRASH_FILE_STRING_FORMAT =
-    System.getProperty("user.home") + File.separator + "java_error_in_STUDIO_%d.log";
+    System.getProperty("user.home") + File.separator + "java_error_in_studio_%d.log";
 
   private final String myDescription;
   private final boolean myJvmCrash;
