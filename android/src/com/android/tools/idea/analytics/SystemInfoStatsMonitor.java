@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.analytics;
 
-import com.android.SdkConstants;
 import com.android.repository.Revision;
-import com.android.repository.api.LocalPackage;
+import com.android.sdklib.internal.avd.EmulatorPackage;
+import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.base.Joiner;
@@ -187,16 +186,11 @@ public class SystemInfoStatsMonitor {
   }
 
   @Nullable
-  private static Path getEmulatorCheckBinary(@NotNull AndroidSdkHandler handler) {
-    return AvdManagerConnection.getAvdManagerConnection(handler).getEmulatorCheckBinary();
-  }
-
-  @Nullable
   private static Integer runEmulatorCheck(@NotNull String argument,
                                           @NotNull Revision lowestEmulatorRevision,
                                           @NotNull AndroidSdkHandler handler) throws ExecutionException {
-    LocalPackage emulatorPackage = handler.getLocalPackage(SdkConstants.FD_EMULATOR,
-                                                           new StudioLoggerProgressIndicator(SystemInfoStatsMonitor.class));
+    EmulatorPackage emulatorPackage =
+      EmulatorPackages.getEmulatorPackage(handler, new StudioLoggerProgressIndicator(SystemInfoStatsMonitor.class));
     if (emulatorPackage == null) {
       throw new ExecutionException("No SDK emulator package");
     }
@@ -206,7 +200,7 @@ public class SystemInfoStatsMonitor {
       return null;
     }
 
-    Path checkBinary = getEmulatorCheckBinary(handler);
+    Path checkBinary = emulatorPackage.getEmulatorCheckBinary();
     if (checkBinary == null) {
       throw new ExecutionException("No emulator-check binary in the SDK emulator package");
     }

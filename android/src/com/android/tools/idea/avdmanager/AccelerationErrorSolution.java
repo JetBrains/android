@@ -20,6 +20,12 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
+import com.android.sdklib.internal.avd.EmulatorPackage;
+import com.android.sdklib.internal.avd.EmulatorPackages;
+import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.sdk.wizard.VmWizard;
 import com.android.tools.idea.sdk.install.VmType;
@@ -38,6 +44,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtilRt;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -163,10 +170,8 @@ public class AccelerationErrorSolution {
       case UPDATE_SYSTEM_IMAGES:
         return () -> {
           try {
-            AvdManagerConnection avdManager = AvdManagerConnection.getDefaultAvdManagerConnection();
-            showQuickFix(avdManager.getSystemImageUpdates());
-          }
-          finally {
+            showQuickFix(getSystemImagesRequiringUpdate());
+          } finally {
             reportBack();
           }
         };
@@ -258,6 +263,17 @@ public class AccelerationErrorSolution {
           }
         };
     }
+  }
+
+  private static List<String> getSystemImagesRequiringUpdate() {
+    AndroidSdkHandler sdk = AndroidSdks.getInstance().tryToChooseSdkHandler();
+    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(AccelerationErrorSolution.class);
+    Collection<SystemImage> systemImages = sdk.getSystemImageManager(progress).getImages();
+    EmulatorPackage emulator = EmulatorPackages.getEmulatorPackage(sdk, progress);
+    return systemImages.stream()
+        .filter(emulator.getSystemImageUpdateRequiredPredicate())
+        .map(systemImage -> systemImage.getPackage().getPath())
+        .toList();
   }
 
   /**

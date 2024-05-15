@@ -437,36 +437,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     }
   }
 
-  public void testFindEmulator() throws Exception {
-    // Create files that looks like Emulator binaries
-    String binaryName = SystemInfo.isWindows ? "emulator.exe" : "emulator";
-    InMemoryFileSystems.recordExistingFile(mSdkRoot.resolve("emulator/" + binaryName));
-    InMemoryFileSystems.recordExistingFile(mSdkRoot.resolve("tools/" + binaryName));
-
-    Path emulatorFile = mAvdManagerConnection.getEmulatorBinary();
-    assertNotNull("Could not find Emulator", emulatorFile);
-    Path emulatorDirectory = emulatorFile.getParent();
-    assertTrue("Found invalid Emulator", Files.isDirectory(emulatorDirectory));
-    assertEquals("Found wrong emulator", mSdkRoot.resolve("emulator"), emulatorDirectory);
-
-    // Remove the emulator package
-    Path emulatorPackage = mSdkRoot.resolve("emulator/package.xml");
-    Files.delete(emulatorPackage);
-
-    // Create a new AvdManagerConnection that doesn't remember the
-    // previous list of packages
-    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(mSdkRoot, mPrefsRoot);
-    AvdManagerConnection managerConnection =
-      new AvdManagerConnection(androidSdkHandler, mAvdFolder, MoreExecutors.newDirectExecutorService());
-
-    Path bogusEmulatorFile = managerConnection.getEmulatorBinary();
-    if (bogusEmulatorFile != null) {
-      // An emulator binary was found. It should not be anything that
-      // we created (especially not anything in /sdk/tools/).
-      assertFalse("Should not have found Emulator", bogusEmulatorFile.startsWith(mSdkRoot));
-    }
-  }
-
   // Note: This only tests a small part of startAvd(). We are not set up here to actually launch an Emulator instance.
   public void testStartAvdSkinless() throws Exception {
     MockLog log = new MockLog();

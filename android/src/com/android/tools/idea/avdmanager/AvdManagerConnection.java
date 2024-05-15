@@ -17,12 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.SdkConstants.FD_EMULATOR;
-import static com.android.SdkConstants.FD_LIB;
-import static com.android.SdkConstants.FN_HARDWARE_INI;
-import static com.android.sdklib.SystemImageTags.DEFAULT_TAG;
-import static com.android.sdklib.SystemImageTags.GOOGLE_APIS_TAG;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
-
 import static java.nio.file.StandardOpenOption.WRITE;
 
 import com.android.SdkConstants;
@@ -39,7 +34,6 @@ import com.android.repository.io.FileOpUtils;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.ISystemImage;
-import com.android.sdklib.PathFileWrapper;
 import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException;
 import com.android.sdklib.deviceprovisioner.DeviceActionException;
 import com.android.sdklib.devices.Abi;
@@ -47,11 +41,10 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.internal.avd.SdCard;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.sdklib.repository.IdDisplay;
-import com.android.sdklib.repository.targets.SystemImage;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.emulatorcommand.BootWithSnapshotEmulatorCommandBuilder;
@@ -133,30 +126,12 @@ public class AvdManagerConnection {
   private static final ILogger SDK_LOG = new LogWrapper(IJ_LOG);
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, null);
-  private static final int MNC_API_LEVEL_23 = 23;
-  private static final int LMP_MR1_API_LEVEL_22 = 22;
 
   private static final String INTERNAL_STORAGE_KEY = AvdManager.AVD_INI_DATA_PARTITION_SIZE;
   private static final String SD_CARD_STORAGE_KEY = AvdManager.AVD_INI_SDCARD_SIZE;
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
-  public static final Revision TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("25.0.0 rc1");
-  public static final Revision TOOLS_REVISION_25_0_2_RC3 = Revision.parseRevision("25.0.2 rc3");
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
-  protected static final Revision EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS = Revision.parseRevision("26.1.0");
-
-  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENDENCY_WITH_FIRST_QEMU2 = {
-    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 2),
-    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, GOOGLE_APIS_TAG, 2),
-    new SystemImageUpdateDependency(MNC_API_LEVEL_23, DEFAULT_TAG, 6),
-    new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 10),
-  };
-  private static final SystemImageUpdateDependency[] SYSTEM_IMAGE_DEPENDENCY_WITH_25_0_2_RC3 = {
-    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, DEFAULT_TAG, 4),
-    new SystemImageUpdateDependency(LMP_MR1_API_LEVEL_22, GOOGLE_APIS_TAG, 4),
-    new SystemImageUpdateDependency(MNC_API_LEVEL_23, DEFAULT_TAG, 8),
-    new SystemImageUpdateDependency(MNC_API_LEVEL_23, GOOGLE_APIS_TAG, 12),
-  };
 
   private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
   private static final @NotNull Map<Path, AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
@@ -178,6 +153,14 @@ public class AvdManagerConnection {
   private AvdManager myAvdManager;
 
   private final @Nullable Path myAvdHomeFolder;
+
+  public @Nullable EmulatorPackage getEmulator() {
+    if (mySdkHandler != null) {
+      LocalPackage emulatorPackage = mySdkHandler.getLocalPackage(FD_EMULATOR, REPO_LOG);
+      return emulatorPackage == null ? null : new EmulatorPackage(emulatorPackage);
+    }
+    return null;
+  }
 
   @NotNull
   public static AvdManagerConnection getDefaultAvdManagerConnection() {
@@ -217,6 +200,7 @@ public class AvdManagerConnection {
       sdkPath, path -> {
         try {
           return ourConnectionFactory.apply(handler, AndroidLocationsSingleton.INSTANCE.getGradleAvdLocation());
+
         }
         catch (AndroidLocationsException e) {
           IJ_LOG.warn(e);
@@ -281,14 +265,12 @@ public class AvdManagerConnection {
 
   @Nullable
   public String getSdCardSizeFromHardwareProperties() {
-    assert mySdkHandler != null;
-    return getHardwarePropertyDefaultValue(SD_CARD_STORAGE_KEY, mySdkHandler);
+    return getHardwarePropertyDefaultValue(SD_CARD_STORAGE_KEY);
   }
 
   @Nullable
   public String getInternalStorageSizeFromHardwareProperties() {
-    assert mySdkHandler != null;
-    return getHardwarePropertyDefaultValue(INTERNAL_STORAGE_KEY, mySdkHandler);
+    return getHardwarePropertyDefaultValue(INTERNAL_STORAGE_KEY);
   }
 
   /**
@@ -298,15 +280,12 @@ public class AvdManagerConnection {
    * @return the default value
    */
   @Nullable
-  private String getHardwarePropertyDefaultValue(@NotNull String name, @Nullable AndroidSdkHandler sdkHandler) {
-    if (ourHardwareProperties == null && sdkHandler != null) {
-      // get the list of possible hardware properties
-      // The file is in the emulator component
-      LocalPackage emulatorPackage = sdkHandler.getLocalPackage(FD_EMULATOR, new StudioLoggerProgressIndicator(AvdManagerConnection.class));
-      if (emulatorPackage != null) {
-        Path hardwareDefs = emulatorPackage.getLocation().resolve(FD_LIB + File.separator + FN_HARDWARE_INI);
-        ourHardwareProperties = HardwareProperties.parseHardwareDefinitions(
-          new PathFileWrapper(hardwareDefs), new LogWrapper(Logger.getInstance(AvdManagerConnection.class)));
+  private String getHardwarePropertyDefaultValue(@NotNull String name) {
+    if (ourHardwareProperties == null) {
+      EmulatorPackage emulator = getEmulator();
+      if (emulator != null) {
+        ourHardwareProperties =
+            emulator.getHardwareProperties(new LogWrapper(AvdManagerConnection.class));
       }
     }
     HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
@@ -314,51 +293,9 @@ public class AvdManagerConnection {
   }
 
   @Nullable
-  private Path getBinaryLocation(@NotNull String filename) {
-    assert mySdkHandler != null;
-    LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, REPO_LOG);
-    if (sdkPackage == null) {
-      return null;
-    }
-    Path binaryFile = sdkPackage.getLocation().resolve(filename);
-    if (CancellableFileIo.notExists(binaryFile)) {
-      return null;
-    }
-    return binaryFile;
-  }
-
-  @Nullable
   public Path getEmulatorBinary() {
-    return getBinaryLocation(SdkConstants.FN_EMULATOR);
-  }
-
-  @Nullable
-  public Path getEmulatorCheckBinary() {
-    return getBinaryLocation(SdkConstants.FN_EMULATOR_CHECK);
-  }
-
-  /**
-   * Return the SystemImageUpdateDependencies for the current emulator
-   * or null if no emulator is installed or if the emulator is not an qemu2 emulator.
-   */
-  @Nullable
-  private SystemImageUpdateDependency[] getSystemImageUpdateDependencies() {
-    assert mySdkHandler != null;
-    LocalPackage info = mySdkHandler.getSdkManager(REPO_LOG).getPackages().getLocalPackages().get(SdkConstants.FD_EMULATOR);
-    if (info == null) {
-      return null;
-    }
-    if (info.getVersion().compareTo(TOOLS_REVISION_25_0_2_RC3) >= 0) {
-      return SYSTEM_IMAGE_DEPENDENCY_WITH_25_0_2_RC3;
-    }
-    if (info.getVersion().compareTo(TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0) {
-      return SYSTEM_IMAGE_DEPENDENCY_WITH_FIRST_QEMU2;
-    }
-    return null;
-  }
-
-  private boolean hasQEMU2Installed() {
-    return getSystemImageUpdateDependencies() != null;
+    EmulatorPackage emulator = getEmulator();
+    return emulator == null ? null : emulator.getEmulatorBinary();
   }
 
   private boolean hasPlatformToolsForQEMU2Installed() {
@@ -372,34 +309,9 @@ public class AvdManagerConnection {
   }
 
   private boolean hasSystemImagesForQEMU2Installed() {
-    return getSystemImageUpdates().isEmpty();
-  }
-
-  /**
-   * The qemu2 emulator has changes in the system images for platform 22 and 23 (Intel CPU architecture only).
-   * This method will generate package updates if we detect that we have outdated system images for platform
-   * 22 and 23. We also check the addon system images which includes the Google API.
-   *
-   * @return a list of package paths that need to be updated.
-   */
-  @NotNull
-  public List<String> getSystemImageUpdates() {
-    List<String> requested = new ArrayList<>();
-    SystemImageUpdateDependency[] dependencies = getSystemImageUpdateDependencies();
-    if (dependencies == null) {
-      return requested;
-    }
-
-    assert mySdkHandler != null;
-    for (SystemImage systemImage : mySdkHandler.getSystemImageManager(REPO_LOG).getImages()) {
-      for (SystemImageUpdateDependency dependency : dependencies) {
-        if (dependency.updateRequired(systemImage)) {
-          requested.add(systemImage.getPackage().getPath());
-          break;
-        }
-      }
-    }
-    return requested;
+    EmulatorPackage emulator = getEmulator();
+    if (mySdkHandler == null || emulator == null) return false;
+    return mySdkHandler.getSystemImageManager(REPO_LOG).getImages().stream().noneMatch(emulator.getSystemImageUpdateRequiredPredicate());
   }
 
   /**
@@ -584,7 +496,13 @@ public class AvdManagerConnection {
                                                                 @NotNull AvdInfo avd,
                                                                 @NotNull RequestType requestType,
                                                                 @NotNull EmulatorCommandBuilderFactory factory) {
-    Path emulatorBinary = getEmulatorBinary();
+    EmulatorPackage emulator = getEmulator();
+    if (emulator == null) {
+      IJ_LOG.error("No emulator binary found!");
+      return Futures.immediateFailedFuture(new DeviceActionException("No emulator installed"));
+    }
+
+    Path emulatorBinary = emulator.getEmulatorBinary();
     if (emulatorBinary == null) {
       IJ_LOG.error("No emulator binary found!");
       return Futures.immediateFailedFuture(new DeviceActionException("No emulator binary found"));
@@ -618,7 +536,7 @@ public class AvdManagerConnection {
     }
 
     // If we're using qemu2, it has its own progress bar, so put ours in the background. Otherwise, show it.
-    ProgressWindow p = hasQEMU2Installed()
+    ProgressWindow p = emulator.isQemu2()
                        ? new BackgroundableProcessIndicator(project, "Launching emulator", PerformInBackgroundOption.ALWAYS_BACKGROUND,
                                                             "", "", false)
                        : new ProgressWindow(false, true, project);
@@ -691,21 +609,15 @@ public class AvdManagerConnection {
    * @return true if the Emulator version is the desired version or higher
    */
   public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
-    if (mySdkHandler == null) return false; // Don't know, so guess
-    ProgressIndicator log = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
-    LocalPackage sdkPackage = mySdkHandler.getLocalPackage(SdkConstants.FD_EMULATOR, log);
-    if (sdkPackage == null) {
-      return false;
-    }
-    return (sdkPackage.getVersion().compareTo(desired) >= 0);
+    EmulatorPackage emulator = getEmulator();
+    return emulator != null && emulator.getVersion().compareTo(desired) >= 0;
   }
 
   /**
    * Write HTTP Proxy information to a temporary file.
    */
   private @NotNull Optional<Path> writeParameterFile() {
-    if (!emulatorVersionIsAtLeast(EMULATOR_REVISION_SUPPORTS_STUDIO_PARAMS)) {
-      // Older versions of the emulator don't accept this information.
+    if (!getEmulator().hasStudioParamsSupport()) {
       return Optional.empty();
     }
     HttpConfigurable httpInstance = HttpConfigurable.getInstance();
@@ -867,7 +779,11 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return AccelerationErrorCode.UNKNOWN_ERROR;
     }
-    Path emulatorBinary = getEmulatorBinary();
+    EmulatorPackage emulator = getEmulator();
+    if (emulator == null) {
+      return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
+    }
+    Path emulatorBinary = emulator.getEmulatorBinary();
     if (emulatorBinary == null) {
       return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
     }
@@ -875,11 +791,11 @@ public class AvdManagerConnection {
       // TODO: The emulator -accel-check current does not check for the available memory, do it here instead:
       return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
     }
-    if (!hasQEMU2Installed()) {
+    if (!emulator.isQemu2()) {
       return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
     }
     GeneralCommandLine commandLine = new GeneralCommandLine();
-    Path checkBinary = getEmulatorCheckBinary();
+    Path checkBinary = emulator.getEmulatorCheckBinary();
     if (checkBinary != null) {
       commandLine.setExePath(checkBinary.toString());
       commandLine.addParameter("accel");
@@ -1169,31 +1085,5 @@ public class AvdManagerConnection {
     }
     // Maximum memory allocatable to emulator - 32G. Only used if non-Oracle JRE.
     return 32L * Storage.Unit.GiB.getNumberOfBytes();
-  }
-
-  private static class SystemImageUpdateDependency {
-    private final int myFeatureLevel;
-    private final IdDisplay myTag;
-    private final int myRequiredMajorRevision;
-
-    SystemImageUpdateDependency(int featureLevel, @NotNull IdDisplay tag, int requiredMajorRevision) {
-      myFeatureLevel = featureLevel;
-      myTag = tag;
-      myRequiredMajorRevision = requiredMajorRevision;
-    }
-
-    public boolean updateRequired(@NotNull SystemImage image) {
-      return updateRequired(image.getPrimaryAbiType(), image.getAndroidVersion().getFeatureLevel(), image.getTag(), image.getRevision());
-    }
-
-    public boolean updateRequired(@NotNull String abiType, int featureLevel, @NotNull IdDisplay tag, @NotNull Revision revision) {
-      Abi abi = Abi.getEnum(abiType);
-      boolean isAvdIntel = abi == Abi.X86 || abi == Abi.X86_64;
-
-      return isAvdIntel &&
-             featureLevel == myFeatureLevel &&
-             myTag.equals(tag) &&
-             revision.getMajor() < myRequiredMajorRevision;
-    }
   }
 }
