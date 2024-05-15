@@ -26,6 +26,7 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.run.NativeDebugOnRemoteDeviceChecker;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
@@ -630,6 +631,11 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
     if (mySelectedAndroidDebugger != null) {
       properties.setValue(DEBUGGER_ID_PROPERTY, mySelectedAndroidDebugger.getId());
+      NativeDebugOnRemoteDeviceChecker deviceChecker = new NativeDebugOnRemoteDeviceChecker(myProject);
+      boolean ok = deviceChecker.showWarningIfNeeded(mySelectedAndroidDebugger, selectedDevice.getSerialNumber());
+      if (!ok) {
+        return;
+      }
     }
 
     mySelectedRunConfiguration = (RunConfigurationWithDebugger)myDebuggerRunConfigCombo.getSelectedItem();
