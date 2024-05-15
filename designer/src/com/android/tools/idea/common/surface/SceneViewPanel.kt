@@ -156,7 +156,6 @@ internal class SceneViewPanel(
       val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
       val peerPanel =
         SceneViewPeerPanel(
-            disposable,
             sceneView,
             labelPanel,
             statusIconAction,

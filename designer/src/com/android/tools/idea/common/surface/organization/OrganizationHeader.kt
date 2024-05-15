@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
@@ -30,7 +29,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.common.AdtUiUtils
-import com.intellij.icons.ExpUiIcons
+import com.intellij.icons.AllIcons
 import com.intellij.util.ui.UIUtil
 import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
@@ -43,11 +42,6 @@ import org.jetbrains.jewel.ui.component.Text
 
 private val toolbarSpacing = 6.dp
 private val fontSize = UIUtil.getFontSize(UIUtil.FontSize.SMALL)
-private const val iconOpened = "expui/general/chevronDown.svg"
-private const val iconClosed = "expui/general/chevronRight.svg"
-private const val descriptionOpened = "Hide preview group"
-private const val descriptionClosed = "Show preview group"
-private val iconClass = ExpUiIcons::General::class.java
 
 @Composable
 fun OrganizationHeader(group: OrganizationGroup) {
@@ -58,8 +52,11 @@ fun OrganizationHeader(group: OrganizationGroup) {
       modifier = Modifier.testTag("openButton"),
       onClick = { group.setOpened(!opened.value) },
     ) {
-      if (opened.value) Icon(iconOpened, descriptionOpened, iconClass)
-      else Icon(iconClosed, descriptionClosed, iconClass)
+      Icon(
+        if (opened.value) "general/arrowDown.svg" else "general/arrowRight.svg",
+        "",
+        AllIcons::General::class.java,
+      )
     }
     Spacer(Modifier.width(toolbarSpacing))
     Text(
