@@ -151,8 +151,8 @@ string JObject::ToString() const {
   Jni jni = GetJni();
   JClass clazz = GetClass(jni);
   jmethodID method = clazz.GetDeclaredOrInheritedMethod("toString", "()Ljava/lang/String;");
-  JString str = JString(jni, jni->CallObjectMethod(ref_, method));
-  if (str.IsNull()) {
+  jobject jstr = jni->CallObjectMethod(ref_, method);
+  if (jstr == nullptr) {
     JThrowable exception = jni.GetAndClearException();
     if (exception.IsNull()) {
       Log::W("%s.toString returned null", clazz.GetName(jni).c_str());
@@ -161,9 +161,12 @@ string JObject::ToString() const {
     }
     return "";
   }
-  return str.GetValue();
+  return jni.GetStringValue(jstr);
 }
 
+string JObject::GetStringValue() const {
+  return Jni(GetJni()).GetStringValue(ref_);
+}
 void JObject::DeleteRef() noexcept {
   if (ref_ != nullptr) {
     if (jni_env_ == nullptr) {
@@ -369,6 +372,17 @@ JClass Jni::GetClass(const char* name) const {
     Log::Fatal(CLASS_NOT_FOUND, "Unable to find the %s class", name);
   }
   return JClass(jni_env_, clazz);
+}
+
+string Jni::GetStringValue(jobject string_object) const {
+  if (string_object == nullptr) {
+    Log::Fatal(NULL_POINTER, "Jni::GetStringValue is called on a null object");
+  }
+  jstring str = static_cast<jstring>(string_object);
+  const char* localName = jni_env_->GetStringUTFChars(str, nullptr);
+  string result(localName);
+  jni_env_->ReleaseStringUTFChars(str, localName);
+  return result;
 }
 
 JCharArray Jni::NewCharArray(int32_t length) const {

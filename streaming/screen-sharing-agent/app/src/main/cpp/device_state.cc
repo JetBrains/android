@@ -40,7 +40,7 @@ DeviceState::DeviceState(const JObject& device_state) {
   InitializeStatics(device_state);
 
   identifier_ = device_state.CallIntMethod(get_identifier_method_);
-  name_ = device_state.CallObjectMethod(get_name_method_).ToString();
+  name_ = device_state.CallObjectMethod(get_name_method_).GetStringValue();
   Log::D("DeviceState: identifier=%d, name=%s", identifier_, name_.c_str());
   JObject configuration = device_state.CallObjectMethod(get_configuration_method_);
 

@@ -352,9 +352,11 @@ public:
 
   JClass GetClass(const char* name) const;
 
+  [[nodiscard]] std::string GetStringValue(jobject string_object) const;
+
   [[nodiscard]] JCharArray NewCharArray(int32_t length) const;
   bool CheckAndClearException() const;
-  JThrowable GetAndClearException() const;
+  [[nodiscard]] JThrowable GetAndClearException() const;
 
 private:
   JNIEnv* jni_env_;
