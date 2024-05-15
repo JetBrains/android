@@ -413,8 +413,8 @@ class ViewLayoutInspectorClient(
   }
 
   private suspend fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
-    messenger
-      .sendCommand {
+    val response =
+      messenger.sendCommand {
         captureSnapshotCommand =
           CaptureSnapshotCommand.newBuilder()
             .apply {
@@ -423,27 +423,24 @@ class ViewLayoutInspectorClient(
             }
             .build()
       }
-      .captureSnapshotResponse
-      ?.let { snapshotResponse ->
-        val composeInfo =
-          composeInspector?.let { composeInspector ->
-            generation++
-            snapshotResponse.windowRoots.idsList.associateWith { id ->
-              Pair(
-                composeInspector.getComposeables(id, generation, forSnapshot = true),
-                composeInspector.getAllParameters(id),
-              )
-            }
-          } ?: mapOf()
 
-        saveAppInspectorSnapshot(
-          path,
-          snapshotResponse,
-          composeInfo,
-          snapshotMetadata,
-          model.foldInfo,
-        )
-      } ?: throw Exception()
+    val snapshotResponse =
+      response.captureSnapshotResponse ?: throw Exception("Failed to receive snapshot from agent.")
+
+    val composeInfo =
+      if (composeInspector != null) {
+        generation++
+        snapshotResponse.windowRoots.idsList.associateWith { rootViewId ->
+          Pair(
+            composeInspector.getComposeables(rootViewId, generation, forSnapshot = true),
+            composeInspector.getAllParameters(rootViewId),
+          )
+        }
+      } else {
+        emptyMap()
+      }
+
+    saveAppInspectorSnapshot(path, snapshotResponse, composeInfo, snapshotMetadata, model.foldInfo)
   }
 }
 
