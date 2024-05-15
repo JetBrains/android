@@ -63,7 +63,7 @@ private const val SELECT_TO_SPEAK_SERVICE_CLASS = "com.google.android.accessibil
 internal const val SELECT_TO_SPEAK_SERVICE_NAME = "$TALKBACK_PACKAGE_NAME/$SELECT_TO_SPEAK_SERVICE_CLASS"
 private const val PHYSICAL_DENSITY_PATTERN = "Physical density: (\\d+)"
 private const val OVERRIDE_DENSITY_PATTERN = "Override density: (\\d+)"
-private const val FOREGROUND_PROCESS_PATTERN = "\\d*:(\\S*)/\\S* \\(top-activity\\)"
+private const val FOREGROUND_APPLICATION_PATTERN = "mFocusedApp=ActivityRecord.* .* (\\S*)/\\S* "
 private const val APP_LANGUAGE_PATTERN = "Locales for (.+) for user \\d+ are \\[(.*)]"
 
 internal const val POPULATE_COMMAND =
@@ -82,7 +82,7 @@ internal const val POPULATE_COMMAND =
   "echo $DENSITY_DIVIDER; " +
   "wm density; " +
   "echo $FOREGROUND_APPLICATION_DIVIDER; " +
-  "dumpsys activity processes | grep top-activity; "
+  "dumpsys activity activities | grep mFocusedApp=ActivityRecord; "
 
 internal const val POPULATE_LANGUAGE_COMMAND =
   "echo $APP_LANGUAGE_DIVIDER; " +
@@ -163,7 +163,7 @@ internal class EmulatorUiSettingsController(
         ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, context.buttons)
         FONT_SCALE_DIVIDER -> processFontScale(iterator)
         DENSITY_DIVIDER -> processScreenDensity(iterator)
-        FOREGROUND_APPLICATION_DIVIDER -> processForegroundProcess(iterator, context)
+        FOREGROUND_APPLICATION_DIVIDER -> processForegroundApplication(iterator, context)
         APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator, context.languageInfo)
       }
     }
@@ -236,13 +236,13 @@ internal class EmulatorUiSettingsController(
     lastLocaleTag = localeTag
   }
 
-  private fun processForegroundProcess(iterator: ListIterator<String>, context: CommandContext) {
+  private fun processForegroundApplication(iterator: ListIterator<String>, context: CommandContext) {
     val line = if (iterator.hasNext()) iterator.next() else return
     if (line.startsWith(DIVIDER_PREFIX)) {
       iterator.previous()
       return
     }
-    val match = Regex(FOREGROUND_PROCESS_PATTERN).find(line) ?: return
+    val match = Regex(FOREGROUND_APPLICATION_PATTERN).find(line) ?: return
     context.applicationId = match.groupValues[1]
   }
 

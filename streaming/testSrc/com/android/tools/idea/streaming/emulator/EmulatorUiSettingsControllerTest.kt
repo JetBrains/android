@@ -65,8 +65,8 @@ class EmulatorUiSettingsControllerTest {
     val deviceSelector = uiRule.emulatorDeviceSelector
     adb.configureShellCommand(deviceSelector, "cmd uimode night yes", "Night mode: yes")
     adb.configureShellCommand(deviceSelector, "cmd uimode night no", "Night mode: no")
-    adb.configureShellCommand(deviceSelector, "cmd locale set-app-locales com.example.test.process --locales da", "")
-    adb.configureShellCommand(deviceSelector, "cmd locale set-app-locales com.example.test.process --locales ", "")
+    adb.configureShellCommand(deviceSelector, "cmd locale set-app-locales com.example.test.app1 --locales da", "")
+    adb.configureShellCommand(deviceSelector, "cmd locale set-app-locales com.example.test.app1 --locales ", "")
     adb.configureShellCommand(deviceSelector, "settings put system font_scale 2", "")
     adb.configureShellCommand(deviceSelector, "settings put system font_scale 0.75", "")
     adb.configureShellCommand(deviceSelector, "wm density 408", "Physical density: 480\nOverride density: 408")

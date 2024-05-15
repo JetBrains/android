@@ -165,9 +165,9 @@ void ProcessDensity(stringstream* stream, UiSettingsState* state) {
   state->set_density(override_density);
 }
 
-// Example: "    Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.process1/u0a405 (top-activity)"
-bool ParseForegroundProcessLine(const string& line, string* foreground_application_id) {
-  regex pattern("\\d*:(\\S*)/\\S* \\(top-activity\\)");
+// Example: "  mFocusedApp=ActivityRecord{64d5519 u0 com.example.app/com.example.app.MainActivity t8}"
+bool ParseForegroundApplicationLine(const string& line, string* foreground_application_id) {
+  regex pattern("mFocusedApp=ActivityRecord.* .* (\\S*)/\\S* ");
   smatch match;
   try {
     if (!regex_search(line, match, pattern) || match.size() != 2) {
@@ -180,7 +180,7 @@ bool ParseForegroundProcessLine(const string& line, string* foreground_applicati
   return true;
 }
 
-void ProcessForegroundProcess(stringstream* stream, CommandContext* context) {
+void ProcessForegroundApplication(stringstream* stream, CommandContext* context) {
   string line;
   string locale;
   string application_id;
@@ -192,13 +192,13 @@ void ProcessForegroundProcess(stringstream* stream, CommandContext* context) {
       return;
     }
     string foreground_application_id;
-    if (ParseForegroundProcessLine(line, &foreground_application_id)) {
+    if (ParseForegroundApplicationLine(line, &foreground_application_id)) {
       context->foreground_application_id = foreground_application_id;
     }
   }
 }
 
-// Example: "Locales for com.example.process for user 0 are [es-CL,es]"
+// Example: "Locales for com.example.app for user 0 are [es-CL,es]"
 bool ParseAppLanguageLine(const string& line, string* application_id, string* locales) {
   regex app_locale_pattern("Locales for (.+) for user \\d+ are \\[(.*)\\]");
   smatch match;
@@ -257,7 +257,7 @@ void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandConte
     if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &context->buttons);
     if (line == FONT_SCALE_DIVIDER) ProcessFontScale(&stream, state);
     if (line == DENSITY_DIVIDER) ProcessDensity(&stream, state);
-    if (line == FOREGROUND_APPLICATION_DIVIDER) ProcessForegroundProcess(&stream, context);
+    if (line == FOREGROUND_APPLICATION_DIVIDER) ProcessForegroundApplication(&stream, context);
     if (line == APP_LANGUAGE_DIVIDER) ProcessAppLanguage(&stream, state);
   }
 }
@@ -373,7 +373,7 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
     "echo " DENSITY_DIVIDER "; "
     "wm density; "
     "echo " FOREGROUND_APPLICATION_DIVIDER "; "
-    "dumpsys activity processes | grep top-activity; ";
+    "dumpsys activity activities | grep mFocusedApp=ActivityRecord; ";
 
   string output = ExecuteShellCommand(command.c_str());
   ProcessAdbOutput(TrimEnd(output), state, context);

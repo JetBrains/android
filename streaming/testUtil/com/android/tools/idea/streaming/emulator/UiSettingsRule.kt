@@ -38,8 +38,8 @@ const val DEFAULT_FONT_SCALE = 100
 const val CUSTOM_FONT_SCALE = 130
 const val DEFAULT_DENSITY = 480
 const val CUSTOM_DENSITY = 560
-const val APPLICATION_ID1 = "com.example.test.process1"
-const val APPLICATION_ID2 = "com.example.test.process2"
+const val APPLICATION_ID1 = "com.example.test.app1"
+const val APPLICATION_ID2 = "com.example.test.app2"
 
 /**
  * Supplies fakes for UI settings tests
@@ -109,8 +109,7 @@ class UiSettingsRule : ExternalResource() {
       -- Density --
       Physical density: $physicalDensity$overrideLine
       -- Foreground Application --
-         Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
-         Proc # 0: fg     T/A/TOP  LCMNFU  t: 0 17132:com.example.test.process1/u0a405 (top-activity)
+        mFocusedApp=ActivityRecord{64d5519 u0 $applicationId/com.example.test.MainActivity t8}
     """.trimIndent().replace("\n\n", "\n") // trim spaces and remove all empty lines
     adb.configureShellCommand(deviceSelector, command, response)
 
