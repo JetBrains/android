@@ -211,7 +211,7 @@ internal class CodeMerger(private val project: Project) {
     val mergedDocument = PsiDocumentManager.getInstance(project).getDocument(psiFile)!!
 
     WriteCommandAction.runWriteCommandAction(project) {
-      mergedDocument.insertString(mergedDocument.textLength, "\n${block.text}")
+      mergedDocument.insertString(mergedDocument.textLength, block.text)
       documentManager.commitDocument(mergedDocument)
     }
 
