@@ -10,6 +10,9 @@
     <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeHighlighter"/>
     <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeQuoteHandler"/>
     <lang.braceMatcher language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativePairedBraceMatcher"/>
+    <todoIndexer filetype="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeTodoIndexer"/>
+    <indexPatternBuilder implementation="com.android.tools.idea.gradle.declarative.DeclarativeTodoIndexPatternBuilder"/>
+
     <lang.formatter
         language="Declarative"
         implementationClass="com.android.tools.idea.gradle.declarative.formatting.DeclarativeFormattingModelBuilder"/>
