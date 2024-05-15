@@ -36,9 +36,7 @@ import com.android.tools.idea.studiobot.prompts.Prompt
 interface ChatService {
 
   /**
-   * Sends a query to the model, using the chat UI. This must only be called if
-   * [StudioBot.isContextAllowed] is true. If context sharing isn't allowed, then you must instead
-   * call [stageChatQuery] so that the user has the chance to review the query before submitting.
+   * Sends a query to the model, using the chat UI.
    *
    * The query will be sent "as-is", without a preamble, chat history, or retrieved facts being
    * added.
@@ -47,8 +45,7 @@ interface ChatService {
    * @param requestSource The source of the query in Android Studio
    * @param displayText How the query should appear in the chat timeline. This will default to the
    *   last user query if not specified.
-   * @throws IllegalStateException if context sharing is not enabled, or if the prompt does not end
-   *   with a user message
+   * @throws IllegalStateException If the prompt does not end with a user message
    */
   fun sendChatQuery(
     prompt: Prompt,
@@ -58,9 +55,8 @@ interface ChatService {
 
   /**
    * Stages a string in the Studio Bot query bar. The user may choose to submit it, or clear/modify
-   * it. This entry point does not require checking any settings or permissions, but you should keep
-   * the message short enough to fit in the query bar so it can be inspected by the user before they
-   * send it.
+   * it. You should keep the message short enough to fit in the query bar so it can be inspected by
+   * the user before they send it.
    */
   fun stageChatQuery(prompt: String, requestSource: StudioBot.RequestSource) {}
 
