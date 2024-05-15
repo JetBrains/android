@@ -1397,7 +1397,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_PREVIEW = new BooleanFlag(
     COMPOSE, "preview.generate.preview.action", "Enable editor action for generating Compose Previews",
-    "Enable a context-menu action that can generate a Compose Previews corresponding to the selected @Composable",
+    "Enable a context-menu action that can generate a Compose Preview corresponding to the selected @Composable",
     false);
 
   public static final Flag<Boolean> COMPOSE_UI_CHECK_MODE = new BooleanFlag(
