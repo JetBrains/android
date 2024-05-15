@@ -64,10 +64,11 @@ class SessionItemTest {
     setupTaskHandlers()
     val sessionsManager = getSessionManager()
 
-    // Navigate to a random stage, and selecting the session item should navigate to LiveStage.
     myProfilers.stage = MainMemoryProfilerStage(myProfilers)
     Truth.assertThat(myProfilers.stageClass).isEqualTo(MainMemoryProfilerStage::class.java)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    // In TaskBasedUx, `sessionItem.onSelect()` is invoked after selecting a live view past recording and clicking on
+    // 'Open profiler task'.
     sessionItem.onSelect()
     Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
   }
@@ -81,6 +82,8 @@ class SessionItemTest {
 
     Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
     val sessionItem = sessionsManager.sessionArtifacts[0] as SessionItem
+    // In TaskBasedUx, `sessionItem.onSelect()` is invoked after selecting a live view past recording and clicking on
+    // 'Open profiler task'.
     sessionItem.onSelect()
     Truth.assertThat(myProfilers.stageClass).isEqualTo(LiveStage::class.java)
   }
