@@ -68,6 +68,10 @@ import org.jetbrains.annotations.TestOnly
  *   custom Android [View]s)that do not have explicit conversion to [XmlFile] (but might have
  *   implicit). This provider should provide us with [XmlFile] representation of the VirtualFile fed
  *   to the model.
+ * @param modelUpdater Adds information to the model from a render result. A given model can use
+ *   different updaters depending on what its usage requires. E.g. interactive preview may need less
+ *   information from an [NlModel] than a standard preview, so different updaters can be used in
+ *   those cases.
  * @param dataContext Returns the [DataContext] associated to this model. The [DataContext] allows
  *   storing information that is specific to this model but is not part of it. For example, context
  *   information about how the model should be represented in a specific surface. The [DataContext]
@@ -82,7 +86,7 @@ protected constructor(
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
   private val xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>,
-  modelUpdater: NlModelUpdaterInterface?,
+  private var modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater(),
   override var dataContext: DataContext,
 ) : ModificationTracker, DataContextHolder {
 
@@ -146,13 +150,6 @@ protected constructor(
   private val themeUpdateComputation = AtomicReference<Disposable?>()
   var isDisposed: Boolean = false
     private set
-
-  /**
-   * Adds information to the model from a render result. A given model can use different updaters
-   * depending on what its usage requires. E.g. interactive preview may need less information from
-   * an [NlModel] than a standard preview, so different updaters can be used in those cases.
-   */
-  private var myModelUpdater: NlModelUpdaterInterface = modelUpdater ?: DefaultModelUpdater()
 
   /**
    * Returns the latest calculated [ResourceResolver]. This is just to be used from those context
@@ -303,11 +300,11 @@ protected constructor(
     get() = xmlFileProvider.apply(project, virtualFile)
 
   fun syncWithPsi(newRoot: XmlTag, roots: List<TagSnapshotTreeNode>) {
-    myModelUpdater.updateFromTagSnapshot(this, newRoot, roots)
+    modelUpdater.updateFromTagSnapshot(this, newRoot, roots)
   }
 
   fun updateAccessibility(viewInfos: List<ViewInfo>) {
-    myModelUpdater.updateFromViewInfo(this, viewInfos)
+    modelUpdater.updateFromViewInfo(this, viewInfos)
   }
 
   /**
@@ -459,7 +456,7 @@ protected constructor(
   }
 
   fun setModelUpdater(modelUpdater: NlModelUpdaterInterface) {
-    myModelUpdater = modelUpdater
+    this.modelUpdater = modelUpdater
   }
 
   companion object {
@@ -497,7 +494,7 @@ protected constructor(
         configuration,
         componentRegistrar,
         xmlFileProvider,
-        modelUpdater,
+        modelUpdater ?: DefaultModelUpdater(),
         dataContext,
       )
     }

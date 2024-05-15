@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common;
 
+import com.android.tools.idea.common.model.DefaultModelUpdater;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModelBuilder;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -64,7 +65,7 @@ public class SyncNlModel extends NlModel {
                       @NotNull AndroidFacet facet,
                       @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
-    super(parent, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, null, DataContext.EMPTY_CONTEXT);
+    super(parent, facet, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, new DefaultModelUpdater(), DataContext.EMPTY_CONTEXT);
   }
 
   /**
