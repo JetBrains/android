@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.intellij.configurationStore.JbXmlOutputter
 import com.intellij.configurationStore.serialize
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
@@ -134,7 +133,7 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
       "${manufacturer ?: ""}|${model ?: ""}|${primaryAbi ?: ""}|${androidVersion?.featureLevel ?: 0}"
 
   companion object {
-    fun getInstance(): BitRateManager = ApplicationManager.getApplication().service<BitRateManager>()
+    fun getInstance(): BitRateManager = service<BitRateManager>()
   }
 
   /** Candidate bit rates are kept in descending order. */

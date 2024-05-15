@@ -92,7 +92,7 @@ class StreamingToolWindowManagerMultiProjectTest {
     Disposer.dispose(toolWindow1.disposable)
     dispatchAllEventsInIdeEventQueue() // Finish asynchronous processing triggered by hiding the tool window.
     deviceMirroringSettings.loadState(DeviceMirroringSettings()) // Reset device mirroring settings to defaults.
-    ApplicationManager.getApplication().service<DeviceClientRegistry>().clear()
+    service<DeviceClientRegistry>().clear()
   }
 
   @Test

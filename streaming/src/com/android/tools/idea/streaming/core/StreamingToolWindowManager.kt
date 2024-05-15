@@ -954,10 +954,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private fun Content.select(activation: ActivationLevel) {
-    manager?.setSelectedContent(this, activation >= ActivationLevel.ACTIVATE_TAB)
-  }
-
   private inner class MyDeviceHeadsUpListener : DeviceHeadsUpListener {
 
     override fun userInvolvementRequired(deviceSerialNumber: String, project: Project) {
@@ -1195,17 +1191,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private class DeviceDescription(val deviceName: String, val serialNumber: String, val handle: DeviceHandle,
                                   val config: DeviceConfiguration)
-
-  private enum class ActivationLevel {
-    /** Create tab, but don't select it and don't show the tool window if hidden. */
-    CREATE_TAB,
-    /** Create tab and show the tool window if hidden. */
-    SHOW_TOOL_WINDOW,
-    /** Create tab, show the tool window if hidden and select the new tab. */
-    SELECT_TAB,
-    /** Create tab, show the tool window if hidden, select the new tab and focus on it. */
-    ACTIVATE_TAB,
-  }
 }
 
 private class ConnectedDevice(val handle: DeviceHandle, val state: DeviceState.Connected)
@@ -1274,6 +1259,10 @@ private val ContentManager.placeholderContent: Content?
     return if (ID_KEY.get(content) == null) content else null
   }
 
+private fun Content.select(activation: ActivationLevel) {
+  manager?.setSelectedContent(this, activation >= ActivationLevel.ACTIVATE_TAB)
+}
+
 private fun Content.removeAndDispose() {
   manager?.removeContent(this, true)
 }
@@ -1296,6 +1285,17 @@ private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
 
 private fun shortenTitleText(title: String): String =
     StringUtil.shortenTextWithEllipsis(title, 25, 6)
+
+private enum class ActivationLevel {
+  /** Create tab, but don't select it and don't show the tool window if hidden. */
+  CREATE_TAB,
+  /** Create tab and show the tool window if hidden. */
+  SHOW_TOOL_WINDOW,
+  /** Create tab, show the tool window if hidden and select the new tab. */
+  SELECT_TAB,
+  /** Create tab, show the tool window if hidden, select the new tab and focus on it. */
+  ACTIVATE_TAB,
+}
 
 @Service(Service.Level.APP)
 internal class DeviceClientRegistry : Disposable {
