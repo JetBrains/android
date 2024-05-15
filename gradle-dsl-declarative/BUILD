@@ -9,6 +9,7 @@ iml_module(
         "src",
     ],
     iml_files = ["intellij.android.gradle.dsl.declarative.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
