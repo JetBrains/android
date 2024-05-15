@@ -41,14 +41,25 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
-public final class ConnectedAndroidDevice implements AndroidDevice {
+@TestOnly
+public final class FakeAndroidDevice implements AndroidDevice {
   @NotNull private final IDevice myDevice;
   @Nullable private final DeviceNameRendererEx myDeviceNameRenderer;
   private volatile String myDeviceManufacturer;
   private volatile String myDeviceModel;
 
-  public ConnectedAndroidDevice(@NotNull IDevice device) {
+  @NotNull
+  public static DeviceFutures forDevices(@NotNull Iterable<IDevice> devices) {
+    ImmutableList.Builder<AndroidDevice> futures = ImmutableList.builder();
+    for (IDevice device : devices) {
+      futures.add(new FakeAndroidDevice(device));
+    }
+    return new DeviceFutures(futures.build());
+  }
+
+  public FakeAndroidDevice(@NotNull IDevice device) {
     myDevice = device;
     myDeviceNameRenderer = getRendererExtension(device);
   }

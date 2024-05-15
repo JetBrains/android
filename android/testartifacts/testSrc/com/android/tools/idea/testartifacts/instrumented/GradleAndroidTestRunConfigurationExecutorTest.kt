@@ -25,7 +25,7 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.run.DefaultStudioProgramRunner
-import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.execution.Executor
 import com.intellij.execution.RunManager
@@ -85,7 +85,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     }
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device))) {
+    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
       override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
     }
 
@@ -105,7 +105,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_PACKAGE
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device))) {
+    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
       override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
     }
     ProgressManager.getInstance()
@@ -121,7 +121,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_CLASS
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device))) {
+    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
       override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
     }
     ProgressManager.getInstance()
@@ -137,7 +137,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_METHOD
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device))) {
+    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
       override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
     }
     ProgressManager.getInstance()
@@ -157,7 +157,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     androidTestRunConfiguration.RETENTION_ENABLED = EnableRetention.YES
     androidTestRunConfiguration.RETENTION_MAX_SNAPSHOTS = 5
     androidTestRunConfiguration.RETENTION_COMPRESS_SNAPSHOTS = true
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device))) {
+    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
       override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
     }
     ProgressManager.getInstance()
@@ -177,7 +177,7 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     androidTestRunConfiguration.RETENTION_MAX_SNAPSHOTS = retentionConfiguration.maxSnapshots
     androidTestRunConfiguration.RETENTION_COMPRESS_SNAPSHOTS = retentionConfiguration.compressSnapshots
 
-    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device))) {
+    val executor = object : GradleAndroidTestRunConfigurationExecutor(env, FakeAndroidDevice.forDevices(listOf(device))) {
       override fun gradleConnectedAndroidTestInvoker() = mockGradleConnectedAndroidTestInvoker
     }
     ProgressManager.getInstance()

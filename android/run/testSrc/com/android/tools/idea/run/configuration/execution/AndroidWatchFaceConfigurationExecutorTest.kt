@@ -27,8 +27,8 @@ import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.projectsystem.TestApplicationProjectContext
 import com.android.tools.idea.run.DefaultStudioProgramRunner
-import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
@@ -91,7 +91,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val deviceFutures = FakeAndroidDevice.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = WatchFaceLaunchOptions().apply {
@@ -177,7 +177,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor = AndroidWatchFaceConfigurationExecutor(
       env,
-      DeviceFutures.forDevices(listOf(device)),
+      FakeAndroidDevice.forDevices(listOf(device)),
       settings,
       TestApplicationIdProvider(appId),
       TestApksProvider(appId),
@@ -245,7 +245,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val executor = AndroidWatchFaceConfigurationExecutor(
       env,
-      DeviceFutures.forDevices(listOf(device)),
+      FakeAndroidDevice.forDevices(listOf(device)),
       settings,
       TestApplicationIdProvider(appId),
       TestApksProvider(appId),
@@ -322,7 +322,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor = AndroidWatchFaceConfigurationExecutor(
       env,
-      DeviceFutures.forDevices(listOf(device)),
+      FakeAndroidDevice.forDevices(listOf(device)),
       settings,
       TestApplicationIdProvider(appId),
       TestApksProvider(appId),

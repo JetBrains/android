@@ -22,6 +22,7 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.FakeAndroidDevice
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionManager
@@ -49,7 +50,7 @@ class AppInspectionExecutionListenerTest {
         .build()
         .apply {
           executionId = Random.nextLong()
-          putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+          putCopyableUserData(DeviceFutures.KEY, FakeAndroidDevice.forDevices(listOf(device)))
         }
 
     val handler1 = AndroidProcessHandler("com.example.p1")

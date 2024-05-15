@@ -22,23 +22,24 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.mockito.Mockito
 
-class ConnectedAndroidDeviceTest {
+class FakeAndroidDeviceTest {
   @Test
   fun `test emulator with no avd name`() {
     val emulatorWithNoAvdName = createMockRunningEmulator(name = null)
-    assertThat(ConnectedAndroidDevice(emulatorWithNoAvdName).name).isEqualTo("Google Pixel [local:5554]")
+    assertThat(FakeAndroidDevice(emulatorWithNoAvdName).name).isEqualTo("Google Pixel [local:5554]")
   }
 
   @Test
   fun `test emulator with avd name`() {
     val emulatorWithNoAvdName = createMockRunningEmulator(name = "My Pixel")
-    assertThat(ConnectedAndroidDevice(emulatorWithNoAvdName).name).isEqualTo("Google Pixel [My Pixel]")
+    assertThat(FakeAndroidDevice(emulatorWithNoAvdName).name).isEqualTo("Google Pixel [My Pixel]")
   }
 
   @Test
   fun `test resizable running emulator`() {
     val emulatorWithNoAvdName = createMockRunningEmulator(name = "resizable", version = AndroidVersion(34, null))
-    assertThat(ConnectedAndroidDevice(emulatorWithNoAvdName).supportsMultipleScreenFormats()).isEqualTo(true)
+    assertThat(
+      FakeAndroidDevice(emulatorWithNoAvdName).supportsMultipleScreenFormats()).isEqualTo(true)
   }
 
   companion object {
