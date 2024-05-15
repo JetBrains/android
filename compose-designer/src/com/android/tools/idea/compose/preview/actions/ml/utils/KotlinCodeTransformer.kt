@@ -19,6 +19,7 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.studiobot.GenerationConfig
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.Prompt
@@ -60,7 +61,11 @@ internal fun transformAndShowDiff(
       val botResponse =
         studioBot
           .model(project, modelType)
-          .generateContent(prompt, GenerationConfig(candidateCount = 1))
+          .generateCode(
+            prompt = prompt,
+            language = MimeType.KOTLIN,
+            config = GenerationConfig(candidateCount = 1),
+          )
           .first()
           .text
 
