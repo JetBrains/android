@@ -413,10 +413,6 @@ class ViewLayoutInspectorClient(
   }
 
   private suspend fun fetchAndSaveSnapshot(path: Path, snapshotMetadata: SnapshotMetadata) {
-    fetchAndSaveSnapshotAsync(path, snapshotMetadata)
-  }
-
-  private suspend fun fetchAndSaveSnapshotAsync(path: Path, snapshotMetadata: SnapshotMetadata) {
     messenger
       .sendCommand {
         captureSnapshotCommand =
