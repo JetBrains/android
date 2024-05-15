@@ -84,6 +84,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
 import com.intellij.testFramework.RuleChain
@@ -871,7 +872,7 @@ class StreamingToolWindowManagerTest {
       if (!visible) {
         windowFactory.createToolWindowContent(project, this)
         visible = true
-        notifyStateChanged()
+        notifyStateChanged(ToolWindowManagerEventType.ShowToolWindow)
         runnable?.run()
       }
     }
@@ -879,7 +880,7 @@ class StreamingToolWindowManagerTest {
     override fun hide(runnable: Runnable?) {
       if (visible) {
         visible = false
-        notifyStateChanged()
+        notifyStateChanged(ToolWindowManagerEventType.HideToolWindow)
         runnable?.run()
       }
     }
@@ -918,8 +919,8 @@ class StreamingToolWindowManagerTest {
       this.icon = icon
     }
 
-    private fun notifyStateChanged() {
-      project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager)
+    private fun notifyStateChanged(changeType: ToolWindowManagerEventType) {
+      project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).stateChanged(manager, changeType)
     }
   }
 }

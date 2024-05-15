@@ -94,6 +94,10 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.MovedOrResized
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow
 import com.intellij.openapi.wm.impl.InternalDecorator
 import com.intellij.ui.BadgeIconSupplier
 import com.intellij.ui.ComponentUtil
@@ -279,24 +283,30 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
 
-      override fun stateChanged(toolWindowManager: ToolWindowManager) {
+      // TODO: Override the stateChanged method that takes a ToolWindow when it becomes a public API.
+      override fun stateChanged(toolWindowManager: ToolWindowManager, changeType: ToolWindowManagerEventType) {
         val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
 
-        toolWindowManager.invokeLater {
-          if (!toolWindow.isDisposed) {
-            if (toolWindow.isVisible) {
-              initialContentUpdate = true
-              try {
-                onToolWindowShown()
+        when (changeType) {
+          ShowToolWindow, HideToolWindow, MovedOrResized -> {
+            toolWindowManager.invokeLater {
+              if (!toolWindow.isDisposed) {
+                if (toolWindow.isVisible) {
+                  initialContentUpdate = true
+                  try {
+                    onToolWindowShown()
+                  }
+                  finally {
+                    initialContentUpdate = false
+                  }
+                }
+                else {
+                  onToolWindowHidden()
+                }
               }
-              finally {
-                initialContentUpdate = false
-              }
-            }
-            else {
-              onToolWindowHidden()
             }
           }
+          else -> {}
         }
       }
     })
