@@ -57,6 +57,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorId
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.utils.TraceUtils.simpleId
+import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.collaboration.async.disposingScope
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -76,7 +77,6 @@ import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -113,6 +113,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.IncorrectOperationException
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.containers.ComparatorUtil.max
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -164,7 +165,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
   private val deviceProvisioner
     @AnyThread get() = project.service<DeviceProvisionerService>().deviceProvisioner
-  private val deviceClientRegistry = ApplicationManager.getApplication().service<DeviceClientRegistry>()
+  private val deviceClientRegistry = service<DeviceClientRegistry>()
   private var initialized = false
   private var contentShown = false
   private var initialContentUpdate = false
@@ -364,7 +365,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun onPhysicalDeviceHeadsUp(serialNumber: String, activation: ActivationLevel) {
     val content = findContentBySerialNumberOfPhysicalDevice(serialNumber)
-    content?.select() ?: recentAttentionRequests.put(serialNumber, activation)
+    content?.select(activation) ?: recentAttentionRequests.put(serialNumber, activation)
     toolWindow.activate(activation)
   }
 
@@ -386,7 +387,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       alarm.addRequest(recentAvdLaunches::cleanUp, ATTENTION_REQUEST_EXPIRATION.toMillis())
     }
     else {
-      content.select()
+      content.select(activation)
     }
   }
 
@@ -509,7 +510,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun addEmulatorPanel(emulator: EmulatorController) {
     emulator.addConnectionStateListener(connectionStateListener)
     val avdId = emulator.emulatorId.avdFolder.toString()
-    val contentManager = recentAvdStartRequesters.getIfPresent(avdId)?.also { recentAvdStartRequesters.invalidate(avdId) }
+    val contentManager = recentAvdStartRequesters.remove(avdId)
     addPanel(EmulatorToolWindowPanel(toolWindow.disposable, project, emulator), contentManager)
   }
 
@@ -544,14 +545,12 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     contentManager.addContent(content)
 
     if (!content.isSelected) {
-      // Activate the newly added panel if it corresponds to a recently launched or used Emulator.
       val deviceId = panel.id
-      if (deviceId is DeviceId.EmulatorDeviceId) {
-        val avdId = deviceId.emulatorId.avdId
-        if (recentAvdLaunches.getIfPresent(avdId) != null) {
-          recentAvdLaunches.invalidate(avdId)
-          content.select()
-        }
+      val activation = max(
+          recentAttentionRequests.remove(deviceId.serialNumber) ?: ActivationLevel.CREATE_TAB,
+          (deviceId as? DeviceId.EmulatorDeviceId)?.emulatorId?.avdId?.let(recentAvdLaunches::remove) ?: ActivationLevel.CREATE_TAB)
+      if (activation >= ActivationLevel.SELECT_TAB) {
+        content.select(activation)
       }
     }
 
@@ -754,13 +753,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (contentShown) {
       val contentManager: ContentManager? = when {
         handle.reservationAction == null -> null
-        else -> recentRemoteDeviceRequesters.getIfPresent(handle)?.also { recentRemoteDeviceRequesters.invalidate(handle) }
+        else -> recentRemoteDeviceRequesters.remove(handle)
       }
       recentAttentionRequests.invalidate(serialNumber)
       if (serialNumber !in deviceClients && serialNumber !in devicesExcludedFromMirroring) {
         startMirroringIfConfirmed(serialNumber, handle, config, activation, contentManager)
       }
-      if (activation >= ActivationLevel.SELECT_TAB) {
+      else if (activation >= ActivationLevel.SELECT_TAB) {
         onPhysicalDeviceHeadsUp(serialNumber, activation)
       }
     }
@@ -804,11 +803,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         val panel = DeviceToolWindowPanel(toolWindow.disposable, project, deviceHandle, deviceClient)
         val content = addPanel(panel, contentManager)
         if (activation >= ActivationLevel.SELECT_TAB && content != null) {
-          content.manager?.setSelectedContent(content, activation >= ActivationLevel.ACTIVATE_TAB)
+          content.select(activation)
         }
       }
-      else if (activation >= ActivationLevel.SHOW_TOOL_WINDOW) {
-        recentAttentionRequests.put(serialNumber, activation)
+      if (activation >= ActivationLevel.SHOW_TOOL_WINDOW) {
+        if (!contentShown) {
+          recentAttentionRequests.put(serialNumber, activation)
+        }
         toolWindow.activate(activation)
       }
     }
@@ -843,7 +844,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
     if (serialNumber in onlineDevices && serialNumber !in deviceClients) {
       val activation = when {
-        recentAttentionRequests.getIfPresent(serialNumber) != null -> ActivationLevel.SELECT_TAB
+        recentAttentionRequests.remove(serialNumber) != null -> ActivationLevel.SELECT_TAB
         deviceMirroringSettings.activateOnConnection -> ActivationLevel.SHOW_TOOL_WINDOW
         deviceClientRegistry.clientsBySerialNumber.containsKey(serialNumber) -> ActivationLevel.CREATE_TAB
         else -> null
@@ -951,6 +952,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val avdManager = AvdManagerConnection.getDefaultAvdManagerConnection()
       avdManager.getAvds(false).filter { it.dataFolderPath !in runningAvdFolders }
     }
+  }
+
+  private fun Content.select(activation: ActivationLevel) {
+    manager?.setSelectedContent(this, activation >= ActivationLevel.ACTIVATE_TAB)
   }
 
   private inner class MyDeviceHeadsUpListener : DeviceHeadsUpListener {
@@ -1120,7 +1125,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   }
 
-  private inner class ReserveRemoteDeviceAction(private val template: DeviceTemplate): DumbAwareAction(template.properties.composeDeviceName(), null, template.properties.icon) {
+  private inner class ReserveRemoteDeviceAction(
+      private val template: DeviceTemplate
+  ): DumbAwareAction(template.properties.composeDeviceName(), null, template.properties.icon) {
     override fun actionPerformed(e: AnActionEvent) {
       val childScope = toolWindowScope.createChildScope(true)
       template.launchCatchingDeviceActionException(childScope) { activationAction.activate() }
@@ -1267,10 +1274,6 @@ private val ContentManager.placeholderContent: Content?
     return if (ID_KEY.get(content) == null) content else null
   }
 
-private fun Content.select() {
-  manager?.setSelectedContent(this)
-}
-
 private fun Content.removeAndDispose() {
   manager?.removeContent(this, true)
 }
@@ -1370,3 +1373,5 @@ internal class DeviceClientRegistry : Disposable {
     fun deviceClientRemoved(client: DeviceClient, requester: Any?)
   }
 }
+
+private fun <K, V> Cache<K, V>.remove(key: K): V? = getIfPresent(key)?.also { invalidate(key) }
