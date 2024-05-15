@@ -1400,6 +1400,11 @@ public final class StudioFlags {
     "Enable a context-menu action that can generate a Compose Preview corresponding to the selected @Composable",
     false);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_GENERATE_ALL_PREVIEWS_FILE = new BooleanFlag(
+    COMPOSE, "preview.generate.previews.file.action", "Enable editor action for generating all Compose Previews for a file",
+    "Enable a context-menu action that can generate Compose Previews corresponding to the @Composable functions of a file",
+    false);
+
   public static final Flag<Boolean> COMPOSE_UI_CHECK_MODE = new BooleanFlag(
     COMPOSE, "ui.check.mode", "Enable UI Check mode for Compose preview",
     "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
