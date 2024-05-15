@@ -34,6 +34,64 @@ import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
+ * Helper function to wrapped [NlTreeWriter.addComponents] to select the added [NlComponent]s when
+ * [insertType] is [InsertType.CREATE]. This happens when adding a new created [NlComponent]s into
+ * [NlModel] but not moving the existing [NlComponent]s.
+ *
+ * We use [NlTreeWriter.addComponents] to create and moving [NlComponent]s, so we need to check the
+ * [insertType].
+ *
+ * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
+ */
+@JvmOverloads
+fun NlTreeWriter.addComponentsAndSelectedIfCreated(
+  toAdd: List<NlComponent>,
+  receiver: NlComponent,
+  before: NlComponent?,
+  insertType: InsertType,
+  selectionModel: SelectionModel,
+  attributeUpdatingTask: Runnable? = null,
+) {
+  addComponents(
+    toAdd,
+    receiver,
+    before,
+    insertType,
+    {
+      if (insertType == InsertType.CREATE) {
+        selectionModel.setSelection(toAdd)
+      }
+    },
+    attributeUpdatingTask,
+  )
+}
+
+/**
+ * Helper function to wrapped [NlTreeWriter.addComponents] to add and selected the added
+ * [NlComponent]s. This is used to add a new created [NlComponent]s into [NlModel] but not moving
+ * the existing [NlComponent]s.
+ *
+ * Note: Do not inline this function into [NlModel]. [NlModel] shouldn't depend on [SelectionModel].
+ */
+@JvmOverloads
+fun NlTreeWriter.createAndSelectComponents(
+  toAdd: List<NlComponent>,
+  receiver: NlComponent,
+  before: NlComponent?,
+  selectionModel: SelectionModel,
+  attributeUpdatingTask: Runnable? = null,
+) {
+  addComponents(
+    toAdd,
+    receiver,
+    before,
+    InsertType.CREATE,
+    { selectionModel.setSelection(toAdd) },
+    attributeUpdatingTask,
+  )
+}
+
+/**
  * Changes tree structure of [NlComponent] by adding and deleting components.
  *
  * @param facet the [AndroidFacet]

@@ -31,6 +31,7 @@ import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.NlTreeWriter;
+import com.android.tools.idea.common.model.NlTreeWriterKt;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
@@ -635,12 +636,12 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
         return false;
       }
       if (!checkOnly) {
-        UtilsKt.addComponentsAndSelectedIfCreated(treeWriter,
-                                                  toAdd,
-                                                  root,
-                                                  null,
-                                                  insertType,
-                                                  sceneView.getSurface().getSelectionModel());
+        NlTreeWriterKt.addComponentsAndSelectedIfCreated(treeWriter,
+                                                         toAdd,
+                                                         root,
+                                                         null,
+                                                         insertType,
+                                                         sceneView.getSurface().getSelectionModel());
         surface.getSelectionModel().setSelection(toAdd);
         surface.getLayeredPane().requestFocus();
       }

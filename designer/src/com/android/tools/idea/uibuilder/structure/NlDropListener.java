@@ -27,7 +27,9 @@ import com.android.tools.idea.common.model.DnDTransferItem;
 import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlTreeReader;
 import com.android.tools.idea.common.model.NlTreeWriter;
+import com.android.tools.idea.common.model.NlTreeWriterKt;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -215,12 +217,12 @@ public class NlDropListener extends DropTargetAdapter {
       Scene scene = myTree.getScene();
       DesignSurface<?> surface = scene != null ? scene.getDesignSurface() : null;
       if (surface != null) {
-        UtilsKt.addComponentsAndSelectedIfCreated(model.getTreeWriter(),
-                                                  myDragged,
-                                                  myDragReceiver,
-                                                  myNextDragSibling,
-                                                  insertType,
-                                                  surface.getSelectionModel());
+        NlTreeWriterKt.addComponentsAndSelectedIfCreated(model.getTreeWriter(),
+                                                         myDragged,
+                                                         myDragReceiver,
+                                                         myNextDragSibling,
+                                                         insertType,
+                                                         surface.getSelectionModel());
       }
       else {
         model.getTreeWriter().addComponents(myDragged, myDragReceiver, myNextDragSibling, insertType, null);

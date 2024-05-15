@@ -479,7 +479,7 @@ public class NlModelTest extends LayoutTestCase {
     NlComponent recyclerView =
       model.getTreeWriter().createComponent(recyclerViewTag, null, null, InsertType.CREATE);
     List<NlComponent> toAdd = Collections.singletonList(recyclerView);
-    UtilsKt.createAndSelectComponents(model.getTreeWriter(), toAdd, frameLayout, null, model.getSurface().getSelectionModel());
+    NlTreeWriterKt.createAndSelectComponents(model.getTreeWriter(), toAdd, frameLayout, null, model.getSurface().getSelectionModel());
     // addComponents indirectly makes a network request through NlDependencyManager#addDependencies. As it should not block, components are
     // effectively added by another thread via a callback passed to addDependencies. This concurrency flow might cause this test to fail
     // sporadically if we immediately check the components hierarchy. Instead, we sleep until the RecyclerView is added by the other thread.

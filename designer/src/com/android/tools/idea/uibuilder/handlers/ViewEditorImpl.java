@@ -22,6 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.common.model.NlTreeWriterKt;
 import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
@@ -225,12 +226,12 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public void insertChildren(@NotNull NlComponent parent, @NotNull List<NlComponent> children, int index, @NotNull InsertType insertType) {
-    UtilsKt.addComponentsAndSelectedIfCreated(getModel().getTreeWriter(),
-                                              children,
-                                              parent,
-                                              getChild(parent, index),
-                                              insertType,
-                                              myScene.getDesignSurface().getSelectionModel());
+    NlTreeWriterKt.addComponentsAndSelectedIfCreated(getModel().getTreeWriter(),
+                                                     children,
+                                                     parent,
+                                                     getChild(parent, index),
+                                                     insertType,
+                                                     myScene.getDesignSurface().getSelectionModel());
   }
 
   @Nullable
