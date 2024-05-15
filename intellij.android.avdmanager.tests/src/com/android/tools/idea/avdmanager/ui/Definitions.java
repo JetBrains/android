@@ -53,7 +53,7 @@ final class Definitions {
 
   @NotNull
   static Device mockAutomotiveDefinition() {
-    return mockDefinition("android-automotive", mockHardware(0), "Automotive (1024p landscape)", "automotive_1024p_landscape");
+    return mockDefinition("android-automotive", mockHardware(20), "Automotive (1024p landscape)", "automotive_1024p_landscape");
   }
 
   @NotNull

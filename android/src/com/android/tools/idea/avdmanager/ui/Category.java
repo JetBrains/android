@@ -25,7 +25,7 @@ enum Category {
   TABLET("Tablet", "pixel_tablet", definition -> !definition.getIsDeprecated() && Device.isTablet(definition)),
   WEAR_OS("Wear OS", "wearos_square", definition -> !definition.getIsDeprecated() && Device.isWear(definition)),
   DESKTOP("Desktop", "desktop_medium", definition -> !definition.getIsDeprecated() && Device.isDesktop(definition)),
-  TV("TV", "tv_1080p", definition -> !definition.getIsDeprecated() && (Device.isTv(definition) || hasTvScreen(definition))),
+  TV("TV", "tv_1080p", definition -> !definition.getIsDeprecated() && Device.isTv(definition)),
 
   AUTOMOTIVE("Automotive", "automotive_1024p_landscape", definition ->
     !definition.getIsDeprecated() && Device.isAutomotive(definition)),
@@ -40,10 +40,6 @@ enum Category {
 
   @NotNull
   private final Predicate<Device> myPredicate;
-
-  private static boolean hasTvScreen(@NotNull Device definition) {
-    return definition.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TV_SIZE;
-  }
 
   Category(@NotNull String name, @NotNull String defaultDefinitionId, @NotNull Predicate<Device> predicate) {
     myName = name;
