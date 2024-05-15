@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker.setWriterForTest
@@ -26,8 +25,6 @@ import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LIBRARY_IS_OUTDATED
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.SDK_INDEX_LINK_FOLLOWED
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.`when`
 
 
 internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
@@ -58,14 +55,17 @@ internal class IdeGooglePlaySdkIndexTest: AndroidTestCase() {
   fun testVersionsWarningOnlyOnThirdParty() {
     val warningText = "These versions have not been reviewed by Google Play. They could contain vulnerabilities or policy violations. " +
                       "Carefully evaluate any third-party SDKs before integrating them into your app."
+    val versionHeader = "The library author recommends using versions:"
     val ideIndex = IdeGooglePlaySdkIndex
-    val mockMaven = mock(GoogleMavenRepository::class.java)
-    ideIndex.initialize(mockMaven)
-    `when`(mockMaven.hasGroupId("com.google.android.gms")).thenReturn(false)
-    val thirdPartyMessage = ideIndex.generateBlockingOutdatedMessage("com.google.android.gms", "play-services-ads", "10.2.1")
-    assertThat(thirdPartyMessage).contains(warningText)
-    `when`(mockMaven.hasGroupId("com.google.android.gms")).thenReturn(true)
+    ideIndex.initialize(null)
+    // Third party policy issue
+    val thirdPartyMessages = ideIndex.generateBlockingPolicyMessages("in.juspay", "hypersdk", "2.0.5")
+    assertThat(thirdPartyMessages).hasSize(1)
+    assertThat(thirdPartyMessages[0]).contains(versionHeader)
+    assertThat(thirdPartyMessages[0]).contains(warningText)
+    // First party blocking outdated
     val firstPartyMessage = ideIndex.generateBlockingOutdatedMessage("com.google.android.gms", "play-services-ads", "10.2.1")
+    assertThat(firstPartyMessage).contains(versionHeader)
     assertThat(firstPartyMessage).doesNotContain(warningText)
   }
 }
