@@ -69,5 +69,13 @@
                      key="inspection.invalid.signature"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewShouldBeTopLevelFunction"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.top.level.function"
+                     level="ERROR"/>
+
   </extensions>
 </idea-plugin>
