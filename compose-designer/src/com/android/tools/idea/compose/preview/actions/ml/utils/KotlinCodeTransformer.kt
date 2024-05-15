@@ -57,7 +57,7 @@ internal fun transformAndShowDiff(
 
   // Send the prompt + code directly to the model, with a progress indicator
   return AndroidCoroutineScope(disposable).launch(AndroidDispatchers.workerThread) {
-    withBackgroundProgress(project, message("circle.to.fix.sending.query"), true) {
+    withBackgroundProgress(project, message("ml.actions.sending.query"), true) {
       val botResponse =
         studioBot
           .model(project, modelType)
