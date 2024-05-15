@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.dsl.model.java;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.java.ToolchainModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
@@ -167,7 +166,6 @@ public class ToolchainModelTest extends GradleFileModelTestCase {
     toolchain = getGradleBuildModel().java().toolchain();
     assertEquals(Integer.valueOf(17), toolchain.languageVersion().version());
   }
-  // TODO add tests for value as reference and object as reference
 
   enum TestFile implements TestFileName {
     READ_TOOLCHAIN_VERSION_INT("readToolchainVersionDefinedAsInt"),
