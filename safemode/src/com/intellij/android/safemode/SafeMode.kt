@@ -22,7 +22,11 @@ import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.wm.impl.TitleInfoProvider
+import com.intellij.openapi.wm.impl.simpleTitleParts.SimpleTitleInfoProvider
+import com.intellij.openapi.wm.impl.simpleTitleParts.TitleInfoOption
 import icons.StudioIllustrations
 import java.awt.ComponentOrientation
 import java.io.File
@@ -35,6 +39,12 @@ class SafeMode : ApplicationLoadListener {
   companion object {
     private val LOG = Logger.getInstance(SafeMode::class.java)
   }
+
+  internal var safeModeEnabled = false
+    set(value) {
+      field = value
+      TitleInfoProvider.fireConfigurationChanged()
+    }
 
   private val crashDetectionFile: String
     get() = "android.studio.safe.mode." + ApplicationInfo.getInstance().build + ".sentinel"
@@ -51,6 +61,7 @@ class SafeMode : ApplicationLoadListener {
     if (System.getProperty("studio.safe.mode") != null) {
       // If we entered safe mode, register a cleanup handler and return.
       registerCleanupHandler()
+      safeModeEnabled = true
       return
     }
     if (studioCrashFiles.isEmpty()) {
@@ -177,5 +188,14 @@ class SafeMode : ApplicationLoadListener {
       "-x",
       safeModeScript
     )
+  }
+
+  class TitleProvider : SimpleTitleInfoProvider(object: TitleInfoOption() {
+    init {
+      isActive = ApplicationLoadListener.EP_NAME.extensions.find { it is SafeMode }?.let { it as SafeMode }?.safeModeEnabled ?: false
+    }
+  }) {
+    override fun getValue(project: Project): String = "(Safe Mode)"
+    override fun isEnabled(): Boolean = option.isActive
   }
 }

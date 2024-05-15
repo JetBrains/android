@@ -192,6 +192,7 @@
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <titleInfoProvider implementation="com.intellij.android.safemode.SafeMode$TitleProvider"/>
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidPsiTreeChangeListener$MyStartupActivity"/>
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild" />
