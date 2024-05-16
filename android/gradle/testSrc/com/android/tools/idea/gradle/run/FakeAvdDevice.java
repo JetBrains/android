@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run;
+package com.android.tools.idea.gradle.run;
 
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME;
 import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
@@ -30,6 +30,8 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -43,7 +45,7 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class LaunchableAndroidDevice implements AndroidDevice {
+public final class FakeAvdDevice implements AndroidDevice {
   private static final Map<Abi, List<Abi>> ABI_MAPPINGS = ImmutableMap.of(
     Abi.X86_64, ImmutableList.of(Abi.X86_64, Abi.X86),
     Abi.ARM64_V8A, ImmutableList.of(Abi.ARM64_V8A, Abi.ARMEABI_V7A, Abi.ARMEABI));
@@ -54,7 +56,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   @GuardedBy("myLock")
   private ListenableFuture<IDevice> myLaunchedEmulator;
 
-  public LaunchableAndroidDevice(@NotNull AvdInfo avdInfo) {
+  public FakeAvdDevice(@NotNull AvdInfo avdInfo) {
     myAvdInfo = avdInfo;
   }
 

@@ -26,7 +26,6 @@ import com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME
 import com.android.sdklib.internal.avd.HardwareProperties
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.AndroidDevice
-import com.android.tools.idea.run.LaunchableAndroidDevice
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import org.junit.After
@@ -179,8 +178,10 @@ class AndroidDeviceSpecUtilTest {
   fun densityOptimizationDisabledForResizableAndMultipleDevices() {
     val lowDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.LOW)
     val highDensityDevice = mockDevice(AndroidVersion.DEFAULT, Density.HIGH)
-    val unsupportedResizableDevice = LaunchableAndroidDevice(mockAvdInfo(AndroidVersion.DEFAULT, "resizable"))
-    val supportedResizableDevice = LaunchableAndroidDevice(mockAvdInfo(AndroidVersion(MIN_RESIZABLE_DEVICE_API), "resizable"))
+    val unsupportedResizableDevice = FakeAvdDevice(
+      mockAvdInfo(AndroidVersion.DEFAULT, "resizable"))
+    val supportedResizableDevice = FakeAvdDevice(
+      mockAvdInfo(AndroidVersion(MIN_RESIZABLE_DEVICE_API), "resizable"))
 
     assertThat(createSpec(listOf(highDensityDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
     assertThat(createSpec(listOf(unsupportedResizableDevice), MAX_TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS)!!.density).isNotNull()
