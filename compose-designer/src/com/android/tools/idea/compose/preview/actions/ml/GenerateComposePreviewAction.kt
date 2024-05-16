@@ -31,7 +31,8 @@ class GenerateComposePreviewAction :
   override fun isActionFlagEnabled(): Boolean = StudioFlags.COMPOSE_PREVIEW_GENERATE_PREVIEW.get()
 
   override fun getTargetComposableFunctions(e: AnActionEvent): List<KtNamedFunction> {
-    // Check if the function where the caret it located is a valid Composable.
+    // Check if the function where the caret is located is a valid Composable.
+    // Return it in a singleton list if so, otherwise return an empty list.
     val containingFunction = getContainingFunctionAtCaret(e)
     return if (containingFunction?.isValidComposableFunction() == true) listOf(containingFunction)
     else emptyList()
