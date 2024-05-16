@@ -32,6 +32,9 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.AvdNetworkLatency;
 import com.android.sdklib.internal.avd.AvdNetworkSpeed;
+import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
+import com.android.sdklib.internal.avd.EmulatorPackage;
+import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.internal.avd.SdCards;
 import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.internal.avd.ExternalSdCard;
@@ -41,11 +44,10 @@ import com.android.sdklib.internal.avd.InternalSdCard;
 import com.android.sdklib.internal.avd.SdCard;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.avdmanager.DeviceManagerConnection;
-import com.android.tools.idea.avdmanager.EmulatorAdvFeatures;
+import com.android.tools.idea.avdmanager.EmulatorFeatures;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -68,6 +70,8 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.updateSettings.impl.ChannelStatus;
+import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -78,6 +82,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -151,6 +156,7 @@ public final class AvdOptionsModel extends WizardModel {
 
   private AvdDeviceData myAvdDeviceData;
   private @Nullable AvdInfo myCreatedAvd;
+  private @Nullable EmulatorPackage myEmulatorPackage;
 
   public void setAsCopy() {
     // Copying this AVD. Adjust its name.
@@ -175,11 +181,14 @@ public final class AvdOptionsModel extends WizardModel {
     myAvdInfo = avdInfo;
     myAvdCreatedCallback = avdCreatedCallback;
     myAvdDeviceData = new AvdDeviceData();
-
-    boolean supportsVirtualCamera = EmulatorAdvFeatures.emulatorSupportsVirtualScene(
+    myEmulatorPackage =
+        EmulatorPackages.getEmulatorPackage(
             AndroidSdks.getInstance().tryToChooseSdkHandler(),
-            new StudioLoggerProgressIndicator(AvdOptionsModel.class),
-            new LogWrapper(Logger.getInstance(AvdOptionsModel.class)));
+            new StudioLoggerProgressIndicator(AvdOptionsModel.class));
+
+    Set<String> features = EmulatorFeatures.getEmulatorFeatures(myEmulatorPackage);
+
+    boolean supportsVirtualCamera = features.contains(EmulatorAdvancedFeatures.VIRTUAL_SCENE);
     mySelectedAvdFrontCamera = new ObjectValueProperty<>(AvdCamera.EMULATED);
     mySelectedAvdBackCamera = new ObjectValueProperty<>(
             supportsVirtualCamera ? AvdCamera.VIRTUAL_SCENE : AvdCamera.EMULATED);
@@ -752,9 +761,8 @@ public final class AvdOptionsModel extends WizardModel {
       }
       else if (value instanceof GpuMode) {
         GpuMode gpuMode = (GpuMode)value;
-        if (gpuMode == GpuMode.SWIFT &&
-            !AvdManagerConnection.getDefaultAvdManagerConnection().
-              emulatorVersionIsAtLeast(new Revision(27, 1, 6))) {
+        if (gpuMode == GpuMode.SWIFT && myEmulatorPackage != null &&
+            myEmulatorPackage.getVersion().compareTo(new Revision(27, 1, 6)) < 0) {
           // Older Emulator versions expect "guest" when SWIFT is selected on the UI
           return "guest";
         }

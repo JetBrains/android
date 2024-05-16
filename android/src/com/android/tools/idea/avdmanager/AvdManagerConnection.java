@@ -16,7 +16,6 @@
 package com.android.tools.idea.avdmanager;
 
 import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
-import static com.android.SdkConstants.FD_EMULATOR;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static java.nio.file.StandardOpenOption.WRITE;
 
@@ -41,7 +40,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
+import com.android.sdklib.internal.avd.EmulatorPackages;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.internal.avd.SdCard;
 import com.android.sdklib.repository.AndroidSdkHandler;
@@ -156,8 +157,7 @@ public class AvdManagerConnection {
 
   public @Nullable EmulatorPackage getEmulator() {
     if (mySdkHandler != null) {
-      LocalPackage emulatorPackage = mySdkHandler.getLocalPackage(FD_EMULATOR, REPO_LOG);
-      return emulatorPackage == null ? null : new EmulatorPackage(emulatorPackage);
+      return EmulatorPackages.getEmulatorPackage(mySdkHandler, REPO_LOG);
     }
     return null;
   }
@@ -290,12 +290,6 @@ public class AvdManagerConnection {
     }
     HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
     return (hwProp == null) ? null : hwProp.getDefault();
-  }
-
-  @Nullable
-  public Path getEmulatorBinary() {
-    EmulatorPackage emulator = getEmulator();
-    return emulator == null ? null : emulator.getEmulatorBinary();
   }
 
   private boolean hasPlatformToolsForQEMU2Installed() {
@@ -577,13 +571,11 @@ public class AvdManagerConnection {
                                                            @NotNull AvdInfo avd,
                                                            boolean forceLaunchInToolWindow,
                                                            @NotNull EmulatorCommandBuilderFactory factory) {
-    ProgressIndicator indicator = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
-    ILogger logger = new LogWrapper(Logger.getInstance(AvdManagerConnection.class));
     Optional<Collection<String>> params = Optional.ofNullable(System.getenv("studio.emu.params")).map(Splitter.on(',')::splitToList);
 
     return factory.newEmulatorCommandBuilder(emulator, avd)
       .setAvdHome(myAvdManager.getBaseAvdFolder())
-      .setEmulatorSupportsSnapshots(EmulatorAdvFeatures.emulatorSupportsFastBoot(mySdkHandler, indicator, logger))
+      .setEmulatorSupportsSnapshots(EmulatorFeatures.getEmulatorFeatures(getEmulator()).contains(EmulatorAdvancedFeatures.FAST_BOOT))
       .setStudioParams(writeParameterFile().orElse(null))
       .setLaunchInToolWindow(forceLaunchInToolWindow || shouldLaunchInToolWindow(project))
       .addAllStudioEmuParams(params.orElse(Collections.emptyList()))
@@ -601,16 +593,6 @@ public class AvdManagerConnection {
   public static boolean isFoldable(@NotNull AvdInfo avd) {
     String displayRegionWidth = avd.getProperty("hw.displayRegion.0.1.width");
     return displayRegionWidth != null && !"0".equals(displayRegionWidth);
-  }
-
-  /**
-   * Indicates if the Emulator's version is at least {@code desired}
-   *
-   * @return true if the Emulator version is the desired version or higher
-   */
-  public boolean emulatorVersionIsAtLeast(@NotNull Revision desired) {
-    EmulatorPackage emulator = getEmulator();
-    return emulator != null && emulator.getVersion().compareTo(desired) >= 0;
   }
 
   /**

@@ -323,17 +323,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data", Files.exists(userData));
   }
 
-  public void testEmulatorVersionIsAtLeast() {
-    // The emulator was created with version 23.4.5
-    assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(22, 9, 9)));
-    assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 1, 9)));
-    assertTrue(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 4, 5)));
-
-    assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 4, 6)));
-    assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(23, 5, 1)));
-    assertFalse(mAvdManagerConnection.emulatorVersionIsAtLeast(new Revision(24, 1, 1)));
-  }
-
   public void testGetHardwareProperties() {
     recordEmulatorHardwareProperties(mSdkRoot);
     assertEquals("800M", mAvdManagerConnection.getSdCardSizeFromHardwareProperties());
