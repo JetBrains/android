@@ -63,7 +63,7 @@ private constructor(
       boxedLabels.forEach { it.timelineUnit = value }
     }
 
-  private var boxedLabels: List<BoxedLabel> =
+  private val boxedLabels: List<BoxedLabel> =
     componentCurves.mapIndexed { index, curve ->
       BoxedLabel(index, property.grouped) { curve.boxedLabelPosition }
     }
