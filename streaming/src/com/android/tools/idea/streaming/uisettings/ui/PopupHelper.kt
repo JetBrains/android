@@ -39,6 +39,7 @@ internal fun showUiSettingsPopup(panel: JComponent, action: AnAction, event: AnA
       .setShadow(true)
       .setHideOnAction(false)
       .setBlockClicksThroughBalloon(true)
+      .setRequestFocus(true)
       .setAnimationCycle(200)
       .setFillColor(secondaryPanelBackground)
       .createBalloon()

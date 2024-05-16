@@ -32,6 +32,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Font
 import javax.swing.AbstractButton
 import javax.swing.JSlider
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.plaf.UIResource
 
 private const val TITLE = "Device Settings Shortcuts"
@@ -138,6 +139,10 @@ internal class UiSettingsPanel(
       }
     })
     updateBackground()
+
+    isFocusCycleRoot = true
+    isFocusTraversalPolicyProvider = true
+    focusTraversalPolicy = LayoutFocusTraversalPolicy()
   }
 
   /**

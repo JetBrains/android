@@ -16,6 +16,8 @@
 package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.testutils.waitForCondition
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
 import com.android.tools.adtui.swing.getDescendant
 import com.android.tools.adtui.swing.popup.JBPopupRule
@@ -23,6 +25,7 @@ import com.android.tools.idea.streaming.uisettings.binding.ChangeListener
 import com.android.tools.idea.streaming.uisettings.data.DEFAULT_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.DANISH_LANGUAGE
 import com.android.tools.idea.streaming.uisettings.testutil.RUSSIAN_LANGUAGE
+import com.android.tools.idea.testing.disposable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -31,6 +34,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
 import java.awt.Dimension
+import java.awt.event.KeyEvent.VK_RIGHT
+import java.awt.event.KeyEvent.VK_SHIFT
+import java.awt.event.KeyEvent.VK_SPACE
+import java.awt.event.KeyEvent.VK_TAB
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -198,5 +205,74 @@ class UiSettingsPanelTest {
     assertThat(panel.findDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }).isNull()
     assertThat(panel.findDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }).isNull()
     assertThat(panel.findDescendant<JSlider> { it.name == DENSITY_TITLE }).isNull()
+  }
+
+  @Test
+  fun testKeyboardAccessibility() {
+    model.gestureOverlayInstalled.setFromController(true)
+    model.talkBackInstalled.setFromController(true)
+    val ui = FakeUi(panel, createFakeWindow = true, parentDisposable = projectRule.disposable)
+    val focusManager = FakeKeyboardFocusManager(projectRule.disposable)
+    focusManager.focusOwner = panel
+    panel.transferFocus()
+
+    assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.hasFocus()).isTrue()
+    ui.keyboard.pressAndRelease(VK_SPACE)
+    waitForCondition(1.seconds) { lastCommand == "dark=true" }
+    ui.keyboard.pressAndRelease(VK_TAB)
+    model.differentFromDefault.setFromController(true)
+
+    assertThat(panel.getDescendant<JCheckBox> { it.name == GESTURE_NAVIGATION_TITLE }.hasFocus()).isTrue()
+    ui.keyboard.pressAndRelease(VK_SPACE)
+    waitForCondition(1.seconds) { lastCommand == "gestures=true" }
+    ui.keyboard.pressAndRelease(VK_TAB)
+
+    val comboBox = panel.getDescendant<JComboBox<*>> { it.name == APP_LANGUAGE_TITLE }
+    assertThat(comboBox.hasFocus()).isTrue()
+    // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
+    comboBox.selectedIndex = 1
+    waitForCondition(1.seconds) { lastCommand == "locale=da" }
+    // simulate: ui.keyboard.pressAndRelease(VK_DOWN), popup from comboBox cannot be intercepted
+    comboBox.selectedIndex = 2
+    waitForCondition(1.seconds) { lastCommand == "locale=ru" }
+    ui.keyboard.pressAndRelease(VK_TAB)
+
+    assertThat(panel.getDescendant<JCheckBox> { it.name == TALKBACK_TITLE }.hasFocus()).isTrue()
+    ui.keyboard.pressAndRelease(VK_SPACE)
+    waitForCondition(1.seconds) { lastCommand == "talkBackOn=true" }
+    ui.keyboard.pressAndRelease(VK_TAB)
+
+    assertThat(panel.getDescendant<JCheckBox> { it.name == SELECT_TO_SPEAK_TITLE }.hasFocus()).isTrue()
+    ui.keyboard.pressAndRelease(VK_SPACE)
+    waitForCondition(1.seconds) { lastCommand == "selectToSpeakOn=true" }
+    ui.keyboard.pressAndRelease(VK_TAB)
+
+    assertThat(panel.getDescendant<JSlider> { it.name == FONT_SCALE_TITLE }.hasFocus()).isTrue()
+    ui.keyboard.pressAndRelease(VK_RIGHT)
+    waitForCondition(1.seconds) { lastCommand == "fontScale=115" }
+    ui.keyboard.pressAndRelease(VK_RIGHT)
+    waitForCondition(1.seconds) { lastCommand == "fontScale=130" }
+    ui.keyboard.pressAndRelease(VK_TAB)
+
+    assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.hasFocus()).isTrue()
+    ui.keyboard.pressAndRelease(VK_RIGHT)
+    waitForCondition(1.seconds) { lastCommand == "density=544" }
+    ui.keyboard.pressAndRelease(VK_RIGHT)
+    waitForCondition(1.seconds) { lastCommand == "density=608" }
+    ui.keyboard.pressAndRelease(VK_TAB)
+
+    assertThat(panel.getDescendant<JButton> { it.name == RESET_BUTTON_TEXT }.hasFocus()).isTrue()
+    ui.keyboard.pressAndRelease(VK_SPACE)
+    waitForCondition(1.seconds) { lastCommand == "reset" }
+    model.differentFromDefault.setFromController(false)
+
+    // Activating the reset button should disable the reset button, and the focus will transfer to the next control:
+    assertThat(panel.getDescendant<JCheckBox> { it.name == DARK_THEME_TITLE }.hasFocus()).isTrue()
+
+    // Back tab will now skip the reset button:
+    ui.keyboard.press(VK_SHIFT)
+    ui.keyboard.pressAndRelease(VK_TAB)
+    ui.keyboard.release(VK_SHIFT)
+    assertThat(panel.getDescendant<JSlider> { it.name == DENSITY_TITLE }.hasFocus()).isTrue()
   }
 }
