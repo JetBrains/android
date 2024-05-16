@@ -131,7 +131,9 @@ class FilterBuilder {
 
   /** Filter by device model name (e.g. samsung/hlte). */
   fun addDevices(devices: Collection<Device>) {
-    devices.filterNot { it == Device.ALL }.onEach { rawFilters.add(Filter(DEVICE_MODEL, it.model)) }
+    devices
+      .filterNot { it == Device.ALL }
+      .onEach { rawFilters.add(Filter(DEVICE_MODEL, "${it.manufacturer}/${it.model}")) }
   }
 
   fun addOperatingSystems(operatingSystems: Collection<OperatingSystemInfo>) {
