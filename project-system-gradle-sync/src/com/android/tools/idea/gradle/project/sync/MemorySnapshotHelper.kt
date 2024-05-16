@@ -72,7 +72,7 @@ fun captureHeapHistogramOfCurrentProcess(outputPath: String, checkpoint: Measure
   println("Recording event $name")
   val server = ManagementFactory.getPlatformMBeanServer()
   val histogram = server.execute("gcClassHistogram").toString()
-  val fileHistogram = File(outputPath).resolve("${getTimestamp()}_$name")
+  val fileHistogram = File(outputPath).resolve("${getTimestamp()}_$name.histogram")
   fileHistogram.writeText(histogram)
 }
 
