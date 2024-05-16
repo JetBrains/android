@@ -90,35 +90,39 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
   override fun runActivity(project: Project) {
     if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
 
-    val gradleProjectInfo = GradleProjectInfo.getInstance(project)
-    val info = Info.getInstance(project)
+    runAndroidGradleProjectStartupActivity(project)
+  }
+}
 
-    fun shouldSyncOrAttachModels(): Boolean {
-      if (gradleProjectInfo.isSkipStartupActivity) return false
+fun runAndroidGradleProjectStartupActivity(project: Project, isJpsProjectLoaded: Boolean = false) {
+  val gradleProjectInfo = GradleProjectInfo.getInstance(project)
+  val info = Info.getInstance(project)
 
-      // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
-      if (info.androidModules.isNotEmpty()) return true
+  fun shouldSyncOrAttachModels(): Boolean {
+    if (gradleProjectInfo.isSkipStartupActivity) return false
 
-      // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-      return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
-    }
+    // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
+    if (info.androidModules.isNotEmpty()) return true
 
-    // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
-    // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
-    removeGradleProducersFromIgnoredList(project)
+    // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
+    return IdeInfo.getInstance().isAndroidStudio && info.isBuildWithGradle
+  }
 
-    if (shouldSyncOrAttachModels()) {
-      whenAllModulesLoaded(project) {
-        invokeAndWaitIfNeeded {
-          removePointlessModules(project)
-          attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
-          subscribeToGradleSettingChanges(project)
-        }
+  // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
+  // This would allow running unit tests through Gradle for existing projects where Gradle producers where disabled in favor of AndroidJunit.
+  removeGradleProducersFromIgnoredList(project)
+
+  if (shouldSyncOrAttachModels()) {
+    whenAllModulesLoaded(project, isJpsProjectLoaded) {
+      invokeAndWaitIfNeeded {
+        removePointlessModules(project)
+        attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+        subscribeToGradleSettingChanges(project)
       }
     }
-
-    gradleProjectInfo.isSkipStartupActivity = false
   }
+
+  gradleProjectInfo.isSkipStartupActivity = false
 }
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
@@ -133,8 +137,8 @@ private fun subscribeToGradleSettingChanges(project: Project) {
   })
 }
 
-private fun whenAllModulesLoaded(project: Project, callback: () -> Unit) {
-  if (project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
+private fun whenAllModulesLoaded(project: Project, isJpsProjectLoaded: Boolean, callback: () -> Unit) {
+  if (isJpsProjectLoaded || project.getUserData(PlatformProjectOpenProcessor.PROJECT_LOADED_FROM_CACHE_BUT_HAS_NO_MODULES) == true) {
     // All modules are loaded at this point and JpsProjectLoadingManager.jpsProjectLoaded is not triggered, so invoke callback directly.
     callback()
   } else {
