@@ -44,7 +44,7 @@ class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
     buttonAction.updateStates(initial, target)
   }
 
-  override val extraActions: List<AnAction> =
+  override val changeStateActions: List<AnAction> =
     listOf(
       SwapAction(tracker) {
         buttonAction.swapStates()

@@ -59,7 +59,7 @@ class ColorPickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
     }
   }
 
-  override val extraActions: List<AnAction> =
+  override val changeStateActions: List<AnAction> =
     listOf(
       SwapAction(tracker) {
         initialState.swapWith(targetState)

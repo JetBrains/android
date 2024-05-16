@@ -67,7 +67,7 @@ class ColorPickerStateTest {
           Mockito.mock(DesignSurface::class.java),
           MutableStateFlow(ElementState()),
           "Title",
-          state.extraActions,
+          state.changeStateActions,
           NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }

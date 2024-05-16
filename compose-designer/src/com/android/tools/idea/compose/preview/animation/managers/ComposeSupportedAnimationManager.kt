@@ -128,7 +128,7 @@ open class ComposeSupportedAnimationManager(
         rootComponent,
         elementState,
         tabTitle,
-        stateComboBox.extraActions,
+        stateComboBox.changeStateActions,
         tracker,
       )
       .apply {
@@ -163,7 +163,8 @@ open class ComposeSupportedAnimationManager(
       //    |                                                          |
       //    |                     tabScrollPane                        |
       //    |                                                          |
-      val toolbar = createToolbarWithNavigation(rootComponent, "State", stateComboBox.extraActions)
+      val toolbar =
+        createToolbarWithNavigation(rootComponent, "State", stateComboBox.changeStateActions)
       add(toolbar.component, TabularLayout.Constraint(0, 1))
       add(tabScrollPane, TabularLayout.Constraint(1, 0, 2))
       tabScrollPane.setViewportView(tabTimelineParent)

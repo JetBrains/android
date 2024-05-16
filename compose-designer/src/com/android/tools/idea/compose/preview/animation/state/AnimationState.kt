@@ -19,11 +19,12 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
+import com.android.tools.idea.preview.animation.AnimationStateManager
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.intellij.openapi.actionSystem.AnAction
 
 /** Animation state. */
-abstract class AnimationState(callback: () -> Unit = {}) {
+abstract class AnimationState(callback: () -> Unit = {}) : AnimationStateManager {
 
   companion object {
 
@@ -65,7 +66,7 @@ abstract class AnimationState(callback: () -> Unit = {}) {
   abstract fun updateStates(states: Set<Any>)
 
   /** Hash code of selected state. */
-  abstract fun stateHashCode(): Int
+  abstract override fun stateHashCode(): Int
 
   /** Get selected state for the [index]. */
   abstract fun getState(index: Int = 0): Any?
@@ -73,6 +74,6 @@ abstract class AnimationState(callback: () -> Unit = {}) {
   /** Set a start state. */
   abstract fun setStartState(state: Any?)
 
-  open val extraActions: List<AnAction>
+  override val changeStateActions: List<AnAction>
     get() = emptyList()
 }

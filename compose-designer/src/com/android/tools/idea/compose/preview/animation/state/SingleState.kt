@@ -31,7 +31,7 @@ class SingleState(private val tracker: ComposeAnimationTracker, callback: () -> 
   private val enumState = EnumStateAction(stateCallback)
 
   /** Contains [SwapAction] and [EnumStateAction] for Enter/Exit state. */
-  override val extraActions =
+  override val changeStateActions =
     listOf(
       SwapAction(tracker) {
         enumState.states

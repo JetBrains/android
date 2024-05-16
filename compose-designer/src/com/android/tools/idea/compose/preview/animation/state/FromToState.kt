@@ -45,7 +45,7 @@ class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
    * * `to` [ToolbarLabel]
    * * [EnumStateAction] for `to` state.
    */
-  override val extraActions =
+  override val changeStateActions =
     listOf(
       SwapAction(tracker) {
         val start = fromState.currentState
