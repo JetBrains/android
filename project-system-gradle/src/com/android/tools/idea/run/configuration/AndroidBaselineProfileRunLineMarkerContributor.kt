@@ -146,7 +146,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
             PsiTreeUtil
               .findChildOfType(prop, KtCallExpression::class.java)
               ?.getExpectedType()
-              ?.asStringForDebugging()
+              ?.toString()
               ?.takeIf { it == NAME_ANDROIDX_JUNIT_BASELINE_PROFILE_RULE || it == NAME_ANDROIDX_JUNIT_MACROBENCHMARK_RULE }
           }
       }
