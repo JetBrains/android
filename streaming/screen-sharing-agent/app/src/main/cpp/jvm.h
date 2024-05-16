@@ -48,6 +48,12 @@ public:
       ref_(other.ref_) {
     other.ref_ = nullptr;
   }
+  JObject(JNIEnv* jni_env, JObject&& other)
+      : jni_env_(jni_env),
+        ref_(other.Release()) {
+  }
+  JObject(JNIEnv* jni_env, JObject& other) = delete;
+
   ~JObject() {
     DeleteRef();
   }
