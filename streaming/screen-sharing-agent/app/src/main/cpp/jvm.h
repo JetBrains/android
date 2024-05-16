@@ -125,6 +125,9 @@ public:
     SetFloatField(GetJni(), field, value);
   }
   void SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const;
+  // Returns a std::string value of this JObject if it represents a java.lang.String. It is illegal to call
+  // this method on an object that is not a java.lang.String.
+  [[nodiscard]] std::string GetStringValue() const;
   // Calls the toString() method on the Java object. Intended for debugging only and may be slow.
   [[nodiscard]] std::string ToString() const;
 
@@ -360,7 +363,7 @@ public:
 
   [[nodiscard]] JCharArray NewCharArray(int32_t length) const;
   bool CheckAndClearException() const;
-  JThrowable GetAndClearException() const;
+  [[nodiscard]] JThrowable GetAndClearException() const;
 
 private:
   JNIEnv* jni_env_;

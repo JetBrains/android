@@ -144,6 +144,17 @@ void JObject::SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const 
   jni_env->SetFloatField(ref_, field, value);
 }
 
+string JObject::GetStringValue() const {
+  if (IsNull()) {
+    Log::Fatal(NULL_POINTER, "JObject::GetStringValue is called on a null object");
+  }
+  jstring jstr = static_cast<jstring>(ref_);
+  const char* localName = jni_env_->GetStringUTFChars(jstr, nullptr);
+  string result(localName);
+  jni_env_->ReleaseStringUTFChars(jstr, localName);
+  return result;
+}
+
 string JObject::ToString() const {
   if (ref_ == nullptr) {
     Log::Fatal(NULL_POINTER, "ToString is called on a null object");
@@ -151,7 +162,7 @@ string JObject::ToString() const {
   Jni jni = GetJni();
   JClass clazz = GetClass(jni);
   jmethodID method = clazz.GetDeclaredOrInheritedMethod("toString", "()Ljava/lang/String;");
-  JString str = JString(jni, jni->CallObjectMethod(ref_, method));
+  JObject str = CallObjectMethod(method);
   if (str.IsNull()) {
     JThrowable exception = jni.GetAndClearException();
     if (exception.IsNull()) {
@@ -161,7 +172,7 @@ string JObject::ToString() const {
     }
     return "";
   }
-  return str.GetValue();
+  return str.GetStringValue();
 }
 
 void JObject::DeleteRef() noexcept {
