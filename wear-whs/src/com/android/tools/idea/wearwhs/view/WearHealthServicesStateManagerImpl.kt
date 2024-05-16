@@ -18,9 +18,7 @@ package com.android.tools.idea.wearwhs.view
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearwhs.EventTrigger
-import com.android.tools.idea.wearwhs.WHS_CAPABILITIES
 import com.android.tools.idea.wearwhs.WhsCapability
-import com.android.tools.idea.wearwhs.WhsDataType
 import com.android.tools.idea.wearwhs.communication.CapabilityState
 import com.android.tools.idea.wearwhs.communication.ConnectionLostException
 import com.android.tools.idea.wearwhs.communication.WearHealthServicesDeviceManager
@@ -37,12 +35,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-
-/**
- * Default polling interval for updating the state manager with values from
- * [WearHealthServicesDeviceManager].
- */
-private const val POLLING_INTERVAL_MILLISECONDS: Long = 5000
 
 /** Maximum wait time for a command to get executed. */
 private const val MAX_WAIT_TIME_FOR_COMMANDS_MILLISECONDS: Long = 5000
@@ -255,13 +247,4 @@ internal class WearHealthServicesStateManagerImpl(
   internal suspend fun forceUpdateState() {
     updateState()
   }
-
-  @TestOnly
-  internal fun setOngoingExerciseForTest(ongoingExercise: Boolean) {
-    _ongoingExercise.value = ongoingExercise
-  }
-}
-
-private fun WhsDataType.toCapability(): WhsCapability {
-  return WHS_CAPABILITIES.single { it.dataType == this }
 }

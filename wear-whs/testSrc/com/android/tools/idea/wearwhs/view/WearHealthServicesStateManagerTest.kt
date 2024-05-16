@@ -260,10 +260,12 @@ class WearHealthServicesStateManagerTest {
     stateManager.preset.value = Preset.STANDARD
 
     stateManager.setOverrideValue(capabilities[1], 3f)
+    deviceManager.activeExercise = true
+
+    stateManager.ongoingExercise.waitForValue(true)
 
     assertEquals(0, deviceManager.overrideValuesInvocations)
 
-    stateManager.setOngoingExerciseForTest(true)
     stateManager.reset()
 
     stateManager.preset.waitForValue(Preset.STANDARD)
