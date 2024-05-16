@@ -40,6 +40,7 @@ import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Dropdown
 import org.jetbrains.jewel.ui.component.Icon
+import org.jetbrains.jewel.ui.component.IconButton
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.component.separator
@@ -52,6 +53,7 @@ internal fun DevicePanel(
   images: ImmutableList<SystemImage>,
   onDeviceChange: (VirtualDevice) -> Unit,
   onStateChange: (DevicePanelState) -> Unit,
+  onDownloadButtonClick: (String) -> Unit,
 ) {
   Text("Name", Modifier.padding(bottom = Padding.SMALL))
 
@@ -75,7 +77,12 @@ internal fun DevicePanel(
     Modifier.padding(bottom = Padding.MEDIUM_LARGE),
   )
 
-  SystemImageTable(images, state, Modifier.height(150.dp).padding(bottom = Padding.SMALL))
+  SystemImageTable(
+    images,
+    state,
+    onDownloadButtonClick,
+    Modifier.height(150.dp).padding(bottom = Padding.SMALL),
+  )
 
   ShowSdkExtensionSystemImagesCheckbox(
     state.sdkExtensionSystemImagesVisible,
@@ -131,12 +138,13 @@ private fun ServicesDropdown(
 private fun SystemImageTable(
   images: ImmutableList<SystemImage>,
   state: DevicePanelState,
+  onDownloadButtonClick: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val columns =
     listOf(
       TableColumn("", TableColumnWidth.Weighted(1F), Comparator.comparing(SystemImage::isRemote)) {
-        if (it.isRemote) DownloadIcon()
+        if (it.isRemote) DownloadButton(onClick = { onDownloadButtonClick(it.path) })
       },
       TableColumn(
         "System Image",
@@ -193,8 +201,8 @@ internal constructor(
 }
 
 @Composable
-private fun DownloadIcon() {
-  Icon("expui/general/download.svg", null, ExpUiIcons::class.java)
+private fun DownloadButton(onClick: () -> Unit) {
+  IconButton(onClick) { Icon("expui/general/download.svg", null, ExpUiIcons::class.java) }
 }
 
 @Composable

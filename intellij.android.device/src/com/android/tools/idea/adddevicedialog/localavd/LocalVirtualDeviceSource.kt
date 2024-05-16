@@ -41,20 +41,26 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.collect.Range
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.project.Project
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
+  private val project: Project?,
   private val systemImages: ImmutableCollection<SystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
   companion object {
-    fun create(): LocalVirtualDeviceSource {
-      return LocalVirtualDeviceSource(
-        SystemImage.getSystemImages().toImmutableList(),
+    internal fun create(project: Project?): LocalVirtualDeviceSource {
+      val images = SystemImage.getSystemImages().toImmutableList()
+
+      val skins =
         SkinComboBoxModel.merge(listOf(NoSkin.INSTANCE), SkinCollector.updateAndCollect())
-          .toImmutableList(),
-      )
+          .toImmutableList()
+
+      return LocalVirtualDeviceSource(project, images, skins)
     }
   }
 
@@ -68,15 +74,19 @@ internal class LocalVirtualDeviceSource(
   @Composable
   private fun WizardPageScope.ConfigurationPage(device: DeviceProfile) {
     val state =
-      remember(device) { LocalAvdConfigurationState(systemImages, skins, device as VirtualDevice) }
+      remember(device) {
+        LocalAvdConfigurationState(project, systemImages, skins, device as VirtualDevice)
+      }
 
     val api = device.apiRange.upperEndpoint()
+    @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
     ConfigureDevicePanel(
       state.device,
       state.systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList(),
       state.skins,
       onDeviceChange = { state.device = it },
+      onDownloadButtonClick = { state.downloadSystemImage(parent, it) },
       onImportButtonClick = {
         // TODO Validate the skin
         val skin =

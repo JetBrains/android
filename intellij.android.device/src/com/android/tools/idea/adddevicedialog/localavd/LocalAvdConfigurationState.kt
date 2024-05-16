@@ -20,18 +20,56 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
+import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.project.Project
+import java.awt.Component
 import java.nio.file.Path
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidPluginDisposable
 
 internal class LocalAvdConfigurationState
 internal constructor(
-  internal val systemImages: ImmutableCollection<SystemImage>,
+  private val project: Project?,
+  systemImages: ImmutableCollection<SystemImage>,
   skins: ImmutableCollection<Skin>,
   device: VirtualDevice,
 ) {
-  internal var device by mutableStateOf(device)
+  internal var systemImages by mutableStateOf(systemImages)
+    private set
+
   internal var skins by mutableStateOf(skins)
+  internal var device by mutableStateOf(device)
+
+  internal fun downloadSystemImage(parent: Component, path: String) {
+    val dialog = SdkQuickfixUtils.createDialogForPaths(parent, listOf(path), false)
+
+    if (dialog == null) {
+      thisLogger().warn("Could not create the SDK Quickfix Installation dialog")
+      return
+    }
+
+    dialog.show()
+
+    val parentDisposable =
+      if (project == null) {
+        AndroidPluginDisposable.getApplicationInstance()
+      } else {
+        AndroidPluginDisposable.getProjectInstance(project)
+      }
+
+    AndroidCoroutineScope(parentDisposable, AndroidDispatchers.uiThread).launch {
+      systemImages =
+        withContext(AndroidDispatchers.workerThread) {
+          SystemImage.getSystemImages().toImmutableList()
+        }
+    }
+  }
 
   internal fun importSkin(path: Path) {
     var skin = skins.find { it.path() == path }

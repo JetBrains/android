@@ -20,7 +20,6 @@ import com.android.tools.idea.adddevicedialog.DeviceSourceProvider
 import com.intellij.openapi.project.Project
 
 class LocalVirtualDeviceSourceProvider : DeviceSourceProvider {
-  override fun createDeviceSource(project: Project?): DeviceSource {
-    return LocalVirtualDeviceSource.create()
-  }
+  override fun createDeviceSource(project: Project?): DeviceSource =
+    LocalVirtualDeviceSource.create(project)
 }

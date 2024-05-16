@@ -37,6 +37,7 @@ internal data class SystemImage
 @VisibleForTesting
 internal constructor(
   internal val isRemote: Boolean,
+  internal val path: String,
   internal val androidVersion: AndroidVersion,
   internal val services: Services,
   internal val abis: ImmutableCollection<Abi>,
@@ -74,6 +75,7 @@ internal constructor(
 
       return SystemImage(
         isRemote,
+        repoPackage.path,
         details.androidVersion,
         repoPackage.getServices(details.androidVersion),
         details.abis.map(::valueOfString).toImmutableSet(),

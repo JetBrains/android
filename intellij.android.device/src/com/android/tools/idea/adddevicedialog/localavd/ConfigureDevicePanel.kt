@@ -38,6 +38,7 @@ internal fun ConfigureDevicePanel(
   images: ImmutableList<SystemImage>,
   skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit,
+  onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
   @OptIn(ExperimentalJewelApi::class)
@@ -45,7 +46,7 @@ internal fun ConfigureDevicePanel(
     Column {
       Text("Configure device")
       Text("Add a device to device manager")
-      Tabs(device, images, skins, onDeviceChange, onImportButtonClick)
+      Tabs(device, images, skins, onDeviceChange, onDownloadButtonClick, onImportButtonClick)
     }
   }
 }
@@ -56,6 +57,7 @@ private fun Tabs(
   images: ImmutableList<SystemImage>,
   skins: ImmutableCollection<Skin>,
   onDeviceChange: (VirtualDevice) -> Unit,
+  onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
   var selectedTab by remember { mutableStateOf(Tab.DEVICE) }
@@ -83,6 +85,7 @@ private fun Tabs(
         images,
         onDeviceChange,
         onStateChange = { devicePanelState = it },
+        onDownloadButtonClick,
       )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(
