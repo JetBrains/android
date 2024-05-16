@@ -910,6 +910,20 @@
     <option name="message" hit="Warn message" />
     <option name="warn" hit="Warn message" />
   </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Gradle Declarative Configuration Language" configurable_name="Gradle Declarative Configuration Language">
+    <option name="configuration" hit="Gradle Declarative Configuration Language" />
+    <option name="declarative" hit="Gradle Declarative Configuration Language" />
+    <option name="gradle" hit="Gradle Declarative Configuration Language" />
+    <option name="language" hit="Gradle Declarative Configuration Language" />
+    <option name="block" hit="Block comments" />
+    <option name="comments" hit="Block comments" />
+    <option name="boolean" hit="Boolean" />
+    <option name="comments" hit="Comments" />
+    <option name="null" hit="Null" />
+    <option name="number" hit="Number" />
+    <option name="string" hit="String//String text" />
+    <option name="text" hit="String//String text" />
+  </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Logcat Filter" configurable_name="Logcat Filter">
     <option name="filter" hit="Logcat Filter" />
     <option name="logcat" hit="Logcat Filter" />

@@ -28,6 +28,8 @@
     <psi.referenceContributor language="Declarative" implementation="com.android.tools.idea.gradle.declarative.DeclarativeVersionCatalogReferenceContributor"/>
     <lang.commenter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeCommenter"/>
     <lang.foldingBuilder language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeFoldingBuilder"/>
+    <colorSettingsPage implementation="com.android.tools.idea.gradle.declarative.color.DeclarativeColorSettingsPage"/>
+
     <localInspection language="Declarative"
                      bundle="messages.DeclarativeBundle"
                      groupKey="inspection.group.declarative"

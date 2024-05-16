@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder
+import com.android.tools.idea.gradle.declarative.color.DeclarativeColor
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BOOLEAN
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LINE_COMMENT
@@ -24,36 +24,26 @@ import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHo
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.STRING
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeHighlightingLexer
 import com.intellij.lexer.Lexer
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
 
-enum class DeclarativeTextAttributes(fallback: TextAttributesKey) {
-  NUMBER(DefaultLanguageHighlighterColors.NUMBER),
-  STRING(DefaultLanguageHighlighterColors.STRING),
-  LINE_COMMENT(DefaultLanguageHighlighterColors.LINE_COMMENT),
-  BLOCK_COMMENT(DefaultLanguageHighlighterColors.BLOCK_COMMENT),
-  KEYWORD(DefaultLanguageHighlighterColors.KEYWORD),
-  ;
-
-  val key = TextAttributesKey.createTextAttributesKey("Declarative_$name", fallback)
-  val keys = arrayOf(key)
-}
-
 class DeclarativeHighlighter: SyntaxHighlighterBase() {
   override fun getHighlightingLexer(): Lexer = DeclarativeHighlightingLexer()
 
+
   override fun getTokenHighlights(tokenType: IElementType): Array<out TextAttributesKey> {
-    return when (tokenType) {
-      STRING -> DeclarativeTextAttributes.STRING.keys
-      NUMBER -> DeclarativeTextAttributes.NUMBER.keys
-      BOOLEAN -> DeclarativeTextAttributes.KEYWORD.keys
-      LINE_COMMENT -> DeclarativeTextAttributes.LINE_COMMENT.keys
-      BLOCK_COMMENT -> DeclarativeTextAttributes.BLOCK_COMMENT.keys
-      NULL -> DeclarativeTextAttributes.KEYWORD.keys
-      else -> return TextAttributesKey.EMPTY_ARRAY
-    }
+    return pack(tokenMap[tokenType]?.textAttributesKey)
+  }
+
+  private val tokenMap: Map<IElementType, DeclarativeColor> = HashMap<IElementType, DeclarativeColor>().apply {
+    put(LINE_COMMENT, DeclarativeColor.COMMENT)
+    put(BLOCK_COMMENT, DeclarativeColor.BLOCK_COMMENT)
+
+    put(STRING, DeclarativeColor.STRING)
+    put(NUMBER, DeclarativeColor.NUMBER)
+    put(BOOLEAN, DeclarativeColor.BOOLEAN)
+    put(NULL, DeclarativeColor.NULL)
   }
 }
 
