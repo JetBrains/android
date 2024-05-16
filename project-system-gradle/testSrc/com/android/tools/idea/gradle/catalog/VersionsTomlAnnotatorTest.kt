@@ -480,6 +480,30 @@ class VersionsTomlAnnotatorTest {
   }
 
   @Test
+  fun checkDigitAfterDelimiter() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [plugins]
+      ${"first_4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+      ${"second-4Plugin" highlightedAs HighlightSeverity.ERROR } = "some:plugin"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
+  fun checkDigitAfterDelimiterForVersions() {
+    val file = fixture.addFileToProject("gradle/libs.versions.toml","""
+      [versions]
+      ${"first_4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
+      ${"second-4Version" highlightedAs HighlightSeverity.WARNING } = "1.0"
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
+  @Test
   fun checkGradleNamingConflict() {
     val file = fixture.addFileToProject("gradle/libs.versions.toml","""
       [plugins]
