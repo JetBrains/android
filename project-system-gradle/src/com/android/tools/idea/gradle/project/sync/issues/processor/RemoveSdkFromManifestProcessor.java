@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -137,8 +138,10 @@ public class RemoveSdkFromManifestProcessor extends BaseRefactoringProcessor {
     }
 
     if (xmlChanged.get() || buildFileChanged.get()) {
-      GradleSyncInvoker.getInstance()
-        .requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST), null);
+      ApplicationManager.getApplication().invokeLater(() -> {
+        GradleSyncInvoker.getInstance()
+          .requestProjectSync(myProject, new GradleSyncInvoker.Request(TRIGGER_QF_SDK_REMOVED_FROM_MANIFEST), null);
+      }, myProject.getDisposed());
     }
   }
 

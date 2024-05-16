@@ -45,9 +45,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.RunsInEdt;
 import java.io.File;
 import java.io.IOException;
+import com.intellij.util.concurrency.annotations.RequiresEdt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
@@ -84,7 +86,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       }
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
-      myHyperlink.execute(project);
+      executeHyperLink(project, myHyperlink);
 
       // Verify the text is accurate.
       assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
@@ -132,7 +134,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       }
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
-      myHyperlink.execute(project);
+      executeHyperLink(project, myHyperlink);
 
       // Verify the text is accurate.
       assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
@@ -143,7 +145,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk  android:targetSdkVersion='27'/>\n" +
+        "<uses-sdk android:targetSdkVersion='27'/>\n" +
         "</manifest>\n"
       );
 
@@ -181,7 +183,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       }
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.TARGET);
-      myHyperlink.execute(project);
+      executeHyperLink(project, myHyperlink);
 
       // Verify the text is accurate.
       assertThat(myHyperlink.toHtml()).contains("Move targetSdkVersion to build file and sync project");
@@ -192,7 +194,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk android:maxSdkVersion='21' />\n" +
+        "<uses-sdk android:maxSdkVersion='21'/>\n" +
         "</manifest>\n"
       );
 
@@ -231,7 +233,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       }
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule), SdkProperty.MIN);
-      myHyperlink.execute(project);
+      executeHyperLink(project, myHyperlink);
 
       // Verify the text is accurate.
       assertThat(myHyperlink.toHtml()).contains("Move minSdkVersion to build file and sync project");
@@ -283,7 +285,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
       }
 
       myHyperlink = new RemoveSdkFromManifestHyperlink(ImmutableList.of(appModule, libModule), SdkProperty.MIN);
-      myHyperlink.execute(project);
+      executeHyperLink(project, myHyperlink);
 
       // Verify the text is accurate.
       assertThat(myHyperlink.toHtml()).contains("Remove minSdkVersion and sync project");
@@ -294,7 +296,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk  android:targetSdkVersion='27'/>\n" +
+        "<uses-sdk android:targetSdkVersion='27'/>\n" +
         "</manifest>\n"
       );
 
@@ -303,7 +305,7 @@ public class RemoveSdkFromManifestHyperlinkTest {
         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
         "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    package=\"google.simpleapplication\" >\n" +
-        "<uses-sdk  android:targetSdkVersion='26'/>\n" +
+        "<uses-sdk android:targetSdkVersion='26'/>\n" +
         "</manifest>\n"
       );
 
@@ -369,5 +371,11 @@ public class RemoveSdkFromManifestHyperlinkTest {
       doc.setText(buildFileContent);
       PsiDocumentManager.getInstance(project).commitDocument(doc);
     });
+  }
+
+  @RequiresEdt
+  private static void executeHyperLink(@NotNull Project project, @NotNull RemoveSdkFromManifestHyperlink hyperlink) {
+    hyperlink.execute(project);
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
   }
 }
