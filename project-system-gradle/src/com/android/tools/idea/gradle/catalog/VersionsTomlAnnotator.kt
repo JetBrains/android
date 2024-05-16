@@ -113,7 +113,7 @@ class VersionsTomlAnnotator : Annotator {
     val same = parent.entries.map { it.key }
       .filter { it != element && it.segments.size == 1 }
       .mapNotNull { it.firstSegmentNormalizedText() }
-      .filter { compareAliases(elementName, it) }
+      .filter { sameAliases(elementName, it) }
     if (same.isNotEmpty()) {
       val suffix = if (same.size > 2) " etc." else "."
       holder.newAnnotation(HighlightSeverity.ERROR,
@@ -121,9 +121,18 @@ class VersionsTomlAnnotator : Annotator {
     }
   }
 
-  private fun compareAliases(alias1: String, alias2: String): Boolean {
+  private fun sameAliases(alias1: String, alias2: String): Boolean {
     if (alias1.length != alias2.length) return false
-    return alias1.zip(alias2).all { (a, b) -> a.normalize() == b.normalize() }
+    for (i in alias1.indices) {
+      val char1 = alias1[i].normalize()
+      val char2 = alias2[i].normalize()
+      if (i > 0 && alias1[i-1].normalize() == '_' && alias2[i-1].normalize() == '_') {
+        if (!char1.equals(char2, true)) return false
+      }
+      else
+        if (char1 != char2) return false
+    }
+    return true
   }
 
   private fun Char.normalize(): Char = if (this == '-' || this == '.') '_' else this
