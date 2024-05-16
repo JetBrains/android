@@ -56,7 +56,7 @@ string ClipboardManager::GetText() const {
     Log::W(jni_.GetAndClearException(), "Unable to obtain clipboard text");
     return "";
   }
-  return text.GetStringValue();
+  return text.ToString();
 }
 
 void ClipboardManager::SetText(const string& text) const {
