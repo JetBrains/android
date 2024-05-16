@@ -81,11 +81,26 @@ class DeclarativeSchema(private val schemas: List<AnalysisSchema>) {
   fun getRootMemberFunctions(): List<SchemaMemberFunction> = _rootMemberFunctions
 }
 
-fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? =
-  getReceiverByName(name, schema.getRootMemberFunctions())
+fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? {
+  getReceiverByName(name, schema.getRootMemberFunctions())?.let{
+    return it
+  }
+  // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
+  // to have all settingsInternal attributes in rootMembers
+  schema.getDataClassesByFqName()[FqName("org.gradle.api.internal", "SettingsInternal")]?.let{
+      return it.properties.find { it.name == name}?.type?.fqName()
+  }
+  return null
+
+}
+
+private fun DataTypeRef.fqName() = (this as? DataTypeRef.Name)?.fqName
 
 fun getReceiverByName(name: String, memberFunctions: List<SchemaMemberFunction>): FqName? {
   val dataMemberFunction = memberFunctions.find { it.simpleName == name } ?: return null
-  val accessor = (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor
-  return (accessor?.objectType as? DataTypeRef.Name)?.fqName
+  (dataMemberFunction.semantics as? FunctionSemantics.AccessAndConfigure)?.accessor?.let{
+    return  it.objectType.fqName()
+  }
+  dataMemberFunction.receiver.fqName()?.let { return it }
+  return null
 }
