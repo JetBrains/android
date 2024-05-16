@@ -15,6 +15,7 @@
     <orderEntry type="library" scope="TEST" name="http-client" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-fe10" level="project" />
     <orderEntry type="library" scope="TEST" name="kxml2" level="project" />
     <orderEntry type="library" scope="TEST" name="layoutlib" level="project" />

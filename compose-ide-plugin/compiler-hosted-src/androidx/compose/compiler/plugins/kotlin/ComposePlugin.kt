@@ -22,18 +22,18 @@ import androidx.compose.compiler.plugins.kotlin.lower.ClassStabilityFieldSeriali
 import com.intellij.mock.MockProject
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOptionProcessingException
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
+import org.jetbrains.kotlin.config.messageCollector
+import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
 import org.jetbrains.kotlin.extensions.internal.TypeResolutionInterceptor
 import org.jetbrains.kotlin.serialization.DescriptorSerializerPlugin
 
@@ -214,8 +214,7 @@ class ComposeComponentRegistrar : ComponentRegistrar {
                     false
                 )
                 if (!suppressKotlinVersionCheck && version != KOTLIN_VERSION_EXPECTATION) {
-                    val msgCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY)
-                    msgCollector?.report(
+                    configuration.messageCollector.report(
                         CompilerMessageSeverity.ERROR,
                         "This version (${VersionChecker.compilerVersion}) of the Compose" +
                             " Compiler requires Kotlin version $KOTLIN_VERSION_EXPECTATION but" +
