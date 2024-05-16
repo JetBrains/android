@@ -84,7 +84,8 @@ class DeviceCableMonitor : ProjectActivity {
 
       if (negotiatedSpeed == 480L && negotiatedSpeed < maxSpeed) {
         if (isStudioNotificationEnabled) {
-          showNotification(project,  "'${it.model}' is capable of faster USB connectivity. Upgrade the cable from ${speedToString(negotiatedSpeed)} to ${speedToString(maxSpeed)}.")
+          val model = it.model ?: "Device"
+          showNotification(project,  "'$model' is capable of faster USB connectivity. Upgrade the cable from ${speedToString(negotiatedSpeed)} to ${speedToString(maxSpeed)}.")
         }
       }
 
