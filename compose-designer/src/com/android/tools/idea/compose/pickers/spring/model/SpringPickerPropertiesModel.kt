@@ -147,7 +147,7 @@ internal class SpringPropertiesProviderK2(private val callElement: KtCallElement
         callableSymbol.valueParameters.map { parameter ->
           val argument = getArgumentForParameter(resolvedFunctionCall, parameter)
           val parameterName = parameter.name
-          val parameterTypeNameIfStandard = parameter.returnType.expandedClassSymbol?.name
+          val parameterTypeNameIfStandard = parameter.returnType.expandedSymbol?.name
           when (parameterName.asString()) {
             PARAMETER_THRESHOLD,
             PARAMETER_RATIO,

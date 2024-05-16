@@ -73,7 +73,7 @@ private fun KtFunction.isComposable(): Boolean {
   analyze(this) {
     for (annotationEntry in annotationEntries) {
       val classSymbol = when (val symbol = annotationEntry.typeReference?.mainReference?.resolveToSymbol()) {
-        is KtTypeAliasSymbol -> symbol.expandedType.expandedClassSymbol
+        is KtTypeAliasSymbol -> symbol.expandedType.expandedSymbol
         is KtClassOrObjectSymbol -> symbol
         else -> null
       }

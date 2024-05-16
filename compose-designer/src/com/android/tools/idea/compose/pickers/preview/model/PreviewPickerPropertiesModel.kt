@@ -379,7 +379,7 @@ private class PreviewPropertiesProvider(
           model,
           properties,
           parameter.name,
-          parameter.returnType.expandedClassSymbol?.name,
+          parameter.returnType.expandedSymbol?.name,
           argument,
           defaultValue,
           annotationEntry,

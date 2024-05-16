@@ -110,7 +110,7 @@ internal fun KtElement.callReturnTypeFqName() =
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
 // and `KtTypeRenderer`.
 internal fun KtAnalysisSession.asFqName(type: KtType) =
-  type.expandedClassSymbol?.classId?.asSingleFqName()
+  type.expandedSymbol?.classId?.asSingleFqName()
 
 internal fun KtFunction.hasComposableAnnotation() =
   if (KotlinPluginModeProvider.isK2Mode()) {
