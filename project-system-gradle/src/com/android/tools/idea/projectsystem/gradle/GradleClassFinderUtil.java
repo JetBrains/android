@@ -16,11 +16,15 @@
 package com.android.tools.idea.projectsystem.gradle;
 
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
+import com.android.tools.idea.gradle.model.IdeBaseArtifact;
+import com.android.tools.idea.gradle.model.IdeJavaArtifact;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -29,30 +33,53 @@ public class GradleClassFinderUtil {
   private GradleClassFinderUtil() {};
 
   @NotNull
-  private static Stream<File> getCompilerOutputRoots(@NotNull GradleAndroidModel model, boolean includeAndroidTests) {
-    List<IdeAndroidArtifact> artifacts = new ArrayList<>();
-    artifacts.add(model.getMainArtifact());
-    if (includeAndroidTests) {
+  private static Stream<File> getCompilerOutputRoots(@NotNull GradleAndroidModel model, @NotNull EnumSet<ScopeType> scopes) {
+    List<IdeBaseArtifact> artifacts = new ArrayList<>();
+    if (scopes.contains(ScopeType.MAIN)) {
+      artifacts.add(model.getMainArtifact());
+    }
+    if (scopes.contains(ScopeType.ANDROID_TEST)) {
       IdeAndroidArtifact testArtifact = model.getArtifactForAndroidTest();
       if (testArtifact != null) artifacts.add(testArtifact);
+    }
+    if (scopes.contains(ScopeType.SCREENSHOT_TEST)) {
+      IdeJavaArtifact screenshotArtifact = model.getArtifactForScreenshotTest();
+      if (screenshotArtifact != null) artifacts.add(screenshotArtifact);
     }
     return artifacts.stream().flatMap((artifactInfo) -> artifactInfo.getClassesFolder().stream());
   }
 
   /**
-   * Returns all the compiler output roots for the given {@link Module}. If {@code includeAndroidTests} is true, it will include
-   * also the output for tests.
+   * Returns all the compiler output roots for the given {@link Module}. The output will include all the roots for the given {@code scopes}.
    */
   @NotNull
-  public static Stream<File> getModuleCompileOutputs(@NotNull Module module, boolean includeAndroidTests) {
+  public static Stream<File> getModuleCompileOutputs(@NotNull Module module, @NotNull EnumSet<ScopeType> scopes) {
     GradleAndroidModel androidModel = GradleAndroidModel.get(module);
     if (androidModel != null) {
-      return getCompilerOutputRoots(androidModel, includeAndroidTests);
+      return getCompilerOutputRoots(androidModel, scopes);
     }
 
     // The module is not an Android module. Check for regular Java outputs.
     Module[] modules = {module};
     return Stream.of(CompilerPaths.getOutputPaths(modules))
       .map(File::new);
+  }
+
+  /**
+   * Returns all the compiler output roots for the given {@link Module}. If {@code includeAndroidTests} is true, it will include
+   * also the output for tests.
+   */
+  @Deprecated // Kept for now in case that there are any external users
+  @NotNull
+  public static Stream<File> getModuleCompileOutputs(@NotNull Module module, boolean includeAndroidTests) {
+    EnumSet<ScopeType> scopes;
+    if (includeAndroidTests) {
+      scopes = EnumSet.of(ScopeType.MAIN, ScopeType.ANDROID_TEST);
+    }
+    else {
+      scopes = EnumSet.of(ScopeType.MAIN);
+    }
+
+    return getModuleCompileOutputs(module, scopes);
   }
 }

@@ -47,6 +47,12 @@ import com.intellij.testFramework.utils.io.createFile
 import com.intellij.testFramework.utils.io.deleteRecursively
 import com.intellij.util.io.createDirectories
 import com.intellij.util.ui.UIUtil
+import org.junit.After
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import java.io.File
 import java.net.URI
 import java.nio.file.FileSystems
@@ -54,12 +60,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.spi.FileSystemProvider
 import kotlin.random.Random
-import org.junit.After
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 
 private val NUMBER_OF_SAMPLES = 40
 
@@ -195,7 +195,7 @@ class PerfgateGradleClassFileFinderTest {
 
     repeat(NUMBER_OF_SAMPLES) {
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.create(projectRule.module, false)
+      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
       classesToQuery.forEach {
         assertNotNull(gradleClassFinder.findClassFile(it))
       }
@@ -223,7 +223,7 @@ class PerfgateGradleClassFileFinderTest {
       projectRule.project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
       runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
       val stopWatch = Stopwatch.createStarted()
-      val gradleClassFinder = GradleClassFileFinder.create(projectRule.module, false)
+      val gradleClassFinder = GradleClassFileFinder.createWithoutTests(projectRule.module)
       classesToQuery.forEach {
         assertNotNull(gradleClassFinder.findClassFile(it))
       }
