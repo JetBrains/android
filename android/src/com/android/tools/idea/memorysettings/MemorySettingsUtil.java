@@ -17,7 +17,6 @@ package com.android.tools.idea.memorysettings;
 
 import com.android.tools.analytics.HostData;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.MemorySettings;
 import com.google.wireless.android.sdk.stats.MemorySettingsEvent;
@@ -60,9 +59,17 @@ public class MemorySettingsUtil {
     return current;
   }
 
-  public static int getMachineMem() {
+  public static @Nullable Long getMachineMemoryBytes() {
     OperatingSystemMXBean osBean = HostData.getOsBean();
-    return osBean == null ? -1 : Math.toIntExact(osBean.getTotalPhysicalMemorySize() >> 20);
+    return osBean == null ? null : osBean.getTotalPhysicalMemorySize();
+  }
+
+  /**
+   * Returns the amount of memory in MB, or -1 if unknown.
+   */
+  public static int getMachineMem() {
+    var bytes = getMachineMemoryBytes();
+    return bytes == null ? -1 : Math.toIntExact(bytes >> 20);
   }
 
   public static void saveXmx(int newValue) {

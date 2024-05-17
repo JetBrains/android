@@ -22,6 +22,7 @@ import com.android.tools.idea.avdmanager.AccelerationErrorSolution
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.ElevatedCommandLine
+import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
 import com.intellij.execution.ExecutionException
@@ -152,7 +153,7 @@ abstract class Vm(
   private fun printExceptionMessage(e: Exception,
                                     installContext: InstallContext) {
     LOG.warn("Tried to install ${installerInfo.fullName} on ${Platform.current().name} OS with " +
-             "${AvdManagerConnection.getMemorySize()} memory size", e)
+             "${MemorySettingsUtil.getMachineMemoryBytes()} memory size", e)
     installContext.print("Unable to install ${installerInfo.fullName}\n", ConsoleViewContentType.ERROR_OUTPUT)
     var message = e.message ?: "(unknown)"
     if (!StringUtil.endsWithLineBreak(message)) {

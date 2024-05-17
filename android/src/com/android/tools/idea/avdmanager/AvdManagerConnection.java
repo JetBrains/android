@@ -55,6 +55,7 @@ import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandB
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.android.tools.idea.log.LogWrapper;
+import com.android.tools.idea.memorysettings.MemorySettingsUtil;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeAvdManagers;
@@ -95,10 +96,6 @@ import com.intellij.util.net.HttpConfigurable;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -136,7 +133,6 @@ public class AvdManagerConnection {
 
   private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
   private static final @NotNull Map<Path, AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
-  private static long ourMemorySize = -1;
 
   private static @NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> ourConnectionFactory =
     AvdManagerConnection::new;
@@ -769,7 +765,8 @@ public class AvdManagerConnection {
     if (emulatorBinary == null) {
       return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
     }
-    if (getMemorySize() < Storage.Unit.GiB.getNumberOfBytes()) {
+    Long memoryBytes = MemorySettingsUtil.getMachineMemoryBytes();
+    if (memoryBytes != null && memoryBytes < Storage.Unit.GiB.getNumberOfBytes()) {
       // TODO: The emulator -accel-check current does not check for the available memory, do it here instead:
       return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
     }
@@ -1037,35 +1034,5 @@ public class AvdManagerConnection {
       }
     }
     return false;
-  }
-
-  public static long getMemorySize() {
-    if (ourMemorySize < 0) {
-      ourMemorySize = checkMemorySize();
-    }
-    return ourMemorySize;
-  }
-
-  private static long checkMemorySize() {
-    OperatingSystemMXBean osMXBean = ManagementFactory.getOperatingSystemMXBean();
-    // This is specific to JDKs derived from Oracle JDK (including OpenJDK and Apple JDK among others).
-    // Other then this, there's no standard way of getting memory size
-    // without adding 3rd party libraries or using native code.
-    try {
-      Class<?> oracleSpecificMXBean = Class.forName("com.sun.management.OperatingSystemMXBean");
-      Method getPhysicalMemorySizeMethod = oracleSpecificMXBean.getMethod("getTotalPhysicalMemorySize");
-      Object result = getPhysicalMemorySizeMethod.invoke(osMXBean);
-      if (result instanceof Number) {
-        return ((Number)result).longValue();
-      }
-    }
-    catch (ClassNotFoundException | NoSuchMethodException e) {
-      // Unsupported JDK
-    }
-    catch (InvocationTargetException | IllegalAccessException e) {
-      IJ_LOG.error(e); // Shouldn't happen (unsupported JDK?)
-    }
-    // Maximum memory allocatable to emulator - 32G. Only used if non-Oracle JRE.
-    return 32L * Storage.Unit.GiB.getNumberOfBytes();
   }
 }

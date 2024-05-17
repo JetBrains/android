@@ -19,6 +19,7 @@ import static com.android.tools.idea.welcome.install.HaxmKt.UI_UNITS;
 
 import com.android.sdklib.devices.Storage;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
+import com.android.tools.idea.memorysettings.MemorySettingsUtil;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.IntProperty;
@@ -80,13 +81,17 @@ public final class HaxmInstallSettingsStep extends FirstRunWizardStep {
     myEmulatorMemory = emulatorMemory;
     myIntelHAXMDocumentationButton.setHyperlinkText("Intel® HAXM Documentation");
     myIntelHAXMDocumentationButton.setHyperlinkTarget(FirstRunWizardDefaults.HAXM_DOCUMENTATION_URL);
-    myRecommendedMemorySize = setupSliderAndSpinner(AvdManagerConnection.getMemorySize(), myMemorySlider, myMemorySize);
+    myRecommendedMemorySize = setupSliderAndSpinner(MemorySettingsUtil.getMachineMemoryBytes(), myMemorySlider, myMemorySize);
     setComponent(myRoot);
     myRecommended.addActionListener(e -> myEmulatorMemory.set(myRecommendedMemorySize));
   }
 
   @SuppressWarnings("UseOfObsoleteCollectionType")
-  private static int setupSliderAndSpinner(long memorySize, @NotNull JSlider slider, @NotNull JSpinner spinner) {
+  private static int setupSliderAndSpinner(@Nullable Long memorySize, @NotNull JSlider slider, @NotNull JSpinner spinner) {
+    if (memorySize == null) {
+      // If we don't know how much memory we have, assume we have plenty.
+      memorySize = 32L << 30;
+    }
     int recommendedMemorySize = FirstRunWizardDefaults.getRecommendedHaxmMemory(memorySize);
     int maxMemory = Math.max(getMaxMemoryAllocation(memorySize), recommendedMemorySize);
 
