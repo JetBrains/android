@@ -2283,6 +2283,9 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_8_pro/back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_8_pro/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_8_pro/mask.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_8a/back.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_8a/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_8a/mask.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_c/land_back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_c/land_fore.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_c/land_shadow.webp

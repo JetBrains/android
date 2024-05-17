@@ -2264,6 +2264,9 @@ android-studio/plugins/android/resources/device-art-resources/pixel_8/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_8_pro/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_8_pro/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_8_pro/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_8a/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_8a/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_8a/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_fore.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_shadow.webp
