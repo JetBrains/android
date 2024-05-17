@@ -393,7 +393,7 @@ def parse_intellij_source_map(intellij: JpsProject, source_map_file) -> dict[str
     # Special case: updater-full.jar is missing from the IntelliJ source map.
     # Fixme: we only add the main updater module, not its bundled dependencies.
     res["intellij-updater"] = [
-        ET.Element("orderEntry", {"type": "module", "module-name": "intellij.platform.updater"})
+        ET.Element("orderEntry", {"type": "module", "module-name": "intellij.tools.updater"})
     ]
 
     return res
