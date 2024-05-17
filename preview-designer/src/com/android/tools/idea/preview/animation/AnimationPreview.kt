@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -395,6 +396,10 @@ abstract class AnimationPreview<T : AnimationManager>(
       )
       coordinationTab.addTimeline(timeline)
     }
+  }
+
+  protected suspend fun executeInRenderSession(longTimeout: Boolean = false, function: () -> Unit) {
+    sceneManagerProvider()?.executeInRenderSession(longTimeout) { function() }
   }
 
   override fun dispose() {

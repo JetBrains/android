@@ -44,8 +44,6 @@ import com.android.tools.idea.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.android.tools.idea.preview.util.createToolbarWithNavigation
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
@@ -78,7 +76,7 @@ open class ComposeSupportedAnimationManager(
   protected val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
   private val timelinePanel: TimelinePanel,
-  protected val sceneManager: LayoutlibSceneManager?,
+  protected val executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
   private val tabbedPane: AnimationTabs,
   private val rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -260,9 +258,7 @@ open class ComposeSupportedAnimationManager(
       val startState = stateComboBox.getState(0) ?: return
       val toState = stateComboBox.getState(1) ?: return
 
-      sceneManager?.executeInRenderSession(longTimeout) {
-        updateFromAndToStates(animation, startState, toState)
-      }
+      executeInRenderSession(longTimeout) { updateFromAndToStates(animation, startState, toState) }
       resetCallback(longTimeout)
     }
   }
@@ -274,9 +270,7 @@ open class ComposeSupportedAnimationManager(
   suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
     animationClock.apply {
       val state = stateComboBox.getState(0) ?: return
-      sceneManager?.executeInRenderSession(longTimeout) {
-        updateAnimatedVisibilityState(animation, state)
-      }
+      executeInRenderSession(longTimeout) { updateAnimatedVisibilityState(animation, state) }
       resetCallback(longTimeout)
     }
   }
@@ -293,7 +287,7 @@ open class ComposeSupportedAnimationManager(
       return@loadTransitionFromCacheOrLib
     }
 
-    sceneManager?.executeInRenderSession(longTimeout) {
+    executeInRenderSession(longTimeout) {
       val transition = loadTransitionsFromLib()
       cachedTransitions[stateHash] = transition
       currentTransition = transition
@@ -350,7 +344,7 @@ open class ComposeSupportedAnimationManager(
   }
 
   suspend fun loadProperties() {
-    sceneManager?.executeInRenderSession {
+    executeInRenderSession(false) {
       animationClock.apply {
         try {
           selectedProperties =

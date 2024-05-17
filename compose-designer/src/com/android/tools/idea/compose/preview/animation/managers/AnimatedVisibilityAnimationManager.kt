@@ -22,8 +22,6 @@ import com.android.tools.idea.compose.preview.animation.getAnimatedVisibilitySta
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.TimelinePanel
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.scene.executeInRenderSession
 import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +33,7 @@ class AnimatedVisibilityAnimationManager(
   animationClock: AnimationClock,
   maxDurationPerIteration: StateFlow<Long>,
   timelinePanel: TimelinePanel,
-  sceneManager: LayoutlibSceneManager?,
+  executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
   tabbedPane: AnimationTabs,
   rootComponent: JComponent,
   playbackControls: PlaybackControls,
@@ -50,7 +48,7 @@ class AnimatedVisibilityAnimationManager(
     animationClock,
     maxDurationPerIteration,
     timelinePanel,
-    sceneManager,
+    executeInRenderSession,
     tabbedPane,
     rootComponent,
     playbackControls,
@@ -68,7 +66,7 @@ class AnimatedVisibilityAnimationManager(
     // Update the animated visibility combo box with the correct initial state, obtained from
     // PreviewAnimationClock.
     var state: Any? = null
-    sceneManager?.executeInRenderSession(useLongTimeout = true) {
+    executeInRenderSession(true) {
       // AnimatedVisibilityState is an inline class in Compose that maps to a String. Therefore,
       // calling `getAnimatedVisibilityState`
       // via reflection will return a String rather than an AnimatedVisibilityState. To work
