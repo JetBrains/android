@@ -186,7 +186,7 @@ abstract class ComposeSurroundWithWidgetAction : IntentionAction, HighPriorityAc
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean =
     when {
       file == null || editor == null -> false
-      !file.isWritable || file !is KtFile -> false
+      !file.isWritable || file !is KtFile || file.isScript() -> false
       else -> findSurroundableRange(file, editor) != null
     }
 
