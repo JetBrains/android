@@ -128,6 +128,7 @@ class ProjectSetupRuleImpl(
         "${project.projectPath}/src.zip",
         rootDirectory.resolve(DIRECTORY).toString(),
         "diff-properties".toSpec(project),
+        "diff-compose-plugin".toSpec(project),
         *(project.diffs.map2Array { it.toSpec(project) })
       )
 
