@@ -20,13 +20,13 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.util.Disposer
-import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * This class is responsible for processing incoming Gradle download updates in time and in the right order.
  * Updates are coming in build worker thread but should be passed to subscribed models in EDT.
- * The order of scheduled 'invokeLater' can change that's why we need more complex logic using intermediate [updatesQueue]
- * to process updates in the right order. We also try to avoid scheduling too many 'invokeLater' calls in case of EDT lagging behind.
+ * The order of scheduled 'invokeLater' can change that's why we need more complex logic using intermediate [updatesMap]
+ * to process updates in the right order. [updatesMap] holds latest received request data by it's key.
+ * We also try to avoid scheduling too many 'invokeLater' calls in case of EDT lagging behind.
  *
  * On build finished we also schedule last 'process updates' task to process any possible stale updates. No further updates
  * should be coming after this point.
@@ -38,12 +38,12 @@ class DownloadInfoDataModel(
   buildFinishedDisposable: Disposable,
   private val longDownloadsNotifier: LongDownloadsNotifier? = null
 ) {
-  private val updatesQueue = ConcurrentLinkedQueue<DownloadRequestItem>()
+  private val updatesMap = mutableMapOf<DownloadRequestKey, DownloadRequestItem>()
   @Volatile private var immediateUpdateScheduled: Boolean = false
 
   init {
     // On build finished schedule last updates processing task unconditionally
-    Disposer.register(buildFinishedDisposable) { invokeLater { processUpdatesQueue() } }
+    Disposer.register(buildFinishedDisposable) { invokeLater { processUpdates() } }
   }
 
   fun downloadStarted(startTimestamp: Long, url: String, repository: DownloadsAnalyzer.Repository) {
@@ -69,13 +69,13 @@ class DownloadInfoDataModel(
   }
 
   fun onNewItemUpdate(downloadRequest: DownloadRequestItem) {
-    updatesQueue.add(downloadRequest)
+    synchronized(updatesMap) { updatesMap[downloadRequest.requestKey] = downloadRequest }
     longDownloadsNotifier?.updateDownloadRequest(downloadRequest)
     scheduleImmediateUpdateIfNecessary()
   }
 
   /**
-   * This function guarantees that there will be at least 1 execution of [processUpdatesQueue] after calling this without overwhelming
+   * This function guarantees that there will be at least 1 execution of [processUpdates] after calling this without overwhelming
    * EDT with runnable objects after each new update.
    * - when [immediateUpdateScheduled] is false it means that there is no runnable executions scheduled,
    * though 1 could be executing right now. It makes sense to schedule one more in this case.
@@ -87,21 +87,27 @@ class DownloadInfoDataModel(
       immediateUpdateScheduled = true
       invokeLater {
         immediateUpdateScheduled = false
-        processUpdatesQueue()
+        processUpdates()
       }
     }
   }
 
   /** Should only be accessed from EDT */
-  private val processedEvents = mutableListOf<DownloadRequestItem>()
+  private val processedEvents = mutableMapOf<DownloadRequestKey, DownloadRequestItem>()
   /** Should only be accessed from EDT */
   private val subscribedModels = mutableListOf<Listener>()
 
   @UiThread
-  fun processUpdatesQueue() {
-    while (true) {
-      val requestItem = updatesQueue.poll() ?: break
-      processedEvents.add(requestItem)
+  fun processUpdates() {
+    val newUpdates = synchronized(updatesMap) {
+      ArrayList(updatesMap.values).also {
+        updatesMap.clear()
+      }
+    }
+
+
+    for (requestItem in newUpdates) {
+      processedEvents[requestItem.requestKey] = requestItem
       notifyListenersOnUpdate(requestItem)
     }
   }
@@ -109,7 +115,7 @@ class DownloadInfoDataModel(
   @UiThread
   fun subscribeUiModel(modelListener: Listener) {
     subscribedModels.add(modelListener)
-    processedEvents.forEach { modelListener.updateDownloadRequest(it) }
+    processedEvents.forEach { (_, requestItem) -> modelListener.updateDownloadRequest(requestItem) }
   }
 
   @UiThread
