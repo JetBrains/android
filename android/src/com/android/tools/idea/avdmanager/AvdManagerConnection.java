@@ -315,30 +315,16 @@ public class AvdManagerConnection {
     if (!initIfNecessary()) {
       return ImmutableList.of();
     }
+    assert myAvdManager != null;
     if (forceRefresh) {
       try {
-        assert myAvdManager != null;
         myAvdManager.reloadAvds();
       }
       catch (AndroidLocationsException e) {
         IJ_LOG.error("Could not find Android SDK!", e);
       }
     }
-    assert myAvdManager != null;
-    ArrayList<AvdInfo> avds = Lists.newArrayList(myAvdManager.getAllAvds());
-    boolean needsRefresh = false;
-    for (AvdInfo avd : avds) {
-      if (avd.getStatus() == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED) {
-        updateDeviceChanged(avd);
-        needsRefresh = true;
-      }
-    }
-    if (needsRefresh) {
-      return getAvds(true);
-    }
-    else {
-      return avds;
-    }
+    return Lists.newArrayList(myAvdManager.getAllAvds());
   }
 
   /**
@@ -965,18 +951,6 @@ public class AvdManagerConnection {
       return null;
     }
     return StringUtil.trimEnd(imageSystemDir.replace(File.separatorChar, RepoPackage.PATH_SEPARATOR), RepoPackage.PATH_SEPARATOR);
-  }
-
-  public void updateDeviceChanged(@NotNull AvdInfo avdInfo) {
-    if (initIfNecessary()) {
-      try {
-        assert myAvdManager != null;
-        myAvdManager.updateDeviceChanged(avdInfo);
-      }
-      catch (IOException e) {
-        IJ_LOG.warn("Could not update AVD Device " + avdInfo.getName(), e);
-      }
-    }
   }
 
   public final @NotNull ListenableFuture<Boolean> wipeUserDataAsync(@NotNull AvdInfo avd) {
