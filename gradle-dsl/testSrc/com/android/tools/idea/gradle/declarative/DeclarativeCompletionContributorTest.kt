@@ -45,57 +45,61 @@ class DeclarativeCompletionContributorTest : DeclarativeSchemaTestBase() {
 
   @Test
   fun testBasicRootCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
-    doTest("a$caret") { suggestions ->
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    doTest("and$caret") { suggestions ->
       assertThat(suggestions.toList()).containsExactly(
-        "androidApplication", "declarativeDependencies"
+        "androidApplication", "androidLibrary"
       )
     }
   }
 
   @Test
   fun testInsideBlockCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
       androidApplication{
         a$caret
       }
       """) { suggestions ->
       assertThat(suggestions.toList()).containsExactly(
-        "namespace"
+        "applicationId", "coreLibraryDesugaring", "namespace", "versionName"
       )
     }
   }
 
   @Test
   fun testPluginBlockCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_SETTINGS_SCHEMAS)
     doTest("""
       pl$caret
       """) { suggestions ->
       assertThat(suggestions.toList()).containsExactly(
-        "plugins", "androidApplication"
+        "pluginManagement", "plugins"
       )
     }
   }
 
   @Test
   fun testInsidePluginBlockCompletion() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     doTest("""
-      plugins{
-        i$caret
+      androidApplication{
+        a$caret
       }
       """) { suggestions ->
       assertThat(suggestions.toList()).containsExactly(
-        "id", "kotlin"
+        "applicationId", "coreLibraryDesugaring", "namespace", "versionName"
       )
     }
   }
 
   private fun doTest(declarativeFile: String, check: (List<String>) -> Unit) {
+    doTest(declarativeFile, "build.gradle.dcl", check)
+  }
+
+  private fun doTest(declarativeFile: String, fileName: String, check: (List<String>) -> Unit) {
     val buildFile = fixture.addFileToProject(
-      "build.gradle.dcl", declarativeFile)
+      fileName, declarativeFile)
     fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     fixture.completeBasic()
     val list: List<String> = fixture.lookupElements!!.map {

@@ -19,10 +19,13 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.onEdt
+import com.google.common.truth.Truth
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.project.modules
 import com.intellij.testFramework.RunsInEdt
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,10 +48,11 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
 
   @Test
   fun checkFunctionIdentifier() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
     val file = addDeclarativeBuildFile("""
-      plugins{
-         ${"katlin" highlightedAs HighlightSeverity.ERROR}("something")
+      androidApplication {
+         ${"coreLibraryDesugarin" highlightedAs HighlightSeverity.ERROR}("something")
       }
     """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -59,11 +63,13 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
 
   @Test
   fun dontCheckInFailedBlock() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
     val file = addDeclarativeBuildFile("""
-      ${"plugins1" highlightedAs HighlightSeverity.ERROR} {
-        kotlin("something")
-        katlin("something")
+      ${"androidApplication1" highlightedAs HighlightSeverity.ERROR} {
+        versionUnknownCode = 8
+        versionName = "0.1.2"
       }
     """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -73,9 +79,11 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
 
   @Test
   fun dontCheckInFailedBlock2() {
-    writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
     val file = addDeclarativeBuildFile("""
-      android {
+      androidApplication {
         ${"myDeps2" highlightedAs HighlightSeverity.ERROR } {
             debugImplementation("com.google.guava:guava:30.1.1-jre")
             wrongImplementation("com.google.guava:guava:30.1.1-jre")
@@ -89,9 +97,11 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
 
   @Test
   fun checkRootBlockIdentifier() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
     val file = addDeclarativeBuildFile("""
-      ${"androidAplication" highlightedAs HighlightSeverity.ERROR}{
+      ${"androidapplication" highlightedAs HighlightSeverity.ERROR}{
       }
     """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
@@ -101,7 +111,9 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
 
   @Test
   fun checkPropertyIdentifier() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
     val file = addDeclarativeBuildFile("""
       androidApplication {
            minSdk = 33
@@ -113,10 +125,11 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
   }
 
   @Test
+  @Ignore("New schema does not have NDO")
   fun stopCheckingWithUnknownNamedDomainObjects() {
-    writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
     val file = addDeclarativeBuildFile("""
-      android {
+      androidApplication {
         appBuildTypes {
           // not in schema
           staging {
@@ -131,10 +144,13 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
   }
 
   @Test
+  @Ignore("New schema does not have NDO")
   fun checkingWithKnownNamedDomainObjects() {
-    writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
     val file = addDeclarativeBuildFile("""
-      android {
+      androidApplication {
         appBuildTypes {
           debug {
             ${"isMinifyEnableddd" highlightedAs HighlightSeverity.ERROR} = false
@@ -150,47 +166,26 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
   @Test
   fun checkAdvancedCase() {
     // DSL is different from AGP as we adopting to Declarative requirements.
-    writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
     val file = addDeclarativeBuildFile("""
-    plugins {
-        id("com.android.application")
-        id("org.jetbrains.kotlin.android")
-    }
-    android {
-        myDeps {
-            debugImplementation("com.google.guava:guava:30.1.1-jre")
-            implementation("org.apache.commons:commons-lang3:3.12.0")
-            testImplementation("junit:junit:4.13.2")
+    androidLibrary {
+        namespace = "com.google.samples.apps.nowinandroid.feature.bookmarks"
+        dependencies {
+            implementation(project(":core:data"))
         }
-        compileSdk = 34
-        namespace = "org.gradle.experimental.android.app"
-        buildFeatures {
-            buildConfig = true
+        feature {
+            description = "Calling the configure method enables this lib to be treated as a feature"
         }
-        appBuildTypes {
-            debug {
-                isMinifyEnabled = false
+        compose {
+            description = "Calling the configure method enables compose support"
+        }
+        testing {
+            dependencies {
+                implementation(project(":core:testing"))
+                androidImplementation(project(":core:testing"))
             }
-            release {
-                isMinifyEnabled = true
-            }
-        }
-        defaultConfig {
-            minSdk = 24
-            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-            proguardFile("asd.txt")
-            buildConfigField("String", "MY_FIELD", "\"myValue\"")
-            buildConfigField("Integer", "MY_FIELD", "0")
-        }
-        testCoverage {
-            jacocoVersion = "1.1"
-        }
-        compileOptions {
-            encoding = "utf-8"
-        }
-        installation {
-            timeOutInMs = 100
-            enableBaselineProfile = false
         }
     }
     """)
@@ -202,68 +197,28 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
   @Test
   fun checkMultipleErrorAdvancedCase() {
     // DSL is different from AGP as we adopting to Declarative requirements.
-    writeToSchemaFile(TestFile.DECLARATIVE_ADVANCED_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
+
     val file = addDeclarativeBuildFile("""
-    plugins {
-        id("com.android.application")
-        ${"wrong" highlightedAs HighlightSeverity.ERROR }("org.jetbrains.kotlin.android")
-    }
-    android {
-        myDeps {
-            debugImplementation("com.google.guava:guava:30.1.1-jre")
-            implementation("org.apache.commons:commons-lang3:3.12.0")
-            testImplementation("junit:junit:4.13.2")
+    androidLibrary {
+        ${"nameSpace" highlightedAs HighlightSeverity.ERROR} = "com.google.samples.apps.nowinandroid.feature.bookmarks"
+        dependencies {
+            implementation(project(":core:data"))
         }
-        compileSdk = 34
-        namespace = "org.gradle.experimental.android.app"
-        ${"buildFeature" highlightedAs HighlightSeverity.ERROR} {
-            buildConfig = true
+        feature {
+            description = "Calling the configure method enables this lib to be treated as a feature"
         }
-        appBuildTypes {
-            debug {
-                isMinifyEnabled = false
-            }
-            release {
-                ${"minifyEnabled" highlightedAs HighlightSeverity.ERROR} = true
+        compose {
+            ${"desc" highlightedAs HighlightSeverity.ERROR} = "Calling the configure method enables compose support"
+        }
+        testing {
+            dependencies {
+                implementation(project(":core:testing"))
+                androidImplementation(project(":core:testing"))
             }
         }
-        defaultConfig {
-            minSdk = 24
-            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-            proguardFile("asd.txt")
-            buildConfigField("String", "MY_FIELD", "\"myValue\"")
-            ${"buildConfigFields" highlightedAs HighlightSeverity.ERROR}("Integer", "MY_FIELD", "0")
-        }
-        testCoverage {
-            jacocoVersion = "1.1"
-        }
-        compileOptions {
-            encoding = "utf-8"
-        }
-        installation {
-            ${"timeoutinms" highlightedAs HighlightSeverity.ERROR} = 100
-            enableBaselineProfile = false
-        }
     }
-    """)
-    fixture.configureFromExistingVirtualFile(file.virtualFile)
-
-    fixture.checkHighlighting()
-  }
-
-  @Test
-  fun checkAllCorrectCase() {
-    writeToSchemaFile(TestFile.DECLARATIVE_GENERATED_SCHEMAS)
-    val file = addDeclarativeBuildFile("""
-      plugins {
-        id("something")
-      }
-      androidApplication {
-           minSdk = 33
-      }
-      declarativeDependencies {
-        api("dependencies")
-      }
     """)
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
@@ -273,6 +228,7 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
   @Test
   fun checkCorrectSettingsSyntax(){
     writeToSchemaFile(TestFile.DECLARATIVE_SETTINGS_SCHEMAS)
+    checkSchemaErrors()
 
     val file = fixture.addFileToProject("settings.gradle.dcl",
     """
@@ -291,7 +247,8 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
 
   @Test
   fun checkCorrectDemoSyntax(){
-    writeToSchemaFile(TestFile.DECLARATIVE_DEMO_SCHEMAS)
+    writeToSchemaFile(TestFile.DECLARATIVE_NEW_FORMAT_SCHEMAS)
+    checkSchemaErrors()
 
     val file = fixture.addFileToProject("build.gradle.dcl",
                                         """
@@ -303,6 +260,14 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     fixture.checkHighlighting()
+  }
+
+  private fun checkSchemaErrors(){
+    val project = projectRule.project
+
+    val schema = DeclarativeService.getInstance(project).getSchema(project.modules[0])
+    Truth.assertThat(schema).isNotNull()
+    Truth.assertThat(schema!!.failureHappened).isFalse()
   }
 
   private fun addDeclarativeBuildFile(text: String) = fixture.addFileToProject("build.gradle.dcl", text.trimIndent())

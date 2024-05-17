@@ -48,10 +48,8 @@ abstract class DeclarativeSchemaTestBase {
   }
 
   internal enum class TestFile(private val path: @SystemIndependent String) : TestFileName {
-    DECLARATIVE_GENERATED_SCHEMAS("somethingDeclarative/schemas"),
-    DECLARATIVE_ADVANCED_SCHEMAS("somethingDeclarative/advancedSchemas"),
     DECLARATIVE_SETTINGS_SCHEMAS("somethingDeclarative/settingsSchemas"),
-    DECLARATIVE_DEMO_SCHEMAS("somethingDeclarative/demoSchemas"),
+    DECLARATIVE_NEW_FORMAT_SCHEMAS("somethingDeclarative/newFormatSchemas"),
     ;
 
     override fun toFile(basePath: @SystemIndependent String, extension: String): File {

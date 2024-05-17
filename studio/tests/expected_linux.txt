@@ -1968,7 +1968,8 @@ android-studio/plugins/android/lib/google-http-client-gson-1.42.3.jar
 android-studio/plugins/android/lib/google-login.jar
 android-studio/plugins/android/lib/google-oauth-client-1.34.1.jar
 android-studio/plugins/android/lib/google-oauth-client-java6-1.34.1.jar
-android-studio/plugins/android/lib/gradle-declarative-dsl-core-8.8-20240328140806+0000.jar
+android-studio/plugins/android/lib/gradle-declarative-dsl-core-8.9-20240529002035+0000.jar
+android-studio/plugins/android/lib/gradle-declarative-dsl-tooling-models-8.9-20240529002035+0000.jar
 android-studio/plugins/android/lib/inspectors-common.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/javacpp-1.5.9-linux-x86_64.jar

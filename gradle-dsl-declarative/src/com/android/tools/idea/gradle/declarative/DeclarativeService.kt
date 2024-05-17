@@ -22,12 +22,13 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessModuleDir
-import org.gradle.internal.declarativedsl.analysis.AnalysisSchema
-import org.gradle.internal.declarativedsl.analysis.DataClass
-import org.gradle.internal.declarativedsl.analysis.DataTypeRef
-import org.gradle.internal.declarativedsl.analysis.FqName
-import org.gradle.internal.declarativedsl.analysis.FunctionSemantics
-import org.gradle.internal.declarativedsl.analysis.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.serialization.SchemaSerialization
 import java.io.File
 
@@ -50,7 +51,7 @@ class DeclarativeService {
       val schemaFolder = File(parentPath, ".gradle/declarative-schema")
       schemaFolder.lastModified()
       val paths = schemaFolder.list { _: File?, name: String -> name.endsWith(".dcl.schema") } ?: return null
-      val schemas = mutableListOf<AnalysisSchema>()
+      val schemas = mutableListOf<DefaultAnalysisSchema>()
       var failure = false
       for (path in paths) {
         try {
@@ -70,7 +71,7 @@ class DeclarativeService {
   }
 }
 
-class DeclarativeSchema(private val schemas: List<AnalysisSchema>, val failureHappened: Boolean) {
+class DeclarativeSchema(private val schemas: List<DefaultAnalysisSchema>, val failureHappened: Boolean) {
   private val _dataClassesByFqName: Map<FqName, DataClass> by lazy {
     schemas.fold(mapOf()) { acc, e -> acc + e.dataClassesByFqName }
   }
@@ -89,8 +90,8 @@ fun getTopLevelReceiverByName(name: String, schema: DeclarativeSchema): FqName? 
   }
   // this is specific case for settings.gradle.dcl - hopefully, eventually schema file will be fixed
   // to have all settingsInternal attributes in rootMembers
-  schema.getDataClassesByFqName()[FqName("org.gradle.api.internal", "SettingsInternal")]?.let {
-    return it.properties.find { it.name == name }?.type?.fqName()
+  schema.getDataClassesByFqName()[DefaultFqName("org.gradle.api.internal", "SettingsInternal")]?.let {
+    return (it.properties.find { it.name == name }?.valueType as DataTypeRef.Name).fqName
   }
   return null
 

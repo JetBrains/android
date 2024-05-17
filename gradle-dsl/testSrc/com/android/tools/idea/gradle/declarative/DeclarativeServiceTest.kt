@@ -19,7 +19,6 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import org.jetbrains.kotlin.fir.resolve.transformers.withScopeCleanup
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -49,7 +48,7 @@ class DeclarativeServiceTest {
 
   @Test
   fun `read random schema files from predefined folder`() {
-    fixture.copyFileToProject("somethingDeclarative/schemas/project.dcl.schema", ".gradle/declarative-schema/random.dcl.schema")
+    fixture.copyFileToProject("somethingDeclarative/newFormatSchemas/project.dcl.schema", ".gradle/declarative-schema/random.dcl.schema")
     val service = DeclarativeService()
     val schema = service.getSchema(projectRule.module)
     Truth.assertThat(schema).isNotNull()
@@ -64,8 +63,8 @@ class DeclarativeServiceTest {
 
   @Test
   fun returnSchemaWithFlagIfAnySchemaIsBad() {
-    fixture.copyFileToProject("somethingDeclarative/demoSchemas/project.dcl.schema", ".gradle/declarative-schema/project.dcl.schema")
-    fixture.copyFileToProject("somethingDeclarative/schemas/plugins.dcl.schema", ".gradle/declarative-schema/plugins.dcl.schema")
+    fixture.copyFileToProject("somethingDeclarative/settingsSchemas/settings.dcl.schema", ".gradle/declarative-schema/settings.dcl.schema")
+    fixture.copyFileToProject("somethingDeclarative/oldSchema/project.dcl.schema", ".gradle/declarative-schema/project.dcl.schema")
 
     val service = DeclarativeService()
     val schema = service.getSchema(projectRule.module)
