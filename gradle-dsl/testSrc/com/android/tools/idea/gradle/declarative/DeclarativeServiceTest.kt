@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import org.jetbrains.kotlin.fir.resolve.transformers.withScopeCleanup
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -59,6 +60,17 @@ class DeclarativeServiceTest {
     val service = DeclarativeService()
     val schema = service.getSchema(projectRule.module)
     Truth.assertThat(schema).isNull()
+  }
+
+  @Test
+  fun returnSchemaWithFlagIfAnySchemaIsBad() {
+    fixture.copyFileToProject("somethingDeclarative/demoSchemas/project.dcl.schema", ".gradle/declarative-schema/project.dcl.schema")
+    fixture.copyFileToProject("somethingDeclarative/schemas/plugins.dcl.schema", ".gradle/declarative-schema/plugins.dcl.schema")
+
+    val service = DeclarativeService()
+    val schema = service.getSchema(projectRule.module)
+    Truth.assertThat(schema).isNotNull()
+    Truth.assertThat(schema!!.failureHappened).isTrue()
   }
 
 }

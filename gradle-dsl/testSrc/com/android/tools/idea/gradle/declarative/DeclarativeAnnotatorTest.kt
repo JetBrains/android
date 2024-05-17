@@ -289,5 +289,21 @@ class DeclarativeAnnotatorTest: DeclarativeSchemaTestBase() {
     fixture.checkHighlighting()
   }
 
+  @Test
+  fun checkCorrectDemoSyntax(){
+    writeToSchemaFile(TestFile.DECLARATIVE_DEMO_SCHEMAS)
+
+    val file = fixture.addFileToProject("build.gradle.dcl",
+                                        """
+    androidApplication {
+       jdkVersion = 11
+       compileSdk = 33
+    }
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    fixture.checkHighlighting()
+  }
+
   private fun addDeclarativeBuildFile(text: String) = fixture.addFileToProject("build.gradle.dcl", text.trimIndent())
 }

@@ -51,6 +51,7 @@ abstract class DeclarativeSchemaTestBase {
     DECLARATIVE_GENERATED_SCHEMAS("somethingDeclarative/schemas"),
     DECLARATIVE_ADVANCED_SCHEMAS("somethingDeclarative/advancedSchemas"),
     DECLARATIVE_SETTINGS_SCHEMAS("somethingDeclarative/settingsSchemas"),
+    DECLARATIVE_DEMO_SCHEMAS("somethingDeclarative/demoSchemas"),
     ;
 
     override fun toFile(basePath: @SystemIndependent String, extension: String): File {
