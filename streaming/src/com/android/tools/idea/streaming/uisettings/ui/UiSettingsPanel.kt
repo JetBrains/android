@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.uisettings.ui
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.binding.ReadOnlyProperty
 import com.android.tools.idea.streaming.uisettings.binding.TwoWayProperty
 import com.intellij.openapi.ui.ComboBox
@@ -43,6 +44,7 @@ internal const val TALKBACK_TITLE = "TalkBack:"
 internal const val SELECT_TO_SPEAK_TITLE = "Select to Speak:"
 internal const val FONT_SCALE_TITLE = "Font Size:"
 internal const val DENSITY_TITLE = "Screen Size:"
+internal const val DEBUG_LAYOUT_TITLE = "Debug Layout:"
 internal const val RESET_BUTTON_TEXT = "Reset"
 private const val RESET_TITLE = "Reset to factory defaults"
 private const val PERMISSION_HINT_LINE1 = "More options may be available if \"Disable permission monitoring\" is turned on in"
@@ -122,6 +124,14 @@ internal class UiSettingsPanel(
               .bindSliderMaximum(model.screenDensityMaxIndex)
               .apply { component.name = DENSITY_TITLE }
           }.visibleIf(model.screenDensitySettable)
+        }
+
+        if (StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.get()) {
+          row(label(DEBUG_LAYOUT_TITLE)) {
+            checkBox("")
+              .bind(model.debugLayout)
+              .apply { component.name = DEBUG_LAYOUT_TITLE }
+          }
         }
 
         row {

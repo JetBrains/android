@@ -50,6 +50,7 @@ internal class DeviceUiSettingsController(
     model.talkBackOn.setFromController(response.talkBackOn)
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
     model.gestureNavigation.setFromController(response.gestureNavigation)
+    model.debugLayout.setFromController(response.debugLayout)
     AppLanguageService.getInstance(project).getAppLanguageInfo(deviceSerialNumber, response.foregroundApplicationId)?.let {
       addLanguage(it.applicationId, it.localeConfig, response.appLocale)
     }
@@ -97,6 +98,12 @@ internal class DeviceUiSettingsController(
   override fun setGestureNavigation(on: Boolean) {
     scope.launch {
       handleCommandResponse(deviceController.setGestureNavigation(on))
+    }
+  }
+
+  override fun setDebugLayout(on: Boolean) {
+    scope.launch {
+      handleCommandResponse(deviceController.setDebugLayout(on))
     }
   }
 

@@ -76,6 +76,7 @@ internal class UiSettingsModel(screenSize: Dimension, physicalDensity: Int, api:
   val screenDensitySettable: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(true)
   val screenDensityIndex: TwoWayProperty<Int> = screenDensity.createMappedProperty(::toDensityIndex, ::toDensityFromIndex)
   val screenDensityMaxIndex: ReadOnlyProperty<Int> = DefaultTwoWayProperty(densities.size - 1)
+  val debugLayout:  TwoWayProperty<Boolean> = DefaultTwoWayProperty(false)
   val differentFromDefault: ReadOnlyProperty<Boolean> = DefaultTwoWayProperty(false)
   var resetAction: () -> Unit = {}
 

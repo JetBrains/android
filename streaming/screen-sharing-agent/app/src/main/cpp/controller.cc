@@ -703,6 +703,10 @@ void Controller::ChangeUiSetting(const UiSettingsChangeRequest& request) {
       ui_settings_.SetGestureNavigation(request.gesture_navigation(), &response);
       break;
 
+    case UiSettingsChangeRequest::DEBUG_LAYOUT:
+      ui_settings_.SetDebugLayout(request.debug_layout(), &response);
+      break;
+
     case UiSettingsChangeRequest::APP_LOCALE:
       ui_settings_.SetAppLanguage(request.application_id(), request.locale(), &response);
       break;

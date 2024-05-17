@@ -44,6 +44,7 @@ internal abstract class UiSettingsController(
     model.talkBackOn.uiChangeListener = LoggingChangeListener(::setTalkBack, stats::setTalkBack)
     model.selectToSpeakOn.uiChangeListener = LoggingChangeListener(::setSelectToSpeak, stats::setSelectToSpeak)
     model.gestureNavigation.uiChangeListener = LoggingChangeListener(::setGestureNavigation, stats::setGestureNavigation)
+    model.debugLayout.uiChangeListener =  LoggingChangeListener(::setDebugLayout, stats::setDebugLayout)
     model.resetAction = { reset(); stats.reset() }
   }
 
@@ -94,6 +95,11 @@ internal abstract class UiSettingsController(
    * Changes the navigation mode on the device to use gestures instead of buttons.
    */
   protected abstract fun setGestureNavigation(on: Boolean)
+
+  /**
+   * Turns debug layout boxes on or off.
+   */
+  protected abstract fun setDebugLayout(on: Boolean)
 
   /**
    * Changes the application language of the project application on the device/emulator.

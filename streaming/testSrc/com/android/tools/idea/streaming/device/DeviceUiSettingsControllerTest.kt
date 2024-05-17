@@ -98,6 +98,7 @@ class DeviceUiSettingsControllerTest {
     agent.currentUiSettings.selectToSpeakOn = true
     agent.currentUiSettings.fontScale = CUSTOM_FONT_SCALE
     agent.currentUiSettings.screenDensity = CUSTOM_DENSITY
+    agent.currentUiSettings.debugLayout = true
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = true, expectedSettable = true)
@@ -116,6 +117,7 @@ class DeviceUiSettingsControllerTest {
     agent.currentUiSettings.fontScale = CUSTOM_FONT_SCALE
     agent.screenDensitySettable = false
     agent.currentUiSettings.screenDensity = CUSTOM_DENSITY
+    agent.currentUiSettings.debugLayout = true
     agent.setOriginalValues()
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = false, settable = true)
@@ -254,6 +256,18 @@ class DeviceUiSettingsControllerTest {
     model.screenDensityIndex.setFromUi(model.screenDensityMaxIndex.value)
     waitForCondition(10.seconds) { agent.currentUiSettings.screenDensity == 672 }
     waitForCondition(10.seconds) { model.differentFromDefault.value }
+  }
+
+  @Test
+  fun testSetDebugLayout() {
+    agent.setOriginalValues()
+    controller.initAndWait()
+    model.debugLayout.setFromUi(true)
+    waitForCondition(10.seconds) { agent.currentUiSettings.debugLayout }
+    waitForCondition(10.seconds) { model.differentFromDefault.value }
+    model.debugLayout.setFromUi(false)
+    waitForCondition(10.seconds) { !agent.currentUiSettings.debugLayout }
+    waitForCondition(10.seconds) { !model.differentFromDefault.value }
   }
 
   private fun createUiSettingsController(): DeviceUiSettingsController {

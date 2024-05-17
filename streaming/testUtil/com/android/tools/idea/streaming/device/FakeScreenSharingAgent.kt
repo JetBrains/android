@@ -234,6 +234,7 @@ class FakeScreenSharingAgent(
     var talkBackOn: Boolean = false,
     var selectToSpeakOn: Boolean  = false,
     var gestureNavigation: Boolean = true,
+    var debugLayout: Boolean = false,
     var appLocales: String = "",
   ) {
     fun set(other: UiSettings) {
@@ -243,6 +244,7 @@ class FakeScreenSharingAgent(
       talkBackOn = other.talkBackOn
       selectToSpeakOn = other.selectToSpeakOn
       gestureNavigation = other.gestureNavigation
+      debugLayout = other.debugLayout
       appLocales = other.appLocales
     }
   }
@@ -645,8 +647,8 @@ class FakeScreenSharingAgent(
     with (currentUiSettings) {
       sendNotificationOrResponse(
         UiSettingsResponse(message.requestId, darkMode, fontScale, screenDensity, talkBackOn, selectToSpeakOn, gestureNavigation,
-                           foregroundProcess, appLocales, originalValues, fontScaleSettable, screenDensitySettable, talkBackInstalled,
-                           gestureOverlayInstalled))
+                           debugLayout, foregroundProcess, appLocales, originalValues, fontScaleSettable, screenDensitySettable,
+                           talkBackInstalled, gestureOverlayInstalled))
     }
   }
 
@@ -658,6 +660,7 @@ class FakeScreenSharingAgent(
       UiCommand.TALKBACK -> currentUiSettings.talkBackOn = message.value as Boolean
       UiCommand.SELECT_TO_SPEAK -> currentUiSettings.selectToSpeakOn = message.value as Boolean
       UiCommand.GESTURE_NAVIGATION -> currentUiSettings.gestureNavigation = message.value as Boolean
+      UiCommand.DEBUG_LAYOUT -> currentUiSettings.debugLayout = message.value as Boolean
       UiCommand.APP_LOCALE -> {
         val appLocale = message.value as UiSettingsChangeRequest.AppLocale
         if (foregroundProcess == appLocale.applicationId) {

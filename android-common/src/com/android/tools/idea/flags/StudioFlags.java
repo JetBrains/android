@@ -927,6 +927,10 @@ public final class StudioFlags {
     EMBEDDED_EMULATOR, "settings.picker", "Show settings picker",
     "Enables the settings picker to be shown for testing an application",
     true);
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS = new BooleanFlag(
+    EMBEDDED_EMULATOR, "ui.settings.debug.layout", "Show Debug Layout in UI settings",
+    "Enables Debug Layout in UI settings to display layout bounds",
+    false);
   //endregion
 
   //region Device Mirroring

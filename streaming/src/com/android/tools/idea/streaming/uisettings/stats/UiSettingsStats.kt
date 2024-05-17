@@ -40,6 +40,8 @@ class UiSettingsStats(private val deviceInfo: DeviceInfo?) {
 
   fun setScreenDensity() = logUiSettingsChange(OperationKind.SCREEN_DENSITY)
 
+  fun setDebugLayout() = logUiSettingsChange(OperationKind.DEBUG_LAYOUT)
+
   fun reset() = logUiSettingsChange(OperationKind.RESET)
 
   private fun logUiSettingsChange(operation: OperationKind) {

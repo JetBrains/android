@@ -696,6 +696,7 @@ internal data class UiSettingsRequest private constructor(override val requestId
  * @param talkBackOn true if TalkBack is currently on
  * @param selectToSpeakOn true if SelectTopSpeak is currently on
  * @param gestureNavigation true if gesture navigation is on versus 3 button navigation
+ * @param debugLayout true if debug layout bounds is on
  * @param foregroundApplicationId the foreground application id
  * @param appLocale the app locale for the foreground app
  * @param originalValues true if all values are the same as the original values.
@@ -713,6 +714,7 @@ internal data class UiSettingsResponse(
   val talkBackOn: Boolean,
   val selectToSpeakOn: Boolean,
   val gestureNavigation: Boolean,
+  val debugLayout: Boolean,
   val foregroundApplicationId: String,
   val appLocale: String,
   val originalValues: Boolean,
@@ -730,6 +732,7 @@ internal data class UiSettingsResponse(
     stream.writeBoolean(talkBackOn)
     stream.writeBoolean(selectToSpeakOn)
     stream.writeBoolean(gestureNavigation)
+    stream.writeBoolean(debugLayout)
     stream.writeBytes(foregroundApplicationId.toByteArray(UTF_8))
     stream.writeBytes(appLocale.toByteArray(UTF_8))
 
@@ -751,6 +754,7 @@ internal data class UiSettingsResponse(
     "talkBackOn=$talkBackOn, " +
     "selectToSpeakOn=$selectToSpeakOn, " +
     "gestureNavigation=$gestureNavigation, " +
+    "debugLayout=$debugLayout, " +
     "foregroundApplicationId=\"$foregroundApplicationId\", " +
     "appLocale=\"$appLocale\", " +
 
@@ -773,6 +777,7 @@ internal data class UiSettingsResponse(
       val talkBackOn = stream.readBoolean()
       val selectToSpeakOn = stream.readBoolean()
       val gestureNavigation = stream.readBoolean()
+      val debugLayout = stream.readBoolean()
       val foregroundApplicationId = stream.readBytes().toString(UTF_8)
       val appLocale = stream.readBytes().toString(UTF_8)
 
@@ -790,6 +795,7 @@ internal data class UiSettingsResponse(
         talkBackOn,
         selectToSpeakOn,
         gestureNavigation,
+        debugLayout,
         foregroundApplicationId,
         appLocale,
         originalValues,
@@ -834,6 +840,7 @@ internal data class UiSettingsChangeRequest<T>(
       val TALKBACK = UiCommand(counter++, BooleanCommandSupport("talkback")).also { values.add(it) }
       val SELECT_TO_SPEAK = UiCommand(counter++, BooleanCommandSupport("selectToSpeak")).also { values.add(it) }
       val GESTURE_NAVIGATION = UiCommand(counter++, BooleanCommandSupport("gestureNavigation")).also { values.add(it) }
+      val DEBUG_LAYOUT = UiCommand(counter++, BooleanCommandSupport("debugLayout")).also { values.add(it) }
       val APP_LOCALE = UiCommand(counter++, AppLocaleCommandSupport()).also { values.add(it) }
 
       @Suppress("UNCHECKED_CAST")

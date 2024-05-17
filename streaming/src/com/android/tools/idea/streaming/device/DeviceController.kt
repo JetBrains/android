@@ -156,6 +156,13 @@ internal class DeviceController(
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
+  suspend fun setDebugLayout(debugLayout: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DEBUG_LAYOUT, debugLayout)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
+           ?: throw RuntimeException("Unexpected response")
+  }
+
+  @Throws(StatusRuntimeException::class, TimeoutException::class)
   suspend fun setAppLanguage(applicationId: String, locale: String): UiSettingsChangeResponse {
     val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.APP_LOCALE, AppLocale(applicationId, locale))
     return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse

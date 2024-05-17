@@ -211,6 +211,9 @@ UiSettingsChangeRequest* UiSettingsChangeRequest::Deserialize(Base128InputStream
     case GESTURE_NAVIGATION:
       return createGestureNavigationChangeRequest(request_id, stream.ReadBool());
 
+    case DEBUG_LAYOUT:
+      return createDebugLayoutChangeRequest(request_id, stream.ReadBool());
+
     case APP_LOCALE:
       return createAppLocaleChangeRequest(request_id, stream.ReadBytes(), stream.ReadBytes());
 
@@ -283,6 +286,7 @@ void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   stream.WriteBool(talkback_on_);
   stream.WriteBool(select_to_speak_on_);
   stream.WriteBool(gesture_navigation_);
+  stream.WriteInt32(debug_layout_);
   stream.WriteBytes(foreground_application_id_);
   stream.WriteBytes(app_locale_);
 
@@ -332,6 +336,12 @@ UiSettingsChangeRequest* UiSettingsChangeRequest::createSelectToSpeakChangeReque
 UiSettingsChangeRequest* UiSettingsChangeRequest::createGestureNavigationChangeRequest(int32_t request_id, bool gesture_navigation) {
   auto request = new UiSettingsChangeRequest(request_id, GESTURE_NAVIGATION);
   request->gesture_navigation_ = gesture_navigation;
+  return request;
+}
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createDebugLayoutChangeRequest(int32_t request_id, bool debug_layout) {
+  auto request = new UiSettingsChangeRequest(request_id, DEBUG_LAYOUT);
+  request->debug_layout_ = debug_layout;
   return request;
 }
 

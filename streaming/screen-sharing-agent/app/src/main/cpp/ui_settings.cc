@@ -41,6 +41,7 @@ namespace {
 #define ACCESSIBILITY_BUTTON_TARGETS_DIVIDER "-- Accessibility Button Targets --"
 #define FONT_SCALE_DIVIDER "-- Font Scale --"
 #define DENSITY_DIVIDER "-- Density --"
+#define DEBUG_LAYOUT_DIVIDER "-- Debug Layout --"
 #define FOREGROUND_APPLICATION_DIVIDER "-- Foreground Application --"
 #define APP_LANGUAGE_DIVIDER "-- App Language --"
 
@@ -55,6 +56,8 @@ namespace {
 #define SELECT_TO_SPEAK_SERVICE_NAME TALKBACK_PACKAGE_NAME "/" SELECT_TO_SPEAK_SERVICE_CLASS
 #define PHYSICAL_DENSITY_PATTERN "Physical density: %d"
 #define OVERRIDE_DENSITY_PATTERN "Override density: %d"
+
+#define SYSPROPS_TRANSACTION 1599295570 // from frameworks/base/core/java/android/os/IBinder.java
 
 struct CommandContext {
     set<string> enabled;
@@ -165,6 +168,19 @@ void ProcessDensity(stringstream* stream, UiSettingsState* state) {
   state->set_density(override_density);
 }
 
+void ProcessDebugLayout(stringstream* stream, UiSettingsState* state) {
+  string line;
+  bool debug_layout = false;
+  int line_start_position = stream->tellg();
+  if (getline(*stream, line, '\n')) {
+    debug_layout = TrimEnd(line) == "true";
+    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
+      stream->seekg(line_start_position); // Go back to start of line
+    }
+  }
+  state->set_debug_layout(debug_layout);
+}
+
 // Example: "  mFocusedApp=ActivityRecord{64d5519 u0 com.example.app/com.example.app.MainActivity t8}"
 bool ParseForegroundApplicationLine(const string& line, string* foreground_application_id) {
   regex pattern("mFocusedApp=ActivityRecord.* .* (\\S*)/\\S* ");
@@ -257,6 +273,7 @@ void ProcessAdbOutput(const string& output, UiSettingsState* state, CommandConte
     if (line == ACCESSIBILITY_BUTTON_TARGETS_DIVIDER) ProcessAccessibilityServices(&stream, &context->buttons);
     if (line == FONT_SCALE_DIVIDER) ProcessFontScale(&stream, state);
     if (line == DENSITY_DIVIDER) ProcessDensity(&stream, state);
+    if (line == DEBUG_LAYOUT_DIVIDER) ProcessDebugLayout(&stream, state);
     if (line == FOREGROUND_APPLICATION_DIVIDER) ProcessForegroundApplication(&stream, context);
     if (line == APP_LANGUAGE_DIVIDER) ProcessAppLanguage(&stream, state);
   }
@@ -352,6 +369,11 @@ string CreateSetGestureNavigationCommand(bool gesture_navigation) {
   return StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
 }
 
+string CreateSetDebugLayoutCommand(bool debug_layout) {
+  auto operation = debug_layout ? "true" : "false";
+  return StringPrintf("setprop debug.layout %s;\nservice call activity %d;\n", operation, SYSPROPS_TRANSACTION);
+}
+
 string CreateSetAppLanguageCommand(const string& application_id, const string& locale) {
   return StringPrintf("cmd locale set-app-locales %s --locales %s;\n", application_id.c_str(), locale.c_str());
 }
@@ -372,6 +394,8 @@ void GetSettings(UiSettingsState* state, CommandContext* context) {
     "settings get system font_scale; "
     "echo " DENSITY_DIVIDER "; "
     "wm density; "
+    "echo " DEBUG_LAYOUT_DIVIDER "; "
+    "getprop debug.layout; "
     "echo " FOREGROUND_APPLICATION_DIVIDER "; "
     "dumpsys activity activities | grep mFocusedApp=ActivityRecord; ";
 
@@ -455,6 +479,12 @@ void UiSettings::SetGestureNavigation(bool gesture_navigation, UiSettingsChangeR
   response->set_original_values(has_original_values());
 }
 
+void UiSettings::SetDebugLayout(bool debug_layout, UiSettingsChangeResponse* response) {
+  ExecuteShellCommand(CreateSetDebugLayoutCommand(debug_layout));
+  last_settings_.set_debug_layout(debug_layout);
+  response->set_original_values(has_original_values());
+}
+
 void UiSettings::SetAppLanguage(const string& application_id, const string& locale, UiSettingsChangeResponse* response) {
   ExecuteShellCommand(CreateSetAppLanguageCommand(application_id, locale));
   last_settings_.add_app_locale(application_id, locale);
@@ -493,6 +523,9 @@ const string UiSettings::CreateResetCommand() {
   }
   if (last_settings_.gesture_navigation() != initial_settings_.gesture_navigation()) {
     command += CreateSetGestureNavigationCommand(initial_settings_.gesture_navigation());
+  }
+  if (last_settings_.debug_layout() != initial_settings_.debug_layout() && (Agent::flags() & DEBUG_LAYOUT_UI_SETTINGS) != 0) {
+    command += CreateSetDebugLayoutCommand(initial_settings_.debug_layout());
   }
   for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
     if (last_settings_.app_locale_of(*it) != initial_settings_.app_locale_of(*it)) {

@@ -32,7 +32,7 @@ public:
     result->app_locales_ = app_locales_;
   }
 
-  void copy(UiSettingsResponse* response) {
+  void copy(UiSettingsResponse* response) const {
     response_.copy(response);
   }
 
@@ -40,7 +40,7 @@ public:
     response_.set_dark_mode(dark_mode);
   }
 
-  bool dark_mode() {
+  bool dark_mode() const {
     return response_.dark_mode();
   }
 
@@ -64,7 +64,7 @@ public:
     response_.set_talkback_on(on);
   }
 
-  bool talkback_on() {
+  bool talkback_on() const {
     return response_.talkback_on();
   }
 
@@ -72,7 +72,7 @@ public:
     response_.set_select_to_speak_on(on);
   }
 
-  bool select_to_speak_on() {
+  bool select_to_speak_on() const {
     return response_.select_to_speak_on();
   }
 
@@ -80,11 +80,19 @@ public:
     response_.set_gesture_navigation(gesture_navigation);
   }
 
-  bool gesture_navigation() {
+  bool gesture_navigation() const {
     return response_.gesture_navigation();
   }
 
-  std::string app_locale_of(const std::string application_id);
+  void set_debug_layout(bool debug_layout) {
+    response_.set_debug_layout(debug_layout);
+  }
+
+  bool debug_layout() const {
+    return response_.debug_layout();
+  }
+
+  std::string app_locale_of(const std::string application_id) const;
 
   void add_app_locale(const std::string& application_id, const std::string& locale) {
     app_locales_[application_id] = locale;
@@ -92,7 +100,7 @@ public:
 
   void add_unseen_app_locales(UiSettingsState* result) const;
 
-  std::vector<std::string> get_application_ids();
+  std::vector<std::string> get_application_ids() const;
 
   void set_original_values(bool original_values) {
     response_.set_original_values(original_values);

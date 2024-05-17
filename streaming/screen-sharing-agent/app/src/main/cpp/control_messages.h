@@ -632,6 +632,7 @@ public:
     result->set_talkback_on(talkback_on_);
     result->set_select_to_speak_on(select_to_speak_on_);
     result->set_gesture_navigation(gesture_navigation_);
+    result->set_debug_layout(debug_layout_);
     result->set_foreground_application_id(foreground_application_id_);
     result->set_app_locale(app_locale_);
     result->set_original_values(original_values_);
@@ -687,6 +688,14 @@ public:
 
   [[nodiscard]] bool gesture_navigation() const {
     return gesture_navigation_;
+  }
+
+  void set_debug_layout(bool debug_layout) {
+    debug_layout_ = debug_layout;
+  }
+
+  [[nodiscard]] bool debug_layout() const {
+    return debug_layout_;
   }
 
   void set_foreground_application_id(const std::string& foreground_application_id) {
@@ -748,6 +757,7 @@ private:
   bool talkback_on_ = false;
   bool select_to_speak_on_ = false;
   bool gesture_navigation_ = false;
+  bool debug_layout_ = false;
   std::string foreground_application_id_;
   std::string app_locale_;
 
@@ -771,6 +781,7 @@ public:
     TALKBACK,
     SELECT_TO_SPEAK,
     GESTURE_NAVIGATION,
+    DEBUG_LAYOUT,
     APP_LOCALE,
   };
 
@@ -780,6 +791,7 @@ public:
   static UiSettingsChangeRequest* createTalkbackChangeRequest(int32_t request_id, bool talkback);
   static UiSettingsChangeRequest* createSelectToSpeakChangeRequest(int32_t request_id, bool select_to_speak);
   static UiSettingsChangeRequest* createGestureNavigationChangeRequest(int32_t request_id, bool gesture_navigation);
+  static UiSettingsChangeRequest* createDebugLayoutChangeRequest(int32_t request_id, bool debug_layout);
   static UiSettingsChangeRequest* createAppLocaleChangeRequest(int32_t request_id, std::string application_id, std::string locale);
 
   ~UiSettingsChangeRequest() override = default;
@@ -812,6 +824,10 @@ public:
     return gesture_navigation_;
   }
 
+  [[nodiscard]] bool debug_layout() const {
+    return debug_layout_;
+  }
+
   [[nodiscard]] std::string application_id() const {
     return application_id_;
   }
@@ -840,6 +856,7 @@ private:
     bool talkback_;
     bool select_to_speak_;
     bool gesture_navigation_;
+    bool debug_layout_;
   };
   std::string application_id_;
   std::string locale_;

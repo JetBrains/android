@@ -19,8 +19,10 @@ import com.android.adblib.testing.FakeAdbDeviceServices
 import com.android.testutils.waitForCondition
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.uisettings.testutil.UiControllerListenerValidator
 import com.android.tools.idea.streaming.uisettings.ui.UiSettingsModel
+import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import com.google.wireless.android.sdk.stats.DeviceInfo.DeviceType
@@ -84,10 +86,13 @@ class EmulatorUiSettingsControllerTest {
     adb.configureShellCommand(deviceSelector, FACTORY_RESET_COMMAND.format(APPLICATION_ID1, DEFAULT_DENSITY), "")
     adb.configureShellCommand(deviceSelector, "cmd overlay enable $GESTURES_OVERLAY; cmd overlay disable $THREE_BUTTON_OVERLAY", "")
     adb.configureShellCommand(deviceSelector, "cmd overlay disable $GESTURES_OVERLAY; cmd overlay enable $THREE_BUTTON_OVERLAY", "")
+    adb.configureShellCommand(deviceSelector, "setprop debug.layout true; service call activity 1599295570", "")
+    adb.configureShellCommand(deviceSelector, "setprop debug.layout false; service call activity 1599295570", "")
   }
 
   @Test
   fun testReadDefaultValueWhenAttachingAfterInit() {
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     listeners.checkValues(expectedChanges = 1, expectedCustomValues = false, expectedSettable = true)
@@ -96,6 +101,7 @@ class EmulatorUiSettingsControllerTest {
 
   @Test
   fun testReadDefaultValueWhenAttachingBeforeInit() {
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
     val listeners = UiControllerListenerValidator(model, customValues = true, settable = false)
     controller.initAndWait()
     listeners.checkValues(expectedChanges = 2, expectedCustomValues = false, expectedSettable = true)
@@ -114,7 +120,8 @@ class EmulatorUiSettingsControllerTest {
       selectToSpeakOn = true,
       fontScale = CUSTOM_FONT_SCALE,
       physicalDensity = DEFAULT_DENSITY,
-      overrideDensity = CUSTOM_DENSITY
+      overrideDensity = CUSTOM_DENSITY,
+      debugLayout = true,
     )
     controller.initAndWait()
     val listeners = UiControllerListenerValidator(model, customValues = false, settable = false)
@@ -313,6 +320,20 @@ class EmulatorUiSettingsControllerTest {
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "wm density 544" }
     assertThat(model.differentFromDefault.value).isTrue()
     assertUsageEvent(OperationKind.SCREEN_DENSITY, OperationKind.SCREEN_DENSITY, OperationKind.SCREEN_DENSITY)
+  }
+
+  @Test
+  fun testSetDebugLayout() {
+    StudioFlags.EMBEDDED_EMULATOR_DEBUG_LAYOUT_IN_UI_SETTINGS.override(true, testRootDisposable)
+    controller.initAndWait()
+    assertThat(model.differentFromDefault.value).isFalse()
+    model.debugLayout.setFromUi(true)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "setprop debug.layout true; service call activity 1599295570" }
+    assertThat(model.differentFromDefault.value).isTrue()
+    model.debugLayout.setFromUi(false)
+    waitForCondition(10.seconds) { lastIssuedChangeCommand == "setprop debug.layout false; service call activity 1599295570" }
+    assertThat(model.differentFromDefault.value).isFalse()
+    assertUsageEvent(OperationKind.DEBUG_LAYOUT, OperationKind.DEBUG_LAYOUT)
   }
 
   @Test

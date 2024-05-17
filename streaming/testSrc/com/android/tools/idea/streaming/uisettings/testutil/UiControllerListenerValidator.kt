@@ -48,6 +48,7 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
   val fontScale = createAndAddListener(model.fontScaleInPercent, if (customValues) CUSTOM_FONT_SCALE else DEFAULT_FONT_SCALE)
   val densitySettable = createAndAddListener(model.screenDensitySettable, settable)
   val density = createAndAddListener(model.screenDensity, if (customValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
+  val debugLayout = createAndAddListener(model.inDarkMode, customValues)
 
   /**
    * Check the lastValue and number of changes for each property listener, and make sure they match the property value.
@@ -91,6 +92,9 @@ internal class UiControllerListenerValidator(private val model: UiSettingsModel,
     assertThat(model.screenDensity.value).isEqualTo(if (expectedCustomValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
     assertThat(density.changes).isEqualTo(expectedChanges)
     assertThat(density.lastValue).isEqualTo(if (expectedCustomValues) CUSTOM_DENSITY else DEFAULT_DENSITY)
+    assertThat(model.debugLayout.value).isEqualTo(expectedCustomValues)
+    assertThat(debugLayout.changes).isEqualTo(expectedChanges)
+    assertThat(debugLayout.lastValue).isEqualTo(expectedCustomValues)
   }
 
   private fun <T> createAndAddListener(property: ReadOnlyProperty<T>, initialValue: T): ListenerState<T> {

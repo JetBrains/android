@@ -40,6 +40,8 @@ public:
 
   void SetGestureNavigation(bool gesture_navigation, UiSettingsChangeResponse* response);
 
+  void SetDebugLayout(bool debug_layout, UiSettingsChangeResponse* response);
+
   void SetAppLanguage(const std::string& application_id, const std::string& locale, UiSettingsChangeResponse* response);
 
   void Reset(UiSettingsResponse* response);
