@@ -16,21 +16,22 @@
 package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.wizard.template.renderIf
+import java.net.URL
 
 fun androidProjectGradleSettings(appTitle: String,
                                  agpVersion: AgpVersion,
-                                 useGradleKts: Boolean): String {
+                                 useGradleKts: Boolean,
+                                 injectedRepositories: List<URL>): String {
   require(!appTitle.contains("\\")) { "Backslash should not be present in the application title" }
   return renderIf(appTitle.isNotBlank()) {
     val escapedAppTitle = appTitle.replace("$", "\\$")
-    val injectedRepositories = EmbeddedDistributionPaths.getInstance().getNewProjectLocalMavenRepos(agpVersion).let { repos ->
-      if(repos.isEmpty()) "" else repos.joinToString("") { "\n    maven { url = uri(\"${it.toURI()}\") }" }
-    }
+    val injectedRepositoriesSnippet =
+      if(injectedRepositories.isEmpty()) "" else injectedRepositories.joinToString("") { "\n    maven { url = uri(\"${it}\") }" }
+
     """
 pluginManagement {
-  repositories {$injectedRepositories
+  repositories {$injectedRepositoriesSnippet
     google {
       content {
         includeGroupByRegex("com\\.android.*")
@@ -44,7 +45,7 @@ pluginManagement {
 }
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-  repositories {$injectedRepositories
+  repositories {$injectedRepositoriesSnippet
     google()
     mavenCentral()
   }

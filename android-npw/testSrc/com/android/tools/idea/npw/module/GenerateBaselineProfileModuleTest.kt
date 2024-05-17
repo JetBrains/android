@@ -173,6 +173,7 @@ class GenerateBaselineProfileModuleTest {
       projectTemplateData = ProjectTemplateData(
         androidXSupport = true,
         agpVersion = agpVersion,
+        additionalMavenRepos = listOf(),
         sdkDir = null,
         language = sourceCodeLanguage,
         kotlinVersion = kotlinVersion,

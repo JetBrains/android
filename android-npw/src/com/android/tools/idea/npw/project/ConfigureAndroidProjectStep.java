@@ -68,6 +68,7 @@ import com.android.tools.idea.wizard.template.Language;
 import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.android.tools.idea.wizard.ui.WizardUtils;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ModalityState;
@@ -87,7 +88,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -129,7 +129,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private ContextHelpLabel myBuildConfigurationLanguageLabel;
 
   private ContextHelpLabel myAndroidGradlePluginLabel;
-  private JComboBox<AgpVersion> myAndroidGradlePluginCombo;
+  private JComboBox<AgpVersions.NewProjectWizardAgpVersion> myAndroidGradlePluginCombo;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -199,15 +199,24 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     }
 
     if (StudioFlags.NPW_SHOW_AGP_VERSION_COMBO_BOX.get()) {
-      AgpVersion newProject = AgpVersions.getNewProject();
-      myAndroidGradlePluginCombo.addItem(newProject);
-      myBindings.bindTwoWay(ObjectProperty.wrap(new SelectedItemProperty<>(myAndroidGradlePluginCombo)), myProjectModel.getAgpVersion());
+      AgpVersions.NewProjectWizardAgpVersion
+        placeholderCurrentVersion = new AgpVersions.NewProjectWizardAgpVersion(myProjectModel.getAgpVersion().get(), ImmutableList.of(), "");
+      myAndroidGradlePluginCombo.addItem(placeholderCurrentVersion);
+      myBindings.bind(myProjectModel.getAgpVersion(), ObjectProperty.wrap(new SelectedItemProperty<>(myAndroidGradlePluginCombo)).transform(it -> ((AgpVersions.NewProjectWizardAgpVersion)it).getVersion()));
+      myBindings.bind(myProjectModel.getAdditionalMavenRepos(), ObjectProperty.wrap(new SelectedItemProperty<>(myAndroidGradlePluginCombo)).transform(it -> ((AgpVersions.NewProjectWizardAgpVersion)it).getAdditionalMavenRepositoryUrls()));
+
       BackgroundTaskUtil.executeOnPooledThread(this, () -> {
-        Set<AgpVersion> suggestedAgpVersions = AgpVersions.INSTANCE.getNewProjectWizardVersions();
+        List<AgpVersions.NewProjectWizardAgpVersion> suggestedAgpVersions = AgpVersions.INSTANCE.getNewProjectWizardVersions();
         ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
-          for (AgpVersion version : suggestedAgpVersions) {
-            if (version.equals(newProject)) continue;
+          AgpVersion current = myProjectModel.getAgpVersion().get();
+          boolean foundCurrent = false;
+          for (AgpVersions.NewProjectWizardAgpVersion version : suggestedAgpVersions) {
             myAndroidGradlePluginCombo.addItem(version);
+            if (!foundCurrent && version.getVersion().equals(current)) {
+              foundCurrent = true;
+              myAndroidGradlePluginCombo.setSelectedItem(version);
+              myAndroidGradlePluginCombo.removeItem(placeholderCurrentVersion); // Delete the placeholder current version that was first
+            }
           }
         });
       });
