@@ -71,26 +71,8 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case UiSettingsRequest::TYPE:
       return unique_ptr<ControlMessage>(UiSettingsRequest::Deserialize(stream));
 
-    case SetDarkModeRequest::TYPE:
-      return unique_ptr<ControlMessage>(SetDarkModeRequest::Deserialize(stream));
-
-    case SetFontScaleRequest::TYPE:
-      return unique_ptr<ControlMessage>(SetFontScaleRequest::Deserialize(stream));
-
-    case SetScreenDensityRequest::TYPE:
-      return unique_ptr<ControlMessage>(SetScreenDensityRequest::Deserialize(stream));
-
-    case SetTalkBackRequest::TYPE:
-      return unique_ptr<ControlMessage>(SetTalkBackRequest::Deserialize(stream));
-
-    case SetSelectToSpeakRequest::TYPE:
-      return unique_ptr<ControlMessage>(SetSelectToSpeakRequest::Deserialize(stream));
-
-    case SetAppLanguageRequest::TYPE:
-      return unique_ptr<ControlMessage>(SetAppLanguageRequest::Deserialize(stream));
-
-    case SetGestureNavigationRequest::TYPE:
-      return unique_ptr<ControlMessage>(SetGestureNavigationRequest::Deserialize(stream));
+    case UiSettingsChangeRequest::TYPE:
+      return unique_ptr<ControlMessage>(UiSettingsChangeRequest::Deserialize(stream));
 
     case ResetUiSettingsRequest::TYPE:
       return unique_ptr<ControlMessage>(ResetUiSettingsRequest::Deserialize(stream));
@@ -207,47 +189,34 @@ UiSettingsRequest* UiSettingsRequest::Deserialize(Base128InputStream& stream) {
   return new UiSettingsRequest(request_id);
 }
 
-SetDarkModeRequest* SetDarkModeRequest::Deserialize(Base128InputStream& stream) {
+UiSettingsChangeRequest* UiSettingsChangeRequest::Deserialize(Base128InputStream& stream) {
   int32_t request_id = stream.ReadInt32();
-  bool dark_mode = stream.ReadBool();
-  return new SetDarkModeRequest(request_id, dark_mode);
-}
+  UiCommand command = static_cast<UiCommand>(stream.ReadInt32());
+  switch (command) {
+    case DARK_MODE:
+      return createDarkModeChangeRequest(request_id, stream.ReadBool());
 
-SetFontScaleRequest* SetFontScaleRequest::Deserialize(Base128InputStream& stream) {
-  int32_t request_id = stream.ReadInt32();
-  int32_t font_scale = stream.ReadInt32();
-  return new SetFontScaleRequest(request_id, font_scale);
-}
+    case FONT_SCALE:
+      return createFontScaleChangeRequest(request_id, stream.ReadInt32());
 
-SetScreenDensityRequest* SetScreenDensityRequest::Deserialize(Base128InputStream& stream) {
-  int32_t request_id = stream.ReadInt32();
-  int32_t density = stream.ReadInt32();
-  return new SetScreenDensityRequest(request_id, density);
-}
+    case DENSITY:
+      return createDensityChangeRequest(request_id, stream.ReadInt32());
 
-SetTalkBackRequest* SetTalkBackRequest::Deserialize(Base128InputStream& stream) {
-  int32_t request_id = stream.ReadInt32();
-  bool on = stream.ReadBool();
-  return new SetTalkBackRequest(request_id, on);
-}
+    case TALKBACK:
+      return createTalkbackChangeRequest(request_id, stream.ReadBool());
 
-SetSelectToSpeakRequest* SetSelectToSpeakRequest::Deserialize(Base128InputStream& stream) {
-  int32_t request_id = stream.ReadInt32();
-  bool on = stream.ReadBool();
-  return new SetSelectToSpeakRequest(request_id, on);
-}
+    case SELECT_TO_SPEAK:
+      return createSelectToSpeakChangeRequest(request_id, stream.ReadBool());
 
-SetAppLanguageRequest* SetAppLanguageRequest::Deserialize(Base128InputStream& stream) {
-  int32_t request_id = stream.ReadInt32();
-  string application_id = stream.ReadBytes();
-  string locale = stream.ReadBytes();
-  return new SetAppLanguageRequest(request_id, application_id, locale);
-}
+    case GESTURE_NAVIGATION:
+      return createGestureNavigationChangeRequest(request_id, stream.ReadBool());
 
-SetGestureNavigationRequest* SetGestureNavigationRequest::Deserialize(Base128InputStream& stream) {
-  int32_t request_id = stream.ReadInt32();
-  bool gesture_navigation = stream.ReadBool();
-  return new SetGestureNavigationRequest(request_id, gesture_navigation);
+    case APP_LOCALE:
+      return createAppLocaleChangeRequest(request_id, stream.ReadBytes(), stream.ReadBytes());
+
+    default:
+      Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected ui settings command %d", command);
+  }
 }
 
 ResetUiSettingsRequest* ResetUiSettingsRequest::Deserialize(Base128InputStream& stream) {
@@ -308,59 +277,69 @@ void UiSettingsRequest::Serialize(Base128OutputStream& stream) const {
 
 void UiSettingsResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
-  stream.WriteBool(original_values_);
   stream.WriteBool(dark_mode_);
-  stream.WriteBool(gesture_overlay_installed_);
+  stream.WriteInt32(font_scale_);
+  stream.WriteInt32(density_);
+  stream.WriteBool(talkback_on_);
+  stream.WriteBool(select_to_speak_on_);
   stream.WriteBool(gesture_navigation_);
   stream.WriteBytes(foreground_application_id_);
   stream.WriteBytes(app_locale_);
-  stream.WriteBool(talkback_installed_);
-  stream.WriteBool(talkback_on_);
-  stream.WriteBool(select_to_speak_on_);
+
+  stream.WriteBool(original_values_);
+
   stream.WriteBool(font_scale_settable_);
-  stream.WriteInt32(font_scale_);
   stream.WriteBool(density_settable_);
-  stream.WriteInt32(density_);
+  stream.WriteBool(talkback_installed_);
+  stream.WriteBool(gesture_overlay_installed_);
 }
 
-void SetDarkModeRequest::Serialize(Base128OutputStream& stream) const {
-  CorrelatedMessage::Serialize(stream);
-  stream.WriteInt32(dark_mode_);
-}
-
-void SetFontScaleRequest::Serialize(Base128OutputStream& stream) const {
-  CorrelatedMessage::Serialize(stream);
-  stream.WriteInt32(font_scale_);
-}
-
-void SetScreenDensityRequest::Serialize(Base128OutputStream& stream) const {
-  CorrelatedMessage::Serialize(stream);
-  stream.WriteInt32(density_);
-}
-
-void SetTalkBackRequest::Serialize(Base128OutputStream& stream) const {
-  CorrelatedMessage::Serialize(stream);
-  stream.WriteBool(talkback_on_);
-}
-
-void SetSelectToSpeakRequest::Serialize(Base128OutputStream& stream) const {
-  CorrelatedMessage::Serialize(stream);
-  stream.WriteBool(select_to_speak_on_);
-}
-
-void SetAppLanguageRequest::Serialize(Base128OutputStream& stream) const {
-  CorrelatedMessage::Serialize(stream);
-  stream.WriteBytes(application_id_);
-  stream.WriteBytes(locale_);
-}
-
-void SetGestureNavigationRequest::Serialize(Base128OutputStream& stream) const {
-  CorrelatedMessage::Serialize(stream);
-  stream.WriteInt32(gesture_navigation_);
-}
-
-void UiSettingsCommandResponse::Serialize(Base128OutputStream& stream) const {
+void UiSettingsChangeResponse::Serialize(Base128OutputStream& stream) const {
   CorrelatedMessage::Serialize(stream);
   stream.WriteBool(original_values_);
 }
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createDarkModeChangeRequest(int32_t request_id, bool dark_mode) {
+  auto request = new UiSettingsChangeRequest(request_id, DARK_MODE);
+  request->dark_mode_ = dark_mode;
+  return request;
+}
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createFontScaleChangeRequest(int32_t request_id, int32_t font_scale) {
+  auto request = new UiSettingsChangeRequest(request_id, FONT_SCALE);
+  request->font_scale_ = font_scale;
+  return request;
+}
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createDensityChangeRequest(int32_t request_id, int32_t density) {
+  auto request = new UiSettingsChangeRequest(request_id, DENSITY);
+  request->density_ = density;
+  return request;
+}
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createTalkbackChangeRequest(int32_t request_id, bool talkback) {
+  auto request = new UiSettingsChangeRequest(request_id, TALKBACK);
+  request->talkback_ = talkback;
+  return request;
+}
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createSelectToSpeakChangeRequest(int32_t request_id, bool select_to_speak) {
+  auto request = new UiSettingsChangeRequest(request_id, SELECT_TO_SPEAK);
+  request->select_to_speak_ = select_to_speak;
+  return request;
+}
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createGestureNavigationChangeRequest(int32_t request_id, bool gesture_navigation) {
+  auto request = new UiSettingsChangeRequest(request_id, GESTURE_NAVIGATION);
+  request->gesture_navigation_ = gesture_navigation;
+  return request;
+}
+
+UiSettingsChangeRequest* UiSettingsChangeRequest::createAppLocaleChangeRequest(int32_t request_id, std::string application_id, std::string locale) {
+  auto request = new UiSettingsChangeRequest(request_id, APP_LOCALE);
+  request->application_id_ = application_id;
+  request->locale_ = locale;
+  return request;
+}
+
 }  // namespace screensharing

@@ -23,6 +23,8 @@ import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.tools.idea.streaming.device.DeviceState.Property
+import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.AppLocale
+import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -112,51 +114,51 @@ internal class DeviceController(
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun setDarkMode(darkMode: Boolean): UiSettingsCommandResponse {
-    val request = SetDarkModeRequest(requestIdGenerator, darkMode)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsCommandResponse
+  suspend fun setDarkMode(darkMode: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DARK_MODE, darkMode)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
            ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun setTalkBack(on: Boolean): UiSettingsCommandResponse {
-    val request = SetTalkBackRequest(requestIdGenerator, on)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsCommandResponse
+  suspend fun setFontScale(fontScale: Int): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.FONT_SCALE, fontScale)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
            ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun setSelectToSpeak(on: Boolean): UiSettingsCommandResponse {
-    val request = SetSelectToSpeakRequest(requestIdGenerator, on)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsCommandResponse
+  suspend fun setScreenDensity(density: Int): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.DENSITY, density)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
            ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun setFontScale(fontScale: Int): UiSettingsCommandResponse {
-    val request = SetFontScaleRequest(requestIdGenerator, fontScale)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsCommandResponse
+  suspend fun setTalkBack(talkback: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.TALKBACK, talkback)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
            ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun setScreenDensity(density: Int): UiSettingsCommandResponse {
-    val request = SetScreenDensityRequest(requestIdGenerator, density)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsCommandResponse
+  suspend fun setSelectToSpeak(selectToSpeak: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.SELECT_TO_SPEAK, selectToSpeak)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
            ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun setAppLanguage(applicationId: String, locale: String): UiSettingsCommandResponse {
-    val request = SetAppLanguageRequest(requestIdGenerator, applicationId, locale)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsCommandResponse
+  suspend fun setGestureNavigation(gestureNavigation: Boolean): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.GESTURE_NAVIGATION, gestureNavigation)
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
            ?: throw RuntimeException("Unexpected response")
   }
 
   @Throws(StatusRuntimeException::class, TimeoutException::class)
-  suspend fun setGestureNavigation(on: Boolean): UiSettingsCommandResponse {
-    val request = SetGestureNavigationRequest(requestIdGenerator, on)
-    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsCommandResponse
+  suspend fun setAppLanguage(applicationId: String, locale: String): UiSettingsChangeResponse {
+    val request = UiSettingsChangeRequest(requestIdGenerator, UiCommand.APP_LOCALE, AppLocale(applicationId, locale))
+    return sendRequest(request, RESPONSE_TIMEOUT_SEC, TimeUnit.SECONDS) as? UiSettingsChangeResponse
            ?: throw RuntimeException("Unexpected response")
   }
 

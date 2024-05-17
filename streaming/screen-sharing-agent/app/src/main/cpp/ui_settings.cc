@@ -287,17 +287,15 @@ bool IsScreenDensitySettable(int32_t density) {
 }
 
 string CreateSetDarkModeCommand(bool dark_mode) {
-  return string("cmd uimode night ") + (dark_mode ? "yes" : "no") + ";\n";
+  return StringPrintf("cmd uimode night %s;\n", dark_mode ? "yes" : "no");
 }
 
-string CreateSetGestureNavigationCommand(bool gesture_navigation) {
-  auto operation = gesture_navigation ? "enable" : "disable";
-  auto opposite = !gesture_navigation ? "enable" : "disable";
-  return StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
+string CreateSetFontScaleCommand(int32_t font_scale) {
+  return StringPrintf("settings put system font_scale %g;\n", font_scale / 100.0f);
 }
 
-string CreateSetAppLanguageCommand(const string& application_id, const string& locale) {
-  return StringPrintf("cmd locale set-app-locales %s --locales %s;\n", application_id.c_str(), locale.c_str());
+string CreateSetScreenDensityCommand(int32_t density) {
+  return StringPrintf("wm density %d;\n", density);
 }
 
 void GetSecureSettings(CommandContext* context) {
@@ -332,10 +330,10 @@ string CreateSecureSettingChangeCommand(bool on, string settingsName, string ser
     services->erase(serviceName);
   }
   if (services->empty()) {
-    return "settings delete secure " + settingsName + ";\n";
+    return StringPrintf("settings delete secure %s;\n", settingsName.c_str());
   } else {
     string result = accumulate(services->begin(), services->end(), string(), CombineServices);
-    return "settings put secure " + settingsName + " " + result + ";\n";
+    return StringPrintf("settings put secure %s %s;\n", settingsName.c_str(), result.c_str());
   }
 }
 
@@ -348,12 +346,14 @@ string CreateSetSelectToSpeakCommand(bool on, CommandContext* context) {
       +  CreateSecureSettingChangeCommand(on, ACCESSIBILITY_BUTTON_TARGETS, SELECT_TO_SPEAK_SERVICE_NAME, &context->buttons);
 }
 
-string CreateSetFontScaleCommand(int32_t font_scale) {
-  return string("settings put system font_scale ") + StringPrintf("%g", font_scale / 100.0f) + ";\n";
+string CreateSetGestureNavigationCommand(bool gesture_navigation) {
+  auto operation = gesture_navigation ? "enable" : "disable";
+  auto opposite = !gesture_navigation ? "enable" : "disable";
+  return StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
 }
 
-string CreateSetScreenDensityCommand(int32_t density) {
-  return StringPrintf("wm density %d;\n", density);
+string CreateSetAppLanguageCommand(const string& application_id, const string& locale) {
+  return StringPrintf("cmd locale set-app-locales %s --locales %s;\n", application_id.c_str(), locale.c_str());
 }
 
 void GetSettings(UiSettingsState* state, CommandContext* context) {
@@ -415,25 +415,25 @@ void UiSettings::StoreInitialSettings(const UiSettingsState& state) {
   state.add_unseen_app_locales(&last_settings_);
 }
 
-void UiSettings::SetDarkMode(bool dark_mode, UiSettingsCommandResponse* response) {
+void UiSettings::SetDarkMode(bool dark_mode, UiSettingsChangeResponse* response) {
   ExecuteShellCommand(CreateSetDarkModeCommand(dark_mode));
   last_settings_.set_dark_mode(dark_mode);
   response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetGestureNavigation(bool gesture_navigation, UiSettingsCommandResponse* response) {
-  ExecuteShellCommand(CreateSetGestureNavigationCommand(gesture_navigation));
-  last_settings_.set_gesture_navigation(gesture_navigation);
+void UiSettings::SetFontScale(int32_t font_scale, UiSettingsChangeResponse* response) {
+  ExecuteShellCommand(CreateSetFontScaleCommand(font_scale));
+  last_settings_.set_font_scale(font_scale);
   response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetAppLanguage(const string& application_id, const string& locale, UiSettingsCommandResponse* response) {
-  ExecuteShellCommand(CreateSetAppLanguageCommand(application_id, locale));
-  last_settings_.add_app_locale(application_id, locale);
+void UiSettings::SetScreenDensity(int32_t density, UiSettingsChangeResponse* response) {
+  ExecuteShellCommand(CreateSetScreenDensityCommand(density));
+  last_settings_.set_density(density);
   response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetTalkBack(bool on, UiSettingsCommandResponse* response) {
+void UiSettings::SetTalkBack(bool on, UiSettingsChangeResponse* response) {
   CommandContext context;
   GetSecureSettings(&context);
   ExecuteShellCommand(CreateSetTalkBackCommand(on, &context));
@@ -441,7 +441,7 @@ void UiSettings::SetTalkBack(bool on, UiSettingsCommandResponse* response) {
   response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetSelectToSpeak(bool on, UiSettingsCommandResponse* response) {
+void UiSettings::SetSelectToSpeak(bool on, UiSettingsChangeResponse* response) {
   CommandContext context;
   GetSecureSettings(&context);
   ExecuteShellCommand(CreateSetSelectToSpeakCommand(on, &context));
@@ -449,15 +449,15 @@ void UiSettings::SetSelectToSpeak(bool on, UiSettingsCommandResponse* response) 
   response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetFontScale(int32_t font_scale, UiSettingsCommandResponse* response) {
-  ExecuteShellCommand(CreateSetFontScaleCommand(font_scale));
-  last_settings_.set_font_scale(font_scale);
+void UiSettings::SetGestureNavigation(bool gesture_navigation, UiSettingsChangeResponse* response) {
+  ExecuteShellCommand(CreateSetGestureNavigationCommand(gesture_navigation));
+  last_settings_.set_gesture_navigation(gesture_navigation);
   response->set_original_values(has_original_values());
 }
 
-void UiSettings::SetScreenDensity(int32_t density, UiSettingsCommandResponse* response) {
-  ExecuteShellCommand(CreateSetScreenDensityCommand(density));
-  last_settings_.set_density(density);
+void UiSettings::SetAppLanguage(const string& application_id, const string& locale, UiSettingsChangeResponse* response) {
+  ExecuteShellCommand(CreateSetAppLanguageCommand(application_id, locale));
+  last_settings_.add_app_locale(application_id, locale);
   response->set_original_values(has_original_values());
 }
 
@@ -477,13 +477,11 @@ const string UiSettings::CreateResetCommand() {
   if (last_settings_.dark_mode() != initial_settings_.dark_mode()) {
     command += CreateSetDarkModeCommand(initial_settings_.dark_mode());
   }
-  if (last_settings_.gesture_navigation() != initial_settings_.gesture_navigation()) {
-    command += CreateSetGestureNavigationCommand(initial_settings_.gesture_navigation());
+  if (last_settings_.font_scale() != initial_settings_.font_scale()) {
+    command += CreateSetFontScaleCommand(initial_settings_.font_scale());
   }
-  for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
-    if (last_settings_.app_locale_of(*it) != initial_settings_.app_locale_of(*it)) {
-      command += CreateSetAppLanguageCommand(*it, initial_settings_.app_locale_of(*it));
-    }
+  if (last_settings_.density() != initial_settings_.density()) {
+    command += CreateSetScreenDensityCommand(initial_settings_.density());
   }
   if (last_settings_.talkback_on() != initial_settings_.talkback_on()) {
     GetSecureSettings(&context);
@@ -493,11 +491,13 @@ const string UiSettings::CreateResetCommand() {
     GetSecureSettings(&context);
     command += CreateSetSelectToSpeakCommand(initial_settings_.select_to_speak_on(), &context);
   }
-  if (last_settings_.font_scale() != initial_settings_.font_scale()) {
-    command += CreateSetFontScaleCommand(initial_settings_.font_scale());
+  if (last_settings_.gesture_navigation() != initial_settings_.gesture_navigation()) {
+    command += CreateSetGestureNavigationCommand(initial_settings_.gesture_navigation());
   }
-  if (last_settings_.density() != initial_settings_.density()) {
-    command += CreateSetScreenDensityCommand(initial_settings_.density());
+  for (auto it = application_ids.begin(); it != application_ids.end(); it++) {
+    if (last_settings_.app_locale_of(*it) != initial_settings_.app_locale_of(*it)) {
+      command += CreateSetAppLanguageCommand(*it, initial_settings_.app_locale_of(*it));
+    }
   }
   return command;
 }

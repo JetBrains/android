@@ -101,7 +101,7 @@ internal const val FACTORY_RESET_COMMAND =
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
-  "wm density %d; "  // Parameters: applicationId, density
+  "wm density %d; " // Parameters: applicationId, density
 
 private fun EmulatorConfiguration.toDeviceInfo(serialNumber: String): DeviceInfo {
   return DeviceInfo.newBuilder()
@@ -156,12 +156,12 @@ internal class EmulatorUiSettingsController(
     while (iterator.hasNext()) {
       when (iterator.next()) {
         DARK_MODE_DIVIDER -> processDarkMode(iterator)
-        GESTURES_DIVIDER -> processGestureNavigation(iterator)
-        LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
-        ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, context.enabled)
-        ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, context.buttons)
         FONT_SCALE_DIVIDER -> processFontScale(iterator)
         DENSITY_DIVIDER -> processScreenDensity(iterator)
+        ACCESSIBILITY_SERVICES_DIVIDER -> processAccessibilityServices(iterator, context.enabled)
+        ACCESSIBILITY_BUTTON_TARGETS_DIVIDER -> processAccessibilityServices(iterator, context.buttons)
+        GESTURES_DIVIDER -> processGestureNavigation(iterator)
+        LIST_PACKAGES_DIVIDER -> processListPackages(iterator)
         FOREGROUND_APPLICATION_DIVIDER -> processForegroundApplication(iterator, context)
         APP_LANGUAGE_DIVIDER -> processAppLanguage(iterator)
       }
@@ -172,6 +172,24 @@ internal class EmulatorUiSettingsController(
     val isInDarkMode = iterator.hasNext() && iterator.next() == "Night mode: yes"
     model.inDarkMode.setFromController(isInDarkMode)
     lastDarkMode = isInDarkMode
+  }
+
+  private fun processFontScale(iterator: ListIterator<String>) {
+    val fontScale = (if (iterator.hasNext()) iterator.next() else "1.0").toFloatOrNull() ?: 1f
+    model.fontScaleInPercent.setFromController((fontScale * 100f + 0.5f).toInt())
+    lastFontScale = model.fontScaleInPercent.value
+  }
+
+  private fun processScreenDensity(iterator: ListIterator<String>) {
+    val physicalDensity = readDensity(iterator, PHYSICAL_DENSITY_PATTERN) ?: 160
+    val overrideDensity = readDensity(iterator, OVERRIDE_DENSITY_PATTERN) ?: physicalDensity
+    model.screenDensity.setFromController(overrideDensity)
+    readPhysicalDensity = physicalDensity
+    lastDensity = overrideDensity
+  }
+
+  private fun processAccessibilityServices(iterator: ListIterator<String>, data: AccessibilityData) {
+    data.servicesLine = if (iterator.hasNext()) iterator.next() else "null"
   }
 
   private fun processGestureNavigation(iterator: ListIterator<String>) {
@@ -204,20 +222,6 @@ internal class EmulatorUiSettingsController(
       talkBackInstalled = talkBackInstalled || (line == talkBackServiceLine)
     }
     model.talkBackInstalled.setFromController(talkBackInstalled)
-  }
-
-  private fun processFontScale(iterator: ListIterator<String>) {
-    val fontScale = (if (iterator.hasNext()) iterator.next() else "1.0").toFloatOrNull() ?: 1f
-    model.fontScaleInPercent.setFromController((fontScale * 100f + 0.5f).toInt())
-    lastFontScale = model.fontScaleInPercent.value
-  }
-
-  private fun processScreenDensity(iterator: ListIterator<String>) {
-    val physicalDensity = readDensity(iterator, PHYSICAL_DENSITY_PATTERN) ?: 160
-    val overrideDensity = readDensity(iterator, OVERRIDE_DENSITY_PATTERN) ?: physicalDensity
-    model.screenDensity.setFromController(overrideDensity)
-    readPhysicalDensity = physicalDensity
-    lastDensity = overrideDensity
   }
 
   private fun processAppLanguage(iterator: ListIterator<String>) {
@@ -259,10 +263,6 @@ internal class EmulatorUiSettingsController(
     return match.groupValues[1].toIntOrNull()
   }
 
-  private fun processAccessibilityServices(iterator: ListIterator<String>, data: AccessibilityData) {
-    data.servicesLine = if (iterator.hasNext()) iterator.next() else "null"
-  }
-
   private fun processAccessibility(enabled: AccessibilityData, buttonTarget: AccessibilityData) {
     model.talkBackOn.setFromController(enabled.services.contains(TALK_BACK_SERVICE_NAME))
     model.selectToSpeakOn.setFromController(enabled.services.contains(SELECT_TO_SPEAK_SERVICE_NAME) &&
@@ -275,6 +275,33 @@ internal class EmulatorUiSettingsController(
     val darkMode = if (on) "yes" else "no"
     scope.launch { executeShellCommand("cmd uimode night $darkMode") }
     lastDarkMode = on
+    updateResetButton()
+  }
+
+  override fun setFontScale(percent: Int) {
+    scope.launch { executeShellCommand("settings put system font_scale %s".format(decimalFormat.format(percent.toFloat() / 100f))) }
+    lastFontScale = percent
+    updateResetButton()
+  }
+
+  override fun setScreenDensity(density: Int) {
+    scope.launch { executeShellCommand("wm density %d".format(density)) }
+    lastDensity = density
+    updateResetButton()
+  }
+
+  override fun setTalkBack(on: Boolean) {
+    scope.launch { changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, TALK_BACK_SERVICE_NAME, on) }
+    lastTalkBack = on
+    updateResetButton()
+  }
+
+  override fun setSelectToSpeak(on: Boolean) {
+    scope.launch {
+      changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, SELECT_TO_SPEAK_SERVICE_NAME, on)
+      changeSecureSetting(ACCESSIBILITY_BUTTON_TARGETS, SELECT_TO_SPEAK_SERVICE_NAME, on)
+    }
+    lastSelectToSpeak = on
     updateResetButton()
   }
 
@@ -294,41 +321,15 @@ internal class EmulatorUiSettingsController(
     }
   }
 
-  override fun setTalkBack(on: Boolean) {
-    scope.launch { changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, TALK_BACK_SERVICE_NAME, on) }
-    lastTalkBack = on
-    updateResetButton()
-  }
-
-  override fun setSelectToSpeak(on: Boolean) {
-    scope.launch {
-      changeSecureSetting(ENABLED_ACCESSIBILITY_SERVICES, SELECT_TO_SPEAK_SERVICE_NAME, on)
-      changeSecureSetting(ACCESSIBILITY_BUTTON_TARGETS, SELECT_TO_SPEAK_SERVICE_NAME, on)
-    }
-    lastSelectToSpeak = on
-    updateResetButton()
-  }
-
-  override fun setFontScale(percent: Int) {
-    scope.launch { executeShellCommand("settings put system font_scale %s".format(decimalFormat.format(percent.toFloat() / 100f))) }
-    lastFontScale = percent
-    updateResetButton()
-  }
-
-  override fun setScreenDensity(density: Int) {
-    scope.launch { executeShellCommand("wm density %d".format(density)) }
-    lastDensity = density
-    updateResetButton()
-  }
-
   override fun reset() {
     scope.launch {
-      if (hasLimitedUiSettingsSupportForDevice) {
-        executeShellCommand(FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE.format(readApplicationId))
+      val command = if (hasLimitedUiSettingsSupportForDevice) {
+        FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE.format(readApplicationId)
       }
       else {
-        executeShellCommand(FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity))
+        FACTORY_RESET_COMMAND.format(readApplicationId, readPhysicalDensity)
       }
+      executeShellCommand(command)
       populateModel()
     }
   }

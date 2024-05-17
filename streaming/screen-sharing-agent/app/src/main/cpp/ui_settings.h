@@ -28,19 +28,19 @@ public:
 
   void Get(UiSettingsResponse* response);
 
-  void SetDarkMode(bool dark_mode, UiSettingsCommandResponse* response);
+  void SetDarkMode(bool dark_mode, UiSettingsChangeResponse* response);
 
-  void SetGestureNavigation(bool gesture_navigation, UiSettingsCommandResponse* response);
+  void SetFontScale(int32_t font_size, UiSettingsChangeResponse* response);
 
-  void SetAppLanguage(const std::string& application_id, const std::string& locale, UiSettingsCommandResponse* response);
+  void SetScreenDensity(int32_t density, UiSettingsChangeResponse* response);
 
-  void SetTalkBack(bool on, UiSettingsCommandResponse* response);
+  void SetTalkBack(bool on, UiSettingsChangeResponse* response);
 
-  void SetSelectToSpeak(bool on, UiSettingsCommandResponse* response);
+  void SetSelectToSpeak(bool on, UiSettingsChangeResponse* response);
 
-  void SetFontScale(int32_t font_size, UiSettingsCommandResponse* response);
+  void SetGestureNavigation(bool gesture_navigation, UiSettingsChangeResponse* response);
 
-  void SetScreenDensity(int32_t density, UiSettingsCommandResponse* response);
+  void SetAppLanguage(const std::string& application_id, const std::string& locale, UiSettingsChangeResponse* response);
 
   void Reset(UiSettingsResponse* response);
 

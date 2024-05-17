@@ -118,14 +118,8 @@ private:
   void SendPendingDisplayEvents();
 
   void SendUiSettings(const UiSettingsRequest& request);
-  void SetDarkMode(const SetDarkModeRequest& message);
-  void SetGestureNavigation(const SetGestureNavigationRequest& message);
-  void SetAppLanguage(const SetAppLanguageRequest& message);
-  void SetTalkBack(const SetTalkBackRequest& message);
-  void SetSelectToSpeak(const SetSelectToSpeakRequest& message);
-  void SetFontScale(const SetFontScaleRequest& message);
-  void SetScreenDensity(const SetScreenDensityRequest& message);
-  void ResetUiSettings(const ResetUiSettingsRequest& message);
+  void ChangeUiSetting(const UiSettingsChangeRequest& request);
+  void ResetUiSettings(const ResetUiSettingsRequest& request);
 
   void StartDisplayPolling();
   void StopDisplayPolling();

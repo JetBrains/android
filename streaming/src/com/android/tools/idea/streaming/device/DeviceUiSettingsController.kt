@@ -45,22 +45,22 @@ internal class DeviceUiSettingsController(
 
   private fun populateModel(response: UiSettingsResponse) {
     model.inDarkMode.setFromController(response.darkMode)
-    model.gestureOverlayInstalled.setFromController(response.gestureOverlayInstalled)
-    model.gestureNavigation.setFromController(response.gestureNavigation)
-    model.talkBackInstalled.setFromController(response.tackBackInstalled)
+    model.fontScaleInPercent.setFromController(response.fontScale)
+    model.screenDensity.setFromController(response.density)
     model.talkBackOn.setFromController(response.talkBackOn)
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
-    model.fontScaleSettable.setFromController(response.fontScaleSettable)
-    model.fontScaleInPercent.setFromController(response.fontScale)
-    model.screenDensitySettable.setFromController(response.densitySettable)
-    model.screenDensity.setFromController(response.density)
-    model.differentFromDefault.setFromController(!response.originalValues)
+    model.gestureNavigation.setFromController(response.gestureNavigation)
     AppLanguageService.getInstance(project).getAppLanguageInfo(deviceSerialNumber, response.foregroundApplicationId)?.let {
       addLanguage(it.applicationId, it.localeConfig, response.appLocale)
     }
+    model.differentFromDefault.setFromController(!response.originalValues)
+    model.fontScaleSettable.setFromController(response.fontScaleSettable)
+    model.screenDensitySettable.setFromController(response.densitySettable)
+    model.talkBackInstalled.setFromController(response.tackBackInstalled)
+    model.gestureOverlayInstalled.setFromController(response.gestureOverlayInstalled)
   }
 
-  private fun handleCommandResponse(response: UiSettingsCommandResponse) {
+  private fun handleCommandResponse(response: UiSettingsChangeResponse) {
     model.differentFromDefault.setFromController(!response.originalValues)
   }
 
@@ -70,15 +70,15 @@ internal class DeviceUiSettingsController(
     }
   }
 
-  override fun setGestureNavigation(on: Boolean) {
+  override fun setFontScale(percent: Int) {
     scope.launch {
-      handleCommandResponse(deviceController.setGestureNavigation(on))
+      handleCommandResponse(deviceController.setFontScale(percent))
     }
   }
 
-  override fun setAppLanguage(applicationId: String, language: AppLanguage?) {
+  override fun setScreenDensity(density: Int) {
     scope.launch {
-      handleCommandResponse(deviceController.setAppLanguage(applicationId, language?.tag ?: ""))
+      handleCommandResponse(deviceController.setScreenDensity(density))
     }
   }
 
@@ -94,15 +94,15 @@ internal class DeviceUiSettingsController(
     }
   }
 
-  override fun setFontScale(percent: Int) {
+  override fun setGestureNavigation(on: Boolean) {
     scope.launch {
-      handleCommandResponse(deviceController.setFontScale(percent))
+      handleCommandResponse(deviceController.setGestureNavigation(on))
     }
   }
 
-  override fun setScreenDensity(density: Int) {
+  override fun setAppLanguage(applicationId: String, language: AppLanguage?) {
     scope.launch {
-      handleCommandResponse(deviceController.setScreenDensity(density))
+      handleCommandResponse(deviceController.setAppLanguage(applicationId, language?.tag ?: ""))
     }
   }
 

@@ -626,27 +626,19 @@ public:
   void Serialize(Base128OutputStream& stream) const override;
 
   void copy(UiSettingsResponse* result) const {
-    result->set_original_values(original_values_);
     result->set_dark_mode(dark_mode_);
-    result->set_gesture_overlay_installed(gesture_overlay_installed_);
+    result->set_font_scale(font_scale_);
+    result->set_density(density_);
+    result->set_talkback_on(talkback_on_);
+    result->set_select_to_speak_on(select_to_speak_on_);
     result->set_gesture_navigation(gesture_navigation_);
     result->set_foreground_application_id(foreground_application_id_);
     result->set_app_locale(app_locale_);
-    result->set_talkback_installed(talkback_installed_);
-    result->set_talkback_on(talkback_on_);
-    result->set_select_to_speak_on(select_to_speak_on_);
+    result->set_original_values(original_values_);
     result->set_font_scale_settable(font_scale_settable_);
-    result->set_font_scale(font_scale_);
     result->set_density_settable(density_settable_);
-    result->set_density(density_);
-  }
-
-  void set_original_values(bool original_values) {
-    original_values_ = original_values;
-  }
-
-  [[nodiscard]] bool original_values() const {
-    return original_values_;
+    result->set_talkback_installed(talkback_installed_);
+    result->set_gesture_overlay_installed(gesture_overlay_installed_);
   }
 
   void set_dark_mode(bool dark_mode) {
@@ -657,12 +649,36 @@ public:
     return dark_mode_;
   }
 
-  void set_gesture_overlay_installed(bool gesture_overlay_installed) {
-    gesture_overlay_installed_ = gesture_overlay_installed;
+  void set_font_scale(int32_t font_scale) {
+    font_scale_ = font_scale;
   }
 
-  [[nodiscard]] bool gesture_overlay_installed() const {
-    return gesture_overlay_installed_;
+  [[nodiscard]] int32_t font_scale() const {
+    return font_scale_;
+  }
+
+  void set_density(int32_t density) {
+    density_ = density;
+  }
+
+  [[nodiscard]] int32_t density() const {
+    return density_;
+  }
+
+  void set_talkback_on(bool on) {
+    talkback_on_ = on;
+  }
+
+  [[nodiscard]] bool talkback_on() const {
+    return talkback_on_;
+  }
+
+  void set_select_to_speak_on(bool on) {
+    select_to_speak_on_ = on;
+  }
+
+  [[nodiscard]] bool select_to_speak_on() const {
+    return select_to_speak_on_;
   }
 
   void set_gesture_navigation(bool gesture_navigation) {
@@ -689,6 +705,22 @@ public:
     return app_locale_;
   }
 
+  void set_original_values(bool original_values) {
+    original_values_ = original_values;
+  }
+
+  [[nodiscard]] bool original_values() const {
+    return original_values_;
+  }
+
+  void set_font_scale_settable(bool settable) {
+    font_scale_settable_ = settable;
+  }
+
+  void set_density_settable(bool settable) {
+    density_settable_ = settable;
+  }
+
   void set_talkback_installed(bool installed) {
     talkback_installed_ = installed;
   }
@@ -697,44 +729,12 @@ public:
     return talkback_installed_;
   }
 
-  void set_talkback_on(bool on) {
-    talkback_on_ = on;
+  void set_gesture_overlay_installed(bool gesture_overlay_installed) {
+    gesture_overlay_installed_ = gesture_overlay_installed;
   }
 
-  [[nodiscard]] bool talkback_on() const {
-    return talkback_on_;
-  }
-
-  void set_select_to_speak_on(bool on) {
-    select_to_speak_on_ = on;
-  }
-
-  [[nodiscard]] bool select_to_speak_on() const {
-    return select_to_speak_on_;
-  }
-
-  void set_font_scale_settable(bool settable) {
-    font_scale_settable_ = settable;
-  }
-
-  void set_font_scale(int32_t font_scale) {
-    font_scale_ = font_scale;
-  }
-
-  [[nodiscard]] int32_t font_scale() const {
-    return font_scale_;
-  }
-
-  void set_density_settable(bool settable) {
-    density_settable_ = settable;
-  }
-
-  void set_density(int32_t density) {
-    density_ = density;
-  }
-
-  [[nodiscard]] int32_t density() const {
-    return density_;
+  [[nodiscard]] bool gesture_overlay_installed() const {
+    return gesture_overlay_installed_;
   }
 
   static constexpr int TYPE = 22;
@@ -742,36 +742,82 @@ public:
 private:
   friend class ControlMessage;
 
-  bool original_values_ = false;
   bool dark_mode_ = false;
-  bool gesture_overlay_installed_ = false;
+  int32_t font_scale_ = 0;
+  int32_t density_ = 0;
+  bool talkback_on_ = false;
+  bool select_to_speak_on_ = false;
   bool gesture_navigation_ = false;
   std::string foreground_application_id_;
   std::string app_locale_;
-  bool talkback_installed_ = false;
-  bool talkback_on_ = false;
-  bool select_to_speak_on_ = false;
+
+  bool original_values_ = false;
+
   bool font_scale_settable_= false;
-  int32_t font_scale_ = 0;
   bool density_settable_ = false;
-  int32_t density_ = 0;
+  bool talkback_installed_ = false;
+  bool gesture_overlay_installed_ = false;
 
   DISALLOW_COPY_AND_ASSIGN(UiSettingsResponse);
 };
 
-// Changes the Dark Mode setting on the device.
-class SetDarkModeRequest : public CorrelatedMessage {
+// Changes a UI setting on the device.
+class UiSettingsChangeRequest : public CorrelatedMessage {
 public:
-  SetDarkModeRequest(int32_t request_id, bool dark_mode)
-      : CorrelatedMessage(TYPE, request_id),
-        dark_mode_(dark_mode) {
-  }
-  ~SetDarkModeRequest() override = default;
+  enum UiCommand {
+    DARK_MODE,
+    FONT_SCALE,
+    DENSITY,
+    TALKBACK,
+    SELECT_TO_SPEAK,
+    GESTURE_NAVIGATION,
+    APP_LOCALE,
+  };
 
-  void Serialize(Base128OutputStream& stream) const override;
+  static UiSettingsChangeRequest* createDarkModeChangeRequest(int32_t request_id, bool dark_mode);
+  static UiSettingsChangeRequest* createFontScaleChangeRequest(int32_t request_id, int32_t font_scale);
+  static UiSettingsChangeRequest* createDensityChangeRequest(int32_t request_id, int32_t density);
+  static UiSettingsChangeRequest* createTalkbackChangeRequest(int32_t request_id, bool talkback);
+  static UiSettingsChangeRequest* createSelectToSpeakChangeRequest(int32_t request_id, bool select_to_speak);
+  static UiSettingsChangeRequest* createGestureNavigationChangeRequest(int32_t request_id, bool gesture_navigation);
+  static UiSettingsChangeRequest* createAppLocaleChangeRequest(int32_t request_id, std::string application_id, std::string locale);
+
+  ~UiSettingsChangeRequest() override = default;
+
+  [[nodiscard]] UiCommand command() const {
+    return command_;
+  }
 
   [[nodiscard]] bool dark_mode() const {
     return dark_mode_;
+  }
+
+  [[nodiscard]] int32_t font_scale() const {
+    return font_scale_;
+  }
+
+  [[nodiscard]] int32_t density() const {
+    return density_;
+  }
+
+  [[nodiscard]] bool talkback() const {
+    return talkback_;
+  }
+
+  [[nodiscard]] bool select_to_speak() const {
+    return select_to_speak_;
+  }
+
+  [[nodiscard]] bool gesture_navigation() const {
+    return gesture_navigation_;
+  }
+
+  [[nodiscard]] std::string application_id() const {
+    return application_id_;
+  }
+
+  [[nodiscard]] std::string locale() const {
+    return locale_;
   }
 
   static constexpr int TYPE = 23;
@@ -779,208 +825,35 @@ public:
 private:
   friend class ControlMessage;
 
-  static SetDarkModeRequest* Deserialize(Base128InputStream& stream);
-
-  bool dark_mode_;
-
-  DISALLOW_COPY_AND_ASSIGN(SetDarkModeRequest);
-};
-
-// Changes the Font Scale setting on the device.
-// The font_scale is specified as a percentage of the normal font.
-// A value of 100 is the normal size.
-class SetFontScaleRequest : public CorrelatedMessage {
-public:
-  SetFontScaleRequest(int32_t request_id, int32_t font_scale)
-      : CorrelatedMessage(TYPE, request_id),
-        font_scale_(font_scale) {
-  }
-  ~SetFontScaleRequest() override = default;
-
-  void Serialize(Base128OutputStream& stream) const override;
-
-  [[nodiscard]] int32_t font_scale() const {
-    return font_scale_;
+  UiSettingsChangeRequest(int32_t request_id, UiCommand command)
+    : CorrelatedMessage(TYPE, request_id),
+      command_(command) {
   }
 
-  static constexpr int TYPE = 24;
+  static UiSettingsChangeRequest* Deserialize(Base128InputStream& stream);
 
-private:
-  friend class ControlMessage;
-
-  static SetFontScaleRequest* Deserialize(Base128InputStream& stream);
-
-  int32_t font_scale_;
-
-  DISALLOW_COPY_AND_ASSIGN(SetFontScaleRequest);
-};
-
-// Changes the Screen Density setting on the device.
-class SetScreenDensityRequest : public CorrelatedMessage {
-public:
-  SetScreenDensityRequest(int32_t request_id, int32_t density)
-      : CorrelatedMessage(TYPE, request_id),
-        density_(density) {
-  }
-  ~SetScreenDensityRequest() override = default;
-
-  void Serialize(Base128OutputStream& stream) const override;
-
-  [[nodiscard]] int32_t density() const {
-    return density_;
-  }
-
-  static constexpr int TYPE = 25;
-
-private:
-  friend class ControlMessage;
-
-  static SetScreenDensityRequest* Deserialize(Base128InputStream& stream);
-
-  int32_t density_;
-
-  DISALLOW_COPY_AND_ASSIGN(SetScreenDensityRequest);
-};
-
-// Turns TalkBack on or off on the device.
-class SetTalkBackRequest : public CorrelatedMessage {
-public:
-  SetTalkBackRequest(int32_t request_id, bool on)
-      : CorrelatedMessage(TYPE, request_id),
-        talkback_on_(on) {
-  }
-  ~SetTalkBackRequest() override = default;
-
-  void Serialize(Base128OutputStream& stream) const override;
-
-  [[nodiscard]] bool talkback_on() const {
-    return talkback_on_;
-  }
-
-  static constexpr int TYPE = 26;
-
-private:
-  friend class ControlMessage;
-
-  static SetTalkBackRequest* Deserialize(Base128InputStream& stream);
-
-  bool talkback_on_;
-
-  DISALLOW_COPY_AND_ASSIGN(SetTalkBackRequest);
-};
-
-// Turns Select to Speak on or off on the device.
-class SetSelectToSpeakRequest : public CorrelatedMessage {
-public:
-  SetSelectToSpeakRequest(int32_t request_id, bool on)
-      : CorrelatedMessage(TYPE, request_id),
-        select_to_speak_on_(on) {
-  }
-  ~SetSelectToSpeakRequest() override = default;
-
-  void Serialize(Base128OutputStream& stream) const override;
-
-  [[nodiscard]] bool select_to_speak_on() const {
-    return select_to_speak_on_;
-  }
-
-  static constexpr int TYPE = 27;
-
-private:
-  friend class ControlMessage;
-
-  static SetSelectToSpeakRequest* Deserialize(Base128InputStream& stream);
-
-  bool select_to_speak_on_;
-
-  DISALLOW_COPY_AND_ASSIGN(SetSelectToSpeakRequest);
-};
-
-// Changes the locale of the application identified by application_id.
-class SetAppLanguageRequest : public CorrelatedMessage {
-public:
-  SetAppLanguageRequest(int32_t request_id, std::string application_id, std::string locale)
-      : CorrelatedMessage(TYPE, request_id),
-        application_id_(std::move(application_id)),
-        locale_(std::move(locale)) {
-  }
-  ~SetAppLanguageRequest() override = default;
-
-  void Serialize(Base128OutputStream& stream) const override;
-
-  [[nodiscard]] const std::string& application_id() const {
-    return application_id_;
-  }
-
-  [[nodiscard]] const std::string& locale() const {
-    return locale_;
-  }
-
-  static constexpr int TYPE = 28;
-
-private:
-  friend class ControlMessage;
-
-  static SetAppLanguageRequest* Deserialize(Base128InputStream& stream);
-
+  UiCommand command_;
+  union {
+    bool dark_mode_;
+    int32_t font_scale_;
+    int32_t density_;
+    bool talkback_;
+    bool select_to_speak_;
+    bool gesture_navigation_;
+  };
   std::string application_id_;
   std::string locale_;
 
-  DISALLOW_COPY_AND_ASSIGN(SetAppLanguageRequest);
-};
-
-// Turns Gesture navigation on or off on the device.
-class SetGestureNavigationRequest : public CorrelatedMessage {
-public:
-  SetGestureNavigationRequest(int32_t request_id, bool on)
-      : CorrelatedMessage(TYPE, request_id),
-        gesture_navigation_(on) {
-  }
-  ~SetGestureNavigationRequest() override = default;
-
-  void Serialize(Base128OutputStream& stream) const override;
-
-  [[nodiscard]] bool gesture_navigation() const {
-    return gesture_navigation_;
-  }
-
-  static constexpr int TYPE = 29;
-
-private:
-  friend class ControlMessage;
-
-  static SetGestureNavigationRequest* Deserialize(Base128InputStream& stream);
-
-  bool gesture_navigation_;
-
-  DISALLOW_COPY_AND_ASSIGN(SetGestureNavigationRequest);
-};
-
-// Resets the UI settings to their original values
-class ResetUiSettingsRequest : public CorrelatedMessage {
-public:
-  explicit ResetUiSettingsRequest(int32_t request_id)
-      : CorrelatedMessage(TYPE, request_id) {
-  }
-  ~ResetUiSettingsRequest() override = default;
-
-  static constexpr int TYPE = 30;
-
-private:
-  friend class ControlMessage;
-
-  static ResetUiSettingsRequest* Deserialize(Base128InputStream& stream);
-
-  DISALLOW_COPY_AND_ASSIGN(ResetUiSettingsRequest);
+  DISALLOW_COPY_AND_ASSIGN(UiSettingsChangeRequest);
 };
 
 // The state of original values after executing a command.
-class UiSettingsCommandResponse : public CorrelatedMessage {
+class UiSettingsChangeResponse : public CorrelatedMessage {
 public:
-  explicit UiSettingsCommandResponse(int32_t request_id)
+  explicit UiSettingsChangeResponse(int32_t request_id)
       : CorrelatedMessage(TYPE, request_id) {
   }
-  ~UiSettingsCommandResponse() override = default;
+  ~UiSettingsChangeResponse() override = default;
 
   void Serialize(Base128OutputStream& stream) const override;
 
@@ -991,14 +864,32 @@ public:
   [[nodiscard]] bool original_values() const {
     return original_values_;
   }
-  static constexpr int TYPE = 31;
+  static constexpr int TYPE = 24;
 
 private:
   friend class ControlMessage;
 
   bool original_values_ = false;
 
-  DISALLOW_COPY_AND_ASSIGN(UiSettingsCommandResponse);
+  DISALLOW_COPY_AND_ASSIGN(UiSettingsChangeResponse);
+};
+
+// Resets the UI settings to their original values
+class ResetUiSettingsRequest : public CorrelatedMessage {
+public:
+  explicit ResetUiSettingsRequest(int32_t request_id)
+      : CorrelatedMessage(TYPE, request_id) {
+  }
+  ~ResetUiSettingsRequest() override = default;
+
+  static constexpr int TYPE = 25;
+
+private:
+  friend class ControlMessage;
+
+  static ResetUiSettingsRequest* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(ResetUiSettingsRequest);
 };
 
 }  // namespace screensharing

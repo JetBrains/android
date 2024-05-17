@@ -28,6 +28,7 @@ import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.putUInt
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.device.DeviceState.Property.PROPERTY_POLICY_CANCEL_WHEN_REQUESTER_NOT_ON_TOP
+import com.android.tools.idea.streaming.device.UiSettingsChangeRequest.UiCommand
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -215,40 +216,41 @@ class FakeScreenSharingAgent(
         }
       }
     }
-  @Volatile
-  var originalValues = true
-  @Volatile
-  var darkMode = false
+
   @Volatile
   var gestureOverlayInstalled = true
   @Volatile
-  var gestureNavigation = true
+  var talkBackInstalled = false
   @Volatile
   var foregroundProcess = ""
   @Volatile
-  var appLocales = ""
-  @Volatile
-  var talkBackInstalled = false
-  @Volatile
-  var talkBackOn = false
-  @Volatile
-  var selectToSpeakOn = false
-  @Volatile
   var fontScaleSettable = true
   @Volatile
-  var fontScale = 100
-  @Volatile
   var screenDensitySettable = true
-  @Volatile
-  var screenDensity = 480
+  data class UiSettings(
+    var darkMode: Boolean = false,
+    var fontScale: Int = 100,
+    var screenDensity: Int = 480,
+    var talkBackOn: Boolean = false,
+    var selectToSpeakOn: Boolean  = false,
+    var gestureNavigation: Boolean = true,
+    var appLocales: String = "",
+  ) {
+    fun set(other: UiSettings) {
+      darkMode = other.darkMode
+      fontScale = other.fontScale
+      screenDensity = other.screenDensity
+      talkBackOn = other.talkBackOn
+      selectToSpeakOn = other.selectToSpeakOn
+      gestureNavigation = other.gestureNavigation
+      appLocales = other.appLocales
+    }
+  }
+  val currentUiSettings = UiSettings()
+  private val originalUiSettings = UiSettings()
+  val originalValues: Boolean
+    get() = currentUiSettings == originalUiSettings
 
-  private var originalDarkMode = false
-  private var originalGestureNavigation = true
-  private var originalTalkBackOn = false
-  private var originalSelectToSpeakOn = false
-  private var originalFontScale = 100
-  private var originalScreenDensity = 480
-  private var originalAppLocales = ""
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var agentFlags = 0
   private var deviceOrientation = 0
@@ -639,53 +641,31 @@ class FakeScreenSharingAgent(
     sendNotificationOrResponse(DisplayConfigurationResponse(message.requestId, displays.withDeviceOrientation(deviceOrientation)))
   }
 
-  private fun sendUiSettingsResponse(message: UiSettingsRequest) {
-    sendNotificationOrResponse(
-      UiSettingsResponse(message.requestId, originalValues, darkMode, gestureOverlayInstalled, gestureNavigation, foregroundProcess, appLocales, talkBackInstalled, talkBackOn, selectToSpeakOn, fontScaleSettable, fontScale, screenDensitySettable, screenDensity))
-  }
-
-  private fun setDarkMode(message: SetDarkModeRequest) {
-    darkMode = message.darkMode
-    updateOriginalValues()
-    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
-  }
-
-  private fun setGestureNavigation(message: SetGestureNavigationRequest) {
-    gestureNavigation = message.on
-    updateOriginalValues()
-    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
-  }
-
-  private fun setAppLanguage(message: SetAppLanguageRequest) {
-    if (foregroundProcess == message.applicationId) {
-      appLocales = message.locale
+  private fun sendUiSettings(message: UiSettingsRequest) {
+    with (currentUiSettings) {
+      sendNotificationOrResponse(
+        UiSettingsResponse(message.requestId, darkMode, fontScale, screenDensity, talkBackOn, selectToSpeakOn, gestureNavigation,
+                           foregroundProcess, appLocales, originalValues, fontScaleSettable, screenDensitySettable, talkBackInstalled,
+                           gestureOverlayInstalled))
     }
-    updateOriginalValues()
-    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
   }
 
-  private fun setTalkBack(message: SetTalkBackRequest) {
-    talkBackOn = message.on
-    updateOriginalValues()
-    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
-  }
-
-  private fun setSelectToSpeak(message: SetSelectToSpeakRequest) {
-    selectToSpeakOn = message.on
-    updateOriginalValues()
-    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
-  }
-
-  private fun setFontScale(message: SetFontScaleRequest) {
-    fontScale = message.fontScale
-    updateOriginalValues()
-    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
-  }
-
-  private fun setScreenDensity(message: SetScreenDensityRequest) {
-    screenDensity = message.density
-    updateOriginalValues()
-    sendNotificationOrResponse(UiSettingsCommandResponse(message.requestId, originalValues))
+  private fun sendUiSettingsCommand(message: UiSettingsChangeRequest<*>) {
+    when (message.command) {
+      UiCommand.DARK_MODE -> currentUiSettings.darkMode = message.value as Boolean
+      UiCommand.FONT_SCALE -> currentUiSettings.fontScale = message.value as Int
+      UiCommand.DENSITY -> currentUiSettings.screenDensity = message.value as Int
+      UiCommand.TALKBACK -> currentUiSettings.talkBackOn = message.value as Boolean
+      UiCommand.SELECT_TO_SPEAK -> currentUiSettings.selectToSpeakOn = message.value as Boolean
+      UiCommand.GESTURE_NAVIGATION -> currentUiSettings.gestureNavigation = message.value as Boolean
+      UiCommand.APP_LOCALE -> {
+        val appLocale = message.value as UiSettingsChangeRequest.AppLocale
+        if (foregroundProcess == appLocale.applicationId) {
+          currentUiSettings.appLocales = appLocale.locale
+        }
+      }
+    }
+    sendNotificationOrResponse(UiSettingsChangeResponse(message.requestId, originalValues))
   }
 
   private fun sendNotificationOrResponse(message: ControlMessage) {
@@ -693,24 +673,7 @@ class FakeScreenSharingAgent(
   }
 
   fun setOriginalValues() {
-    originalDarkMode = darkMode
-    originalGestureNavigation = gestureNavigation
-    originalTalkBackOn = talkBackOn
-    originalSelectToSpeakOn = selectToSpeakOn
-    originalFontScale = fontScale
-    originalScreenDensity = screenDensity
-    originalAppLocales = appLocales
-  }
-
-  private fun updateOriginalValues() {
-    originalValues =
-      originalDarkMode == darkMode &&
-      originalGestureNavigation == gestureNavigation &&
-      originalTalkBackOn == talkBackOn &&
-      originalSelectToSpeakOn == selectToSpeakOn &&
-      originalFontScale == fontScale &&
-      originalScreenDensity == screenDensity &&
-      originalAppLocales == appLocales
+    originalUiSettings.set(currentUiSettings)
   }
 
   private inner class DisplayStreamer(
@@ -1146,14 +1109,8 @@ class FakeScreenSharingAgent(
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)
         is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
-        is UiSettingsRequest -> sendUiSettingsResponse(message)
-        is SetDarkModeRequest -> setDarkMode(message)
-        is SetAppLanguageRequest -> setAppLanguage(message)
-        is SetTalkBackRequest -> setTalkBack(message)
-        is SetSelectToSpeakRequest -> setSelectToSpeak(message)
-        is SetFontScaleRequest -> setFontScale(message)
-        is SetScreenDensityRequest -> setScreenDensity(message)
-        is SetGestureNavigationRequest -> setGestureNavigation(message)
+        is UiSettingsRequest -> sendUiSettings(message)
+        is UiSettingsChangeRequest<*> -> sendUiSettingsCommand(message)
         else -> {}
       }
       commandLog.add(message)

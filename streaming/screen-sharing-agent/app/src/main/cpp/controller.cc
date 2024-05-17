@@ -331,32 +331,8 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       SendUiSettings((const UiSettingsRequest&) message);
       break;
 
-    case SetDarkModeRequest::TYPE:
-      SetDarkMode((const SetDarkModeRequest&) message);
-      break;
-
-    case SetFontScaleRequest::TYPE:
-      SetFontScale((const SetFontScaleRequest&) message);
-      break;
-
-    case SetScreenDensityRequest::TYPE:
-      SetScreenDensity((const SetScreenDensityRequest&) message);
-      break;
-
-    case SetTalkBackRequest::TYPE:
-      SetTalkBack((const SetTalkBackRequest&) message);
-      break;
-
-    case SetSelectToSpeakRequest::TYPE:
-      SetSelectToSpeak((const SetSelectToSpeakRequest&) message);
-      break;
-
-    case SetAppLanguageRequest::TYPE:
-      SetAppLanguage((const SetAppLanguageRequest&) message);
-      break;
-
-    case SetGestureNavigationRequest::TYPE:
-      SetGestureNavigation((const SetGestureNavigationRequest&) message);
+    case UiSettingsChangeRequest::TYPE:
+      ChangeUiSetting((const UiSettingsChangeRequest&) message);
       break;
 
     case ResetUiSettingsRequest::TYPE:
@@ -700,57 +676,43 @@ void Controller::SendUiSettings(const UiSettingsRequest& message) {
   output_stream_.Flush();
 }
 
-void Controller::SetDarkMode(const SetDarkModeRequest& message) {
-  UiSettingsCommandResponse response(message.request_id());
-  ui_settings_.SetDarkMode(message.dark_mode(), &response);
+void Controller::ChangeUiSetting(const UiSettingsChangeRequest& request) {
+  UiSettingsChangeResponse response(request.request_id());
+  switch (request.command()) {
+    case UiSettingsChangeRequest::DARK_MODE:
+      ui_settings_.SetDarkMode(request.dark_mode(), &response);
+      break;
+
+    case UiSettingsChangeRequest::FONT_SCALE:
+      ui_settings_.SetFontScale(request.font_scale(), &response);
+      break;
+
+    case UiSettingsChangeRequest::DENSITY:
+      ui_settings_.SetScreenDensity(request.density(), &response);
+      break;
+
+    case UiSettingsChangeRequest::TALKBACK:
+      ui_settings_.SetTalkBack(request.talkback(), &response);
+      break;
+
+    case UiSettingsChangeRequest::SELECT_TO_SPEAK:
+      ui_settings_.SetSelectToSpeak(request.select_to_speak(), &response);
+      break;
+
+    case UiSettingsChangeRequest::GESTURE_NAVIGATION:
+      ui_settings_.SetGestureNavigation(request.gesture_navigation(), &response);
+      break;
+
+    case UiSettingsChangeRequest::APP_LOCALE:
+      ui_settings_.SetAppLanguage(request.application_id(), request.locale(), &response);
+      break;
+  }
   response.Serialize(output_stream_);
   output_stream_.Flush();
 }
 
-void Controller::SetAppLanguage(const SetAppLanguageRequest& message) {
-  UiSettingsCommandResponse response(message.request_id());
-  ui_settings_.SetAppLanguage(message.application_id(), message.locale(), &response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
-}
-
-void Controller::SetGestureNavigation(const SetGestureNavigationRequest& message) {
-  UiSettingsCommandResponse response(message.request_id());
-  ui_settings_.SetGestureNavigation(message.gesture_navigation(), &response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
-}
-
-void Controller::SetTalkBack(const SetTalkBackRequest& message) {
-  UiSettingsCommandResponse response(message.request_id());
-  ui_settings_.SetTalkBack(message.talkback_on(), &response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
-}
-
-void Controller::SetSelectToSpeak(const SetSelectToSpeakRequest& message) {
-  UiSettingsCommandResponse response(message.request_id());
-  ui_settings_.SetSelectToSpeak(message.select_to_speak_on(), &response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
-}
-
-void Controller::SetFontScale(const SetFontScaleRequest& message) {
-  UiSettingsCommandResponse response(message.request_id());
-  ui_settings_.SetFontScale(message.font_scale(), &response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
-}
-
-void Controller::SetScreenDensity(const SetScreenDensityRequest& message) {
-  UiSettingsCommandResponse response(message.request_id());
-  ui_settings_.SetScreenDensity(message.density(), &response);
-  response.Serialize(output_stream_);
-  output_stream_.Flush();
-}
-
-void Controller::ResetUiSettings(const ResetUiSettingsRequest& message) {
-  UiSettingsResponse response(message.request_id());
+void Controller::ResetUiSettings(const ResetUiSettingsRequest& request) {
+  UiSettingsResponse response(request.request_id());
   ui_settings_.Reset(&response);
   response.Serialize(output_stream_);
   output_stream_.Flush();
