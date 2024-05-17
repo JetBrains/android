@@ -663,6 +663,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   }
 
   private fun onAfterRender() {
+    // We need to run any callbacks that have been registered during the rendering of the preview
+    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender() }
     previewViewModel.afterPreviewsRefreshed()
   }
 
