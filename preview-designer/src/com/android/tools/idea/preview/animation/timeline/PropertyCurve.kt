@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.animation.timeline
 import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.InspectorLayout
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TooltipInfo
 import java.awt.Graphics2D
 import java.awt.Point
@@ -26,15 +27,15 @@ import java.awt.Point
 class PropertyCurve
 private constructor(
   offsetPx: Int,
-  frozenValue: Int?,
+  frozenState: SupportedAnimationManager.FrozenState,
   private val property: AnimatedProperty<Double>,
   private val componentCurves: List<ComponentCurve>,
-) : ParentTimelineElement(offsetPx, frozenValue, componentCurves) {
+) : ParentTimelineElement(offsetPx, frozenState, componentCurves) {
 
   companion object {
     fun create(
       offsetPx: Int,
-      frozenValue: Int?,
+      frozenState: SupportedAnimationManager.FrozenState,
       property: AnimatedProperty<Double>,
       rowMinY: Int,
       colorIndex: Int,
@@ -44,7 +45,7 @@ private constructor(
         List(property.components.size) { componentId ->
             ComponentCurve.create(
               offsetPx,
-              frozenValue,
+              frozenState,
               property,
               componentId,
               rowMinY + componentId * InspectorLayout.timelineCurveRowHeightScaled(),
@@ -53,7 +54,7 @@ private constructor(
             )
           }
           .toList()
-      return PropertyCurve(offsetPx, frozenValue, property, curves)
+      return PropertyCurve(offsetPx, frozenState, property, curves)
     }
   }
 

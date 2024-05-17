@@ -72,8 +72,8 @@ class ComposeAnimationPreview(
         setClockTimes(
           animationsToUpdate.associate {
             val newTime =
-              (if (it.elementState.value.frozen) it.elementState.value.frozenValue.toLong()
-              else clockTimeMs) - it.elementState.value.valueOffset
+              (if (it.frozenState.value.isFrozen) it.frozenState.value.frozenAt.toLong()
+              else clockTimeMs) - it.offset.value
             it.animation to newTime
           }
         )

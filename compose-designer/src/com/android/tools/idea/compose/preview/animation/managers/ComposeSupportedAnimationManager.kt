@@ -36,7 +36,6 @@ import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.Transition
 import com.android.tools.idea.preview.animation.actions.FreezeAction
-import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
@@ -100,25 +99,23 @@ open class ComposeSupportedAnimationManager(
     private set(value) {
       field = value
       // If transition has changed, reset it offset.
-      elementState.value = elementState.value.copy(valueOffset = 0)
+      offset.value = 0
     }
 
   override val timelineMaximumMs: Int
-    get() = currentTransition.endMillis?.let { max(it + elementState.value.valueOffset, it) } ?: 0
+    get() = currentTransition.endMillis?.let { max(it + offset.value, it) } ?: 0
 
   val stateComboBox = animation.createState(tracker, animation.findCallback())
-
-  /** State of animation, shared between single animation tab and coordination panel. */
-  final override val elementState = MutableStateFlow(ElementState())
+  override val offset = MutableStateFlow(0)
+  final override val frozenState = MutableStateFlow(SupportedAnimationManager.FrozenState(false))
 
   /** [AnimationCard] for coordination panel. */
   override val card: AnimationCard =
     AnimationCard(
-        timelinePanel,
         rootComponent,
-        elementState,
         tabTitle,
-        stateComboBox.changeStateActions,
+        listOf(FreezeAction(timelinePanel, frozenState, tracker)) +
+          stateComboBox.changeStateActions,
         tracker,
       )
       .apply {
@@ -145,7 +142,7 @@ open class ComposeSupportedAnimationManager(
       rootComponent,
       playbackControls,
       stateComboBox.changeStateActions,
-      FreezeAction(timelinePanel, elementState, tracker),
+      FreezeAction(timelinePanel, frozenState, tracker),
     )
   }
 
@@ -186,8 +183,11 @@ open class ComposeSupportedAnimationManager(
     // call to updateAnimationStartAndEndStates.
     stateComboBox.callbackEnabled = true
 
+    scope.launch { frozenState.collect { updateTimelineElementsCallback() } }
+    scope.launch { card.expanded.collect { updateTimelineElementsCallback() } }
+
     scope.launch {
-      elementState.collect {
+      offset.collect {
         loadProperties()
         updateTimelineElementsCallback()
       }
@@ -339,14 +339,13 @@ open class ComposeSupportedAnimationManager(
     forIndividualTab: Boolean,
     positionProxy: PositionProxy,
   ): TimelineElement {
-    val state = elementState.value
-    val offsetPx = getOffsetForValue(state.valueOffset, positionProxy)
+    val offsetPx = getOffsetForValue(offset.value, positionProxy)
     val timelineElement =
-      if (state.expanded || forIndividualTab) {
+      if (card.expanded.value || forIndividualTab) {
         val curve =
           TransitionCurve.create(
             offsetPx,
-            if (state.frozen) state.frozenValue else null,
+            frozenState.value,
             currentTransition,
             minY,
             positionProxy,
@@ -357,7 +356,7 @@ open class ComposeSupportedAnimationManager(
       } else
         TimelineLine(
             offsetPx,
-            if (state.frozen) state.frozenValue else null,
+            frozenState.value,
             currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
               ?: (positionProxy.minimumXPosition()),
             currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
@@ -370,8 +369,7 @@ open class ComposeSupportedAnimationManager(
           }
 
     timelineElement.setNewOffsetCallback {
-      elementState.value =
-        elementState.value.copy(valueOffset = timelineElement.getValueForOffset(it, positionProxy))
+      offset.value = timelineElement.getValueForOffset(it, positionProxy)
     }
     return timelineElement
   }

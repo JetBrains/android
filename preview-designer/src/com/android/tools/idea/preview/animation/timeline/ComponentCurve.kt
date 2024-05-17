@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.animation.InspectorColors.GRAPH_COLORS
 import com.android.tools.idea.preview.animation.InspectorColors.GRAPH_COLORS_WITH_ALPHA
 import com.android.tools.idea.preview.animation.InspectorLayout
 import com.android.tools.idea.preview.animation.InspectorPainter.Diamond
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Graphics2D
 import java.awt.Point
@@ -31,7 +32,7 @@ import java.awt.geom.Path2D
 /** Curve for one component of [AnimatedProperty]. */
 class ComponentCurve(
   offsetPx: Int,
-  frozenValue: Int?,
+  frozenState: SupportedAnimationManager.FrozenState,
   val component: AnimatedProperty.AnimatedComponent<Double>,
   minX: Int,
   maxX: Int,
@@ -39,7 +40,7 @@ class ComponentCurve(
   private val curve: Path2D,
   private val colorIndex: Int,
   positionProxy: PositionProxy,
-) : TimelineElement(offsetPx, frozenValue, minX, maxX) {
+) : TimelineElement(offsetPx, frozenState, minX, maxX) {
 
   companion object {
     /**
@@ -52,7 +53,7 @@ class ComponentCurve(
      */
     fun create(
       offsetPx: Int,
-      frozenValue: Int?,
+      frozenState: SupportedAnimationManager.FrozenState,
       property: AnimatedProperty<Double>,
       componentId: Int,
       rowMinY: Int,
@@ -98,7 +99,7 @@ class ComponentCurve(
 
         return ComponentCurve(
           offsetPx = offsetPx,
-          frozenValue,
+          frozenState,
           component = component,
           minX = minX,
           maxX = maxX,

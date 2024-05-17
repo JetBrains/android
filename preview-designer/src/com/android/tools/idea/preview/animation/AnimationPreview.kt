@@ -87,9 +87,7 @@ abstract class AnimationPreview<T : AnimationManager>(
     BottomPanel(rootComponent, tracker).apply {
       addResetListener {
         scope.launch {
-          animations.filterIsInstance<SupportedAnimationManager>().forEach {
-            it.elementState.value = it.elementState.value.copy(valueOffset = 0)
-          }
+          animations.filterIsInstance<SupportedAnimationManager>().forEach { it.offset.value = 0 }
           resetTimelineAndUpdateWindowSize(false)
         }
       }

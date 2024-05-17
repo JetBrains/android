@@ -21,6 +21,9 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /** [Card] containing only animation label. */
 class LabelCard(override val title: String) : Card, JPanel(TabularLayout("*", "30px")) {
@@ -47,4 +50,6 @@ class LabelCard(override val title: String) : Card, JPanel(TabularLayout("*", "3
   override var expandedSize: Int = InspectorLayout.UNSUPPORTED_ROW_HEIGHT
 
   override fun setDuration(durationMillis: Int) {}
+
+  override val expanded: Flow<Boolean> = MutableStateFlow(false).asStateFlow()
 }

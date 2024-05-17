@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.animation
 
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.Flow
 
 /** Card displayed in [AllTabPanel]. Each animation represented by one [Card]. */
 interface Card {
@@ -26,6 +27,9 @@ interface Card {
   fun getCurrentHeight(): Int
 
   val title: String
+
+  /** Whether the element is expanded (showing additional details). */
+  val expanded: Flow<Boolean>
 
   /** The size of the [Card] after it expands. */
   var expandedSize: Int

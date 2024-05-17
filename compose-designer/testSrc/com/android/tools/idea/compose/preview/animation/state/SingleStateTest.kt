@@ -20,10 +20,12 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.animation.NoopComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.TestUtils.assertBigger
 import com.android.tools.idea.compose.preview.animation.TestUtils.findComboBox
+import com.android.tools.idea.preview.NoopAnimationTracker
 import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TestUtils.createTestSlider
 import com.android.tools.idea.preview.animation.TestUtils.findToolbar
-import com.android.tools.idea.preview.animation.timeline.ElementState
+import com.android.tools.idea.preview.animation.actions.FreezeAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.ApplicationManager
 import java.awt.Dimension
@@ -53,11 +55,15 @@ class SingleStateTest {
         }
     val card =
       AnimationCard(
-          createTestSlider(),
           Mockito.mock(DesignSurface::class.java),
-          MutableStateFlow(ElementState()),
           "Title",
-          state.changeStateActions,
+          listOf(
+            FreezeAction(
+              createTestSlider(),
+              MutableStateFlow(SupportedAnimationManager.FrozenState(false)),
+              NoopAnimationTracker,
+            )
+          ) + state.changeStateActions,
           NoopComposeAnimationTracker,
         )
         .apply { size = Dimension(300, 300) }

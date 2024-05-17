@@ -21,6 +21,7 @@ import com.android.tools.idea.preview.animation.InspectorLayout.lineHalfHeightSc
 import com.android.tools.idea.preview.animation.InspectorLayout.lineHeightScaled
 import com.android.tools.idea.preview.animation.InspectorLayout.outlinePaddingScaled
 import com.android.tools.idea.preview.animation.InspectorLayout.timelineLineRowHeightScaled
+import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TimelinePanel
 import java.awt.Graphics2D
 import java.awt.Rectangle
@@ -34,8 +35,13 @@ import java.awt.RenderingHints
  * @param rowMinY minimum y when row with animation line start.
  * @param positionProxy [PositionProxy] for the slider. @
  */
-class TimelineLine(valueOffset: Int, frozenValue: Int?, minX: Int, maxX: Int, rowMinY: Int) :
-  TimelineElement(valueOffset, frozenValue, minX, maxX) {
+class TimelineLine(
+  valueOffset: Int,
+  frozenState: SupportedAnimationManager.FrozenState,
+  minX: Int,
+  maxX: Int,
+  rowMinY: Int,
+) : TimelineElement(valueOffset, frozenState, minX, maxX) {
 
   /** Middle of the row. */
   private val middleY = rowMinY + timelineLineRowHeightScaled() / 2

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.preview.animation
 
-import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.UnsupportedLabel
@@ -46,12 +45,16 @@ interface AnimationManager {
   suspend fun destroy()
 }
 
-/*
- * Supported animation types could be opened in a new tab. Its card could be frozen or expended.
- */
+/** Supported animation types could be opened in a new tab. Its card could be frozen or offset. */
 interface SupportedAnimationManager : AnimationManager {
-  /** State of the [TimelineElement] for the animation. */
-  val elementState: MutableStateFlow<ElementState>
+  /** The offset in ms for which the animation is shifted. */
+  val offset: MutableStateFlow<Int>
+
+  /** Represents the frozen state of the animation. */
+  data class FrozenState(val isFrozen: Boolean = false, val frozenAt: Int = 0)
+
+  /** Frozen state of the animation. */
+  val frozenState: MutableStateFlow<FrozenState>
 
   /** Tab that shows animation individually */
   val tab: AnimationTab
