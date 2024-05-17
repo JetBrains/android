@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.model.IdeBasicVariant
 import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeClassField
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSourceProvider
@@ -113,6 +114,16 @@ class GradleAndroidModel(
       IdeAndroidProjectType.PROJECT_TYPE_TEST -> selectedVariant.mainArtifact
       else -> selectedVariant.deviceTestArtifacts.find { it.name == IdeArtifactName.ANDROID_TEST }
     }
+  }
+
+  /**
+   * Returns the [IdeAndroidArtifact] that should be used for screenshot testing.
+   *
+   *
+   * For screenshot test-only modules this is the main artifact.
+   */
+  fun getArtifactForScreenshotTest(): IdeJavaArtifact? {
+    return selectedVariant.hostTestArtifacts.find { it.name == IdeArtifactName.SCREENSHOT_TEST }
   }
 
   fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
