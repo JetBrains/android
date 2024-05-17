@@ -15,8 +15,8 @@
  */
 package org.jetbrains.kotlin.android.intention
 
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
@@ -29,10 +29,10 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 
 class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResourceIntentionBase() {
-    @OptIn(KtAllowAnalysisOnEdt::class)
+    @OptIn(KaAllowAnalysisOnEdt::class)
     override fun KtFunction.isReceiverSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean {
         allowAnalysisOnEdt {
-            @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+            @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
                     val functionSymbol = getSymbol() as? KtFunctionLikeSymbol ?: return false
@@ -43,10 +43,10 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
         }
     }
 
-    @OptIn(KtAllowAnalysisOnEdt::class)
+    @OptIn(KaAllowAnalysisOnEdt::class)
     override fun KtLambdaExpression.isReceiverSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean {
         allowAnalysisOnEdt {
-            @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+            @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
                     val type = getKtType() as? KtFunctionalType ?: return false
@@ -57,10 +57,10 @@ class K2KotlinAndroidAddStringResourceIntention : KotlinAndroidAddStringResource
         }
     }
 
-    @OptIn(KtAllowAnalysisOnEdt::class)
+    @OptIn(KaAllowAnalysisOnEdt::class)
     override fun KtClassOrObject.isSubclassOfAnyOf(baseClassIds: Collection<ClassId>): Boolean {
         allowAnalysisOnEdt {
-            @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+            @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
             allowAnalysisFromWriteAction {
                 analyze(this) {
                     val classOrObjectSymbol = getClassOrObjectSymbol() ?: return false

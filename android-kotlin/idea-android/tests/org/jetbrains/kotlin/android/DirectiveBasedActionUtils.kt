@@ -18,7 +18,7 @@ package org.jetbrains.kotlin.android
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.UsefulTestCase
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.KtDiagnosticCheckerFilter
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
@@ -99,7 +99,7 @@ object DirectiveBasedActionUtils {
     }
   }
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   fun checkForUnexpectedErrorsK2(file: KtFile) {
     checkForUnexpectedErrorsBase(
       file,

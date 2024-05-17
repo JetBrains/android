@@ -21,7 +21,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.descendants
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
@@ -133,7 +133,7 @@ private fun KtAnalysisSession.isStateType(type: KtType, stateClassId: ClassId): 
     (type.classId == stateClassId ||
       type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == stateClassId })
 
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtExpression.isStateType(stateClassId: ClassId): Boolean =
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {

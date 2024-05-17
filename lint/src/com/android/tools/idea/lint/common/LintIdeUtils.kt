@@ -23,8 +23,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
@@ -58,10 +58,10 @@ fun Context.getPsiFile(): PsiFile? {
 }
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 internal fun KtProperty.hasBackingField(): Boolean {
   allowAnalysisOnEdt {
-    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
     allowAnalysisFromWriteAction {
       analyze(this) {
         val propertySymbol =
@@ -136,11 +136,11 @@ fun KtModifierListOwner.addAnnotation(
 }
 
 // TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
-      @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+      @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
       allowAnalysisFromWriteAction {
         analyze(this) {
           val annotatedSymbol =

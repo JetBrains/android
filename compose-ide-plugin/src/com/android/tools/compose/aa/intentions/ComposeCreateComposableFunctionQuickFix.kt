@@ -23,7 +23,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic
+import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.analysis.api.types.KtType
@@ -81,13 +81,13 @@ class ComposeCreateComposableFunctionQuickFix(
 
   companion object {
 
-    val factory = KotlinQuickFixFactory.IntentionBased { diagnostic: KtFirDiagnostic.UnresolvedReference ->
+    val factory = KotlinQuickFixFactory.IntentionBased { diagnostic: KaFirDiagnostic.UnresolvedReference ->
       listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
     }
 
     context(KtAnalysisSession)
     private fun createComposableFunctionQuickFixIfApplicable(
-      diagnostic: KtFirDiagnostic.UnresolvedReference
+      diagnostic: KaFirDiagnostic.UnresolvedReference
     ): ComposeCreateComposableFunctionQuickFix? {
       val unresolvedCall = diagnostic.psi.parent as? KtCallExpression ?: return null
       val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null

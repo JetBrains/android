@@ -45,7 +45,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.asSafely
 import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
@@ -479,7 +479,7 @@ private class ComposeInsertHandlerForK2(
   val functionElement: KtNamedFunction,
   callType: CallType<*>
 ) : ComposeInsertHandler(callType) {
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
     allowAnalysisOnEdt {
       analyze(functionElement) {

@@ -24,7 +24,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic
+import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.base.analysis.api.utils.shortenReferences
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
@@ -128,7 +128,7 @@ private constructor(element: KtModifierListOwner, private val displayText: Strin
   }
 
   companion object {
-    val k2DiagnosticFixFactory = KotlinQuickFixFactory.IntentionBased { diagnostic: KtFirDiagnostic.UnresolvedReference ->
+    val k2DiagnosticFixFactory = KotlinQuickFixFactory.IntentionBased { diagnostic: KaFirDiagnostic.UnresolvedReference ->
       val psiElement = diagnostic.psi
       listOfNotNull(
         when (diagnostic.factoryName) {

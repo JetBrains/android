@@ -33,7 +33,7 @@ import com.android.tools.property.panel.api.EditorProvider
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
@@ -134,7 +134,7 @@ internal class SpringPropertiesProviderK2(private val callElement: KtCallElement
     psiFactory: KtPsiFactory
   ): KtValueArgument = callElement.addNewValueArgument(newValueArgument, psiFactory)
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   override fun invoke(
     project: Project,
     model: PsiCallPropertiesModel

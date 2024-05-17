@@ -35,7 +35,7 @@ import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
@@ -70,7 +70,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
   override fun getName(): String = message("picker.spring.annotator.name")
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
     if (suppressAndroidPlugin()) return null
 
