@@ -188,11 +188,11 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return null
 
     var syncFuture: ListenableFuture<ProjectSystemSyncManager.SyncResult>? = null
-    WriteCommandAction.runWriteCommandAction(project) {
-      if (sync) {
-        syncFuture =
-          performWithLockAndSync(project, module, element, artifact, artifactVersion, importSymbol)
-      } else {
+    if (sync) {
+      syncFuture = performAndSync(project, module, element, artifact, artifactVersion, importSymbol)
+    }
+    else {
+      WriteCommandAction.runWriteCommandAction(project) {
         performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
       }
     }
@@ -201,7 +201,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     return syncFuture
   }
 
-  private fun performWithLockAndSync(
+  private fun performAndSync(
     project: Project,
     module: Module,
     element: PsiElement,
@@ -209,31 +209,34 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     artifactVersion: String?,
     importSymbol: String?
   ): ListenableFuture<ProjectSystemSyncManager.SyncResult> {
-    // Register sync action for undo.
-    UndoManager.getInstance(project)
-      .undoableActionPerformed(
-        object : GlobalUndoableAction() {
-          override fun undo() {
-            project.requestSync()
+
+    WriteCommandAction.runWriteCommandAction(project) {
+      // Register sync action for undo.
+      UndoManager.getInstance(project)
+        .undoableActionPerformed(
+          object : GlobalUndoableAction() {
+            override fun undo() {
+              project.requestSync()
+            }
+
+            override fun redo() {}
           }
+        )
 
-          override fun redo() {}
-        }
-      )
+      performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
 
-    performWithLock(project, module, element, artifact, artifactVersion, importSymbol)
+      // Register sync action for redo.
+      UndoManager.getInstance(project)
+        .undoableActionPerformed(
+          object : GlobalUndoableAction() {
+            override fun undo() {}
 
-    // Register sync action for redo.
-    UndoManager.getInstance(project)
-      .undoableActionPerformed(
-        object : GlobalUndoableAction() {
-          override fun undo() {}
-
-          override fun redo() {
-            project.requestSync()
+            override fun redo() {
+              project.requestSync()
+            }
           }
-        }
-      )
+        )
+    }
 
     return project
       .getProjectSystem()
