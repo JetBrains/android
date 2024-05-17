@@ -17,8 +17,8 @@ package com.android.tools.idea.preview.representation
 
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.scene.SceneManager.SceneUpdateListener
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
+import com.android.tools.idea.common.scene.SceneManager.SceneUpdateListener
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -142,7 +142,8 @@ val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PsiPreviewElementInstance>("Previe
  *   displaying the previews.
  * @param renderingTopic the [RenderingTopic] under which the preview renderings will be executed.
  * @param useCustomInflater a configuration to apply when rendering the previews.
- * @param sceneUpdateListener the listener to be notified whenever the scene of a preview element is updated.
+ * @param sceneUpdateListener the listener to be notified whenever the scene of a preview element is
+ *   updated.
  * @param createRefreshEventBuilder the function to get a [PreviewRefreshEventBuilder] to be used
  *   for tracking refresh metrics.
  */
