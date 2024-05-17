@@ -1587,15 +1587,6 @@ public final class StudioFlags {
       "Enable FTL DirectAccess",
       true);
 
-  // TODO (b/328524309): Remove the flag once monthly quota are enabled.
-  public static final Flag<Boolean> DIRECT_ACCESS_MONTHLY_QUOTA =
-    new BooleanFlag(
-      FIREBASE_TEST_LAB,
-      "direct.access.monthly.quota",
-      "Direct Access Monthly Quota",
-      "Enable FTL DirectAccess Monthly Quota",
-      true);
-
   public static final Flag<Boolean> DIRECT_ACCESS_CREATE_PROJECT =
     new BooleanFlag(
       FIREBASE_TEST_LAB,
