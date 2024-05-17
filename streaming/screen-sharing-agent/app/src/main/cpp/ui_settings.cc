@@ -466,7 +466,7 @@ const bool UiSettings::has_original_values() {
 }
 
 const string UiSettings::CreateResetCommand() {
-  if (!initial_settings_recorded_ || (Agent::flags() & AUTO_RESET_UI_SETTINGS) == 0) {
+  if (!initial_settings_recorded_) {
     return "";
   }
 
@@ -503,7 +503,12 @@ const string UiSettings::CreateResetCommand() {
 }
 
 // Reset all changed settings to the initial state.
+// Null response means that the connection to Studio ended.
 void UiSettings::Reset(UiSettingsResponse* response) {
+  if (response == nullptr && (Agent::flags() & AUTO_RESET_UI_SETTINGS) == 0) {
+    // Auto resets are turned off: Do nothing!
+    return;
+  }
   string command = CreateResetCommand();
   if (!command.empty()) {
     ExecuteShellCommand(command);
