@@ -59,13 +59,13 @@ struct DisplayInfo {
 
   [[nodiscard]] std::string ToDebugString() const;
 
-  Size logical_size;
-  int32_t logical_density_dpi;
-  int32_t rotation;
-  int32_t layer_stack;
-  int32_t flags;
-  int32_t type;
-  int32_t state;
+  Size logical_size { 0, 0 };
+  int32_t logical_density_dpi = 0;
+  int32_t rotation = 0;
+  int32_t layer_stack = 0;
+  int32_t flags = 0;
+  int32_t type = 0;
+  int32_t state = 0;
 
   // From frameworks/base/core/java/android/view/Display.java
   static constexpr int32_t FLAG_PRIVATE = 1 << 2;

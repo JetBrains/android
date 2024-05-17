@@ -22,15 +22,7 @@ namespace screensharing {
 
 using namespace std;
 
-DisplayInfo::DisplayInfo() noexcept
-    : logical_size { 0, 0 },
-      logical_density_dpi(0),
-      rotation(),
-      layer_stack(),
-      flags(),
-      type(),
-      state() {
-}
+DisplayInfo::DisplayInfo() noexcept = default;
 
 DisplayInfo::DisplayInfo(
     int32_t logical_width, int32_t logical_height, int32_t logical_density_dpi, int32_t rotation, int32_t layer_stack, int32_t flags,
