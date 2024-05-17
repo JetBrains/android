@@ -873,7 +873,7 @@ class StreamingToolWindowManagerTest {
       if (!visible) {
         windowFactory.createToolWindowContent(project, this)
         visible = true
-        notifyStateChanged(ToolWindowManagerEventType.ShowToolWindow)
+        notifyStateChanged(ToolWindowManagerEventType.ActivateToolWindow)
         runnable?.run()
       }
     }

@@ -95,6 +95,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ActivateToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.MovedOrResized
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ShowToolWindow
@@ -289,7 +290,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         val toolWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return
 
         when (changeType) {
-          ShowToolWindow, HideToolWindow, MovedOrResized -> {
+          ActivateToolWindow, ShowToolWindow, HideToolWindow, MovedOrResized -> {
             toolWindowManager.invokeLater {
               if (!toolWindow.isDisposed) {
                 if (toolWindow.isVisible) {
