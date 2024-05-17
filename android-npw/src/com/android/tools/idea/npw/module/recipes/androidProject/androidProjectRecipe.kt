@@ -49,7 +49,7 @@ fun RecipeExecutor.androidProjectRecipe(
   }
 
   val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
-  save(androidProjectGradleSettings(appTitle, data.agpVersion, useGradleKts), settingsFile)
+  save(androidProjectGradleSettings(appTitle, data.agpVersion, useGradleKts, data.additionalMavenRepos), settingsFile)
   save(
     androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES))

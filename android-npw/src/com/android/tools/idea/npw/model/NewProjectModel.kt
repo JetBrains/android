@@ -74,6 +74,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 import java.io.IOException
+import java.net.URL
 import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
@@ -93,6 +94,7 @@ interface ProjectModelData {
   val isNewProject: Boolean
   val language: OptionalProperty<Language>
   val agpVersion: ObjectValueProperty<AgpVersion>
+  val additionalMavenRepos: ObjectValueProperty<List<URL>>
   val multiTemplateRenderer: MultiTemplateRenderer
   val projectTemplateDataBuilder: ProjectTemplateDataBuilder
 }
@@ -110,6 +112,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val isNewProject = true
   override val language = OptionalValueProperty<Language>()
   override val agpVersion = ObjectValueProperty<AgpVersion>(AgpVersions.newProject)
+  override val additionalMavenRepos: ObjectValueProperty<List<URL>> = ObjectValueProperty(listOf())
   override val multiTemplateRenderer = MultiTemplateRenderer { renderer ->
     object : Task.Modal(null, message("android.compile.messages.generating.r.java.content.name"), false) {
       override fun run(indicator: ProgressIndicator) {
@@ -203,6 +206,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         setProjectDefaults(project)
         language = this@NewProjectModel.language.value
         agpVersion = this@NewProjectModel.agpVersion.get()
+        additionalMavenRepos = this@NewProjectModel.additionalMavenRepos.get()
       }
     }
 
