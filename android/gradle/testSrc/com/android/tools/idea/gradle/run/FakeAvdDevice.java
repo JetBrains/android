@@ -29,7 +29,6 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.collect.ImmutableList;
@@ -200,7 +199,7 @@ public final class FakeAvdDevice implements AndroidDevice {
     LaunchCompatibility compatibility = LaunchCompatibility.YES;
 
     if (myAvdInfo.getStatus() != AvdInfo.AvdStatus.OK) {
-      if (AvdManagerConnection.isSystemImageDownloadProblem(myAvdInfo.getStatus())) {
+      if (myAvdInfo.getStatus().equals(AvdInfo.AvdStatus.ERROR_IMAGE_MISSING)) {
         // The original error message includes the name of the AVD which is already shown in the UI.
         // Make the error message simpler here:
         compatibility = new LaunchCompatibility(LaunchCompatibility.State.ERROR, "Missing system image");

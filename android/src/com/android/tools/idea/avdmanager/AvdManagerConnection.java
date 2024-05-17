@@ -359,17 +359,6 @@ public class AvdManagerConnection {
     });
   }
 
-  public @NotNull ListenableFuture<Boolean> isAvdRunningAsync(@NotNull AvdInfo info) {
-    ListeningExecutorService service = MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService());
-
-    return service.submit(() -> isAvdRunning(info));
-  }
-
-  public final @NotNull ListenableFuture<Void> stopAvdAsync(@NotNull AvdInfo avd) {
-    // noinspection UnstableApiUsage
-    return Futures.submit(() -> stopAvd(avd), AppExecutorUtil.getAppExecutorService());
-  }
-
   @Slow
   public void stopAvd(@NotNull AvdInfo info) {
     assert myAvdManager != null;
@@ -910,23 +899,6 @@ public class AvdManagerConnection {
 
   public boolean avdExists(@NotNull String candidate) {
     return findAvd(candidate) != null;
-  }
-
-  public static boolean isAvdRepairable(@NotNull AvdInfo.AvdStatus avdStatus) {
-    return avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_DIR
-           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_CHANGED
-           || avdStatus == AvdInfo.AvdStatus.ERROR_DEVICE_MISSING
-           || avdStatus == AvdInfo.AvdStatus.ERROR_IMAGE_MISSING;
-  }
-
-  public static boolean isSystemImageDownloadProblem(@NotNull AvdInfo.AvdStatus status) {
-    switch (status) {
-      case ERROR_IMAGE_DIR:
-      case ERROR_IMAGE_MISSING:
-        return true;
-      default:
-        return false;
-    }
   }
 
   @Nullable
