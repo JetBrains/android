@@ -856,6 +856,7 @@ class FakeScreenSharingAgent(
         val buffer = VideoPacketHeader.createBuffer(packetSize)
         packetHeader.serialize(buffer)
         if (nextFrameIsInvalid) {
+          println("Producing an invalid video frame for display $displayId")
           nextFrameIsInvalid = false
           buffer.fill(0, packetSize)
         }
