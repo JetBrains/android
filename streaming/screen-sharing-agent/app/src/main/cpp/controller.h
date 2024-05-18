@@ -84,7 +84,9 @@ private:
   };
 
   void Initialize();
-  void InitializeKeyboard();
+  void InitializeVirtualKeyboard();
+  [[nodiscard]] VirtualMouse& GetVirtualMouse(int32_t display_id);
+  [[nodiscard]] VirtualTouchscreen& GetVirtualTouchscreen(int32_t display_id, int32_t width, int32_t height);
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
   void ProcessKeyboardEvent(const KeyEventMessage& message) {
@@ -138,10 +140,11 @@ private:
   PointerHelper* pointer_helper_ = nullptr;  // Owned.
   JObjectArray pointer_properties_;  // MotionEvent.PointerProperties[]
   JObjectArray pointer_coordinates_;  // MotionEvent.PointerCoords[]
-  VirtualKeyboard* keyboard_ = nullptr;
-  VirtualMouse* mouse_ = nullptr;
-  VirtualStylus* stylus_ = nullptr;
-  VirtualTouchscreen* touchscreen_ = nullptr;
+  VirtualKeyboard* virtual_keyboard_ = nullptr;
+  VirtualMouse* virtual_mouse_ = nullptr;
+  int32_t virtual_mouse_display_id_ = -1;
+  // Virtual touchscreens keyed by display IDs.
+  std::map<int32_t, std::unique_ptr<VirtualTouchscreen>> virtual_touchscreens_;
   int64_t motion_event_start_time_ = 0;
   KeyCharacterMap* key_character_map_ = nullptr;  // Owned.
 

@@ -40,10 +40,12 @@ constexpr int UTF8_MAX_BYTES_PER_CHARACTER = 4;
 
 constexpr int SOCKET_RECEIVE_TIMEOUT_MILLIS = 250;
 
-int64_t UptimeMillis() {
+constexpr int FINGER_TOUCH_SIZE = 1;
+
+nanoseconds UptimeNanos() {
   timespec t = { 0, 0 };
   clock_gettime(CLOCK_MONOTONIC, &t);
-  return static_cast<int64_t>(t.tv_sec) * 1000LL + t.tv_nsec / 1000000;
+  return duration_cast<nanoseconds>(seconds(t.tv_sec)) + nanoseconds(t.tv_nsec);
 }
 
 // Returns the number of Unicode code points contained in the given UTF-8 string.
@@ -132,10 +134,8 @@ Controller::~Controller() {
   output_stream_.Close();
   delete pointer_helper_;
   delete key_character_map_;
-  delete keyboard_;
-  delete mouse_;
-  delete stylus_;
-  delete touchscreen_;
+  delete virtual_keyboard_;
+  delete virtual_mouse_;
 }
 
 void Controller::Stop() {
@@ -188,13 +188,39 @@ void Controller::Initialize() {
   Agent::InitializeSessionEnvironment();
 }
 
-void Controller::InitializeKeyboard() {
-  if (keyboard_ == nullptr) {
-    keyboard_ = new VirtualKeyboard();
-    if (!keyboard_->IsValid()) {
+void Controller::InitializeVirtualKeyboard() {
+  if (virtual_keyboard_ == nullptr) {
+    virtual_keyboard_ = new VirtualKeyboard();
+    if (!virtual_keyboard_->IsValid()) {
       Log::E("Failed to create a virtual keyboard");
     }
   }
+}
+
+VirtualMouse& Controller::GetVirtualMouse(int32_t display_id) {
+  if (virtual_mouse_ == nullptr) {
+    virtual_mouse_ = new VirtualMouse();
+    if (!virtual_mouse_->IsValid()) {
+      Log::E("Failed to create a virtual mouse");
+    }
+  }
+  if (virtual_mouse_display_id_ != display_id) {
+    InputManager::AddPortAssociation(jni_, virtual_mouse_->phys(), display_id);
+    virtual_mouse_display_id_ = display_id;
+  }
+  return *virtual_mouse_;
+}
+
+VirtualTouchscreen& Controller::GetVirtualTouchscreen(int32_t display_id, int32_t width, int32_t height) {
+  auto iter = virtual_touchscreens_.find(display_id);
+  if (iter == virtual_touchscreens_.end() || iter->second->screen_width() != width || iter->second->screen_height() != height) {
+    if (iter != virtual_touchscreens_.end()) {
+      InputManager::RemovePortAssociation(jni_, iter->second->phys());
+    }
+    iter = virtual_touchscreens_.insert_or_assign(display_id, make_unique<VirtualTouchscreen>(width, height)).first;
+    InputManager::AddPortAssociation(jni_, iter->second->phys(), display_id);
+  }
+  return *iter->second;
 }
 
 void Controller::Run() {
@@ -335,12 +361,12 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       break;
 
     default:
-      Log::E("Unexpected message type %d", message.type());
-      break;
+      Log::Fatal(INVALID_CONTROL_MESSAGE, "Unexpected message type %d", message.type());
   }
 }
 
 void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
+  nanoseconds event_time = UptimeNanos();
   int32_t action = message.action();
   Log::V("Controller::ProcessMotionEvent action:%d", action);
   int32_t display_id = message.display_id();
@@ -349,88 +375,122 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     return;
   }
 
-  int64_t now = UptimeMillis();
-  MotionEvent event(jni_);
-  event.display_id = display_id;
-  event.action = action;
-  event.button_state = message.button_state();
-  event.event_time_millis = now;
-  if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_SCROLL) {
-    if (action == AMOTION_EVENT_ACTION_DOWN) {
-      motion_event_start_time_ = now;
+  if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT &&
+      // TODO: Handle hover and scroll motion events using uinput.
+      action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL &&
+      message.action_button() == 0 && message.button_state() == 0) {
+    auto& touchscreen = GetVirtualTouchscreen(display_id, display_info.logical_size.width, display_info.logical_size.height);
+    if (action == AMOTION_EVENT_ACTION_DOWN || action == AMOTION_EVENT_ACTION_UP || action == AMOTION_EVENT_ACTION_MOVE) {
+      int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualTouchscreen::MAX_PRESSURE;
+      int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
+      for (auto& pointer : message.pointers()) {
+        bool success = touchscreen.WriteTouchEvent(pointer.pointer_id, AMOTION_EVENT_TOOL_TYPE_FINGER, action, pointer.x, pointer.y,
+                                                   pressure, major_axis_size, event_time);
+        if (!success) {
+          Log::E("Error writing touch event");
+        }
+      }
+    } else {
+      auto action_code = action & AMOTION_EVENT_ACTION_MASK;
+      if (action_code == AMOTION_EVENT_ACTION_POINTER_DOWN || action_code == AMOTION_EVENT_ACTION_POINTER_UP) {
+        auto pointer_id = action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+        action = action_code == AMOTION_EVENT_ACTION_POINTER_DOWN ? AMOTION_EVENT_ACTION_DOWN : AMOTION_EVENT_ACTION_UP;
+        int32_t pressure = action == AMOTION_EVENT_ACTION_UP ? 0 : VirtualTouchscreen::MAX_PRESSURE;
+        int32_t major_axis_size = pressure == 0 ? 0 : FINGER_TOUCH_SIZE;
+        for (auto& pointer : message.pointers()) {
+          if (pointer.pointer_id == pointer_id) {
+            bool success = touchscreen.WriteTouchEvent(pointer_id, AMOTION_EVENT_TOOL_TYPE_FINGER, action, pointer.x, pointer.y,
+                                                       pressure, major_axis_size, event_time);
+            if (!success) {
+              Log::E("Error writing touch event");
+            }
+            break;
+          }
+        }
+      }
     }
-    if (motion_event_start_time_ == 0) {
-      Log::E("Motion event started with action %d instead of expected %d", action, AMOTION_EVENT_ACTION_DOWN);
-      motion_event_start_time_ = now;
-    }
-    event.down_time_millis = motion_event_start_time_;
-    if (action == AMOTION_EVENT_ACTION_UP) {
-      motion_event_start_time_ = 0;
-    }
-    Agent::RecordTouchEvent();
-  }
-  if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
-    // AINPUT_SOURCE_MOUSE
-    // - when action_button() is non-zero, as the Android framework has special handling for mouse in performButtonActionOnTouchDown(),
-    //   which opens the context menu on right click.
-    // - when message.button_state() is non-zero, otherwise drag operations initiated by touch down with AINPUT_SOURCE_MOUSE will not
-    //   receiver mouse move events.
-    event.source = AINPUT_SOURCE_MOUSE;
   } else {
-    event.source = AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
-  }
-
-  for (auto& pointer : message.pointers()) {
-    JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
-    pointer_helper_->SetPointerId(properties, pointer.pointer_id);
-    JObject coordinates = pointer_coordinates_.GetElement(jni_, event.pointer_count);
-    // We must clear first so that axis information from previous runs is not reused.
-    pointer_helper_->ClearPointerCoords(coordinates);
-    Point point = AdjustedDisplayCoordinates(pointer.x, pointer.y, display_info);
-    pointer_helper_->SetPointerCoords(coordinates, point.x, point.y);
-    float pressure =
-        (action == AMOTION_EVENT_ACTION_POINTER_UP && event.pointer_count == action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT) ? 0 : 1;
-    pointer_helper_->SetPointerPressure(coordinates, pressure);
-    for (auto const& [axis, value] : pointer.axis_values) {
-      pointer_helper_->SetAxisValue(coordinates, axis, value);
+    MotionEvent event(jni_);
+    event.display_id = display_id;
+    event.action = action;
+    event.button_state = message.button_state();
+    event.event_time_millis = duration_cast<milliseconds>(event_time).count();;
+    if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_SCROLL) {
+      if (action == AMOTION_EVENT_ACTION_DOWN) {
+        motion_event_start_time_ = event.event_time_millis;
+      }
+      if (motion_event_start_time_ == 0) {
+        Log::E("Motion event started with action %d instead of expected %d", action, AMOTION_EVENT_ACTION_DOWN);
+        motion_event_start_time_ = event.event_time_millis;
+      }
+      event.down_time_millis = motion_event_start_time_;
+      if (action == AMOTION_EVENT_ACTION_UP) {
+        motion_event_start_time_ = 0;
+      }
+      Agent::RecordTouchEvent();
     }
-    event.pointer_count++;
-  }
-
-  event.pointer_properties = pointer_properties_;
-  event.pointer_coordinates = pointer_coordinates_;
-  // InputManager doesn't allow ACTION_DOWN and ACTION_UP events with multiple pointers.
-  // They have to be converted to a sequence of pointer-specific events.
-  if (action == AMOTION_EVENT_ACTION_DOWN) {
-    if (message.action_button()) {
-      InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
-      event.action = AMOTION_EVENT_ACTION_BUTTON_PRESS;
-      event.action_button = message.action_button();
+    if (action == AMOTION_EVENT_ACTION_HOVER_MOVE || message.action_button() != 0 || message.button_state() != 0) {
+      // AINPUT_SOURCE_MOUSE
+      // - when action_button() is non-zero, as the Android framework has special handling for mouse in performButtonActionOnTouchDown(),
+      //   which opens the context menu on right click.
+      // - when message.button_state() is non-zero, otherwise drag operations initiated by touch down with AINPUT_SOURCE_MOUSE will not
+      //   receive mouse move events.
+      event.source = AINPUT_SOURCE_MOUSE;
     } else {
-      for (int i = 1; event.pointer_count = i, i < message.pointers().size(); i++) {
+      event.source = AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
+    }
+
+    for (auto& pointer: message.pointers()) {
+      JObject properties = pointer_properties_.GetElement(jni_, event.pointer_count);
+      pointer_helper_->SetPointerId(properties, pointer.pointer_id);
+      JObject coordinates = pointer_coordinates_.GetElement(jni_, event.pointer_count);
+      // We must clear first so that axis information from previous runs is not reused.
+      pointer_helper_->ClearPointerCoords(coordinates);
+      Point point = AdjustedDisplayCoordinates(pointer.x, pointer.y, display_info);
+      pointer_helper_->SetPointerCoords(coordinates, point.x, point.y);
+      float pressure = ((action & AMOTION_EVENT_ACTION_MASK) == AMOTION_EVENT_ACTION_POINTER_UP &&
+          event.pointer_count == action >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT) ? 0 : 1;
+      pointer_helper_->SetPointerPressure(coordinates, pressure);
+      for (auto const& [axis, value]: pointer.axis_values) {
+        pointer_helper_->SetAxisValue(coordinates, axis, value);
+      }
+      event.pointer_count++;
+    }
+
+    event.pointer_properties = pointer_properties_;
+    event.pointer_coordinates = pointer_coordinates_;
+    // InputManager doesn't allow ACTION_DOWN and ACTION_UP events with multiple pointers.
+    // They have to be converted to a sequence of pointer-specific events.
+    if (action == AMOTION_EVENT_ACTION_DOWN) {
+      if (message.action_button()) {
         InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
-        event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+        event.action = AMOTION_EVENT_ACTION_BUTTON_PRESS;
+        event.action_button = message.action_button();
+      } else {
+        for (int i = 1; event.pointer_count = i, i < message.pointers().size(); i++) {
+          InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+          event.action = AMOTION_EVENT_ACTION_POINTER_DOWN | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+        }
+      }
+    } else if (action == AMOTION_EVENT_ACTION_UP) {
+      if (message.action_button()) {
+        event.action = AMOTION_EVENT_ACTION_BUTTON_RELEASE;
+        event.action_button = message.action_button();
+        InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+        event.action = AMOTION_EVENT_ACTION_UP;
+        event.action_button = 0;
+      } else {
+        for (int i = event.pointer_count; --i > 1;) {
+          event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+          pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
+          InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
+          event.pointer_count = i;
+        }
+        event.action = AMOTION_EVENT_ACTION_UP;
       }
     }
+    InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
   }
-  else if (action == AMOTION_EVENT_ACTION_UP) {
-    if (message.action_button()) {
-      event.action = AMOTION_EVENT_ACTION_BUTTON_RELEASE;
-      event.action_button = message.action_button();
-      InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
-      event.action = AMOTION_EVENT_ACTION_UP;
-      event.action_button = 0;
-    } else {
-      for (int i = event.pointer_count; --i > 1;) {
-        event.action = AMOTION_EVENT_ACTION_POINTER_UP | (i << AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
-        pointer_helper_->SetPointerPressure(pointer_coordinates_.GetElement(jni_, i), 0);
-        InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
-        event.pointer_count = i;
-      }
-      event.action = AMOTION_EVENT_ACTION_UP;
-    }
-  }
-  InjectMotionEvent(jni_, event, InputEventInjectionSync::NONE);
 
   if (action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
@@ -444,20 +504,19 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 }
 
 void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
+  nanoseconds event_time = UptimeNanos();
   if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
-    InitializeKeyboard();
+    InitializeVirtualKeyboard();
     int32_t action = message.action();
-    auto now = duration_cast<nanoseconds>(steady_clock::now().time_since_epoch());
-    keyboard_->WriteKeyEvent(message.keycode(), action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action, now);
+    virtual_keyboard_->WriteKeyEvent(
+        message.keycode(), action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action, event_time);
     if (action == KeyEventMessage::ACTION_DOWN_AND_UP) {
-      action = AKEY_EVENT_ACTION_UP;
-      keyboard_->WriteKeyEvent(message.keycode(), AKEY_EVENT_ACTION_UP, now);
+      virtual_keyboard_->WriteKeyEvent(message.keycode(), AKEY_EVENT_ACTION_UP, event_time);
     }
   } else {
     KeyEvent event(jni);
-    int64_t now = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
-    event.down_time_millis = now;
-    event.event_time_millis = now;
+    event.event_time_millis = duration_cast<milliseconds>(event_time).count();
+    event.down_time_millis = event.event_time_millis;
     int32_t action = message.action();
     event.action = action == KeyEventMessage::ACTION_DOWN_AND_UP ? AKEY_EVENT_ACTION_DOWN : action;
     event.code = message.keycode();
@@ -472,10 +531,10 @@ void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
 }
 
 void Controller::ProcessTextInput(const TextInputMessage& message) {
-  nanoseconds now;
+  nanoseconds event_time;
   if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
-    InitializeKeyboard();
-    now = duration_cast<nanoseconds>(steady_clock::now().time_since_epoch());
+    event_time = UptimeNanos();
+    InitializeVirtualKeyboard();
   }
   const u16string& text = message.text();
   for (uint16_t c: text) {
@@ -488,7 +547,7 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
     for (int i = 0; i < len; i++) {
       JObject key_event = event_array.GetElement(i);
       if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
-        keyboard_->WriteKeyEvent(KeyEvent::GetKeyCode(key_event), KeyEvent::GetAction(key_event), now);
+        virtual_keyboard_->WriteKeyEvent(KeyEvent::GetKeyCode(key_event), KeyEvent::GetAction(key_event), event_time);
       } else {
         if (Log::IsEnabled(Log::Level::DEBUG)) {
           Log::D("key_event: %s", key_event.ToString().c_str());
@@ -722,6 +781,8 @@ void Controller::SendPendingDisplayEvents() {
       Log::D("Sent DisplayAddedNotification(%d)", event.display_id);
     }
     else if (event.type == DisplayEvent::Type::REMOVED) {
+      virtual_touchscreens_.erase(event.display_id);
+
       DisplayRemovedNotification notification(event.display_id);
       notification.Serialize(output_stream_);
       output_stream_.Flush();
