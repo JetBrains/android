@@ -50,7 +50,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -74,7 +73,7 @@ open class ComposeSupportedAnimationManager(
   val resetCallback: suspend (Boolean) -> Unit,
   val updateTimelineElementsCallback: suspend () -> Unit,
   parentScope: CoroutineScope,
-) : ComposeAnimationManager, SupportedAnimationManager {
+) : ComposeAnimationManager, SupportedAnimationManager() {
 
   private val scope = parentScope.createChildScope(tabTitle)
 
@@ -106,8 +105,6 @@ open class ComposeSupportedAnimationManager(
     get() = currentTransition.endMillis?.let { max(it + offset.value, it) } ?: 0
 
   val stateComboBox = animation.createState(tracker, animation.findCallback())
-  override val offset = MutableStateFlow(0)
-  final override val frozenState = MutableStateFlow(SupportedAnimationManager.FrozenState(false))
 
   /** [AnimationCard] for coordination panel. */
   override val card: AnimationCard =

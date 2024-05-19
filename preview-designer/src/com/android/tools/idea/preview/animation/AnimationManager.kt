@@ -19,7 +19,6 @@ import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.UnsupportedLabel
 import javax.swing.JComponent
-import kotlinx.coroutines.flow.MutableStateFlow
 
 interface AnimationManager {
   val tabTitle: String
@@ -43,21 +42,6 @@ interface AnimationManager {
 
   /** Clean up steps for animation before removing it from the panel. */
   suspend fun destroy()
-}
-
-/** Supported animation types could be opened in a new tab. Its card could be frozen or offset. */
-interface SupportedAnimationManager : AnimationManager {
-  /** The offset in ms for which the animation is shifted. */
-  val offset: MutableStateFlow<Int>
-
-  /** Represents the frozen state of the animation. */
-  data class FrozenState(val isFrozen: Boolean = false, val frozenAt: Int = 0)
-
-  /** Frozen state of the animation. */
-  val frozenState: MutableStateFlow<FrozenState>
-
-  /** Tab that shows animation individually */
-  val tab: AnimationTab
 }
 
 /** Manager for animations we can detect, but can't manipulate,set time/state, etc */
