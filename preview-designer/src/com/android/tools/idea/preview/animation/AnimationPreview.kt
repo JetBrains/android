@@ -230,11 +230,11 @@ abstract class AnimationPreview<T : AnimationManager>(
       // If single supported animation tab is selected.
       // We assume here only supported animations could be opened.
       selectedAnimation =
-        animations.findIsInstanceAnd<SupportedAnimationManager> { it.tabComponent == component }
+        animations.findIsInstanceAnd<SupportedAnimationManager> { it.tab.component == component }
       if (component is AllTabPanel) { // If coordination tab is selected.
         component.addTimeline(timeline)
       } else {
-        selectedAnimation?.addTimeline(timeline)
+        selectedAnimation?.tab?.addTimeline(timeline)
       }
       scope.launch { updateTimelineElements() }
     }
@@ -365,7 +365,7 @@ abstract class AnimationPreview<T : AnimationManager>(
     removeAnimation(animationManager)
     if (animationManager is SupportedAnimationManager) {
       tabbedPane.tabs
-        .find { it.component == animationManager.tabComponent }
+        .find { it.component == animationManager.tab.component }
         ?.let { tabbedPane.removeTab(it) }
     }
     if (animations.isEmpty()) {

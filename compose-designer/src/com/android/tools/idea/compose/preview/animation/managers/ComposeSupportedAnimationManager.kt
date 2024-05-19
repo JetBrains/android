@@ -18,8 +18,6 @@ package com.android.tools.idea.compose.preview.animation.managers
 import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
-import com.android.annotations.concurrency.UiThread
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.compose.preview.animation.AnimationClock
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
@@ -30,6 +28,7 @@ import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibility
 import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimatedProperty
 import com.android.tools.idea.preview.animation.AnimationCard
+import com.android.tools.idea.preview.animation.AnimationTab
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.PlaybackControls
@@ -43,16 +42,9 @@ import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
 import com.android.tools.idea.preview.animation.timeline.TransitionCurve
 import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
-import com.android.tools.idea.preview.util.createToolbarWithNavigation
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.LayoutFocusTraversalPolicy
-import javax.swing.border.MatteBorder
 import kotlin.math.max
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -138,7 +130,7 @@ open class ComposeSupportedAnimationManager(
         fun addTabToPane() {
           if (tabInfo == null) {
             tabInfo =
-              TabInfo(tabComponent).apply {
+              TabInfo(tab.component).apply {
                 text = tabTitle
                 tabbedPane.addTabWithCloseButton(this) { tabInfo = null }
               }
@@ -148,31 +140,14 @@ open class ComposeSupportedAnimationManager(
         this.addOpenInTabListener { addTabToPane() }
       }
 
-  private val tabScrollPane =
-    JBScrollPane().apply { border = MatteBorder(1, 1, 0, 0, JBColor.border()) }
-
-  /** [Timeline] parent when animation in new tab is selected. */
-  private val tabTimelineParent = JPanel(BorderLayout())
-
-  override val tabComponent =
-    JPanel(TabularLayout("*,Fit", "32px,*")).apply {
-      //    |  playbackControls                            |  toolbar  |
-      //    ------------------------------------------------------------
-      //    |                                                          |
-      //    |                     tabScrollPane                        |
-      //    |                                                          |
-      val toolbar =
-        createToolbarWithNavigation(rootComponent, "State", stateComboBox.changeStateActions)
-      add(toolbar.component, TabularLayout.Constraint(0, 1))
-      add(tabScrollPane, TabularLayout.Constraint(1, 0, 2))
-      tabScrollPane.setViewportView(tabTimelineParent)
-      add(
-        playbackControls.createToolbar(listOf(FreezeAction(timelinePanel, elementState, tracker))),
-        TabularLayout.Constraint(0, 0),
-      )
-      isFocusable = false
-      focusTraversalPolicy = LayoutFocusTraversalPolicy()
-    }
+  override val tab by lazy {
+    AnimationTab(
+      rootComponent,
+      playbackControls,
+      stateComboBox.changeStateActions,
+      FreezeAction(timelinePanel, elementState, tracker),
+    )
+  }
 
   private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
 
@@ -405,17 +380,6 @@ open class ComposeSupportedAnimationManager(
     if (offsetPx >= 0)
       positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
     else positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
-
-  /**
-   * Adds [timeline] to this tab's layout. The timeline is shared across all tabs, and a Swing
-   * component can't be added as a child of multiple components simultaneously. Therefore, this
-   * method needs to be called everytime we change tabs.
-   */
-  @UiThread
-  override fun addTimeline(timeline: TimelinePanel) {
-    tabTimelineParent.add(timeline, BorderLayout.CENTER)
-    tabScrollPane.revalidate()
-  }
 }
 
 private fun ComposeAnimation.getCurrentState(): Any? {

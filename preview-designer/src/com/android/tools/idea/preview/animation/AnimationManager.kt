@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.preview.animation
 
-import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.preview.animation.timeline.ElementState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.UnsupportedLabel
 import javax.swing.JComponent
-import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
 
 interface AnimationManager {
@@ -56,14 +54,7 @@ interface SupportedAnimationManager : AnimationManager {
   val elementState: MutableStateFlow<ElementState>
 
   /** Tab that shows animation individually */
-  val tabComponent: JPanel
-
-  /**
-   * Adds [timeline] to this tab's layout. The timeline is shared across all tabs, and a Swing
-   * component can't be added as a child of multiple components simultaneously. Therefore, this
-   * method needs to be called everytime we change tabs.
-   */
-  @UiThread fun addTimeline(timeline: TimelinePanel)
+  val tab: AnimationTab
 }
 
 /** Manager for animations we can detect, but can't manipulate,set time/state, etc */
