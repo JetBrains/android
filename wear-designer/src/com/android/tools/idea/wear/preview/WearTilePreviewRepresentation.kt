@@ -23,12 +23,12 @@ import com.android.tools.idea.preview.actions.CommonPreviewActionManager
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.analytics.PreviewRefreshTracker
 import com.android.tools.idea.preview.animation.AnimationPreview
-import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation
 import com.android.tools.idea.preview.views.CommonNlDesignSurfacePreviewView
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.uibuilder.surface.NlSurfaceBuilder
+import com.android.tools.idea.wear.preview.animation.SupportedWearTileAnimationManager
 import com.android.tools.idea.wear.preview.animation.WearTileAnimationPreview
 import com.android.tools.idea.wear.preview.animation.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.wear.preview.animation.analytics.WearTileAnimationTracker
@@ -69,7 +69,7 @@ internal class WearTilePreviewRepresentation(
   @UiThread
   override fun createAnimationInspector(
     element: PreviewElement<*>
-  ): AnimationPreview<SupportedAnimationManager>? {
+  ): AnimationPreview<SupportedWearTileAnimationManager>? {
     val wearPreviewElement = element as? WearTilePreviewElement<*> ?: return null
 
     return WearTileAnimationPreview(
