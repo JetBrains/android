@@ -109,8 +109,8 @@ abstract class SupportedAnimationManager(
    * - The animation transition is not yet loaded.
    * - The animation type does not support property manipulation.
    */
-  protected var animatedPropertiesAtCurrentTime = listOf<AnimationUnit.TimelineUnit>()
-    set(value) {
+  var animatedPropertiesAtCurrentTime = listOf<AnimationUnit.TimelineUnit>()
+    protected set(value) {
       field = value
       animatedPropertiesChangedCallback(value)
     }
