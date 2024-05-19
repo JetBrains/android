@@ -69,7 +69,7 @@ class AnimatedVisibilityAnimationManager(
           animation.states.firstOrNull { it.toString() == loadedState.toString() }
         }
       val finalState = state ?: animation.states.firstOrNull()
-      stateComboBox.setStartState(finalState)
+      animationStateManager.setStartState(finalState)
     }
     updateAnimatedVisibility()
   }

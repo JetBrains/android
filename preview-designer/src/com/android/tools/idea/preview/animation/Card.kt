@@ -16,7 +16,7 @@
 package com.android.tools.idea.preview.animation
 
 import javax.swing.JPanel
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 /** Card displayed in [AllTabPanel]. Each animation represented by one [Card]. */
 interface Card {
@@ -29,7 +29,7 @@ interface Card {
   val title: String
 
   /** Whether the element is expanded (showing additional details). */
-  val expanded: Flow<Boolean>
+  val expanded: StateFlow<Boolean>
 
   /** The size of the [Card] after it expands. */
   var expandedSize: Int

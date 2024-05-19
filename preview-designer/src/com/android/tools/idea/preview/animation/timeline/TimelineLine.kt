@@ -30,18 +30,19 @@ import java.awt.RenderingHints
 /**
  * The animation line in [TimelinePanel].
  *
+ * @param offsetPx offset in px made in inspector temporary by user
  * @param minX left position of the line - center of the left circle.
  * @param maxX right position of the line - center of the right circle.
  * @param rowMinY minimum y when row with animation line start.
  * @param positionProxy [PositionProxy] for the slider. @
  */
 class TimelineLine(
-  valueOffset: Int,
+  offsetPx: Int,
   frozenState: SupportedAnimationManager.FrozenState,
   minX: Int,
   maxX: Int,
   rowMinY: Int,
-) : TimelineElement(valueOffset, frozenState, minX, maxX) {
+) : TimelineElement(offsetPx, frozenState, minX, maxX) {
 
   /** Middle of the row. */
   private val middleY = rowMinY + timelineLineRowHeightScaled() / 2

@@ -23,33 +23,21 @@ import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.getAnimatedProperties
 import com.android.tools.idea.compose.preview.animation.setClockTime
+import com.android.tools.idea.compose.preview.animation.state.AnimationState
 import com.android.tools.idea.compose.preview.animation.state.AnimationState.Companion.createState
 import com.android.tools.idea.compose.preview.animation.updateAnimatedVisibilityState
 import com.android.tools.idea.compose.preview.animation.updateFromAndToStates
 import com.android.tools.idea.preview.animation.AnimatedProperty
-import com.android.tools.idea.preview.animation.AnimationCard
-import com.android.tools.idea.preview.animation.AnimationTab
 import com.android.tools.idea.preview.animation.AnimationTabs
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.PlaybackControls
 import com.android.tools.idea.preview.animation.SupportedAnimationManager
 import com.android.tools.idea.preview.animation.TimelinePanel
 import com.android.tools.idea.preview.animation.Transition
-import com.android.tools.idea.preview.animation.actions.FreezeAction
-import com.android.tools.idea.preview.animation.timeline.PositionProxy
-import com.android.tools.idea.preview.animation.timeline.TimelineElement
-import com.android.tools.idea.preview.animation.timeline.TimelineLine
-import com.android.tools.idea.preview.animation.timeline.TransitionCurve
-import com.android.tools.idea.preview.animation.timeline.getOffsetForValue
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.ui.tabs.TabInfo
 import javax.swing.JComponent
 import kotlin.math.max
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -62,88 +50,36 @@ private const val DEFAULT_CURVE_POINTS_NUMBER = 200
 open class ComposeSupportedAnimationManager(
   final override val animation: ComposeAnimation,
   final override val tabTitle: String,
-  private val tracker: ComposeAnimationTracker,
+  tracker: ComposeAnimationTracker,
   protected val animationClock: AnimationClock,
   private val maxDurationPerIteration: StateFlow<Long>,
-  private val timelinePanel: TimelinePanel,
+  timelinePanel: TimelinePanel,
   protected val executeInRenderSession: suspend (Boolean, () -> Unit) -> Unit,
-  private val tabbedPane: AnimationTabs,
-  private val rootComponent: JComponent,
+  tabbedPane: AnimationTabs,
+  rootComponent: JComponent,
   playbackControls: PlaybackControls,
-  val resetCallback: suspend (Boolean) -> Unit,
+  private val reset: suspend (Boolean) -> Unit,
   val updateTimelineElementsCallback: suspend () -> Unit,
   parentScope: CoroutineScope,
-) : ComposeAnimationManager, SupportedAnimationManager() {
+) :
+  ComposeAnimationManager,
+  SupportedAnimationManager(
+    timelinePanel,
+    playbackControls,
+    tabbedPane,
+    rootComponent,
+    tracker,
+    executeInRenderSession,
+    parentScope,
+    updateTimelineElementsCallback,
+  ) {
 
-  private val scope = parentScope.createChildScope(tabTitle)
+  override val animationStateManager: AnimationState =
+    animation.createState(tracker, animation.findCallback())
 
-  /** Callback when [selectedProperties] has been changed. */
-  var selectedPropertiesCallback: (List<AnimationUnit.TimelineUnit>) -> Unit = {}
-  /**
-   * Currently selected properties in the timeline. Updated everytime the slider has moved or the
-   * state of animation has changed. Could be empty if transition is not loaded or not supported.
-   */
-  private var selectedProperties = listOf<AnimationUnit.TimelineUnit>()
-    private set(value) {
-      field = value
-      selectedPropertiesCallback(value)
-    }
-
-  override suspend fun destroy() {
-    scope.cancel("AnimationManager is destroyed")
+  override suspend fun resetCallback(longTimeout: Boolean) {
+    reset(longTimeout)
   }
-
-  /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
-  private var currentTransition = Transition()
-    private set(value) {
-      field = value
-      // If transition has changed, reset it offset.
-      offset.value = 0
-    }
-
-  override val timelineMaximumMs: Int
-    get() = currentTransition.endMillis?.let { max(it + offset.value, it) } ?: 0
-
-  val stateComboBox = animation.createState(tracker, animation.findCallback())
-
-  /** [AnimationCard] for coordination panel. */
-  override val card: AnimationCard =
-    AnimationCard(
-        rootComponent,
-        tabTitle,
-        listOf(FreezeAction(timelinePanel, frozenState, tracker)) +
-          stateComboBox.changeStateActions,
-        tracker,
-      )
-      .apply {
-
-        /** [TabInfo] for the animation when it is opened in a new tab. */
-        var tabInfo: TabInfo? = null
-
-        /** Create if required and open the tab. */
-        fun addTabToPane() {
-          if (tabInfo == null) {
-            tabInfo =
-              TabInfo(tab.component).apply {
-                text = tabTitle
-                tabbedPane.addTabWithCloseButton(this) { tabInfo = null }
-              }
-          }
-          tabInfo?.let { tabbedPane.select(it, true) }
-        }
-        this.addOpenInTabListener { addTabToPane() }
-      }
-
-  override val tab by lazy {
-    AnimationTab(
-      rootComponent,
-      playbackControls,
-      stateComboBox.changeStateActions,
-      FreezeAction(timelinePanel, frozenState, tracker),
-    )
-  }
-
-  private val cachedTransitions: MutableMap<Int, Transition> = mutableMapOf()
 
   /**
    * Due to a limitation in the Compose Animation framework, we might not know all the available
@@ -158,28 +94,15 @@ open class ComposeSupportedAnimationManager(
     }
 
   /** Initializes the state of the Compose animation before it starts */
-  final override suspend fun setup() {
-    stateComboBox.updateStates(handleKnownStateTypes(animation.states))
+  final override suspend fun setupStateManager() {
+    animationStateManager.updateStates(handleKnownStateTypes(animation.states))
     syncStateComboBoxWithAnimationStateInLibrary()
-
-    loadTransitionFromCacheOrLib(longTimeout = true)
-    loadProperties()
-    stateComboBox.callbackEnabled = true
-
-    // Launch coroutines to handle state changes
-    scope.launch { frozenState.collect { updateTimelineElementsCallback() } }
-    scope.launch { card.expanded.collect { updateTimelineElementsCallback() } }
-    scope.launch {
-      offset.collect {
-        loadProperties()
-        updateTimelineElementsCallback()
-      }
-    }
+    animationStateManager.callbackEnabled = true
   }
 
   protected open suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
     val finalState = animation.getCurrentState()
-    stateComboBox.setStartState(finalState)
+    animationStateManager.setStartState(finalState)
     updateAnimationStartAndEndStates()
   }
 
@@ -190,16 +113,16 @@ open class ComposeSupportedAnimationManager(
       ComposeAnimationType.ANIMATED_CONTENT -> { ->
           scope.launch {
             updateAnimationStartAndEndStates()
-            loadTransitionFromCacheOrLib()
-            loadProperties()
+            loadTransition()
+            loadAnimatedPropertiesAtCurrentTime(false)
             updateTimelineElementsCallback()
           }
         }
       ComposeAnimationType.ANIMATED_VISIBILITY -> { ->
           scope.launch {
             updateAnimatedVisibility()
-            loadTransitionFromCacheOrLib()
-            loadProperties()
+            loadTransition()
+            loadAnimatedPropertiesAtCurrentTime(false)
             updateTimelineElementsCallback()
           }
         }
@@ -219,8 +142,8 @@ open class ComposeSupportedAnimationManager(
    */
   private suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
     animationClock.apply {
-      val startState = stateComboBox.getState(0) ?: return
-      val toState = stateComboBox.getState(1) ?: return
+      val startState = animationStateManager.getState(0) ?: return
+      val toState = animationStateManager.getState(1) ?: return
 
       executeInRenderSession(longTimeout) { updateFromAndToStates(animation, startState, toState) }
       resetCallback(longTimeout)
@@ -229,36 +152,17 @@ open class ComposeSupportedAnimationManager(
 
   /**
    * Updates the actual animation in Compose to set its state based on the selected value of
-   * [stateComboBox].
+   * [animationStateManager].
    */
   suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
     animationClock.apply {
-      val state = stateComboBox.getState(0) ?: return
+      val state = animationStateManager.getState(0) ?: return
       executeInRenderSession(longTimeout) { updateAnimatedVisibilityState(animation, state) }
       resetCallback(longTimeout)
     }
   }
 
-  /**
-   * Load transition for current start and end state. If transition was loaded before, the cached
-   * result is used.
-   */
-  suspend fun loadTransitionFromCacheOrLib(longTimeout: Boolean = false) {
-    val stateHash = stateComboBox.stateHashCode()
-
-    cachedTransitions[stateHash]?.let {
-      currentTransition = it
-      return@loadTransitionFromCacheOrLib
-    }
-
-    executeInRenderSession(longTimeout) {
-      val transition = loadTransitionsFromLib()
-      cachedTransitions[stateHash] = transition
-      currentTransition = transition
-    }
-  }
-
-  private fun loadTransitionsFromLib(): Transition {
+  override fun loadTransitionFromLibrary(): Transition {
     val builders: MutableMap<Int, AnimatedProperty.Builder> = mutableMapOf()
     val clockTimeMsStep = max(1, maxDurationPerIteration.value / DEFAULT_CURVE_POINTS_NUMBER)
 
@@ -307,11 +211,12 @@ open class ComposeSupportedAnimationManager(
       }
   }
 
-  suspend fun loadProperties() {
-    executeInRenderSession(false) {
+  override suspend fun loadAnimatedPropertiesAtCurrentTime(longTimeout: Boolean) {
+    var properties = emptyList<AnimationUnit.TimelineUnit>()
+    executeInRenderSession(longTimeout) {
       animationClock.apply {
         try {
-          selectedProperties =
+          properties =
             getAnimatedProperties(animation).map {
               AnimationUnit.TimelineUnit(it.label, ComposeUnit.parse(it))
             }
@@ -320,53 +225,8 @@ open class ComposeSupportedAnimationManager(
         }
       }
     }
+    animatedPropertiesAtCurrentTime = properties
   }
-
-  override fun createTimelineElement(
-    parent: JComponent,
-    minY: Int,
-    forIndividualTab: Boolean,
-    positionProxy: PositionProxy,
-  ): TimelineElement {
-    val offsetPx = getOffsetForValue(offset.value, positionProxy)
-    val timelineElement =
-      if (card.expanded.value || forIndividualTab) {
-        val curve =
-          TransitionCurve.create(
-            offsetPx,
-            frozenState.value,
-            currentTransition,
-            minY,
-            positionProxy,
-          )
-        selectedPropertiesCallback = { curve.timelineUnits = it }
-        curve.timelineUnits = selectedProperties
-        curve
-      } else
-        TimelineLine(
-            offsetPx,
-            frozenState.value,
-            currentTransition.startMillis?.let { positionProxy.xPositionForValue(it) }
-              ?: (positionProxy.minimumXPosition()),
-            currentTransition.endMillis?.let { positionProxy.xPositionForValue(it) }
-              ?: positionProxy.minimumXPosition(),
-            minY,
-          )
-          .also {
-            card.expandedSize = TransitionCurve.expectedHeight(currentTransition)
-            card.setDuration(currentTransition.duration)
-          }
-
-    timelineElement.setNewOffsetCallback {
-      offset.value = timelineElement.getValueForOffset(it, positionProxy)
-    }
-    return timelineElement
-  }
-
-  private fun TimelineElement.getValueForOffset(offsetPx: Int, positionProxy: PositionProxy) =
-    if (offsetPx >= 0)
-      positionProxy.valueForXPosition(minX + offsetPx) - positionProxy.valueForXPosition(minX)
-    else positionProxy.valueForXPosition(maxX + offsetPx) - positionProxy.valueForXPosition(maxX)
 }
 
 private fun ComposeAnimation.getCurrentState(): Any? {
@@ -383,6 +243,3 @@ private fun ComposeAnimation.getCurrentState(): Any? {
     else -> states.firstOrNull()
   }
 }
-
-private fun CoroutineScope.createChildScope(name: String) =
-  CoroutineScope(SupervisorJob(coroutineContext[Job]) + CoroutineName("AnimationManager.$name"))

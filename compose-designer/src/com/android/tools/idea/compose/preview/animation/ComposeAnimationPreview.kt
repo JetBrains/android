@@ -78,8 +78,6 @@ class ComposeAnimationPreview(
           }
         )
       }
-
-      animationsToUpdate.forEach { it.loadProperties() }
     }
   }
 
