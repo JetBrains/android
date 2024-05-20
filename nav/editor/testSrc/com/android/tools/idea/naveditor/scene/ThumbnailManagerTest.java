@@ -79,11 +79,6 @@ public class ThumbnailManagerTest extends NavTestCase {
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
 
-    // We should survive psi reparse
-    psiFile.clearCaches();
-    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
-    assertSame(image, imageFuture.getTerminalImage());
-
     image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
@@ -99,6 +94,10 @@ public class ThumbnailManagerTest extends NavTestCase {
     image = imageFuture.getTerminalImage();
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
     assertSame(image, imageFuture.getTerminalImage());
+
+    model.getConfiguration().setFontScale(0.8f);
+    imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200), scaleContext);
+    assertNotSame(image, imageFuture.getTerminalImage());
   }
 
   public void testOldVersion() throws Exception {
@@ -143,7 +142,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     inProgressCheckDone.acquire();
     taskStarted.acquire();
 
-    ((VirtualFileSystemEntry)file).setTimeStamp(file.getTimeStamp() + 100);
+    psiFile.clearCaches();
 
     RefinableImage image = manager.getThumbnail(psiFile, configuration, new Dimension(100, 200), scaleContext);
     taskStarted.acquire();

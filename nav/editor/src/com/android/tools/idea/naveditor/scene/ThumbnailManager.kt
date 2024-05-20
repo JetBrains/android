@@ -21,6 +21,7 @@ import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.res.MemoryTrackingMultiResourceRepository
+import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
@@ -30,7 +31,6 @@ import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.scale.ScaleContext
@@ -62,8 +62,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
 
   private val myImages = HashBasedTable.create<VirtualFile, Configuration, SoftReference<BufferedImage>?>()
   private val myScaledImages = HashBasedTable.create<VirtualFile, Configuration, HashBasedTable<Dimension, ScaleContext, SoftReference<Image>?>?>()
-  private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, Long>()
-  private val myRenderModStamps = HashBasedTable.create<VirtualFile, Configuration, Long>()
+  private val myRenderVersions = HashBasedTable.create<VirtualFile, Configuration, ResourceNotificationManager.ResourceVersion>()
   private var myResourceRepository: CacheableResourceRepository? = StudioResourceRepositoryManager.getAppResources(facet).apply {
     (this as? MemoryTrackingMultiResourceRepository)?.let { Disposer.register(it, { myResourceRepository = null }) }
   }
@@ -76,7 +75,10 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
 
   private val disposalLock = Any()
 
-  private fun modificationCount() = myResourceRepository?.modificationCount ?: 0
+  private fun resourceVersion(xmlFile: XmlFile, configuration: Configuration): ResourceNotificationManager.ResourceVersion {
+    val resourceNotificationManager = ResourceNotificationManager.getInstance(module.project)
+    return resourceNotificationManager.getCurrentVersion(facet, xmlFile, configuration)
+  }
 
   override fun onDispose() {
     lateinit var futures: Array<CompletableFuture<RefinableImage?>>
@@ -108,9 +110,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
                               myScaledImages.put(file, configuration, it)
                             }
     val cached = cachedByDimension[dimensions, scaleContext]?.get()
-    return if (cached != null &&
-               myRenderVersions.get(file, configuration) == modificationCount() &&
-               myRenderModStamps.get(file, configuration) == file.timeStamp) {
+    return if (cached != null && myRenderVersions.get(file, configuration) == resourceVersion(xmlFile, configuration)) {
       RefinableImage(cached)
     }
     else {
@@ -189,9 +189,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
   ): CompletableFuture<BufferedImage?> {
     val file = xmlFile.virtualFile
     val fullSize = myImages[file, configuration]?.get()
-    return if (fullSize != null &&
-               myRenderVersions.get(file, configuration) == modificationCount() &&
-               myRenderModStamps.get(file, configuration) == file.timeStamp) {
+    return if (fullSize != null && myRenderVersions.get(file, configuration) == resourceVersion(xmlFile, configuration)) {
       CompletableFuture.completedFuture(fullSize)
     }
     else {
@@ -225,8 +223,9 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
       .thenApply {
         val image = it.renderedImage.copy
         myImages.put(file, configuration, SoftReference<BufferedImage>(image))
-        myRenderVersions.put(file, configuration, modificationCount())
-        myRenderModStamps.put(file, configuration, file.timeStamp)
+        val resourceNotificationManager = ResourceNotificationManager.getInstance(module.project)
+        val version = resourceNotificationManager.getCurrentVersion(facet, xmlFile, configuration)
+        myRenderVersions.put(file, configuration, version)
         image
       }
       .whenCompleteAsync({ _, _ -> renderTaskFuture.get()?.dispose() }, AppExecutorUtil.getAppExecutorService())
