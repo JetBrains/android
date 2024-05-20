@@ -323,12 +323,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assertTrue("Expected " + AvdManager.USERDATA_IMG + " in " + mAvdFolder + " after wipe-data", Files.exists(userData));
   }
 
-  public void testGetHardwareProperties() {
-    recordEmulatorHardwareProperties(mSdkRoot);
-    assertEquals("800M", mAvdManagerConnection.getSdCardSizeFromHardwareProperties());
-    assertEquals("2G", mAvdManagerConnection.getInternalStorageSizeFromHardwareProperties());
-  }
-
   public void testDoesSystemImageSupportQemu2() {
     Path avdLocation = mSdkRoot.getRoot().resolve("avd");
     RepositoryPackages packages = new RepositoryPackages();

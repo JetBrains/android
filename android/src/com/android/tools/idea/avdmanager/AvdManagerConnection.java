@@ -125,9 +125,6 @@ public class AvdManagerConnection {
   private static final ProgressIndicator REPO_LOG = new StudioLoggerProgressIndicator(AvdManagerConnection.class);
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, null);
 
-  private static final String INTERNAL_STORAGE_KEY = AvdManager.AVD_INI_DATA_PARTITION_SIZE;
-  private static final String SD_CARD_STORAGE_KEY = AvdManager.AVD_INI_SDCARD_SIZE;
-
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
   public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
 
@@ -136,9 +133,6 @@ public class AvdManagerConnection {
 
   private static @NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> ourConnectionFactory =
     AvdManagerConnection::new;
-
-  // A map from hardware config name to its belonging hardware property.
-  private static @Nullable Map<String, HardwareProperties.HardwareProperty> ourHardwareProperties;
 
   @Nullable
   private final AndroidSdkHandler mySdkHandler;
@@ -257,35 +251,6 @@ public class AvdManagerConnection {
       return myAvdManager != null;
     }
     return true;
-  }
-
-  @Nullable
-  public String getSdCardSizeFromHardwareProperties() {
-    return getHardwarePropertyDefaultValue(SD_CARD_STORAGE_KEY);
-  }
-
-  @Nullable
-  public String getInternalStorageSizeFromHardwareProperties() {
-    return getHardwarePropertyDefaultValue(INTERNAL_STORAGE_KEY);
-  }
-
-  /**
-   * Get the default value of hardware property from hardware-properties.ini.
-   *
-   * @param name the name of the requested hardware property
-   * @return the default value
-   */
-  @Nullable
-  private String getHardwarePropertyDefaultValue(@NotNull String name) {
-    if (ourHardwareProperties == null) {
-      EmulatorPackage emulator = getEmulator();
-      if (emulator != null) {
-        ourHardwareProperties =
-            emulator.getHardwareProperties(new LogWrapper(AvdManagerConnection.class));
-      }
-    }
-    HardwareProperties.HardwareProperty hwProp = (ourHardwareProperties == null) ? null : ourHardwareProperties.get(name);
-    return (hwProp == null) ? null : hwProp.getDefault();
   }
 
   private boolean hasPlatformToolsForQEMU2Installed() {

@@ -35,6 +35,7 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed;
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.EmulatorPackages;
+import com.android.sdklib.internal.avd.HardwareProperties.HardwareProperty;
 import com.android.sdklib.internal.avd.SdCards;
 import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.internal.avd.ExternalSdCard;
@@ -48,6 +49,7 @@ import com.android.tools.idea.avdmanager.EmulatorFeatures;
 import com.android.tools.idea.avdmanager.SkinUtils;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
@@ -66,12 +68,9 @@ import com.google.common.collect.Maps;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.updateSettings.impl.ChannelStatus;
-import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
@@ -196,8 +195,28 @@ public final class AvdOptionsModel extends WizardModel {
     if (myAvdInfo != null) {
       updateValuesWithAvdInfo(myAvdInfo);
     }
-    else {
-      updateValuesFromHardwareProperties();
+    else if (myEmulatorPackage != null) {
+      // Set values to their defaults based on the emulator's hardware-properties.ini.
+      var hardwareProperties = myEmulatorPackage.getHardwareProperties(new LogWrapper(AvdOptionsModel.class));
+      if (hardwareProperties != null) {
+        HardwareProperty sdCardStorage = hardwareProperties.get(AvdManager.AVD_INI_SDCARD_SIZE);
+        if (sdCardStorage != null) {
+          Storage storage = getStorageFromIni(sdCardStorage.getDefault(), false);
+          if (storage != null) {
+            mySdCardStorage.setValue(storage);
+          }
+        }
+        HardwareProperty internalStorage = hardwareProperties.get(AvdManager.AVD_INI_DATA_PARTITION_SIZE);
+        if (internalStorage != null) {
+          Storage storage = getStorageFromIni(internalStorage.getDefault(), true);
+          // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is
+          // defaulted to 0. In this case, We will skip this default value. When the hardware-properties.ini is
+          // updated, we will delete the redundant value check.
+          if (storage != null && storage.getSize() != 0) {
+            myInternalStorage.set(storage);
+          }
+        }
+      }
     }
     myDevice.addListener(() -> {
       if (myDevice.get().isPresent()) {
@@ -628,24 +647,6 @@ public final class AvdOptionsModel extends WizardModel {
     }
 
     myIsInEditMode.set(true);
-  }
-
-  /**
-   * Set the initial internal storage size and sd card storage size, using values from hardware-properties.ini
-   */
-  private void updateValuesFromHardwareProperties() {
-    AvdManagerConnection conn = AvdManagerConnection.getDefaultAvdManagerConnection();
-    Storage storage = getStorageFromIni(conn.getSdCardSizeFromHardwareProperties(), false);
-    if (storage != null) {
-      mySdCardStorage.setValue(storage);
-    }
-    storage = getStorageFromIni(conn.getInternalStorageSizeFromHardwareProperties(), true);
-    // TODO (b/65811265) Currently, internal storage size in hardware-properties.ini is defaulted
-    // to 0. In this case, We will skip this default value. When the hardware-properties.ini is
-    // updated, we will delete the redundant value check.
-    if (storage != null && storage.getSize() != 0) {
-      myInternalStorage.set(storage);
-    }
   }
 
   /**
