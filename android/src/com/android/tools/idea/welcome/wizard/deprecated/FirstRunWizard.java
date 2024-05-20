@@ -105,7 +105,7 @@ public class FirstRunWizard extends DynamicWizard {
       return;
     }
 
-    addPath(new SingleStepPath(new LinuxHaxmInfoStep()));
+    addPath(new SingleStepPath(new LinuxKvmInfoStep()));
   }
 
   @Override

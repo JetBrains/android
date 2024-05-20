@@ -47,9 +47,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
- * Component for displaying an alert on the installation state of HAXM/KVM.
+ * Component for displaying an alert on the installation state of AEHD/KVM.
  */
-public class HaxmAlert extends JPanel {
+public class AccelAlert extends JPanel {
   private final JBLabel myWarningMessage;
   private final HyperlinkLabel myErrorInstructionsLink;
   private HyperlinkListener myErrorLinkListener;
@@ -57,7 +57,7 @@ public class HaxmAlert extends JPanel {
   private AccelerationErrorCode myAccelerationErrorCode;
   private Logger myLogger;
 
-  public HaxmAlert() {
+  public AccelAlert() {
     myErrorInstructionsLink = new HyperlinkLabel();
     myWarningMessage = new JBLabel() {
       @Override
@@ -176,7 +176,7 @@ public class HaxmAlert extends JPanel {
       @Override
       public void onFailure(Throwable t) {
         if (myLogger == null) {
-          myLogger = Logger.getInstance(HaxmAlert.class);
+          myLogger = Logger.getInstance(AccelAlert.class);
         }
         myLogger.warn("Check for emulation acceleration failed", t);
       }

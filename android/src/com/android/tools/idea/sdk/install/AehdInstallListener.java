@@ -20,22 +20,16 @@ import com.android.repository.api.Installer;
 import com.android.repository.api.PackageOperation;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.Uninstaller;
-import com.android.tools.idea.sdk.wizard.VmWizard;
-import com.android.tools.idea.welcome.install.VmInstallationIntention;
+import com.android.tools.idea.sdk.wizard.AehdWizard;
+import com.android.tools.idea.welcome.install.Aehd;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * {@link PackageOperation.StatusChangeListener} for installing VM. Runs the {@link VmWizard} instead of the normal quickfix wizard.
+ * {@link PackageOperation.StatusChangeListener} for installing AEHD. Runs the {@link VmWizard} instead of the normal quickfix wizard.
  */
-public class VmInstallListener implements PackageOperation.StatusChangeListener {
-  @NonNull private VmType myType;
-
-  public VmInstallListener(@NonNull VmType type) {
-    myType = type;
-  }
-
+public class AehdInstallListener implements PackageOperation.StatusChangeListener {
   @Override
   public void statusChanged(@NonNull PackageOperation op, @NonNull ProgressIndicator progress)
     throws PackageOperation.StatusChangeListenerException {
@@ -56,13 +50,13 @@ public class VmInstallListener implements PackageOperation.StatusChangeListener 
       ApplicationManager.getApplication().invokeAndWait(() -> {
         // Either we just installed the package and we need to "configure" it (run the installation script),
         // or we're about to uninstall it.
-        VmWizard wizard =
-          new VmWizard(op instanceof Uninstaller ? VmInstallationIntention.UNINSTALL : VmInstallationIntention.CONFIGURE_ONLY, myType);
+        AehdWizard wizard =
+          new AehdWizard(op instanceof Uninstaller ? Aehd.InstallationIntention.UNINSTALL : Aehd.InstallationIntention.CONFIGURE_ONLY);
         wizard.init();
         result.set(wizard.showAndGet());
       }, ModalityState.any());
       if (!result.get()) {
-        throw new PackageOperation.StatusChangeListenerException(myType + " setup failed!");
+        throw new PackageOperation.StatusChangeListenerException("AEHD setup failed!");
       }
     }
   }

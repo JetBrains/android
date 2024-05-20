@@ -69,20 +69,6 @@ public class ElevatedCommandLine extends GeneralCommandLine {
    * This allows us to specify elevated privileges with the "runas" parameter.
    */
   private Process executeAsShellCommand() throws IOException {
-    // First create a wrapper that sets the current work directory, such that batch files
-    // may call other batch/executable files in the same directory without specifying the
-    // directory.
-    // Note: This was needed for the Haxm silent_install.bat.
-    String exeName = new File(getExePath()).getName();
-    File wrapper = FileUtil.createTempFile(FileUtil.getNameWithoutExtension(exeName) + "_wrapper", ".bat", true);
-    String exePath = new File(getExePath()).getParent();
-    FileUtil.writeToFile(wrapper, String.format(
-      "@echo off\n" +
-      "setlocal enableextensions\n\n" +
-      "cd /d \"%1$s\"\n\n" +
-      "%2$s %%*", exePath, exeName));
-    setExePath(wrapper.getPath());
-
     // Setup capturing of stdout and stderr in files.
     // ShellExecuteEx does not allow for the capture from code.
     File outFile = FileUtil.createTempFile(myTempFilePrefix + "_out", ".txt", true);

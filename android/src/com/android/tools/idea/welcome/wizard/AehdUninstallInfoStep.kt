@@ -15,22 +15,20 @@
  */
 package com.android.tools.idea.welcome.wizard
 
-import com.android.tools.idea.sdk.install.VmType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
 import com.intellij.ui.dsl.builder.panel
 
 /**
- * This is to be shown as the first HAXM Wizard step just to inform the user that HAXM uninstallation is about to start.
+ * This is to be shown as the first AEHD Wizard step just to inform the user that AEHD uninstallation is about to start.
  * It is here just to make sure we don't run uninstallation operations straight away as the first wizard step,
  * as this would not be in line with common wizard conventions.
  */
-class VmUninstallInfoStep(
-  type: VmType = VmType.HAXM
-) : ModelWizardStep.WithoutModel("Uninstalling $type") {
+class AehdUninstallInfoStep(
+) : ModelWizardStep.WithoutModel("Uninstalling Android Emulator hypervisor driver") {
 
   private val infoText = """
-This wizard will execute $type stand-alone uninstaller. This is an additional step required to remove this package<br><br>
+This wizard will execute Android Emulator hypervisor driver stand-alone uninstaller. This is an additional step required to remove this package<br><br>
 Click 'Next' to proceed
 """
 

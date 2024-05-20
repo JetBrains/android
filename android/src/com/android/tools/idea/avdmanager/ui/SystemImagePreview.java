@@ -17,7 +17,7 @@ package com.android.tools.idea.avdmanager.ui;
 
 import static java.util.stream.Collectors.joining;
 
-import com.android.tools.idea.avdmanager.HaxmAlert;
+import com.android.tools.idea.avdmanager.AccelAlert;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.android.tools.idea.ui.ChooseApiLevelDialog;
 import com.google.common.annotations.VisibleForTesting;
@@ -65,7 +65,7 @@ public class SystemImagePreview {
   private JPanel myRootPanel;
   private JPanel myMainPanel;
   private JSeparator mySeparator;
-  private HaxmAlert myHaxmAlert;
+  private AccelAlert myAccelAlert;
   private JBLabel myRecommendedExplanation;
   private WearOsChinaLocalizedAlert myWearOsChinaLocalizedAlert;
   private SystemImageDescription myImageDescription;
@@ -123,7 +123,7 @@ public class SystemImagePreview {
    */
   public void setImage(@Nullable SystemImageDescription image) {
     myImageDescription = image;
-    myHaxmAlert.setSystemImageDescription(image);
+    myAccelAlert.setSystemImageDescription(image);
     myWearOsChinaLocalizedAlert.setVisible(isChinaLocalizedWearOsImage(image));
     ((CardLayout)myRootPanel.getLayout()).show(myRootPanel, NO_IMAGE_CONTENT);
 
@@ -246,8 +246,8 @@ public class SystemImagePreview {
   }
 
   private void createUIComponents() {
-    myHaxmAlert = new HaxmAlert();
-    myHaxmAlert.setSystemImageDescription(myImageDescription);
+    myAccelAlert = new AccelAlert();
+    myAccelAlert.setSystemImageDescription(myImageDescription);
     myWearOsChinaLocalizedAlert = new WearOsChinaLocalizedAlert();
   }
 
