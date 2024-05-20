@@ -2,7 +2,7 @@ package com.android.tools.idea.profilers
 
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.sdk.AndroidProjectChecker
+import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
@@ -60,7 +60,7 @@ class AndroidProfilerToolWindowFactoryTest {
       ?: fail("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass)
-      .isEqualTo(AndroidProjectChecker::class.qualifiedName)
+      .isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
   }
 
   @Test
