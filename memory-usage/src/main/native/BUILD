@@ -1,21 +1,5 @@
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
 
-config_setting(
-    name = "macos",
-    constraint_values = [
-        "@platforms//cpu:x86_64",
-        "@platforms//os:macos",
-    ],
-)
-
-config_setting(
-    name = "macos_arm",
-    constraint_values = [
-        "@platforms//cpu:arm64",
-        "@platforms//os:macos",
-    ],
-)
-
 studio_data(
     name = "native_lib",
     files_linux = glob(["linux/*"]),
@@ -41,10 +25,10 @@ cc_library(
         "-O2",
         "-shared",
     ] + select({
-        "//tools/base/bazel:darwin": [
+        "//tools/base/bazel/platforms:macos-x86_64": [
             "-Iprebuilts/studio/jdk/mac/Contents/Home/include",
         ],
-        "//tools/base/bazel:windows": [
+        "@platforms//os:windows": [
             "-Iprebuilts/studio/jdk/win64/include",
         ],
         "//conditions:default": [
@@ -114,8 +98,8 @@ filegroup(
     name = "liblightweight_heap_traverse.prebuilt",
     srcs = select({
         "@platforms//os:linux": glob(["linux/*"]),
-        ":macos": glob(["mac/*"]),
-        ":macos_arm": glob(["mac_arm/*"]),
+        "//tools/base/bazel/platforms:macos-x86_64": glob(["mac/*"]),
+        "//tools/base/bazel/platforms:macos-arm64": glob(["mac_arm/*"]),
         "@platforms//os:windows": glob(["win/*"]),
     }),
     visibility = ["//visibility:public"],
@@ -129,8 +113,8 @@ sh_binary(
         "$(execpath liblightweight_heap_traverse)",
     ] + select({
         "@platforms//os:linux": ["tools/adt/idea/memory-usage/src/main/native/linux"],
-        ":macos": ["tools/adt/idea/memory-usage/src/main/native/mac"],
-        ":macos_arm": ["tools/adt/idea/memory-usage/src/main/native/mac_arm"],
+        "//tools/base/bazel/platforms:macos-x86_64": ["tools/adt/idea/memory-usage/src/main/native/mac"],
+        "//tools/base/bazel/platforms:macos-arm64": ["tools/adt/idea/memory-usage/src/main/native/mac_arm"],
         "@platforms//os:windows": ["tools/adt/idea/memory-usage/src/main/native/win"],
     }),
     data = [":liblightweight_heap_traverse"],

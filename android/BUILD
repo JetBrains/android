@@ -315,7 +315,7 @@ filegroup(
 filegroup(
     name = "deploy-artifacts",
     srcs = select({
-        "//tools/base/bazel:windows": [
+        "@platforms//os:windows": [
             "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/installer/tests:fake_device_proto",
             "//tools/base/deploy/proto:deploy_java_proto",
@@ -432,7 +432,7 @@ filegroup(
         "//tools/vendor/google/ml/aiplugin/ij-platform/atlas:atlas_artifacts",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
     ] + select({
-        "//tools/base/bazel:windows": [],
+        "@platforms//os:windows": [],
         "//conditions:default": [
             "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
         ],

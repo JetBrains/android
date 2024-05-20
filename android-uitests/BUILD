@@ -923,7 +923,7 @@ java_test(
     ] + glob([
         "testData/simple/**",
     ]) + select({
-        "//tools/base/bazel:windows": [],
+        "@platforms//os:windows": [],
         "//conditions:default": [
             "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer/tests:artifacts",
