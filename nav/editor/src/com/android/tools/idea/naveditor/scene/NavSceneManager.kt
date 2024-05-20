@@ -62,6 +62,7 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.rendering.parsers.TagSnapshot
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlTag
@@ -224,7 +225,9 @@ open class NavSceneManager(
     val wasEmpty = scene.root == null || scene.root?.childCount == 0
     update()
     if (wasEmpty) {
-      designSurface.zoomController.zoomToFit()
+      ApplicationManager.getApplication().invokeLater {
+        designSurface.zoomController.zoomToFit()
+      }
     }
 
     return CompletableFuture.completedFuture(null)

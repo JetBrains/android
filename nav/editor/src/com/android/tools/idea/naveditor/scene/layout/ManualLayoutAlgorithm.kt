@@ -31,6 +31,7 @@ import com.android.tools.idea.naveditor.model.isNavigation
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.BasicUndoableAction
@@ -107,8 +108,10 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
 
     val positions = storage.state[file.name] ?: return
     filePositionMap[file] = positions
-    val component = file.rootTag ?: return
-    reload(positions, component)
+    ApplicationManager.getApplication().runReadAction {
+      val component = file.rootTag ?: return@runReadAction
+      reload(positions, component)
+    }
   }
 
   private fun reload(positions: LayoutPositions, tag: XmlTag) {
