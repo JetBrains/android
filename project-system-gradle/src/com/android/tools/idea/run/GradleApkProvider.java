@@ -302,13 +302,14 @@ public final class GradleApkProvider implements ApkProvider {
             .getSelectedVariant().
             getDeviceTestArtifacts().stream().filter(it -> it.getName() == IdeArtifactName.ANDROID_TEST).findFirst().orElse(null);
         if (testArtifactInfo != null) {
+          @NotNull IdeAndroidArtifact artifact = getAndroidTestArtifact(androidModel.getSelectedVariant());
           File testApk =
-            getApk(androidModel.getSelectedVariant().getName(), getAndroidTestArtifact(androidModel.getSelectedVariant()), deviceAbis,
-                   deviceVersion, myFacet
-            );
+            getApk(androidModel.getSelectedVariant().getName(), artifact, deviceAbis, deviceVersion , myFacet);
           String testPackageName = myApplicationIdProvider.getTestPackageName();
           assert testPackageName != null; // Cannot be null if initialized.
-          apkList.add(new ApkInfo(testApk, testPackageName));
+
+          @Nullable GenericBuiltArtifacts builtArtifacts = getGenericBuiltArtifacts(artifact, myFacet);
+          apkList.add(new ApkInfo(testApk, testPackageName, getMinSdkVersionForDexing(builtArtifacts)));
           apkList.addAll(getAdditionalApks(testArtifactInfo));
         }
       }
