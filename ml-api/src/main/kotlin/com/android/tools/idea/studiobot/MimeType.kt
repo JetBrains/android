@@ -124,6 +124,7 @@ value class MimeType(val mimeType: String) {
     val SCSS = MimeType("text/scss")
     val SASS = MimeType("text/sass")
     val STYLUS = MimeType("text/stylus")
+    val SWIFT = MimeType("text/x-swift")
     val TSX = MimeType("text/tsx")
     val XSL = MimeType("application/xml")
     val TERRAFORM = MimeType("text/x-ruby")
