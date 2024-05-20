@@ -23,6 +23,9 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DoNotAskOption
@@ -31,7 +34,7 @@ import com.intellij.openapi.ui.MessageDialogBuilder
 const val PROPERTY_KEY = "nativeDebuggerOnRemoteDeviceWarning"
 const val DEFAULT_VALUE = true
 
-class NativeDebugOnRemoteDeviceChecker(project: Project) {
+class NativeDebugOnRemoteDeviceChecker(private val project: Project) {
   val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
   private val propertiesComponent = PropertiesComponent.getInstance(project)
 
@@ -42,32 +45,48 @@ class NativeDebugOnRemoteDeviceChecker(project: Project) {
     }
 
   fun showWarningIfNeeded(debugger: AndroidDebugger<*>, devices: List<AndroidDevice>): Boolean {
-    if (showWarning && debugger.isNativeDebugger() && devices.any { it.isRemote }) {
-      return showWarning()
+    if (debugger.isNativeDebugger() && devices.any { it.isRemote }) {
+      return showWarningIfNeeded()
     }
     return true
   }
 
   fun showWarningIfNeeded(debugger: AndroidDebugger<*>, deviceSerial: String): Boolean {
-    if (showWarning && debugger.isNativeDebugger() && deviceProvisioner.isRemote(deviceSerial)) {
-      return showWarning()
+    if (debugger.isNativeDebugger() && deviceProvisioner.isRemote(deviceSerial)) {
+      return showWarningIfNeeded()
     }
     return true
   }
 
-  private fun showWarning(): Boolean {
-    return MessageDialogBuilder.yesNo(
-      title = "Warning",
-      message = "You are about to attach a native debugger to a remote device. This is not recommended and may result in poor performance. Are you sure you want to do this?",
-    ).doNotAsk(object : DoNotAskOption.Adapter() {
-      override fun getDoNotShowMessage() = "Do not ask me next time"
+  private fun showWarningIfNeeded(): Boolean {
+    val proceed = if (showWarning) {
+      MessageDialogBuilder.yesNo(
+        title = "Poor debugger performance",
+        message = "Using a Native debugger with a remote device may result in very poor debugger performance. Do you want to proceed?",
+      ).doNotAsk(object : DoNotAskOption.Adapter() {
+        override fun getDoNotShowMessage() = "Don't show me again"
 
-      override fun isSelectedByDefault() = false
+        override fun isSelectedByDefault() = false
 
-      override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
-        showWarning = !isSelected
-      }
-    }).guessWindowAndAsk()
+        override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
+          showWarning = !isSelected
+        }
+      }).guessWindowAndAsk()
+    }
+    else {
+      true
+    }
+    if (proceed) {
+      val notification =
+        Notification(
+          "Android",
+          "Poor debugger performance",
+          "Debugging native code with remote devices may result in very poor performance.",
+          NotificationType.WARNING,
+        )
+      Notifications.Bus.notify(notification, project)
+    }
+    return proceed
   }
 }
 
