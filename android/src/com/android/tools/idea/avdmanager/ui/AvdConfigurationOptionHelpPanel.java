@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager.ui;
 
-import com.android.tools.idea.avdmanager.HaxmAlert;
+import com.android.tools.idea.avdmanager.AccelAlert;
 import com.android.tools.idea.avdmanager.SystemImageDescription;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -39,7 +39,7 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
    */
   public static final String TITLE_KEY = "TITLE";
 
-  private HaxmAlert myHaxmAlert;
+  private AccelAlert myAccelAlert;
   private JBLabel myTitle;
   private JSeparator mySeparator;
   private JPanel myContentPanel;
@@ -73,6 +73,6 @@ public class AvdConfigurationOptionHelpPanel extends JPanel {
   }
 
   public void setSystemImageDescription(SystemImageDescription desc) {
-    myHaxmAlert.setSystemImageDescription(desc);
+    myAccelAlert.setSystemImageDescription(desc);
   }
 }

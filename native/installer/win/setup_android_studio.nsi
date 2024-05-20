@@ -49,9 +49,6 @@
 # dynamically.
 #!define DIR_MSREDIST ..\..\..\microsoft
 
-# If uncommented, bundle Intel HAXM with the installer.
-#!define DIR_HAXM ..\..\..\intel
-
 Unicode true
 
 !define APP_NAME "Android Studio"
@@ -174,17 +171,14 @@ Var s_DefaultSdkPath
 Var s_UserSettingsPath
 Var s_SystemMemoryMB
 Var s_SystemMemoryGB
-Var s_InstallHaxmBat
 Var s_StudioPath
 Var s_SdkPath
 Var s_InstallSdk # 0 (skip install) or non-zero (include install)
-Var s_InstallHaxm # 0 (skip install) or non-zero (include install)
 Var s_SdkReferencePath # Path where we installed the latest SDK to. Will be
                        # different from s_SdkPath if user asks to use an
                        # existing SDK.
 
 Var s_SkipAndroidLicense # If 1, skip the license (we saw it already)
-Var s_SkipIntelLicense
 
 Var s_StartMenuGroup
 
@@ -193,7 +187,6 @@ Var s_StartMenuGroup
 !include PageDefns\UninstallPreviousPage.nsdinc
 !include PageDefns\AndroidSdkPage.nsdinc
 !include PageDefns\InstallDirsPage.nsdinc
-!include PageDefns\HaxmPage.nsdinc
 
 # ---------- Pages -------------------------------------------
 
@@ -210,15 +203,9 @@ Page custom fnc_UninstallPreviousPage_ShowIfNecessary func_UninstallPreviousPage
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE s_AndroidLicensePageLeave
 !insertmacro MUI_PAGE_LICENSE licenses/android.txt
 
-!define MUI_PAGE_CUSTOMFUNCTION_PRE s_IntelLicensePagePre
-!define MUI_PAGE_CUSTOMFUNCTION_LEAVE s_IntelLicensePageLeave
-!insertmacro MUI_PAGE_LICENSE licenses/intel.txt
-
 Page custom fnc_AndroidSdkPage_ShowIfNecessary fnc_AndroidSdkPage_Leave
 
 Page custom fnc_InstallDirsPage_Show fnc_InstallDirsPage_Leave
-
-Page custom fnc_HaxmPage_ShowIfNecessary fnc_HaxmPage_Leave
 
 !insertmacro MUI_PAGE_STARTMENU Application $s_StartMenuGroup
 
@@ -245,82 +232,6 @@ Page custom fnc_HaxmPage_ShowIfNecessary fnc_HaxmPage_Leave
     # In NSIS, the way you hide a section is by clearing its text
     ${UnselectSection} ${SECTION_ID}
     SectionSetText ${SECTION_ID} ""
-!macroend
-
-# Simple macro to call before using the HAXM installer. After calling this,
-# $s_InstallHaxmBat will be set.
-!macro PREPARE_HAXM_INSTALLER
-    !ifdef DIR_HAXM
-        File ${DIR_HAXM}\intelhaxm-android.exe
-        File ${DIR_HAXM}\silent_install.bat
-        StrCpy $s_InstallHaxmBat "$OUTDIR\silent_install.bat"
-    !endif
-!macroend
-
-# Run the HAXM installer with the following argument string.
-!macro RUN_HAXM_INSTALLER ARG_STR ERROR_CODE_VAR STDOUT_VAR
-    !ifdef DIR_HAXM
-        # Save existing variables
-        Push $0
-        Push $OUTDIR
-        ${GetParent} "$s_InstallHaxmBat" $0
-        SetOutPath $0 # Sets $OUTDIR and the cwd
-
-        ${If} ${RunningX64}
-            ${DisableX64FSRedirection} # Ensure HAXM bat runs in 64-bit mode
-        ${EndIf}
-
-        nsExec::ExecToStack '"$s_InstallHaxmBat" ${ARG_STR}'
-
-        # We restore $0 first, because if one of the macro args happens to also be
-        # $0, restoring it second would overwrite the arg.
-        # Stack (from bottom to top): $0, $OUTDIR, $STDOUT, $ERROR
-        Exch 3 #                      $ERROR, $OUTDIR, $STDOUT, $0
-        Pop $0
-        Pop ${STDOUT_VAR}
-        Pop $OUTDIR
-        Pop ${ERROR_CODE_VAR}
-
-        SetOutPath $OUTDIR
-    !else
-        StrCpy ${ERROR_CODE_VAR} 1
-        StrCpy ${STDOUT_VAR} "Installer not bundled with HAXM"
-    !endif # DIR_HAXM
-!macroend
-
-# Call this macro to see if HAXM is installable on the system. If so, OUT_VAR
-# will be set to 1, 0 otherwise. This macro should only be called after
-# PREPARE_HAXM_INSTALLER is called.
-!macro CAN_INSTALL_HAXM OUT_VAR
-    !insertmacro RUN_HAXM_INSTALLER "-c" $R0 $R1
-    # Error code is 0 if you can install haxm, non-zero otherwise
-    IntOp ${OUT_VAR} $R0 ! # $OUT_VAR = !$R0
-!macroend
-
-# Silently install HAXM. This macro should only be called after
-# PREPARE_HAXM_INSTALLER is called.
-!macro INSTALL_HAXM MEMORY_MB OUT_VAR MESSAGE
-    !insertmacro RUN_HAXM_INSTALLER "-m ${MEMORY_MB}" ${OUT_VAR} ${MESSAGE}
-    # RUN_HAXM_INSTALLER sets OUT_VAR to 0 on success, non-zero otherwise
-    # Change OUT_VAR to 0 on failure, 1 otherwise
-    IntOp ${OUT_VAR} ${OUT_VAR} ! # OUT_VAR = !OUT_VAR
-!macroend
-
-# Silently uninstall HAXM. This macro should only be called after
-# PREPARE_HAXM_INSTALLER is called.
-!macro UNINSTALL_HAXM
-    !insertmacro RUN_HAXM_INSTALLER "-u" $R0 $R1
-    # We currently don't care about the return values for this step - it either
-    # worked or it didn't, and we succeed or fail silently.
-!macroend
-
-# Call this macro to see if HAXM is already installed on the system. If so,
-# OUT_VAR will be set to 1, 0 otherwise. This macro should only be called after
-# PREPARE_HAXM_INSTALLER is called.
-!macro IS_HAXM_INSTALLED OUT_VAR
-    !insertmacro RUN_HAXM_INSTALLER "-v" $R0 $R1
-    # Error-code is 0 on installed, non-zero otherwise
-    IntOp ${OUT_VAR} $R0 ! # $OUT_VAR = !$R0
 !macroend
 
 # Requires the user to stop Studio, if it's running, or else we should abort.
@@ -400,46 +311,6 @@ SectionEnd
 
 
 
-Section "Performance (Intel® HAXM)" SectionHaxm
-    !ifndef DRY_RUN && UNINSTALL_BUILDER
-
-    !insertmacro INSTALL_HAXM "$var_HaxmPage_SelectedMB" $R0 $R1
-    ${If} $R0 == 0
-        ${StrContains} $0 $R1 "For details, please check the installation log"
-        ${If} $0 == 1
-            # Error message has log file name inside quotes
-            # Find string from first quote to end
-            ${StrStr} $0 $R1 '"'
-            StrLen $1 $0
-            # String contains two quotes plus \r\n
-            IntOp $1 $1 - 4
-            # Get just the filename
-            StrCpy $2 $0 $1 1
-            FileOpen $0 $2 r
-            # If there's an error opening the file, just print out the original message
-            IfErrors plainbox
-            # Actual content is on second line. Skip the first line
-            # TODO: support case where log is more than one line long
-            FileReadUTF16LE $0 $1
-            FileReadUTF16LE $0 $1
-            FileClose $0
-            IfErrors plainbox
-            StrCpy $1 "$R1$\r$\n$\r$\n$1"
-            MessageBox MB_OK $1 /SD IDOK
-        ${Else}
-            # If we didn't find the normal error, just print out the normal error
-            Goto plainbox
-        ${EndIf}
-        Goto done
-        plainbox:
-            MessageBox MB_OK $R1 /SD IDOK
-        done:
-    ${Endif}
-
-    !endif # DRY_RUN && UNINSTALL_BUILDER
-SectionEnd
-
-
 # MS VC Redistributable
 Section -Redist SectionRedist
     !ifdef DIR_MSREDIST
@@ -503,7 +374,6 @@ Section -Post SectionSystem
     WriteRegStr HKLM "${REGKEY}" SdkPath "$s_SdkPath"
     WriteRegStr HKLM "${REGKEY}" UserSettingsPath "$s_UserSettingsPath"
     WriteRegStr HKLM "${REGKEY}" InstallSdk "$s_InstallSdk"
-    WriteRegStr HKLM "${REGKEY}" InstallHaxm "$s_InstallHaxm"
 
     !endif # DRY_RUN && UNINSTALL_BUILDER
 SectionEnd
@@ -578,12 +448,6 @@ Section "un.Android SDK" UNSectionSdk
     !endif # DRY_RUN
 SectionEnd
 
-Section "un.Performance (Intel® HAXM)" UNSectionHaxm
-    !ifndef DRY_RUN
-    !insertmacro UNINSTALL_HAXM
-    !endif
-SectionEnd
-
 Section -un.FirstRun UNSectionFirstRun
     !ifndef DRY_RUN
         RmDir /r /REBOOTOK "$s_UserSettingsPath\studio\installer"
@@ -607,7 +471,6 @@ Section -un.Post UNSectionSystem
     DeleteRegValue HKLM "${REGKEY}" JdkPath
     DeleteRegValue HKLM "${REGKEY}" SdkPath
     DeleteRegValue HKLM "${REGKEY}" InstallSdk
-    DeleteRegValue HKLM "${REGKEY}" InstallHaxm
     DeleteRegValue HKLM "${REGKEY}" UserSettingsPath
 
     DeleteRegKey /IfEmpty HKLM "${REGKEY}"
@@ -634,9 +497,6 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SectionAvd} \
     "A preconfigured and optimized Android Virtual Device for app testing on \
     the emulator.  (Recommended)"
-  !insertmacro MUI_DESCRIPTION_TEXT ${SectionHaxm} \
-    "A hardware-assisted virtualization engine (hypervisor) which speeds up \
-    Android emulation on your development computer. (Recommended)"
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 !insertmacro MUI_UNFUNCTION_DESCRIPTION_BEGIN
@@ -646,9 +506,6 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${UNSectionSdk} \
     "The collection of Android platform APIs, tools and utilities that enables \
     you to debug, profile, and compile your app."
-  !insertmacro MUI_DESCRIPTION_TEXT ${UNSectionHaxm} \
-    "A hardware-assisted virtualization engine (hypervisor) which speeds up \
-    Android emulation on your development computer. (Recommended)"
   !insertmacro MUI_DESCRIPTION_TEXT ${UNSectionUserSettings} \
     "A folder that contains your saved Android Virtual Devices (AVDs), Android \
     SDK caches, and, potentially, app signing keystores."
@@ -815,21 +672,6 @@ Function .onInit
         SetRegView 64
     ${EndIf}
 
-    Call s_QuerySystemMemory
-    ${If} $s_SystemMemoryGB < 1
-        !insertmacro EXCLUDE_SECTION ${SectionHaxm}
-    ${EndIf}
-
-    !ifndef DRY_RUN
-        !insertmacro PREPARE_HAXM_INSTALLER
-
-        !insertmacro CAN_INSTALL_HAXM $R0
-        ${If} $R0 == 0
-            !insertmacro EXCLUDE_SECTION ${SectionHaxm}
-        ${Endif}
-
-    !endif # DRY_RUN
-
     ${fnc_DefaultPath} $s_StudioPath "${DEFAULT_STUDIO_PATH}" "${FALLBACK_STUDIO_PATH}" 0
     !ifdef BUNDLE_SDK
         StrCpy $s_SdkPath $s_DefaultSdkPath
@@ -861,7 +703,6 @@ Function un.onInit
     StrCpy $s_StudioPath $INSTDIR # $INSTDIR is set to cwd
     ReadRegStr $s_SdkPath HKLM "${REGKEY}" SdkPath
     ReadRegStr $s_InstallSdk HKLM "${REGKEY}" InstallSdk
-    ReadRegStr $s_InstallHaxm HKLM "${REGKEY}" InstallHaxm
     ReadRegStr $s_UserSettingsPath HKLM "${REGKEY}" UserSettingsPath
 
     # If we weren't the ones who installed the SDK in the first place, don't
@@ -869,12 +710,6 @@ Function un.onInit
     ${If} $s_InstallSdk != 1
         ${UnselectSection} ${UNSectionSdk}
     ${Endif}
-
-    # If we weren't the ones who installed HAXM in the first place, don't
-    # recommend uninstalling it by default.
-    ${If} $s_InstallHaxm != 1
-        ${UnselectSection} ${UNSectionHaxm}
-    ${EndIf}
 
     # Don't uninstall user settings by default
     ${UnselectSection} ${UNSectionUserSettings}
@@ -889,12 +724,6 @@ Function un.onInit
         IfFileExists $s_UserSettingsPath skip_exclude_settings_section 0
             !insertmacro EXCLUDE_SECTION ${UNSectionUserSettings}
         skip_exclude_settings_section:
-
-        !insertmacro PREPARE_HAXM_INSTALLER
-        !insertmacro IS_HAXM_INSTALLED $R0
-        ${If} $R0 == 0
-            !insertmacro EXCLUDE_SECTION ${UNSectionHaxm}
-        ${Endif}
     !endif # DRY_RUN
 
     IfSilent 0 skip_disable_sections
@@ -902,7 +731,6 @@ Function un.onInit
         # replace an existing version of Android Studio by removing it. So, only
         # remove Android Studio and nothing else!
         ${UnselectSection} ${UNSectionSdk}
-        ${UnselectSection} ${UNSectionHaxm}
         ${UnselectSection} ${UNSectionUserSettings}
     skip_disable_sections:
 
@@ -1203,9 +1031,6 @@ Function s_ComponentsPageLeave
     StrCpy $s_InstallSdk 0
 !endif # BUNDLE_SDK
 
-    SectionGetFlags ${SectionHaxm} $R0
-    IntOp $s_InstallHaxm  $R0 & ${SF_SELECTED}
-
 FunctionEnd
 
 # Called when entering the Android License page.
@@ -1222,25 +1047,6 @@ FunctionEnd
 # Called when leaving the Android License page.
 Function s_AndroidLicensePageLeave
     StrCpy $s_SkipAndroidLicense 1
-FunctionEnd
-
-# Called when entering the Intel License page.
-Function s_IntelLicensePagePre
-    ${If} $s_SkipIntelLicense == 1
-        Abort
-    ${Endif}
-
-    # No need to show the Intel license if we're not installing HAXM
-    SectionGetFlags ${SectionHaxm} $R0
-    IntOp $R0  $R0 & ${SF_SELECTED}
-    ${If} $R0 == 0
-        Abort
-    ${EndIf}
-FunctionEnd
-
-# Called when leaving the Intel License page.
-Function s_IntelLicensePageLeave
-    StrCpy $s_SkipIntelLicense 1
 FunctionEnd
 
 Function fnc_InstallDirsPage_InitializeControls # Called in InstallDirsPage.nsdinc
@@ -1327,23 +1133,6 @@ Function fnc_InstallDirsPage_Leave
         endOfBlock:
     ${EndIf}
 
-FunctionEnd
-
-Function fnc_HaxmPage_ShowIfNecessary
-
-    # Skip this page if the user deselected the HAXM component
-    SectionGetFlags ${SectionHaxm} $R0
-    IntOp $R0  $R0 & ${SF_SELECTED}
-    ${If} $R0 == 0
-        Abort
-    ${EndIf}
-
-    Call fnc_HaxmPage_Show
-FunctionEnd
-
-Function fnc_HaxmPage_InitializeControls # Called in HaxmPage.nsdinc
-    Push $s_SystemMemoryMB
-    Call fnc_HaxmPage_SetSystemMemory
 FunctionEnd
 
 # Called when leaving the "Confirm Uninstall" page
