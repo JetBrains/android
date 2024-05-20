@@ -108,6 +108,7 @@ internal open class TestClock {
 
   open fun updateAnimatedVisibilityState(animation: Any, state: Any) {}
 
+  // https://kotlinlang.org/docs/inline-classes.html#mangling
   open fun `getAnimatedVisibilityState-xga21d`(animation: Any): Any = "Enter"
 
   open fun updateFromAndToStates(animation: ComposeAnimation, fromState: Any, toState: Any) {}

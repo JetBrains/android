@@ -194,18 +194,18 @@ class ComposeAnimationManagerTests(private val animationType: ComposeAnimationTy
       }
 
     setupAndCheckToolbar(animationType, setOf("one", "two"), clock) { _, ui ->
-      // one from AnimationManager.setup
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
+      // one from AnimationManager.setup and one from offset.collect
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
-      assertEquals(2, numberOfCalls)
-      timelineSlider.value = 200
       withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       assertEquals(3, numberOfCalls)
+      timelineSlider.value = 200
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 4 } }
+      assertEquals(4, numberOfCalls)
     }
   }
 

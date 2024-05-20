@@ -157,38 +157,30 @@ open class ComposeSupportedAnimationManager(
       else -> originalStates
     }
 
-  /**
-   * Updates the `initial` and `target` state combo boxes to display the states of the given
-   * animation, and resets the timeline.
-   */
-  override suspend fun setup() {
-    val states: Set<Any> = handleKnownStateTypes(animation.states)
-    val currentState = animation.getCurrentState()
-    stateComboBox.updateStates(states)
-    stateComboBox.setStartState(currentState)
+  /** Initializes the state of the Compose animation before it starts */
+  final override suspend fun setup() {
+    stateComboBox.updateStates(handleKnownStateTypes(animation.states))
+    syncStateComboBoxWithAnimationStateInLibrary()
 
-    // Use a longer timeout the first time we're updating the start and end states. Since we're
-    // running off EDT, the UI will not freeze.
-    // This is necessary here because it's the first time the animation mutable states will be
-    // written, when setting the clock, and
-    // read, when getting its duration. These operations take longer than the default 30ms
-    // timeout the first time they're executed.
-    updateAnimationStartAndEndStates(longTimeout = true)
     loadTransitionFromCacheOrLib(longTimeout = true)
-
-    // Set up the state listeners so further changes to the selected state will trigger a
-    // call to updateAnimationStartAndEndStates.
+    loadProperties()
     stateComboBox.callbackEnabled = true
 
+    // Launch coroutines to handle state changes
     scope.launch { frozenState.collect { updateTimelineElementsCallback() } }
     scope.launch { card.expanded.collect { updateTimelineElementsCallback() } }
-
     scope.launch {
       offset.collect {
         loadProperties()
         updateTimelineElementsCallback()
       }
     }
+  }
+
+  protected open suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
+    val finalState = animation.getCurrentState()
+    stateComboBox.setStartState(finalState)
+    updateAnimationStartAndEndStates()
   }
 
   private fun ComposeAnimation.findCallback(): () -> Unit {

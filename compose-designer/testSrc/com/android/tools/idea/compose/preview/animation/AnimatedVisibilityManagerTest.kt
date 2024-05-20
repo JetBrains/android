@@ -174,16 +174,13 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
 
     setupAndCheckToolbar(clock) { _, ui ->
-      // call from SupportedAnimationManager.setup
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 1 } }
+      // call from SupportedAnimationManager.setup and one from offset.collect in setUp
+      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
       val sliders =
         TreeWalker(ui.root).descendantStream().filter { it is JSlider }.collect(Collectors.toList())
       assertEquals(1, sliders.size)
       val timelineSlider = sliders[0] as JSlider
       timelineSlider.value = 100
-      withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 2 } }
-      assertEquals(2, numberOfCalls)
-      timelineSlider.value = 200
       withContext(workerThread) { delayUntilCondition(200) { numberOfCalls == 3 } }
       assertEquals(3, numberOfCalls)
     }
