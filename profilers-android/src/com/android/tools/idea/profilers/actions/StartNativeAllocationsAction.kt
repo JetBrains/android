@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers
+package com.android.tools.idea.profilers.actions
 
-import com.android.tools.idea.run.profiler.CpuProfilerConfig
-import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.config.SimpleperfConfiguration
+import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory
+import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class StartCallstackSampleAction : AnAction() {
+class StartNativeAllocationsAction : AnAction() {
   @Suppress("VisibleForTests")
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project!!
     val profilers = AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)!!.profilers
-    val stage = CpuProfilerStage(profilers)
-    stage.profilerConfigModel.profilingConfiguration = SimpleperfConfiguration(CpuProfilerConfig.Technology.SAMPLED_NATIVE.name)
+    val stage = MainMemoryProfilerStage(profilers)
     profilers.stage = stage
-    stage.recordingModel.start()
+    stage.startNativeAllocationCapture()
   }
 }

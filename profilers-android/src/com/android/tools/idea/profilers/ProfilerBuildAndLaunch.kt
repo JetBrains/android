@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,39 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.profilers.actions.ProfileAction
+import com.android.tools.idea.profilers.actions.ProfileDebuggableAction
+import com.android.tools.idea.profilers.actions.ProfileProfileableAction
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 
 object ProfilerBuildAndLaunch {
   private fun getLogger() = Logger.getInstance(ProfilerBuildAndLaunch::class.java)
 
+  /**
+   * Builds and launches a profiling action associated with the given project.
+   *
+   * This method determines the appropriate profiling action based on the project's profiling mode support and the desired profileable
+   * mode. It then proceeds to build and launch the selected action.
+   *
+   * @param project The project for which the profiling action is to be built and launched.
+   * @param profileableMode If the project supports profiling mode (is a gradle-based project), this boolean flag indicates whether to use
+   *                        a profileable or a debuggable profiling action. Otherwise, this parameter is ignored.
+   */
   @JvmStatic
-  fun buildAndLaunchAction(profileableMode: Boolean) {
-    val action = if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
+  fun buildAndLaunchAction(project: Project, profileableMode: Boolean) {
+    val action = if (project.getProjectSystem().supportsProfilingMode()) {
+      if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
+    }
+    else {
+      ProfileAction()
+    }
+
     doBuildAndLaunchAction(action)
   }
 

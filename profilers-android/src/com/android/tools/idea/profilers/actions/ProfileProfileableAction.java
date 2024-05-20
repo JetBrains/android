@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.profilers;
+package com.android.tools.idea.profilers.actions;
 
+import com.android.tools.idea.profilers.ProfileRunExecutorGroup;
 import com.android.tools.idea.run.profiler.ProfilingMode;
 import com.intellij.execution.ExecutorRegistryImpl;
 
-public class ProfileDebuggableAction extends ExecutorRegistryImpl.ExecutorAction {
-  ProfileDebuggableAction() {
-    super(ProfileRunExecutorGroup.getInstance().getChildExecutor(ProfilingMode.DEBUGGABLE));
+public class ProfileProfileableAction extends ExecutorRegistryImpl.ExecutorAction {
+  public ProfileProfileableAction() {
+    super(ProfileRunExecutorGroup.getInstance().getChildExecutor(ProfilingMode.PROFILEABLE));
   }
 }

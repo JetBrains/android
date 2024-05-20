@@ -24,27 +24,27 @@
                       doNotActivateOnStart="true"/>
   </extensions>
   <actions>
-    <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.ChooseProfileConfigurationPopupAction"
+    <action id="Android.ChooseProfileConfiguration" class="com.android.tools.idea.profilers.actions.ChooseProfileConfigurationPopupAction"
             text="Profile..." description="Choose and profile configuration" icon="StudioIcons.Shell.Toolbar.PROFILER">
       <add-to-group group-id="RunMenu" anchor="after" relative-to-action="ChooseDebugConfiguration" />
     </action>
-    <action id="Android.ProfileWithLowOverhead" class="com.android.tools.idea.profilers.ProfileProfileableAction">
+    <action id="Android.ProfileWithLowOverhead" class="com.android.tools.idea.profilers.actions.ProfileProfileableAction">
     </action>
-    <action id="Android.ProfileWithCompleteData" class="com.android.tools.idea.profilers.ProfileDebuggableAction">
+    <action id="Android.ProfileWithCompleteData" class="com.android.tools.idea.profilers.actions.ProfileDebuggableAction">
     </action>
-    <action id="Android.StopProfilingSession" class="com.android.tools.idea.profilers.StopProfilingSessionAction">
+    <action id="Android.StopProfilingSession" class="com.android.tools.idea.profilers.actions.StopProfilingSessionAction">
     </action>
-    <action id="Android.StartSystemTrace" class="com.android.tools.idea.profilers.StartSystemTraceAction">
+    <action id="Android.StartSystemTrace" class="com.android.tools.idea.profilers.actions.StartSystemTraceAction">
     </action>
-    <action id="Android.StartCallstackSample" class="com.android.tools.idea.profilers.StartCallstackSampleAction">
+    <action id="Android.StartCallstackSample" class="com.android.tools.idea.profilers.actions.StartCallstackSampleAction">
     </action>
-    <action id="Android.StopCpuCapture" class="com.android.tools.idea.profilers.StopCpuCaptureAction">
+    <action id="Android.StopCpuCapture" class="com.android.tools.idea.profilers.actions.StopCpuCaptureAction">
     </action>
-    <action id="Android.StartHeapDump" class="com.android.tools.idea.profilers.StartHeapDumpAction">
+    <action id="Android.StartHeapDump" class="com.android.tools.idea.profilers.actions.StartHeapDumpAction">
     </action>
-    <action id="Android.StartNativeAllocations" class="com.android.tools.idea.profilers.StartNativeAllocationsAction">
+    <action id="Android.StartNativeAllocations" class="com.android.tools.idea.profilers.actions.StartNativeAllocationsAction">
     </action>
-    <action id="Android.StopNativeAllocations" class="com.android.tools.idea.profilers.StopNativeAllocationsAction">
+    <action id="Android.StopNativeAllocations" class="com.android.tools.idea.profilers.actions.StopNativeAllocationsAction">
     </action>
     <action id="Android.ProfilerSelectDevice" class="com.android.tools.idea.profilers.actions.ProfilerSelectDeviceAction">
     </action>
