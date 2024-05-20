@@ -121,9 +121,9 @@ class ManualLayoutAlgorithm(private val module: Module) : SingleComponentLayoutA
     setPosition(tag, positions)
     for ((id, position) in positions.myPositions) {
       for (subtag in tag.subTags) {
-        var subtagId = subtag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
+        var subtagId = runReadAction { subtag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId) }
         if (subtagId == null && subtag.name == TAG_INCLUDE) {
-          subtagId = subtag.getAttributeValue(ATTR_GRAPH, AUTO_URI)?.substring(NAVIGATION_PREFIX.length)
+          subtagId = runReadAction { subtag.getAttributeValue(ATTR_GRAPH, AUTO_URI)?.substring(NAVIGATION_PREFIX.length) }
         }
         if (subtagId == id) {
           reload(position, subtag)
