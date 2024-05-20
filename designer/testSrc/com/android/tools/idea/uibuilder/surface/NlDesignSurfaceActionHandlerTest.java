@@ -52,7 +52,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -136,9 +135,8 @@ public class NlDesignSurfaceActionHandlerTest {
     assertThat(myCopyPasteManager.getContents()).isNotNull();
   }
 
-  @Ignore("b/157650498")
   @Test
-  public void ignore_testPasteWillChangeSelectionToPastedComponent() {
+  public void testPasteWillChangeSelectionToPastedComponent() {
     // Need to use the real copyPasteManager for checking the result of selection model.
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface);
 
@@ -150,6 +148,7 @@ public class NlDesignSurfaceActionHandlerTest {
 
     mySurfaceActionHandler.performCopy(context);
     mySurfaceActionHandler.performPaste(context);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     assertThat(myModel.getTreeReader().getComponents().get(0).getChildCount()).isEqualTo(4);
     assertThat(mySurface.getSelectionModel().getSelection().size()).isEqualTo(1);
