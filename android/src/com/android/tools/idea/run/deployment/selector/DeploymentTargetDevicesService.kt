@@ -33,11 +33,10 @@ import com.android.tools.idea.run.asDdmlibDeviceLookup
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
@@ -61,13 +60,15 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * A service that produces the [DeploymentTargetDevice] objects used by the target selection
  * dropdown, by joining the current set of devices and device templates from the [DeviceProvisioner]
  * with their [LaunchCompatibility] state and connection time.
  */
-internal class DeploymentTargetDevicesService
+class DeploymentTargetDevicesService
 @NonInjectable
 @VisibleForTesting
 constructor(
@@ -107,9 +108,11 @@ constructor(
     launchCompatibilityChecker: LaunchCompatibilityChecker
   ): Flow<List<DeploymentTargetDevice>> = channelFlow {
     val handles = ConcurrentHashMap<DeviceHandle, DeploymentTargetDevice>()
-    // Immediately send empty list, since if the actual list is empty, there will be no Add,
-    // and we don't want to be stuck in the Loading state.
-    send(emptyList())
+    if (ApplicationManager.getApplication().run { !isHeadlessEnvironment || isUnitTestMode }) {
+      // Immediately send empty list, since if the actual list is empty, there will be no Add,
+      // and we don't want to be stuck in the Loading state if we're not working in a headless environment.
+      send(emptyList())
+    }
     devicesFlow
       .map { it.toSet() }
       .trackSetChanges()
@@ -166,7 +169,7 @@ constructor(
     }
   }
 
-  val devices: StateFlow<LoadingState<List<DeploymentTargetDevice>>> =
+  internal val devices: StateFlow<LoadingState<List<DeploymentTargetDevice>>> =
     adbFlow
       .flatMapLatest { ddmlibDeviceLookup ->
         if (ddmlibDeviceLookup == null) {
@@ -189,7 +192,7 @@ constructor(
   /** A flow that only contains the list of devices when it is ready. */
   val loadedDevices: Flow<List<DeploymentTargetDevice>> = devices.mapNotNull { it.value }
 
-  fun loadedDevicesOrNull(): List<DeploymentTargetDevice>? {
+  internal fun loadedDevicesOrNull(): List<DeploymentTargetDevice>? {
     return devices.firstValue().value
   }
 }

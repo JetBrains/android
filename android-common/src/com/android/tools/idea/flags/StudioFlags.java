@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.flags;
 
+import static com.intellij.util.PlatformUtils.getPlatformPrefix;
+
 import com.android.flags.BooleanFlag;
 import com.android.flags.Flag;
 import com.android.flags.FlagGroup;
@@ -25,17 +27,15 @@ import com.android.flags.StringFlag;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
 import com.android.tools.idea.IdeChannel;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.util.PlatformUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.TestOnly;
-
-import static com.intellij.util.PlatformUtils.getPlatformPrefix;
 
 /**
  * A collection of all feature flags used by Android Studio. These flags can be used to gate
@@ -409,7 +409,7 @@ public final class StudioFlags {
     "deployment.target.deviceprovisioner",
     "Use Device Provisioner to provide deployment targets",
     "Uses the Device Provisioner to get the list of potential devices to deploy to.",
-    ChannelDefault.of(false)
+    ChannelDefault.of(PlatformUtils.isFleetBackend())
       .withDevOverride(true)
       .withNightlyOverride(true)
       .withCanaryOverride(true));

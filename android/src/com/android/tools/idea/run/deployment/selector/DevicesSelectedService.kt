@@ -23,8 +23,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -35,6 +33,8 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * The central coordination point between the UI, the DevicesService, and the persistent state.
@@ -53,10 +53,10 @@ import kotlinx.datetime.Instant
  * devices are *not* persisted in SelectedTargetStateService -- only user selections are stored.
  */
 @Service(Service.Level.PROJECT)
-internal class DevicesSelectedService
+class DevicesSelectedService
 @VisibleForTesting
 @NonInjectable
-constructor(
+internal constructor(
   private val runConfigurationFlow: Flow<RunnerAndConfigurationSettings?>,
   private val selectedTargetStateService: SelectedTargetStateService,
   private val devicesFlow: Flow<List<DeploymentTargetDevice>>,
@@ -103,7 +103,7 @@ constructor(
    * The primary output of this class, which is the result of combining the current set of devices
    * and the persisted selection to determine a set of selected targets.
    */
-  val devicesAndTargetsFlow =
+  internal val devicesAndTargetsFlow =
     devicesFlow
       .combine(selectionStateFlow, ::updateState)
       .stateIn(
@@ -112,7 +112,7 @@ constructor(
         DevicesAndTargets(emptyList(), false, emptyList())
       )
 
-  val devicesAndTargets: DevicesAndTargets
+  internal val devicesAndTargets: DevicesAndTargets
     get() = devicesAndTargetsFlow.firstValue()
 
   private fun updateSelectionState(selectionState: SelectionState) {

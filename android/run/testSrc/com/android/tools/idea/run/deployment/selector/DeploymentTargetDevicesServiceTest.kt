@@ -25,6 +25,7 @@ import com.android.tools.idea.run.DeviceProvisionerAndroidDevice
 import com.android.tools.idea.run.LaunchCompatibility
 import com.android.tools.idea.run.LaunchCompatibilityChecker
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +35,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import kotlin.time.Duration.Companion.seconds
 
-class DeploymentTargetDevicesServiceTest {
+class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestCase() {
   companion object {
     fun runTestWithFixture(test: suspend Fixture.() -> Unit) {
       runTest {
