@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
-import com.android.ddmlib.Client
 import com.android.sdklib.AndroidVersion
 import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.execution.common.debug.utils.FacetFinder
@@ -519,8 +518,8 @@ private fun IdeArtifactName.toKnownScopeType() =
  * An [ApplicationProjectContextProvider] for the Gradle project system.
  */
 class GradleApplicationProjectContextProvider(val project: Project) : ApplicationProjectContextProvider, GradleToken {
-  override fun getApplicationProjectContext(client: Client): ApplicationProjectContext? {
-    val result = FacetFinder.tryFindFacetForProcess(project, client.clientData) ?: return null
+  override fun getApplicationProjectContext(info: ApplicationProjectContextProvider.RunningApplicationIdentity): ApplicationProjectContext? {
+    val result = FacetFinder.tryFindFacetForProcess(project, info) ?: return null
     return FacetBasedApplicationProjectContext(
       result.applicationId,
       result.facet

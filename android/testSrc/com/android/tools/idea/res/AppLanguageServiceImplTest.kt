@@ -20,6 +20,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ApplicationProjectContext
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.projectsystem.PseudoLocalesToken
 import com.android.tools.idea.projectsystem.gradle.GradlePseudoLocalesToken
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -91,10 +92,10 @@ class AppLanguageServiceImplTest {
   @Test
   fun testLanguageServices() {
     val services = AppLanguageService.getInstance(projectRule.project)
-    assertThat(services.getAppLanguageInfo(serialNumber, "com.example.one")).isEqualTo(
+    assertThat(services.getAppLanguageInfo(RunningApplicationIdentity(processName = null, applicationId = "com.example.one"))).isEqualTo(
       AppLanguageInfo("com.example.one", setOf(LocaleQualifier("da")))
     )
-    assertThat(services.getAppLanguageInfo(serialNumber, "com.example.two")).isEqualTo(
+    assertThat(services.getAppLanguageInfo(RunningApplicationIdentity(processName = null, applicationId = "com.example.two"))).isEqualTo(
       AppLanguageInfo("com.example.two", setOf(
         LocaleQualifier("ru"),
         LocaleQualifier(null, "en", "XA", null),

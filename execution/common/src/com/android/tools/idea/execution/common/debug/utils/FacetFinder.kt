@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.execution.common.debug.utils
 
-import com.android.ddmlib.ClientData
+import com.android.ddmlib.Client
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity.Companion.asRunningApplicationIdentity
 import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -55,18 +57,18 @@ object FacetFinder {
    * @return The facet to use for attachment configuration. Throws if no suitable facet exists.
    */
   @Throws(ExecutionException::class)
-  fun findFacetForProcess(project: Project, clientData: ClientData): Result {
-    return tryFindFacetForProcess(project, clientData)
-           ?: throw ExecutionException("Unable to find project context to attach debugger for process ${clientData.clientDescription}")
+  fun findFacetForProcess(project: Project, client: Client): Result {
+    return tryFindFacetForProcess(project, client.asRunningApplicationIdentity())
+           ?: throw ExecutionException("Unable to find project context to attach debugger for process ${client.clientData.clientDescription}")
   }
   /**
    * Finds a suitable facet by process name to use in debugger attachment configuration.
    *
    * @return The facet to use for attachment configuration. Null if no suitable facet exists.
    */
-  fun tryFindFacetForProcess(project: Project, clientData: ClientData): Result? {
-    return clientData.packageName?.let { heuristicApplicationId -> findFacetForApplicationId(project, heuristicApplicationId) }
-           ?: clientData.clientDescription?.let { clientDescription -> findFacetForGlobalProcess(project, clientDescription) }
+  fun tryFindFacetForProcess(project: Project, info: ApplicationProjectContextProvider.RunningApplicationIdentity): Result? {
+    return info.heuristicApplicationId?.let { heuristicApplicationId -> findFacetForApplicationId(project, heuristicApplicationId) }
+           ?: info.processName?.let { clientDescription -> findFacetForGlobalProcess(project, clientDescription) }
   }
 
   private fun findFacetForApplicationId(project: Project, applicationId: String): Result? {

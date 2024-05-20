@@ -16,6 +16,7 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
 import com.android.tools.idea.streaming.uisettings.stats.UiSettingsStats
@@ -31,7 +32,6 @@ import kotlinx.coroutines.launch
  */
 internal class DeviceUiSettingsController(
   private val deviceController: DeviceController,
-  private val deviceSerialNumber: String,
   deviceConfig: DeviceConfiguration,
   private val project: Project,
   model: UiSettingsModel,
@@ -51,7 +51,8 @@ internal class DeviceUiSettingsController(
     model.selectToSpeakOn.setFromController(response.selectToSpeakOn)
     model.gestureNavigation.setFromController(response.gestureNavigation)
     model.debugLayout.setFromController(response.debugLayout)
-    AppLanguageService.getInstance(project).getAppLanguageInfo(deviceSerialNumber, response.foregroundApplicationId)?.let {
+    AppLanguageService.getInstance(project).getAppLanguageInfo(
+      RunningApplicationIdentity(applicationId = response.foregroundApplicationId, processName = null))?.let {
       addLanguage(it.applicationId, it.localeConfig, response.appLocale)
     }
     model.differentFromDefault.setFromController(!response.originalValues)

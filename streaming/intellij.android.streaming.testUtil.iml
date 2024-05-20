@@ -32,6 +32,7 @@
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.streaming" />
 </module>

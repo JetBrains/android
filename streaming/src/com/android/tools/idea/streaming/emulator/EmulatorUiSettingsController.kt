@@ -21,6 +21,7 @@ import com.android.adblib.shellAsLines
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.stats.AnonymizerUtil
@@ -260,9 +261,12 @@ internal class EmulatorUiSettingsController(
     val match = Regex(APP_LANGUAGE_PATTERN).find(appLanguageLine) ?: return
     val applicationId = match.groupValues[1]
     val localeTag = match.groupValues[2].split(",").firstOrNull().takeIf { it != "null" } ?: ""
-    AppLanguageService.getInstance(project).getAppLanguageInfo(deviceSerialNumber, applicationId)?.let {
+    AppLanguageService.getInstance(project).getAppLanguageInfo(
+      RunningApplicationIdentity(applicationId = applicationId, processName = null))?.let {
       addLanguage(applicationId, it.localeConfig, localeTag)
     }
+
+
     readApplicationId = applicationId
     lastLocaleTag = localeTag
   }

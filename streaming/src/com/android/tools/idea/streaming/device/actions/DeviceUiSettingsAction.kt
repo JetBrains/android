@@ -47,14 +47,13 @@ internal class DeviceUiSettingsAction : AbstractDeviceAction(
 
   override fun actionPerformed(event: AnActionEvent) {
     val deviceView = event.getData(DEVICE_VIEW_KEY) ?: return
-    val deviceSerialNumber = deviceView.deviceClient.deviceSerialNumber
     val project = event.project ?: return
     val deviceController = getDeviceController(event) ?: return
     val config = getDeviceConfig(event) ?: return
     val screenSize = config.deviceProperties.resolution?.let { Dimension(it.width, it.height) } ?: return
     val density = config.deviceProperties.density ?: return
     val model = UiSettingsModel(screenSize, density, config.apiLevel, config.isWatch)
-    val controller = DeviceUiSettingsController(deviceController, deviceSerialNumber, config, project, model, deviceView)
+    val controller = DeviceUiSettingsController(deviceController, config, project, model, deviceView)
     AndroidCoroutineScope(deviceView).launch {
       controller.populateModel()
       EventQueue.invokeLater {
