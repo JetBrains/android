@@ -94,7 +94,6 @@ java_library(
 
 dex_library(
     name = "screen-sharing-agent",
-    dexer = "D8",
     flags = ["--min-api 26"],
     jars = [
         ":apk_lib",
