@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
 import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.WindowDeviationAnalyzer
+import com.google.common.truth.Truth
 import org.junit.rules.ExternalResource
 import java.io.File
 import java.nio.file.Files
@@ -68,6 +69,7 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
   }
 
   private fun recordHistogramValues(projectName: String) {
+    val capturedMetricNames = mutableListOf<String>()
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "histogram" }.asIterable()) {
       val lines = metricFilePath.readLines()
       // Files less than three lines are likely not heap snapshots
@@ -81,18 +83,25 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
       val metricName = metricFilePath.toMetricName()
       val timestamp = metricFilePath.toTimestamp()
       println("Recording ${projectName}_$metricName -> $totalBytes bytes ($totalMegabytes MBs)")
-      recordMemoryMeasurement("${projectName}_$metricName", TimestampedMeasurement(
+      recordMemoryMeasurement(capturedMetricNames, "${projectName}_$metricName", TimestampedMeasurement(
         timestamp,
         totalBytes
         ))
-        Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
+      Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
     }
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory && it.extension == "hprof" }.asIterable()) {
       Files.move(metricFilePath.toPath(), TestUtils.getTestOutputDir().resolve(metricFilePath.name))
     }
+    Truth.assertThat(capturedMetricNames).containsExactly(
+      "${projectName}_Configuration_Finished",
+      "${projectName}_Android_Started",
+      "${projectName}_Android_Finished",
+      "${projectName}_Sync_Finished",
+    )
   }
 
   private fun recordMemoryMeasurement(
+    capturedMetricNames: MutableList<String>,
     metricName: String,
     measurement: TimestampedMeasurement,
     enableAnalyzer: Boolean = true) {
@@ -106,5 +115,6 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
       }
       commit() // There is only one measurement per type, so we can commit immediately.
     }
+    capturedMetricNames.add(metricName)
   }
 }

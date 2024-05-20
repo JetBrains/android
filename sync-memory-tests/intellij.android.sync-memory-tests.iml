@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="memory-usage" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="javax-inject" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.sync" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
   </component>
 </module>

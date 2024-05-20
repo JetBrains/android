@@ -119,6 +119,7 @@ iml_module(
         "//tools/adt/idea/memory-usage[module, test]",
         "//tools/adt/idea/.idea/libraries:javax-inject[test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 
