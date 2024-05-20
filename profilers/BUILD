@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_test")
 
 # Export testData traces
@@ -23,6 +24,7 @@ iml_module(
         "//prebuilts/tools:simpleperf",
     ],
     test_srcs = ["testSrc"],
+    test_timeout = "long",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -79,8 +81,6 @@ kotlin_test(
         "//tools/base/transport/proto:transport_java_proto",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
