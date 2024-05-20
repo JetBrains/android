@@ -13,13 +13,7 @@ cc_library(
         "app/src/main/cpp",
     ],
     linkopts = ANDROID_LINKOPTS,
-    tags = [
-        "manual",
-        "no_windows",
-        # This target relies on Android transitions, and only builds as a dependency of android_cc_binary rules.
-        # See b/181808614#comment6.
-        "no_linux",
-    ],
+    target_compatible_with = ["@platforms//os:android"],
     alwayslink = True,
 )
 
@@ -32,13 +26,7 @@ cc_binary(
     ],
     linkshared = True,
     stamp = 0,
-    tags = [
-        "manual",
-        "no_windows",
-        # This target relies on Android transitions, and only builds as a dependency of android_cc_binary rules.
-        # See b/181808614#comment6.
-        "no_linux",
-    ],
+    target_compatible_with = ["@platforms//os:android"],
     deps = [
         ":screen-sharing-agent_lib",
     ],
@@ -46,12 +34,6 @@ cc_binary(
 
 android_cc_binary(
     name = "native",
-    abis = [
-        "x86",
-        "x86_64",
-        "armeabi-v7a",
-        "arm64-v8a",
-    ],
     binary = ":screen-sharing-agent.so",
     filename = "libscreen-sharing-agent.so",
     tags = ["no_windows"],
