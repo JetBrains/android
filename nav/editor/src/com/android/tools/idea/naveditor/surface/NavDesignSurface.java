@@ -182,9 +182,10 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       this::getSizeFromSceneView,
       getAnalyticsManager(),
       getSelectionModel(),
-      (ScenesOwner) this
+      this
     );
     myZoomController.setZoomListener(this);
+    myZoomController.setOnScaleListener(this);
   }
 
   @NotNull
