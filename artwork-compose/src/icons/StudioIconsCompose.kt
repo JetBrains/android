@@ -83,6 +83,7 @@ object StudioIconsCompose {
     @Composable fun DeviceWearLarge() = artworkPainterProvider("/studio/icons/avd/device-wear-large.svg") // 32x32
     @Composable fun DeviceWear() = artworkPainterProvider("/studio/icons/avd/device-wear.svg") // 16x16
     @Composable fun Edit() = artworkPainterProvider("/studio/icons/avd/edit.svg") // 16x16
+    @Composable fun FirebaseDeviceManager() = artworkPainterProvider("/studio/icons/avd/firebase-device-manager.svg") // 16x16
     @Composable fun Landscape() = artworkPainterProvider("/studio/icons/avd/landscape.svg") // 48x48
     @Composable fun PairOverWifi() = artworkPainterProvider("/studio/icons/avd/pair-over-wifi.svg") // 16x16
     @Composable fun Portrait() = artworkPainterProvider("/studio/icons/avd/portrait.svg") // 48x48

@@ -67,6 +67,7 @@ public final class StudioIcons {
     /** 32x32 */ public static final @NotNull Icon DEVICE_WEAR_LARGE = load("studio/icons/avd/device-wear-large.svg", 970437549, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_WEAR = load("studio/icons/avd/device-wear.svg", -1995925405, 2);
     /** 16x16 */ public static final @NotNull Icon EDIT = load("studio/icons/avd/edit.svg", -1443582273, 2);
+    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_MANAGER = load("studio/icons/avd/firebase-device-manager.svg", 1109401918, 2);
     /** 48x48 */ public static final @NotNull Icon LANDSCAPE = load("studio/icons/avd/landscape.svg", 1623499240, 2);
     /** 16x16 */ public static final @NotNull Icon PAIR_OVER_WIFI = load("studio/icons/avd/pair-over-wifi.svg", 518309452, 2);
     /** 48x48 */ public static final @NotNull Icon PORTRAIT = load("studio/icons/avd/portrait.svg", 696391375, 2);
@@ -216,11 +217,11 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon DATABASE_FOLDER = load("studio/icons/device-explorer/database-folder.svg", 202011025, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_PAIRED_AND_CONNECTED = load("studio/icons/device-explorer/device-paired-and-connected.svg", 1551878479, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_PAIRED = load("studio/icons/device-explorer/device-paired.svg", 1058114786, 2);
-    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_CAR = load("studio/icons/device-explorer/firebase-device-car.svg", -2077807924, 2);
-    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_DESKTOP = load("studio/icons/device-explorer/firebase-device-desktop.svg", -921467352, 2);
-    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_PHONE = load("studio/icons/device-explorer/firebase-device-phone.svg", 962936106, 2);
-    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_TV = load("studio/icons/device-explorer/firebase-device-tv.svg", 831214217, 2);
-    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_WEAR = load("studio/icons/device-explorer/firebase-device-wear.svg", 1812863899, 2);
+    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_CAR = load("studio/icons/device-explorer/firebase-device-car.svg", -840625788, 2);
+    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_DESKTOP = load("studio/icons/device-explorer/firebase-device-desktop.svg", -1907041985, 2);
+    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_PHONE = load("studio/icons/device-explorer/firebase-device-phone.svg", 258071866, 2);
+    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_TV = load("studio/icons/device-explorer/firebase-device-tv.svg", -1398133332, 2);
+    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_WEAR = load("studio/icons/device-explorer/firebase-device-wear.svg", -1705649727, 2);
     /** 16x16 */ public static final @NotNull Icon MULTIPLE_DEVICES = load("studio/icons/device-explorer/multiple-devices.svg", 258441174, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_CAR = load("studio/icons/device-explorer/physical-device-car.svg", 561759189, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_PHONE = load("studio/icons/device-explorer/physical-device-phone.svg", -2054075724, 2);
