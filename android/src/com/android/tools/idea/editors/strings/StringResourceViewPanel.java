@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings;
 
 import com.android.ide.common.resources.Locale;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.actions.BrowserHelpAction;
 import com.android.tools.idea.editors.strings.action.AddKeyAction;
 import com.android.tools.idea.editors.strings.action.AddLocaleAction;
@@ -29,6 +30,7 @@ import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
+import com.android.tools.idea.res.StringResourceWriter;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -36,6 +38,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
@@ -49,6 +52,9 @@ import java.awt.Container;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
@@ -83,9 +89,18 @@ public class StringResourceViewPanel implements Disposable {
 
   private GoToDeclarationAction myGoToAction;
   private DeleteStringAction myDeleteAction;
+  private CopyAllSelectedAction myCopyAllAction;
 
-  StringResourceViewPanel(AndroidFacet facet, Disposable parentDisposable) {
+  private final Supplier<StringResourceWriter> myStringResourceWriterFactory;
+
+  @VisibleForTesting
+  StringResourceViewPanel(
+    @NotNull AndroidFacet facet,
+    @NotNull Disposable parentDisposable,
+    @NotNull Supplier<StringResourceWriter> stringResourceWriterFactory
+  ) {
     myFacet = facet;
+    myStringResourceWriterFactory = stringResourceWriterFactory;
     Disposer.register(parentDisposable, this);
 
     initTable();
@@ -115,15 +130,65 @@ public class StringResourceViewPanel implements Disposable {
     }
   }
 
+  StringResourceViewPanel(
+    @NotNull AndroidFacet facet,
+    @NotNull Disposable parentDisposable
+  ) {
+    this(facet, parentDisposable, () -> StringResourceWriter.INSTANCE);
+  }
+
+  /**
+   * Deletes the currently selected keys (if any).
+   */
+  public void deleteSelectedKeys() {
+    int modelColumn = myTable.getSelectedModelColumnIndex();
+    if (modelColumn < 0) return; // No column selected
+
+    int[] selectedRows = myTable.getSelectedModelRows();
+    if (selectedRows.length < 1) return;
+
+    StringResourceTableModel model = myTable.getModel();
+    List<ResourceItem> items = Arrays.stream(selectedRows)
+      .boxed()
+      .flatMap((selectedRow) -> model.getRepository().getItems(model.getKey(selectedRow)).stream())
+      .toList();
+    myStringResourceWriterFactory.get().safeDelete(myFacet.getModule().getProject(), items, this::reloadData);
+  }
+
+  /**
+   * Deletes the currently selected translations or keys. If the currently selected column if part of the key
+   * definition (in the frozen part of the table), the full keys will be removed. If the translations are selected
+   * only those will be removed.
+   */
+  public void deleteStrings() {
+    int modelColumn = myTable.getSelectedModelColumnIndex();
+    int modelRow = myTable.getSelectedModelRowIndex();
+    if (modelColumn < 0 || modelRow < 0) {
+      return;
+    }
+
+    if (!StringResourceTableModel.isStringValueColumn(modelColumn)) {
+      deleteSelectedKeys();
+      return;
+    }
+
+    int[] selectedRows = myTable.getSelectedModelRows();
+    if (selectedRows.length < 1) return;
+
+    WriteCommandAction.runWriteCommandAction(myFacet.getModule().getProject(), "Delete Strings", null, () ->
+      Arrays.stream(selectedRows).forEach(rowIndex -> myTable.getModel().setValueAt("", rowIndex, modelColumn)));
+  }
+
   @Override
   public void dispose() {
   }
 
   private void initTable() {
+    myTable = new StringResourceTable();
+
     myDeleteAction = new DeleteStringAction(this);
     myGoToAction = new GoToDeclarationAction(myFacet.getModule().getProject());
-
-    myTable = new StringResourceTable();
+    myCopyAllAction = CopyAllSelectedAction.create(myTable);
 
     myTable.putInActionMap("delete", myDeleteAction);
     myTable.addFrozenColumnTableListener(new CellSelectionListener());
@@ -132,12 +197,14 @@ public class StringResourceViewPanel implements Disposable {
     JPopupMenu menu = new JPopupMenu();
     JMenuItem goTo = menu.add(myGoToAction);
     JMenuItem delete = menu.add(myDeleteAction);
+    JMenuItem copy = menu.add(myCopyAllAction);
 
     myTable.addFrozenColumnTableListener(new FrozenColumnTableListener() {
       @Override
       public void cellPopupTriggered(@NotNull FrozenColumnTableEvent event) {
         myGoToAction.update(goTo, event);
         myDeleteAction.update(delete, event);
+        myCopyAllAction.update(copy);
 
         if (goTo.isVisible() || delete.isVisible()) {
           Point point = event.getPoint();

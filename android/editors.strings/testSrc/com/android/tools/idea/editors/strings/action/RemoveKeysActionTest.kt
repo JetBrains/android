@@ -22,9 +22,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.argumentCaptor
-import com.android.testutils.MockitoKt.capture
-import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResourceEditor
@@ -33,7 +30,6 @@ import com.android.tools.idea.editors.strings.model.StringResourceKey
 import com.android.tools.idea.editors.strings.model.StringResourceRepository
 import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
-import com.android.tools.idea.res.StringResourceWriter
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
@@ -47,11 +43,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 
 @RunWith(JUnit4::class)
 class RemoveKeysActionTest {
@@ -59,11 +52,10 @@ class RemoveKeysActionTest {
 
   private val stringResourceEditor: StringResourceEditor = mock()
   private val panel: StringResourceViewPanel = mock()
-  private val stringResourceWriter: StringResourceWriter = mock()
   private val table: StringResourceTable = mock()
   private val model: StringResourceTableModel = mock()
   private val repository: StringResourceRepository = mock()
-  private val removeKeysAction = RemoveKeysAction(stringResourceWriter)
+  private val removeKeysAction = RemoveKeysAction()
   private lateinit var event: AnActionEvent
 
   @Before
@@ -108,8 +100,6 @@ class RemoveKeysActionTest {
     whenever(table.selectedModelRowIndex).thenReturn(-1)
 
     removeKeysAction.actionPerformed(event)
-
-    verifyNoMoreInteractions(stringResourceWriter)
   }
 
   @Test
@@ -119,17 +109,8 @@ class RemoveKeysActionTest {
 
     removeKeysAction.actionPerformed(event)
 
-    val callbackRunnableCaptor: ArgumentCaptor<Runnable> = argumentCaptor()
-    verify(stringResourceWriter)
-      .safeDelete(
-        eq(projectRule.project),
-        eq(resourceItems[index]),
-        capture(callbackRunnableCaptor),
-      )
-    verify(panel, never()).reloadData()
-    callbackRunnableCaptor.value.run()
-    verify(panel).reloadData()
-    verifyNoMoreInteractions(stringResourceWriter)
+    verify(panel)
+      .deleteSelectedKeys()
   }
 
   companion object {

@@ -19,6 +19,8 @@ import static com.android.testutils.AsyncTestUtils.waitForCondition;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents;
 
+import com.android.ide.common.resources.Locale;
+import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
@@ -27,9 +29,12 @@ import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowF
 import com.android.tools.idea.res.ModuleResourceRepository;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.StringResourceWriter;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -38,7 +43,9 @@ import javax.swing.AbstractButton;
 import javax.swing.CellEditor;
 import javax.swing.DefaultCellEditor;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Tests for {@link StringResourceViewPanel}.
@@ -47,12 +54,14 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
   private StringResourceViewPanel myPanel;
   private StringResourceTable myTable;
   private LocalResourceRepository<VirtualFile> myRepository;
+  private StringResourceWriter myStringResourceWriter;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
-    myPanel = new StringResourceViewPanel(myFacet, getTestRootDisposable());
+    myStringResourceWriter = StringResourceWriter.INSTANCE;
+    myPanel = new StringResourceViewPanel(myFacet, getTestRootDisposable(), () -> myStringResourceWriter);
     myTable = myPanel.getTable();
 
     VirtualFile resourceDirectory = myFixture.copyDirectoryToProject("stringsEditor/base/res", "res");
@@ -152,6 +161,34 @@ public final class StringResourceViewPanelTest extends AndroidTestCase {
 
     assertThat(myTable.getColumnAt(StringResourceTableModel.KEY_COLUMN)).contains("test_reload");
     assertThat(myTable.getColumnAt(StringResourceTableModel.DEFAULT_VALUE_COLUMN)).contains("Reload!");
+  }
+
+  public void testDeleteKeysWithoutSelectionHasNoEffect() {
+    int beforeDelete = myTable.getModel().getRowCount();
+    assertTrue("Number of rows should not be empty", beforeDelete > 0);
+    myPanel.deleteSelectedKeys();
+    assertEquals("Number of rows should not have changed", beforeDelete, myTable.getModel().getRowCount());
+  }
+
+  public void testDeleteKeys() {
+    AtomicBoolean deleted = new AtomicBoolean(true);
+    myStringResourceWriter = new StringResourceWriterDelegate(StringResourceWriter.INSTANCE) {
+      @Override
+      public void safeDelete(@NotNull Project project,
+                             @NotNull Collection<? extends ResourceItem> items,
+                             @NotNull Runnable successCallback) {
+        deleted.set(true);
+        delete(project, items);
+        successCallback.run();
+      }
+    };
+
+    myTable.selectCellAt(0, 0);
+    int beforeDelete = myTable.getModel().getRowCount();
+    assertTrue("Number of rows should not be empty", beforeDelete > 0);
+    myPanel.deleteSelectedKeys();
+    assertTrue(deleted.get());
+    assertTrue("Number of rows should not have changed", myTable.getModel().getRowCount() < beforeDelete);
   }
 
   private void editCellAt(@NotNull Object value, int viewRowIndex, int viewColumnIndex) throws TimeoutException {

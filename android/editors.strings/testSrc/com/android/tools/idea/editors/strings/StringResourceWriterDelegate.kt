@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.editors.strings.action
+package com.android.tools.idea.editors.strings
 
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.android.tools.idea.res.StringResourceWriter
 
-/** Action to remove string resource keys. */
-class RemoveKeysAction : PanelAction(text = "Remove Keys", description = null, icon = AllIcons.General.Remove) {
-
-  override fun doUpdate(event: AnActionEvent) = event.panel.table.hasSelectedCell()
-
-  override fun actionPerformed(event: AnActionEvent) {
-    event.panel.deleteSelectedKeys();
-  }
-}
+internal open class StringResourceWriterDelegate(private val delegate: StringResourceWriter) :
+  StringResourceWriter by delegate

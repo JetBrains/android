@@ -35,9 +35,9 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel.FIX
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.KEY_COLUMN
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel.RESOURCE_FOLDER_COLUMN
 import com.android.tools.idea.res.ModuleResourceRepository
-import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.res.LocalResourceRepository
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.Separator
@@ -78,7 +78,7 @@ class StringResourceViewPanelFakeUiTest {
     resourceDirectory = projectRule.fixture.copyDirectoryToProject("stringsEditor/base/res", "res")
     localResourceRepository = ModuleResourceRepository.createForTest(facet, listOf(resourceDirectory))
 
-    stringResourceViewPanel = StringResourceViewPanel(projectRule.module.androidFacet, projectRule.testRootDisposable)
+    stringResourceViewPanel = StringResourceViewPanel(projectRule.module.androidFacet!!, projectRule.testRootDisposable)
     invokeAndWaitIfNeeded {
       fakeUi = FakeUi(stringResourceViewPanel.loadingPanel)
       fakeUi.root.validate()
