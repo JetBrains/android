@@ -143,7 +143,6 @@ internal class SceneViewPanel(
 
     designSurfaceSceneViews.forEachIndexed { index, sceneView ->
       val toolbarActions = actionManagerProvider().sceneViewContextToolbarActions
-      val bottomBar = actionManagerProvider().getSceneViewBottomBar(sceneView)
       val statusIconAction = actionManagerProvider().sceneViewStatusIconAction
 
       // The left bar is only added for the first panel
@@ -160,7 +159,6 @@ internal class SceneViewPanel(
             labelPanel,
             statusIconAction,
             toolbarActions,
-            bottomBar,
             leftBar,
             rightBar,
             errorsPanel,

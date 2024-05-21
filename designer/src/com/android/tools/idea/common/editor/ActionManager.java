@@ -155,15 +155,6 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
   }
 
   /**
-   * Returns the bottom bar for a {@link SceneView}. This bar is at
-   * the bottom of the {@link SceneView} while context toolbar is at the top.
-   */
-  @Nullable
-  public JComponent getSceneViewBottomBar(@NotNull SceneView sceneView) {
-    return null;
-  }
-
-  /**
    * Returns the left bar for a {@link SceneView}.
    * It is at the left of the {@link SceneView} and it contains overlay actions
    * provided in {@link com.android.tools.idea.ui.designer.overlays.OverlayMenuAction}.

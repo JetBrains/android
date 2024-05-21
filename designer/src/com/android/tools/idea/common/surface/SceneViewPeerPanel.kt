@@ -38,8 +38,8 @@ import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-/** Distance between the top bound of bottom bar and bottom bound of SceneView. */
-@SwingCoordinate private const val BOTTOM_BAR_TOP_MARGIN = 3
+/** Distance between bottom bound of SceneView and bottom of [SceneViewPeerPanel]. */
+@SwingCoordinate private const val BOTTOM_BORDER_HEIGHT = 3
 
 /** Minimum allowed width for the SceneViewPeerPanel. */
 @SwingCoordinate private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
@@ -54,7 +54,6 @@ class SceneViewPeerPanel(
   private val labelPanel: LabelPanel,
   sceneViewStatusIconAction: AnAction?,
   sceneViewToolbarActions: List<AnAction>,
-  sceneViewBottomBar: JComponent?,
   sceneViewLeftBar: JComponent?,
   sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
@@ -93,7 +92,7 @@ class SceneViewPeerPanel(
           sceneView.margin.also {
             // Extend top to account for the top toolbar
             it.top += sceneViewTopPanel.preferredSize.height
-            it.bottom += sceneViewBottomPanel.preferredSize.height
+            it.bottom += BOTTOM_BORDER_HEIGHT
             it.left += sceneViewLeftPanel.preferredSize.width
             it.right += sceneViewRightPanel.preferredSize.width
             if (sceneViewErrorsPanel?.isVisible == true) {
@@ -162,8 +161,6 @@ class SceneViewPeerPanel(
   val sceneViewTopPanel =
     SceneViewTopPanel(this, sceneViewStatusIconAction, sceneViewToolbarActions, labelPanel)
 
-  private val sceneViewBottomPanel =
-    wrapPanel(sceneViewBottomBar).apply { border = JBUI.Borders.emptyTop(BOTTOM_BAR_TOP_MARGIN) }
   val sceneViewLeftPanel = wrapPanel(sceneViewLeftBar)
   val sceneViewRightPanel = wrapPanel(sceneViewRightBar)
   val sceneViewCenterPanel = wrapPanel(sceneViewErrorsPanel)
@@ -183,7 +180,6 @@ class SceneViewPeerPanel(
 
     add(sceneViewTopPanel)
     add(sceneViewCenterPanel)
-    add(sceneViewBottomPanel)
     add(sceneViewLeftPanel)
     add(sceneViewRightPanel)
     // This setup the initial positions of sceneViewTopPanel, sceneViewCenterPanel,
@@ -212,7 +208,7 @@ class SceneViewPeerPanel(
     //      |  Left   |                       |  Right   |    |
     //      |  Panel  |                       |  Panel   |    ↓
     //      |---------------------------------------------
-    //      |            sceneViewBottomPanel            |    ↕ preferredHeight
+    //      |                                            |    ↕ BOTTOM_BORDER_HEIGHT
     //      |---------------------------------------------
     //
     //       ←-------→                         ←--------→
@@ -239,12 +235,6 @@ class SceneViewPeerPanel(
       sceneViewTopPanel.preferredSize.height,
       width + insets.horizontal - leftSectionWidth,
       centerPanelHeight,
-    )
-    sceneViewBottomPanel.setBounds(
-      0,
-      sceneViewTopPanel.preferredSize.height + centerPanelHeight,
-      width + insets.horizontal,
-      sceneViewBottomPanel.preferredSize.height,
     )
     sceneViewLeftPanel.setBounds(
       0,
@@ -282,7 +272,7 @@ class SceneViewPeerPanel(
 
     return Dimension(
       maxOf(sceneViewTopPanel.minimumSize.width, SCENE_VIEW_PEER_PANEL_MIN_WIDTH, centerPanelWidth),
-      sceneViewBottomPanel.preferredSize.height +
+      BOTTOM_BORDER_HEIGHT +
         centerPanelHeight +
         sceneViewTopPanel.minimumSize.height +
         JBUI.scale(20),
