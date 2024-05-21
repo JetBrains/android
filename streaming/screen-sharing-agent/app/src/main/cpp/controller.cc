@@ -263,7 +263,7 @@ void Controller::Run() {
   } catch (EndOfFile& e) {
     Log::D("Controller::Run: End of command stream");
   } catch (IoException& e) {
-    Log::Fatal(SOCKET_IO_ERROR, "%s", e.GetMessage().c_str());
+    Log::Fatal(SOCKET_IO_ERROR, "Error reading from command socket channel - %s", e.GetMessage().c_str());
   }
 }
 
