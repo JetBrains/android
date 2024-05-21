@@ -33,7 +33,6 @@ import com.intellij.psi.util.elementType
 import com.intellij.util.ui.ColorIcon
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.idea.base.codeInsight.handlers.fixers.range
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.inspections.AbstractRangeInspection.Companion.constantValueOrNull
@@ -326,7 +325,7 @@ private inline fun <reified T> getArgumentNameValuePair(
 private inline fun <reified T> KtExpression.evaluateToConstantOrNull(): T? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analyze(this) {
-      evaluate(KtConstantEvaluationMode.CONSTANT_EXPRESSION_EVALUATION)?.value as? T ?: return null
+      evaluate()?.value as? T ?: return null
     }
   } else {
     constantValueOrNull()?.value as? T ?: return null
