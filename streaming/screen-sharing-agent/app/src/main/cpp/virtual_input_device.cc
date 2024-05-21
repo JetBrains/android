@@ -306,18 +306,18 @@ bool VirtualInputDevice::WriteInputEvent(uint16_t type, uint16_t code, int32_t v
 bool VirtualInputDevice::WriteEvKeyEvent(
     int32_t android_code, int32_t android_action,
     const std::map<int, int>& ev_key_code_mapping, const std::map<int, UinputAction>& action_mapping, nanoseconds event_time) {
-  auto evKeyCodeIterator = ev_key_code_mapping.find(android_code);
-  if (evKeyCodeIterator == ev_key_code_mapping.end()) {
+  auto ev_key_code_iterator = ev_key_code_mapping.find(android_code);
+  if (ev_key_code_iterator == ev_key_code_mapping.end()) {
     Log::E("Unsupported native EV keycode for android code %d", android_code);
     return false;
   }
-  auto actionIterator = action_mapping.find(android_action);
-  if (actionIterator == action_mapping.end()) {
+  auto action_iterator = action_mapping.find(android_action);
+  if (action_iterator == action_mapping.end()) {
     Log::E("Unsupported native action for android action %d", android_action);
     return false;
   }
-  auto action = static_cast<int32_t>(actionIterator->second);
-  auto evKeyCode = static_cast<uint16_t>(evKeyCodeIterator->second);
+  auto action = static_cast<int32_t>(action_iterator->second);
+  auto evKeyCode = static_cast<uint16_t>(ev_key_code_iterator->second);
   if (!WriteInputEvent(EV_KEY, evKeyCode, action, event_time)) {
     Log::E("Failed to write native action %d and EV keycode %u.", action, evKeyCode);
     return false;
@@ -631,11 +631,11 @@ bool VirtualTouchscreen::WriteTouchEvent(int32_t pointer_id, int32_t tool_type, 
                                          int32_t major_axis_size, nanoseconds event_time) {
   Log::D("VirtualTouchscreen::WriteTouchEvent(%d, %d, %d, %d, %d, %d, %d, %lld)",
          pointer_id, tool_type, action, location_x, location_y, pressure, major_axis_size, event_time.count());
-  auto actionIterator = TOUCH_ACTION_MAPPING.find(action);
-  if (actionIterator == TOUCH_ACTION_MAPPING.end()) {
+  auto action_iterator = TOUCH_ACTION_MAPPING.find(action);
+  if (action_iterator == TOUCH_ACTION_MAPPING.end()) {
     return false;
   }
-  UinputAction uinput_action = actionIterator->second;
+  UinputAction uinput_action = action_iterator->second;
   if (!IsValidPointerId(pointer_id, uinput_action)) {
     return false;
   }
@@ -731,12 +731,12 @@ VirtualStylus::~VirtualStylus() = default;
 bool VirtualStylus::WriteMotionEvent(int32_t tool_type, int32_t action, int32_t location_x,
                                      int32_t location_y, int32_t pressure, int32_t tilt_x,
                                      int32_t tilt_y, nanoseconds event_time) {
-  auto actionIterator = TOUCH_ACTION_MAPPING.find(action);
-  if (actionIterator == TOUCH_ACTION_MAPPING.end()) {
+  auto action_iterator = TOUCH_ACTION_MAPPING.find(action);
+  if (action_iterator == TOUCH_ACTION_MAPPING.end()) {
     Log::E("Unsupported action passed for stylus: %d.", action);
     return false;
   }
-  UinputAction uinput_action = actionIterator->second;
+  UinputAction uinput_action = action_iterator->second;
   auto tool_type_iterator = TOOL_TYPE_MAPPING.find(tool_type);
   if (tool_type_iterator == TOOL_TYPE_MAPPING.end()) {
     Log::E("Unsupported tool type passed for stylus: %d.", tool_type);
