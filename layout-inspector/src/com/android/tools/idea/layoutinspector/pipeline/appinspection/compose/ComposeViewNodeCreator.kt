@@ -130,17 +130,20 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
     if ((actualFlags and ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE) == 0) {
       access.apply {
         childrenList.mapTo(node.children) {
-          it.convert(shouldInterrupt, access).apply { parent = node }
+          val child = it.convert(shouldInterrupt, access).apply { parent = node }
+          node.recompositions.addChildCount(child.recompositions)
+          child
         }
       }
     } else {
-      var nested = node
-      childrenList.forEach { child ->
-        access.apply {
-          val next = child.convert(shouldInterrupt, access).apply { parent = nested }
-          nested.children.add(next)
-          nested = next
+      access.apply {
+        var last: ComposeViewNode? = null
+        childrenList.asReversed().forEach { child ->
+          val next = child.convert(shouldInterrupt, access)
+          addSingleChild(next, last)
+          last = next
         }
+        addSingleChild(node, last)
       }
     }
     if (viewId != 0L) {
@@ -150,5 +153,16 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       nodesCreatedWithLineNumberInfo = true
     }
     return node
+  }
+
+  private fun ViewNode.WriteAccess.addSingleChild(
+    parent: ComposeViewNode,
+    child: ComposeViewNode?,
+  ) {
+    if (child != null) {
+      child.parent = parent
+      parent.children.add(child)
+      parent.recompositions.addChildCount(child.recompositions)
+    }
   }
 }

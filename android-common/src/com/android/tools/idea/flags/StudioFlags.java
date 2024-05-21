@@ -886,6 +886,11 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.recomposition.counts.default", "Enable or disable recomposition counts by default",
     "When this flag is enabled, recomposition counts will be enabled by default.",
     true);
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_RECOMPOSITION_PARENT_COUNTS = new BooleanFlag(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.recomposition.parent.counts", "Enable or disable recomposition parent counts",
+    "When this flag is enabled, the max recomposition count among the children of a node is displayed in a separate column.",
+    ChannelDefault.enabledUpTo(CANARY));
   //endregion
 
   //region Embedded Emulator

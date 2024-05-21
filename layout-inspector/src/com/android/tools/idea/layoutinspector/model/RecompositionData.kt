@@ -23,11 +23,13 @@ val emptyRecompositionData = RecompositionData(0, 0)
  *
  * @param count the number of recompositions
  * @param skips the number of times that recomposition was skipped
+ * @param childCount the max number of recompositions among the children of this node
  * @param highlightCount a number that expresses relative recent counts for image highlighting
  */
 class RecompositionData(
   var count: Int,
   var skips: Int,
+  var childCount: Int = 0,
   var highlightCount: Float = 0f,
 ) {
   val isEmpty: Boolean
@@ -39,6 +41,7 @@ class RecompositionData(
   fun reset() {
     count = 0
     skips = 0
+    childCount = 0
     highlightCount = 0f
   }
 
@@ -52,10 +55,15 @@ class RecompositionData(
     highlightCount = maxOf(highlightCount, other.highlightCount)
   }
 
+  fun addChildCount(child: RecompositionData) {
+    childCount = maxOf(childCount, maxOf(child.count, child.childCount))
+  }
+
   fun update(newNumbers: RecompositionData) {
     highlightCount += maxOf(0, newNumbers.count - count)
     count = newNumbers.count
     skips = newNumbers.skips
+    childCount = newNumbers.childCount
   }
 
   fun decreaseHighlights(): Float {
