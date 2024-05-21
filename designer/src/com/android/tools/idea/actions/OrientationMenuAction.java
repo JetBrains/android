@@ -17,9 +17,6 @@ package com.android.tools.idea.actions;
 
 import static com.android.tools.idea.actions.DesignerDataKeys.CONFIGURATIONS;
 
-import com.android.ide.common.resources.configuration.DeviceConfigHelper;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
-import com.android.resources.ScreenOrientation;
 import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
@@ -102,21 +99,6 @@ public class OrientationMenuAction extends DropDownAction {
       }
     }
     return true;
-  }
-
-  @NotNull
-  public static ScreenOrientation getOrientation(@NotNull State state) {
-    FolderConfiguration config = DeviceConfigHelper.getFolderConfig(state);
-    ScreenOrientation orientation = null;
-    if (config != null && config.getScreenOrientationQualifier() != null) {
-      orientation = config.getScreenOrientationQualifier().getValue();
-    }
-
-    if (orientation == null) {
-      orientation = ScreenOrientation.PORTRAIT;
-    }
-
-    return orientation;
   }
 
   @VisibleForTesting
