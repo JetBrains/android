@@ -17,13 +17,8 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.rendering.isErrorResult
-import com.android.tools.rendering.ExecuteCallbacksResult
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.future.await
-
-/** Suspendable equivalent to [LayoutlibSceneManager.executeCallbacks]. */
-suspend fun LayoutlibSceneManager.executeCallbacks(): ExecuteCallbacksResult =
-  executeCallbacksAsync().await()
 
 /**
  * Returns whether the [SceneView] has failed to render or has rendered with errors.
