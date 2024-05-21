@@ -31,7 +31,7 @@ import java.util.stream.Stream
 @RequiresReadLock
 fun findAttributeByPsi(element: PsiElement): ResourceReference? {
   assert(ApplicationManager.getApplication().isReadAccessAllowed)
-  var nextElement = element
+  var nextElement: PsiElement? = element
   while (nextElement != null) {
     if (nextElement is XmlAttribute) {
       val attribute = nextElement
