@@ -46,7 +46,7 @@ class CommonPreviewActionManager(
   override fun getSceneViewContextToolbarActions(): List<AnAction> =
     listOf(Separator()) +
       listOfNotNull(animationPreviewAction, interactivePreviewAction)
-        .disabledIf { context -> isPreviewRefreshing(context) || hasSceneViewErrors(context) }
+        .disabledIfRefreshingOrHasErrors()
         .hideIfRenderErrors()
         .visibleOnlyInStaticPreview()
 }

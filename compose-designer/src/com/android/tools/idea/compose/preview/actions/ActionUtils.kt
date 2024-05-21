@@ -16,9 +16,6 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.preview.actions.disabledIf
-import com.android.tools.idea.preview.actions.hasSceneViewErrors
-import com.android.tools.idea.preview.actions.isPreviewRefreshing
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -44,11 +41,3 @@ private class ComposePreviewUiCheckWrapper(actions: List<AnAction>) : DefaultAct
  */
 internal fun AnAction.visibleOnlyInUiCheck(): ActionGroup =
   ComposePreviewUiCheckWrapper(listOf(this))
-
-/**
- * The given disables the actions if any surface is refreshing or if the [sceneView] contains
- * errors.
- */
-fun List<AnAction>.disabledIfRefreshingOrRenderErrors(): List<AnAction> = disabledIf { context ->
-  isPreviewRefreshing(context) || hasSceneViewErrors(context)
-}
