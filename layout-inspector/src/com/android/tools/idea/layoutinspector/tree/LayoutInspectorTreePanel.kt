@@ -178,7 +178,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val recompositionCountsColumn =
       createIntColumn<TreeViewNode>(
         "Counts",
-        { (it.view as? ComposeViewNode)?.recompositions?.count },
+        { it.view.recompositions.count },
         leftDivider = true,
         maxInt = { inspectorModel?.maxRecomposition?.count ?: 0 },
         minInt = { 0 },
@@ -188,7 +188,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     val recompositionSkipsColumn =
       createIntColumn<TreeViewNode>(
         "Skips",
-        { (it.view as? ComposeViewNode)?.recompositions?.skips },
+        { it.view.recompositions.skips },
         foreground = JBColor(Gray._192, Gray._128),
         maxInt = { inspectorModel?.maxRecomposition?.skips ?: 0 },
         minInt = { 0 },

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewChild
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.getFoldStroke
@@ -103,7 +102,7 @@ class RenderLogic(private val renderModel: RenderModel, val renderSettings: Rend
           view == selection ||
           view == hoveredNode ||
           (renderModel.treeSettings.showRecompositions &&
-            (view as? ComposeViewNode)?.recompositions?.hasHighlight == true &&
+            view?.recompositions?.hasHighlight == true &&
             inspectorModel.maxHighlight != 0f))
     ) {
       drawView.paintBorder(

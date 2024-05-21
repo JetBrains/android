@@ -36,49 +36,6 @@ const val FLAG_IS_INLINED = LayoutInspectorComposeProtocol.ComposableNode.Flags.
 fun packageNameHash(packageName: String): Int =
   packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
 
-/**
- * The recomposition counts for a [ComposeViewNode] or a combination of nodes.
- *
- * @param count the number of recompositions
- * @param skips the number of times that recomposition was skipped
- * @param highlightCount a number that expresses relative recent counts for image highlighting
- */
-class RecompositionData(var count: Int, var skips: Int, var highlightCount: Float = 0f) {
-  val isEmpty: Boolean
-    get() = count == 0 && skips == 0 && highlightCount == 0f
-
-  val hasHighlight: Boolean
-    get() = highlightCount > 0f
-
-  fun reset() {
-    count = 0
-    skips = 0
-    highlightCount = 0f
-  }
-
-  fun maxOf(node: ViewNode) {
-    (node as? ComposeViewNode)?.let { maxOf(it.recompositions) }
-  }
-
-  fun maxOf(other: RecompositionData) {
-    count = maxOf(count, other.count)
-    skips = maxOf(skips, other.skips)
-    highlightCount = maxOf(highlightCount, other.highlightCount)
-  }
-
-  fun update(newNumbers: RecompositionData) {
-    highlightCount += maxOf(0, newNumbers.count - count)
-    count = newNumbers.count
-    skips = newNumbers.skips
-  }
-
-  fun decreaseHighlights(): Float {
-    highlightCount =
-      if (highlightCount > DECREASE_BREAK_OFF) highlightCount / DECREASE_FACTOR else 0f
-    return highlightCount
-  }
-}
-
 /** A view node represents a composable in the view hierarchy as seen on the device. */
 class ComposeViewNode(
   drawId: Long,
@@ -166,7 +123,7 @@ class ComposeViewNode(
     anchorHash,
   )
 
-  val recompositions = RecompositionData(recomposeCount, recomposeSkips)
+  override val recompositions = RecompositionData(recomposeCount, recomposeSkips)
 
   override val isSystemNode: Boolean
     get() =

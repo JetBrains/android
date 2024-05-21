@@ -119,6 +119,9 @@ open class ViewNode(
   open val hasSourceCodeInformation: Boolean
     get() = true
 
+  /** Recomposition counts. */
+  open val recompositions = emptyRecompositionData
+
   /**
    * Return the closest unfiltered node
    *
