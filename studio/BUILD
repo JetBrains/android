@@ -990,6 +990,7 @@ iml_module(
         "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
         "//tools/vendor/google/ml/aiplugin/android:aiplugin.android[module]",
+        "//tools/vendor/google/ml/aiplugin/experimental:aiplugin.experimental[module]",
         "//tools/adt/idea/studio:studio-sdk-all-plugins[module]",
         "@intellij//:intellij-sdk",
         "@intellij//:com.intellij.java",
