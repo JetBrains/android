@@ -183,6 +183,10 @@ private class ConfigureLiveEditActionOption(text: String, val setSelected: () ->
   fun getSelected() : Boolean {
     return getSelected.invoke()
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
 }
 
 internal class ConfigureLiveEditAction : DefaultActionGroup(), DataProvider {
