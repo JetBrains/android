@@ -20,6 +20,8 @@ import android.view.ViewGroup;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.rendering.RenderService;
+import com.intellij.openapi.util.Computable;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,14 +34,15 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
   private final int myStartScrollPosition;
   @NotNull private final IntConsumer myScrollSetter;
   @NotNull private final IntSupplier myScrollGetter;
-  @NotNull private final Runnable myScrollHandler;
+  @NotNull private final Computable<CompletableFuture<Void>> myScrollHandler;
+  private CompletableFuture<Void> myScrollingTask;
 
   ScrollViewScrollHandler(
     int maxScrollableSize,
     int scrollUnitSize,
     @NotNull IntConsumer scrollSetter,
     @NotNull IntSupplier scrollGetter,
-    @NotNull Runnable scrollHandler) {
+    @NotNull Computable<CompletableFuture<Void>> scrollHandler) {
     myMaxScrollableSize = maxScrollableSize;
     myScrollUnitSize = scrollUnitSize;
     myScrollSetter = scrollSetter;
@@ -83,8 +86,8 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
    * the component supports nested scrolling attempt that first, then use the unconsumed scroll
    * part to scroll the content in the component.
    */
-  private static void handleScrolling(@NotNull View view) {
-    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+  private static CompletableFuture<Void> handleScrolling(@NotNull View view) {
+    return RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
       int scrollPosX = view.getScrollX();
       int scrollPosY = view.getScrollY();
       if (scrollPosX != 0 || scrollPosY != 0) {
@@ -137,8 +140,11 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
       return 0;
     }
 
+    if (myScrollingTask != null && !myScrollingTask.isDone()) {
+      myScrollingTask.cancel(true);
+    }
     myScrollSetter.accept(newScrollPos);
-    myScrollHandler.run();
+    myScrollingTask = myScrollHandler.compute();
     return newScrollPos - currentScrollPosition;
   }
 
