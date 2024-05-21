@@ -48,7 +48,7 @@ uint8_t Base128InputStream::ReadByte() {
   if (offset_ == data_end_) {
     auto n = TEMP_FAILURE_RETRY(read(fd_, buffer_, buffer_capacity_));
     if (n < 0) {
-      if (errno == EINTR || errno == EAGAIN) {
+      if (errno == EAGAIN) {
         throw IoTimeout();
       }
       throw IoException();
