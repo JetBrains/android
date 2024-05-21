@@ -81,10 +81,10 @@ class ComposeCompletionContributorTest {
 
     val expectedLookupItems =
       listOf(
-        "FoobarOne(required: Int)",
+        "FoobarOne(required: Int) (com.example)",
         "FoobarTwo(required: Int, ...)",
         "FoobarThree(...) {...}",
-        "FoobarFour {...}",
+        "FoobarFour {...} (children: () -> Unit) (com.example)",
         "FoobarFive(icon: String) {...}",
         "FoobarSix(icon: String, ...)",
       )
@@ -955,11 +955,11 @@ class ComposeCompletionContributorTest {
     val expectedLookupItems =
       listOf(
         "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...)",
-        "FoobarTwo(...)",
+        "FoobarTwo(optionalArg: Int = ...) (com.example)",
         "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
         "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
         "FoobarFive(requiredArg: () -> Unit, ...)",
-        "FoobarSix(...)",
+        "FoobarSix(optionalArg: Int = ...) (com.example)",
       )
 
     // Given:

@@ -227,6 +227,12 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
   }
 
   private fun LookupElementPresentation.rewriteSignature(parts: ComposableFunctionRenderParts) {
+    // If there are fewer than two parameters, then there's no need to rewrite the completion entry
+    // to handle verbose @Composable functions.
+    if (parts.totalParameterCount < 2) return
+
+    // Rewrite the function signature to avoid showing too many parameters, since @Composable
+    // functions often have a large number.
     clearTail()
     parts.parameters?.let { appendTailTextItalic(it, /* grayed= */ false) }
     parts.tail?.let { appendTailText(" $it", /* grayed= */ true) }

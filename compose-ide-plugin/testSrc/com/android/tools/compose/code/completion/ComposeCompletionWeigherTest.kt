@@ -110,7 +110,7 @@ class ComposeCompletionWeigherTest {
     Truth.assertThat(myFixture.renderedLookupElements)
       .containsExactly(
         "MaterialTheme ($materialThemePackage)",
-        "MaterialTheme {...}",
+        "MaterialTheme {...} (children: () -> Unit) ($materialThemePackage)",
         "MaterialTheme (com.example)",
       )
       .inOrder()
@@ -198,7 +198,7 @@ class ComposeCompletionWeigherTest {
       .containsExactly(
         "MaterialTheme ($materialThemePackage)",
         "MaterialTheme (com.example)",
-        "MaterialTheme {...}",
+        "MaterialTheme {...} (children: () -> Unit) ($materialThemePackage)",
       )
       .inOrder()
   }
