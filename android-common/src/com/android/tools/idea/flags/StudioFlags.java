@@ -1609,14 +1609,6 @@ public final class StudioFlags {
       "Show Device Streaming Settings Page",
       true);
 
-  public static final Flag<Boolean> DIRECT_ACCESS_ADD_DEVICE =
-    new BooleanFlag(
-      FIREBASE_TEST_LAB,
-      "direct.access.add.device",
-      "Direct Access Add Device",
-      "Enable the new FTL DirectAccess Add Device workflow.",
-      true);
-
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
     new StringFlag(
       FIREBASE_TEST_LAB,
@@ -1635,14 +1627,6 @@ public final class StudioFlags {
       "monitoring.googleapis.com"
     );
 
-  public static final Flag<String> DIRECT_ACCESS_MONITORING_METRICS_DIRECTORY =
-    new StringFlag(
-      FIREBASE_TEST_LAB,
-      "direct.access.monitoring.metrics.directory",
-      "FTL Direct Access Metrics Directory",
-      "The directory for FTL Direct Access monthly usage metrics.",
-      "device_streaming"
-    );
   // endregion Firebase Test Lab
 
   // region App Insights
@@ -2025,7 +2009,7 @@ public final class StudioFlags {
                 10);
   // endregion WEAR_RUN_CONFIGS_AUTOCREATE
 
-  // region GOOGLE_LOGIN
+  // region Google Login
   private static final FlagGroup GOOGLE_LOGIN =
     new FlagGroup(FLAGS, "google.login", "Google Login");
   public static final Flag<Boolean> ENABLE_SETTINGS_ACCOUNT_UI =
@@ -2034,7 +2018,17 @@ public final class StudioFlags {
   public static final Flag<Boolean> ENABLE_COMBINED_LOGIN_UI =
     new BooleanFlag(GOOGLE_LOGIN, "combined.login.enabled", "Enable combined login",
                     "When enabled, a combined login page will show when logging in for a new user.", true);
-  // endregion GOOGLE_LOGIN
+  // endregion Google Login
+
+  // region Cloud Integration
+  private static final FlagGroup CLOUD_INTEGRATION =
+    new FlagGroup(FLAGS, "cloud", "Cloud Integration");
+  // TODO(b/341816638): delete in L
+  public static final Flag<Boolean> SHOW_CLOUD_DEPRECATION_MESSAGES =
+    new BooleanFlag(CLOUD_INTEGRATION, "enabled", "Show bundled cloud plugin deprecation messages",
+                    "When enabled, deprecation messages will show when using functionality from the bundled cloud plugin.", false);
+
+  // endregion Cloud Integration
 
   public static Boolean isBuildOutputShowsDownloadInfo() {
     // In Android Studio: enabled if BUILD_OUTPUT_DOWNLOADS_INFORMATION=true.
