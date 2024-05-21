@@ -675,7 +675,7 @@ bool VirtualTouchscreen::WriteTouchEvent(int32_t pointer_id, int32_t tool_type, 
 }
 
 bool VirtualTouchscreen::HandleTouchUp(int32_t pointer_id, nanoseconds event_time) {
-  if (!WriteInputEvent(EV_ABS, ABS_MT_TRACKING_ID, static_cast<int32_t>(-1), event_time)) {
+  if (!WriteInputEvent(EV_ABS, ABS_MT_TRACKING_ID, -1, event_time)) {
     return false;
   }
   // When a pointer is no longer in touch, remove the pointer id from the corresponding
@@ -706,7 +706,7 @@ bool VirtualTouchscreen::HandleTouchDown(int32_t pointer_id, nanoseconds event_t
 
   active_pointers_.set(pointer_id);
   Log::D("Added pointer %d under touchscreen %d in the map", pointer_id, fd_);
-  if (!WriteInputEvent(EV_ABS, ABS_MT_TRACKING_ID, static_cast<int32_t>(pointer_id), event_time)) {
+  if (!WriteInputEvent(EV_ABS, ABS_MT_TRACKING_ID, pointer_id, event_time)) {
     return false;
   }
   return true;
