@@ -78,7 +78,7 @@ private fun KtFunction.isComposable(): Boolean {
         else -> null
       }
 
-      if (classSymbol != null && classSymbol.classIdIfNonLocal == COMPOSABLE_CLASS_ID) {
+      if (classSymbol != null && classSymbol.classId == COMPOSABLE_CLASS_ID) {
         return true
       }
     }
