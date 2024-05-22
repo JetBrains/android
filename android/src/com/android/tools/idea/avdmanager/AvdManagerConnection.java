@@ -19,14 +19,11 @@ import static com.android.SdkConstants.ANDROID_SDK_ROOT_ENV;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static java.nio.file.StandardOpenOption.WRITE;
 
-import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
 import com.android.ddmlib.IDevice;
 import com.android.io.CancellableFileIo;
 import com.android.prefs.AndroidLocationsException;
 import com.android.prefs.AndroidLocationsSingleton;
-import com.android.repository.Revision;
-import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.io.FileOpUtils;
@@ -37,7 +34,6 @@ import com.android.sdklib.deviceprovisioner.DeviceActionCanceledException;
 import com.android.sdklib.deviceprovisioner.DeviceActionException;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Storage;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
@@ -55,7 +51,6 @@ import com.android.tools.idea.avdmanager.emulatorcommand.DefaultEmulatorCommandB
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder;
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderFactory;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.memorysettings.MemorySettingsUtil;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeAvdManagers;
@@ -73,9 +68,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.process.ProcessOutput;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -126,7 +119,6 @@ public class AvdManagerConnection {
   private static final AvdManagerConnection NULL_CONNECTION = new AvdManagerConnection(null, null);
 
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
-  public static final Revision PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2 = Revision.parseRevision("23.1.0");
 
   private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
   private static final @NotNull Map<Path, AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
@@ -253,22 +245,6 @@ public class AvdManagerConnection {
     return true;
   }
 
-  private boolean hasPlatformToolsForQEMU2Installed() {
-    assert mySdkHandler != null;
-    LocalPackage info = mySdkHandler.getSdkManager(REPO_LOG).getPackages().getLocalPackages().get(SdkConstants.FD_PLATFORM_TOOLS);
-    if (info == null) {
-      return false;
-    }
-
-    return info.getVersion().compareTo(PLATFORM_TOOLS_REVISION_WITH_FIRST_QEMU2) >= 0;
-  }
-
-  private boolean hasSystemImagesForQEMU2Installed() {
-    EmulatorPackage emulator = getEmulator();
-    if (mySdkHandler == null || emulator == null) return false;
-    return mySdkHandler.getSystemImageManager(REPO_LOG).getImages().stream().noneMatch(emulator.getSystemImageUpdateRequiredPredicate());
-  }
-
   /**
    * @param forceRefresh if true the manager will read the AVD list from disk. If false, the cached version in memory
    *                     is returned if available
@@ -379,11 +355,13 @@ public class AvdManagerConnection {
       DeviceSkinUpdater.updateSkin(skin, null);
     }
 
-    // noinspection ConstantConditions, UnstableApiUsage
     return Futures.transformAsync(
-      checkAccelerationAsync(),
-      code -> continueToStartAvdIfAccelerationErrorIsNotBlocking(code, project, info, requestType, factory),
-      MoreExecutors.directExecutor());
+        MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE)
+            .submit(() -> EmulatorAccelerationCheck.checkAcceleration(mySdkHandler)),
+        code ->
+            continueToStartAvdIfAccelerationErrorIsNotBlocking(
+                code, project, info, requestType, factory),
+        MoreExecutors.directExecutor());
   }
 
   private @NotNull ListenableFuture<IDevice> continueToStartAvdIfAccelerationErrorIsNotBlocking(
@@ -687,67 +665,6 @@ public class AvdManagerConnection {
     ApplicationManager.getApplication().invokeLater(AccelerationErrorSolution.getActionForFix(code, project, setFuture, setException));
 
     return future;
-  }
-
-  /**
-   * Run "emulator -accel-check" to check the status for emulator acceleration on this machine.
-   * Return a {@link AccelerationErrorCode}.
-   */
-  public AccelerationErrorCode checkAcceleration() {
-    if (!initIfNecessary()) {
-      return AccelerationErrorCode.UNKNOWN_ERROR;
-    }
-    EmulatorPackage emulator = getEmulator();
-    if (emulator == null) {
-      return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
-    }
-    Path emulatorBinary = emulator.getEmulatorBinary();
-    if (emulatorBinary == null) {
-      return AccelerationErrorCode.NO_EMULATOR_INSTALLED;
-    }
-    Long memoryBytes = MemorySettingsUtil.getMachineMemoryBytes();
-    if (memoryBytes != null && memoryBytes < Storage.Unit.GiB.getNumberOfBytes()) {
-      // TODO: The emulator -accel-check current does not check for the available memory, do it here instead:
-      return AccelerationErrorCode.NOT_ENOUGH_MEMORY;
-    }
-    if (!emulator.isQemu2()) {
-      return AccelerationErrorCode.TOOLS_UPDATE_REQUIRED;
-    }
-    GeneralCommandLine commandLine = new GeneralCommandLine();
-    Path checkBinary = emulator.getEmulatorCheckBinary();
-    if (checkBinary != null) {
-      commandLine.setExePath(checkBinary.toString());
-      commandLine.addParameter("accel");
-    }
-    else {
-      commandLine.setExePath(emulatorBinary.toString());
-      commandLine.addParameter("-accel-check");
-    }
-    int exitValue;
-    try {
-      CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
-      ProcessOutput output = process.runProcess();
-      exitValue = output.getExitCode();
-      if (exitValue != 0) {
-        return AccelerationErrorCode.fromExitCode(exitValue);
-      }
-    }
-    catch (ExecutionException e) {
-      IJ_LOG.warn(e);
-      return AccelerationErrorCode.UNKNOWN_ERROR;
-    }
-    if (!hasPlatformToolsForQEMU2Installed()) {
-      return AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED;
-    }
-    if (!hasSystemImagesForQEMU2Installed()) {
-      return AccelerationErrorCode.SYSTEM_IMAGE_UPDATE_ADVISED;
-    }
-    return AccelerationErrorCode.ALREADY_INSTALLED;
-  }
-
-  @NotNull
-  public ListenableFuture<AccelerationErrorCode> checkAccelerationAsync() {
-    return MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE).submit(this::checkAcceleration);
   }
 
   /**

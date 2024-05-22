@@ -20,9 +20,10 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
-import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.ElevatedCommandLine
+import com.android.tools.idea.avdmanager.checkAcceleration
 import com.android.tools.idea.memorysettings.MemorySettingsUtil
+import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.welcome.wizard.deprecated.ProgressStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
 import com.intellij.execution.ExecutionException
@@ -322,7 +323,7 @@ abstract class VmInstallerInfo(internal val fullName: String) {
    * For some of these error conditions the user may rectify the problem and install Aehd later.
    */
   fun checkInstallation(): AccelerationErrorCode =
-    incompatibleSystemError ?: AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration()
+    incompatibleSystemError ?: checkAcceleration(AndroidSdks.getInstance().tryToChooseSdkHandler())
 
   /**
    * Return true if it is possible to install on the current machine without any other configuration changes.
