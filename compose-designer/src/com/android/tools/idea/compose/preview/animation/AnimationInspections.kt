@@ -163,7 +163,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
 
               // First, check we're analyzing the right call
               val fqName =
-                callableSymbol.callableIdIfNonLocal?.asSingleFqName()?.asString() ?: return
+                callableSymbol.callableId?.asSingleFqName()?.asString() ?: return
               if (!fqNameCheck(fqName)) return
 
               // Finally, verify the functions has the `label` parameter set, otherwise show a
@@ -303,7 +303,7 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
               // animateValue, animateColor) defined on a compose
               // animation (sub-)package (e.g. androidx.compose.animation,
               // androidx.compose.animation.core).
-              val animateCall = callableSymbol.callableIdIfNonLocal?.asSingleFqName() ?: return
+              val animateCall = callableSymbol.callableId?.asSingleFqName() ?: return
               if (!shortFqNameCheck(animateCall)) return
 
               // Finally, verify the animate call has the `label` parameter set, otherwise show a
