@@ -48,7 +48,7 @@ private val ANALYZER = listOf(
 
 
 // If `capture_heap` system property is set to `true` the test will also capture the heap alongside
-class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : ExternalResource() {
+class CaptureSyncMemoryFromHistogramRule(private val projectName: String, private val disableAnalyzers: Boolean = false) : ExternalResource() {
   override fun before() {
     StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.override(OUTPUT_DIRECTORY)
     StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.override(true)
@@ -103,14 +103,13 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
   private fun recordMemoryMeasurement(
     capturedMetricNames: MutableList<String>,
     metricName: String,
-    measurement: TimestampedMeasurement,
-    enableAnalyzer: Boolean = true) {
+    measurement: TimestampedMeasurement) {
     Metric(metricName).apply {
       addSamples(MEMORY_BENCHMARK, Metric.MetricSample(
         measurement.first.toEpochMilliseconds(),
         measurement.second
       ))
-      if (enableAnalyzer) {
+      if (!disableAnalyzers) {
         setAnalyzers(MEMORY_BENCHMARK, ANALYZER)
       }
       commit() // There is only one measurement per type, so we can commit immediately.

@@ -38,7 +38,7 @@ import java.io.File
 
 class Benchmark1000MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_NAME, STANDARD_1000)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
 
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
@@ -57,14 +57,14 @@ class Benchmark4200MemoryTest {
 
 class BenchmarkMultiApp100MemoryTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(MULTI_APP_100_NAME, BenchmarkProject.MULTI_APP_100)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class BenchmarkMultiApp190MemoryTest {
   @get:Rule
   val benchmarkTestRule = createBenchmarkTestRule(MULTI_APP_190_NAME, BenchmarkProject.MULTI_APP_190)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
@@ -72,7 +72,8 @@ class Benchmark200Repeated20TimesMemoryTest  {
   private val repeatCount = 20
 
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME, STANDARD_200)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule("${benchmarkTestRule.projectName}_Post_${repeatCount}_Repeats")
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(
+    "${benchmarkTestRule.projectName}_Post_${repeatCount}_Repeats", disableAnalyzers = true)
 
   @Test
   fun testSyncMemoryPost20Repeats() {
@@ -96,7 +97,7 @@ class Benchmark200Repeated20TimesMemoryTest  {
 
 class Benchmark1000MemoryRuntimeClasspathTest {
   @get:Rule val benchmarkTestRule = createBenchmarkTestRule(FEATURE_RUNTIME_CLASSPATH_1000, STANDARD_1000)
-  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName, disableAnalyzers = true)
 
   @Test fun testMemory() {
     StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)

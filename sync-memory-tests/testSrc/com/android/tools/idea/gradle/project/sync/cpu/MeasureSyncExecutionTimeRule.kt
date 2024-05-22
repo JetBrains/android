@@ -79,7 +79,7 @@ total: ${total.inWholeSeconds}s
   """.trimIndent()
 }
 
-class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
+class MeasureSyncExecutionTimeRule(val syncCount: Int, private val disableAnalyzers: Boolean = false) : ExternalResource() {
   private val results = mutableListOf<Durations>()
   private val processedFiles = mutableSetOf<String>()
   private lateinit var syncStartTimestamp : Instant
@@ -138,7 +138,7 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
       values.forEach { value ->
         println("Recording ${projectName}_$type -> ${value.second.inWholeMilliseconds} ms (${value.second.inWholeSeconds} seconds)")
       }
-      recordCpuMeasurement("${projectName}_$type", values, enableAnalyzers = !type.startsWith(droppedPrefix) )
+      recordCpuMeasurement("${projectName}_$type", values, isMetricAnalyzed = !type.startsWith(droppedPrefix) )
     }
   }
   private fun getTimestampForCheckpoint(checkpointName: String): Instant {
@@ -147,16 +147,16 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int) : ExternalResource() {
       processedFiles.add(file.name)
     }
   }
-}
 
-internal fun recordCpuMeasurement(metricName: String, values: Iterable<TimestampedMeasurement>, enableAnalyzers: Boolean) {
-  Metric(metricName).apply {
-    values.forEach {
-      addSamples(CPU_BENCHMARK, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second.toLong(DurationUnit.MILLISECONDS)))
+  private fun recordCpuMeasurement(metricName: String, values: Iterable<TimestampedMeasurement>, isMetricAnalyzed: Boolean) {
+    Metric(metricName).apply {
+      values.forEach {
+        addSamples(CPU_BENCHMARK, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second.toLong(DurationUnit.MILLISECONDS)))
+      }
+      if (!disableAnalyzers && isMetricAnalyzed) {
+        setAnalyzers(CPU_BENCHMARK, ANALYZER)
+      }
+      commit()
     }
-    if (enableAnalyzers) {
-      setAnalyzers(CPU_BENCHMARK, ANALYZER)
-    }
-    commit()
   }
 }
