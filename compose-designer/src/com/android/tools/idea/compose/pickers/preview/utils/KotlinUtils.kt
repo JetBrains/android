@@ -45,7 +45,7 @@ internal fun KtCallElement.addNewValueArgument(
 
 internal fun KtAnalysisSession.containingPackage(functionSymbol: KtFunctionLikeSymbol) =
   when (functionSymbol) {
-    is KtConstructorSymbol -> functionSymbol.containingClassIdIfNonLocal?.packageFqName
+    is KtConstructorSymbol -> functionSymbol.containingClassId?.packageFqName
     else -> functionSymbol.callableId?.packageName
   }
 
