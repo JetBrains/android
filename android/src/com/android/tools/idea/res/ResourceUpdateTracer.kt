@@ -13,113 +13,116 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.idea.res
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static java.lang.Math.max;
+import com.android.ide.common.util.PathString
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.ResourceUpdateTraceSettings.Companion.getInstance
+import com.android.tools.idea.util.toPathString
+import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils.currentTime
+import com.google.common.base.Joiner
+import com.google.common.base.Strings
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
+import java.util.function.Supplier
+import java.util.stream.Collectors
+import kotlin.math.max
 
-import com.android.ide.common.util.PathString;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.util.FileExtensions;
-import com.android.utils.FlightRecorder;
-import com.android.utils.TraceUtils;
-import com.google.common.base.Joiner;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+/** Used to investigate b/167583128. */
+object ResourceUpdateTracer {
+  var isTracingActive: Boolean = false
+    private set
 
-/**
- * Used to investigate b/167583128.
- */
-public class ResourceUpdateTracer {
-  private static boolean enabled;
-  private static final Logger LOG = Logger.getInstance(ResourceUpdateTracer.class);
+  private val LOG = Logger.getInstance(ResourceUpdateTracer::class.java)
 
-  static {
-    if (ResourceUpdateTraceSettings.getInstance().getEnabled()) {
-      startTracing();
+  init {
+    if (getInstance().enabled) {
+      startTracing()
     }
   }
 
-  static void startTracing() {
-    FlightRecorder.initialize(StudioFlags.RESOURCE_REPOSITORY_TRACE_SIZE.get());
-    enabled = true;
+  fun startTracing() {
+    FlightRecorder.initialize(StudioFlags.RESOURCE_REPOSITORY_TRACE_SIZE.get())
+    isTracingActive = true
   }
 
-  static void stopTracing() {
-    enabled = false;
+  fun stopTracing() {
+    isTracingActive = false
   }
 
-  public static boolean isTracingActive() {
-    return enabled;
-  }
-
-  public static void dumpTrace(@Nullable String message) {
-    List<Object> trace = FlightRecorder.getAndClear();
+  fun dumpTrace(message: String?) {
+    val trace = FlightRecorder.getAndClear()
     if (trace.isEmpty()) {
       if (message == null) {
-        LOG.info("No resource updates recorded");
+        LOG.info("No resource updates recorded")
+      } else {
+        LOG.info("$message - no resource updates recorded")
       }
-      else {
-        LOG.info(message + " - no resource updates recorded");
-      }
-    }
-    else {
-      String intro = isNullOrEmpty(message) ? "" : message + '\n';
-      LOG.info(intro + "--- Resource update trace: ---\n" + Joiner.on('\n').join(trace) + "\n------------------------------");
-    }
-  }
-
-  public static void log(@NotNull Supplier<?> lazyRecord) {
-    if (enabled) {
-      FlightRecorder.log(() -> TraceUtils.getCurrentTime() + ' ' + lazyRecord.get());
+    } else {
+      val intro = if (Strings.isNullOrEmpty(message)) "" else message + '\n'
+      LOG.info(
+        """
+  $intro--- Resource update trace: ---
+  ${Joiner.on('\n').join(trace)}
+  ------------------------------
+  """
+          .trimIndent()
+      )
     }
   }
 
-  public static void logDirect(@NotNull Supplier<?> lazyRecord) {
-    if (enabled) {
-      String message = lazyRecord.get().toString();
-      FlightRecorder.log(() -> TraceUtils.getCurrentTime() + ' ' + message);
-      LOG.info(message);
+  fun log(lazyRecord: Supplier<*>) {
+    if (isTracingActive) {
+      FlightRecorder.log { currentTime + ' ' + lazyRecord.get() }
     }
   }
 
-  public static @Nullable String pathForLogging(@Nullable VirtualFile file) {
+  fun logDirect(lazyRecord: Supplier<*>) {
+    if (isTracingActive) {
+      val message = lazyRecord.get().toString()
+      FlightRecorder.log { currentTime + ' ' + message }
+      LOG.info(message)
+    }
+  }
+
+  fun pathForLogging(file: VirtualFile?): String? {
     if (file == null) {
-      return null;
+      return null
     }
-    PathString path = FileExtensions.toPathString(file);
-    return path.subpath(max(path.getNameCount() - 6, 0), path.getNameCount()).getNativePath();
+    val path = file.toPathString()
+    return path
+      .subpath(max((path.nameCount - 6).toDouble(), 0.0).toInt(), path.nameCount)
+      .nativePath
   }
 
-  public static @Nullable String pathForLogging(@Nullable PsiFile file) {
-    return file == null ? null : pathForLogging(file.getVirtualFile());
+  fun pathForLogging(file: PsiFile?): String? {
+    return if (file == null) null else pathForLogging(file.virtualFile)
   }
 
-  public static @Nullable String pathForLogging(@Nullable VirtualFile file, @NotNull Project project) {
+  fun pathForLogging(file: VirtualFile?, project: Project): String? {
     if (file == null) {
-      return null;
+      return null
     }
-    return pathForLogging(FileExtensions.toPathString(file), project);
+    return pathForLogging(file.toPathString(), project)
   }
 
-  public static @NotNull String pathForLogging(@NotNull PathString file, @NotNull Project project) {
-    VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
-    if (projectDir == null) {
-      return file.subpath(max(file.getNameCount() - 4, 0), file.getNameCount()).getNativePath();
-    }
-    return FileExtensions.toPathString(projectDir).relativize(file).getNativePath();
+  fun pathForLogging(file: PathString, project: Project): String {
+    val projectDir =
+      project.guessProjectDir()
+        ?: return file
+          .subpath(max((file.nameCount - 4).toDouble(), 0.0).toInt(), file.nameCount)
+          .nativePath
+    return projectDir.toPathString().relativize(file).nativePath
   }
 
-  public static @NotNull String pathsForLogging(@NotNull Collection<? extends VirtualFile> files, @NotNull Project project) {
-    return files.stream().map(file -> pathForLogging(file, project)).collect(Collectors.joining(", "));
+  fun pathsForLogging(files: Collection<VirtualFile?>, project: Project): String {
+    return files
+      .stream()
+      .map { file: VirtualFile? -> pathForLogging(file, project) }
+      .collect(Collectors.joining(", "))
   }
 }
