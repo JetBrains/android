@@ -30,6 +30,6 @@ class DumpResourceTraceAction : AnAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
-    event.presentation.isEnabled = ResourceUpdateTracer.isTracingActive()
+    event.presentation.isEnabled = ResourceUpdateTracer.isTracingActive
   }
 }

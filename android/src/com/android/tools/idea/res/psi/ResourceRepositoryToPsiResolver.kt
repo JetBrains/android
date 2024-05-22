@@ -152,7 +152,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       }
     }
 
-    if (allItems.isEmpty() && ResourceUpdateTracer.isTracingActive()) {
+    if (allItems.isEmpty() && ResourceUpdateTracer.isTracingActive) {
       resourceRepository.traceHasResources(resourceReference)
       for (repository in resourceRepository.leafResourceRepositories) {
         if (repository is ResourceFolderRepository) {

@@ -17,30 +17,26 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.res.ResourceUpdateTraceSettings.Companion.getInstance
 import com.android.tools.idea.util.toPathString
 import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils.currentTime
-import com.google.common.base.Joiner
-import com.google.common.base.Strings
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import java.util.function.Supplier
-import java.util.stream.Collectors
 import kotlin.math.max
 
 /** Used to investigate b/167583128. */
 object ResourceUpdateTracer {
+  @JvmStatic
   var isTracingActive: Boolean = false
     private set
 
-  private val LOG = Logger.getInstance(ResourceUpdateTracer::class.java)
+  private val LOG = thisLogger()
 
   init {
-    if (getInstance().enabled) {
+    if (ResourceUpdateTraceSettings.getInstance().enabled) {
       startTracing()
     }
   }
@@ -54,75 +50,52 @@ object ResourceUpdateTracer {
     isTracingActive = false
   }
 
+  @JvmStatic
   fun dumpTrace(message: String?) {
     val trace = FlightRecorder.getAndClear()
     if (trace.isEmpty()) {
-      if (message == null) {
-        LOG.info("No resource updates recorded")
-      } else {
-        LOG.info("$message - no resource updates recorded")
-      }
-    } else {
-      val intro = if (Strings.isNullOrEmpty(message)) "" else message + '\n'
-      LOG.info(
-        """
-  $intro--- Resource update trace: ---
-  ${Joiner.on('\n').join(trace)}
-  ------------------------------
-  """
-          .trimIndent()
-      )
+      if (message == null) LOG.info("No resource updates recorded")
+      else LOG.info("$message - no resource updates recorded")
+      return
     }
+
+    val log = buildString {
+      if (!message.isNullOrEmpty()) appendLine(message)
+      appendLine("--- Resource update trace: ---")
+      trace.forEach { appendLine(it) }
+    }
+    LOG.info(log)
   }
 
-  fun log(lazyRecord: Supplier<*>) {
-    if (isTracingActive) {
-      FlightRecorder.log { currentTime + ' ' + lazyRecord.get() }
-    }
+  @JvmStatic
+  fun log(lazyRecord: () -> String) {
+    if (isTracingActive) FlightRecorder.log { "$currentTime ${lazyRecord()}" }
   }
 
-  fun logDirect(lazyRecord: Supplier<*>) {
+  @JvmStatic
+  fun logDirect(lazyRecord: () -> String) {
     if (isTracingActive) {
-      val message = lazyRecord.get().toString()
-      FlightRecorder.log { currentTime + ' ' + message }
+      val message = lazyRecord()
+      FlightRecorder.log { "$currentTime $message" }
       LOG.info(message)
     }
   }
 
-  fun pathForLogging(file: VirtualFile?): String? {
-    if (file == null) {
-      return null
-    }
-    val path = file.toPathString()
-    return path
-      .subpath(max((path.nameCount - 6).toDouble(), 0.0).toInt(), path.nameCount)
-      .nativePath
-  }
+  fun pathForLogging(file: VirtualFile): String = file.toPathString().truncatedPathString(6)
 
-  fun pathForLogging(file: PsiFile?): String? {
-    return if (file == null) null else pathForLogging(file.virtualFile)
-  }
+  fun pathForLogging(file: PsiFile?): String? = file?.let { pathForLogging(it.virtualFile) }
 
-  fun pathForLogging(file: VirtualFile?, project: Project): String? {
-    if (file == null) {
-      return null
-    }
-    return pathForLogging(file.toPathString(), project)
-  }
+  @JvmStatic
+  fun pathForLogging(file: VirtualFile, project: Project): String =
+    pathForLogging(file.toPathString(), project)
 
-  fun pathForLogging(file: PathString, project: Project): String {
-    val projectDir =
-      project.guessProjectDir()
-        ?: return file
-          .subpath(max((file.nameCount - 4).toDouble(), 0.0).toInt(), file.nameCount)
-          .nativePath
-    return projectDir.toPathString().relativize(file).nativePath
-  }
+  fun pathForLogging(file: PathString, project: Project): String =
+    project.guessProjectDir()?.toPathString()?.relativize(file)?.nativePath
+      ?: file.truncatedPathString(4)
 
-  fun pathsForLogging(files: Collection<VirtualFile?>, project: Project): String {
-    return files
-      .stream()
-      .map { file: VirtualFile? -> pathForLogging(file, project) }
-      .collect(Collectors.joining(", "))
-  }
+  fun pathsForLogging(files: Collection<VirtualFile>, project: Project): String =
+    files.joinToString(", ") { pathForLogging(it, project) }
 }
+
+private fun PathString.truncatedPathString(subdirCount: Int) =
+  subpath(max(nameCount - subdirCount, 0), nameCount).nativePath
