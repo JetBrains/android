@@ -49,6 +49,7 @@ import com.intellij.testFramework.RunsInEdt;
 import com.intellij.util.ui.UIUtil;
 import java.nio.file.Path;
 import java.util.Collections;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,6 +81,11 @@ public class SdkQuickfixUtilsTest {
     AndroidSdkData data = mock(AndroidSdkData.class);
     when(data.getSdkHandler()).thenReturn(mySdkHandler);
     AndroidSdks.getInstance().setSdkData(data);
+  }
+
+  @After
+  public void tearDown() {
+    AndroidSdks.getInstance().setSdkData(null);
   }
 
   @Test
