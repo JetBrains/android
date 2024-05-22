@@ -232,6 +232,14 @@ open class LiveEditStatus(
       UNRECOVERABLE_ERROR
     )
 
+  object UnsupportedVersionOtherDevice :
+    LiveEditStatus(
+      AllIcons.General.Warning,
+      message("le.status.error.unsupported_version.title"),
+      message("le.status.error.unsupported_version_other.description"),
+      UNRECOVERABLE_ERROR
+    )
+
   fun unrecoverable(): Boolean {
     return mergePriority == UNRECOVERABLE_ERROR
   }

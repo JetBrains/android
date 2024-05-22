@@ -46,6 +46,10 @@ class LiveEditDevices {
     return devices.values.any { it.status.unrecoverable() }
   }
 
+  fun hasUnsupportedApi(): Boolean {
+    return devices.values.any { it.status == LiveEditStatus.UnsupportedVersion }
+  }
+
   fun isDisabled(): Boolean {
     return devices.values.all { it.status == LiveEditStatus.Disabled }
   }

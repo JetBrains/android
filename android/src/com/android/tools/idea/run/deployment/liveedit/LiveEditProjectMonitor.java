@@ -414,6 +414,11 @@ public class LiveEditProjectMonitor implements Disposable {
 
   // Called when a file is modified. Only called on the class-differ code path.
   public void fileChanged(VirtualFile file) {
+    if (liveEditDevices.hasUnsupportedApi()) {
+      liveEditDevices.update(LiveEditStatus.UnsupportedVersionOtherDevice.INSTANCE);
+      return;
+    }
+    
     if (!shouldLiveEdit()) {
       return;
     }
