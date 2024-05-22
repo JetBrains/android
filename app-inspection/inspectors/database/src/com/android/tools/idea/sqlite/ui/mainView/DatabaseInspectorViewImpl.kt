@@ -221,7 +221,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     tabContent: JComponent,
   ): TabInfo {
     val tab = TabInfo(tabContent)
-    tab.`object` = tabId
+    tab.setObject(tabId)
 
     val tabActionGroup = DefaultActionGroup()
     tabActionGroup.add(
@@ -245,8 +245,8 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
       }
     )
     tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
-    tab.icon = tabIcon
-    tab.text = tabName
+    tab.setIcon(tabIcon)
+    tab.setText(tabName)
     return tab
   }
 

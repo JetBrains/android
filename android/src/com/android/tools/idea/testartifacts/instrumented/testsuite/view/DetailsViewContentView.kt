@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.getName
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.html.HtmlEscapers
@@ -96,8 +96,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
     logViewToolbar.targetComponent = myLogsView.component
     logsViewWithVerticalToolbar.add(logViewToolbar.component, BorderLayout.EAST)
     logsTab = TabInfo(logsViewWithVerticalToolbar)
-    logsTab.text = "Logs"
-    logsTab.tooltipText = "Show logcat output"
+    logsTab.setText("Logs")
+    logsTab.setTooltipText("Show logcat output")
     tabs.addTab(logsTab)
 
     // Create benchmark tab.
@@ -111,8 +111,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       false)
     benchmarkViewWithVerticalToolbar.add(benchmarkViewToolbar.component, BorderLayout.EAST)
     myBenchmarkTab = TabInfo(benchmarkViewWithVerticalToolbar)
-    myBenchmarkTab.text = "Benchmark"
-    myBenchmarkTab.tooltipText = "Show benchmark results"
+    myBenchmarkTab.setText("Benchmark")
+    myBenchmarkTab.setTooltipText("Show benchmark results")
     myBenchmarkTab.isHidden = true
     tabs.addTab(myBenchmarkTab)
 
@@ -122,8 +122,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       myDeviceInfoTableView.getComponent(),
       ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_DEVICE_INFO_VIEW)
     val deviceInfoTab = TabInfo(myDeviceInfoTableView.getComponent())
-    deviceInfoTab.text = "Device Info"
-    deviceInfoTab.tooltipText = "Show device information"
+    deviceInfoTab.setText("Device Info")
+    deviceInfoTab.setTooltipText("Show device information")
     tabs.addTab(deviceInfoTab)
 
     // Android Test Retention tab.
@@ -132,8 +132,8 @@ class DetailsViewContentView(parentDisposable: Disposable, private val project: 
       myRetentionView.component,
       ParallelAndroidTestReportUiEvent.UiElement.TEST_SUITE_RETENTION_VIEW)
     myRetentionTab = TabInfo(myRetentionView.rootPanel)
-    myRetentionTab.text = "Retention"
-    myRetentionTab.tooltipText = "Show emulator snapshots of failed tests"
+    myRetentionTab.setText("Retention")
+    myRetentionTab.setTooltipText("Show emulator snapshots of failed tests")
     tabs.addTab(myRetentionTab)
     myRetentionTab.isHidden = true
 
