@@ -93,7 +93,7 @@ private constructor(
   @VisibleForTesting
   fun refreshChildren(resourceDirectories: List<VirtualFile>) {
     ResourceUpdateTracer.logDirect {
-      "$simpleId.refreshChildren(${ResourceUpdateTracer.pathsForLogging(resourceDirectories, facet.module.project)})"
+      "$simpleId.refreshChildren(${ResourceUpdateTracer.getInstance().pathsForLogging(resourceDirectories, facet.module.project)})"
     }
 
     // Non-folder repositories to put in front of the list.

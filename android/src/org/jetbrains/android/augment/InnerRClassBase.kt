@@ -49,7 +49,7 @@ abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType
           logger.info("Recomputed ${fields.size} fields for $this")
 
           if (fields.isEmpty()) {
-            ResourceUpdateTracer.dumpTrace("No fields found for ${this.qualifiedName}")
+            ResourceUpdateTracer.getInstance().dumpTrace("No fields found for ${this.qualifiedName}")
           }
 
           // When ResourceRepositoryManager's caches are dropped, new instances of repositories are

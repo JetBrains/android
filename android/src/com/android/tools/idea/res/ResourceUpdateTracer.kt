@@ -20,20 +20,47 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.toPathString
 import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils.currentTime
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.util.application
 import kotlin.math.max
 
-/** Used to investigate b/167583128. */
-object ResourceUpdateTracer {
-  @JvmStatic
+/**
+ * Service used to trace updates to the resources subsystem above and beyond normal logging, used to
+ * help diagnose difficult resources issues in the wild.
+ *
+ * Tracing can be enabled by a user via Help > Diagnostic Tools > Trace Resource Updates.
+ *
+ * The augmented traces are dumped to logs in some automatic circumstances, such as when the IDE
+ * recognizes that some `R.string.foo` statement fails to resolve. The user can also manually
+ * trigger the traces to be logged with Help > Diagnostic Tools > Dump Resource Trace.
+ */
+@Service(Service.Level.APP)
+class ResourceUpdateTracer {
+
+  companion object {
+    @JvmStatic fun getInstance(): ResourceUpdateTracer = application.service()
+
+    @JvmStatic
+    fun log(lazyRecord: () -> String) {
+      getInstance().logImpl(lazyRecord)
+    }
+
+    @JvmStatic
+    fun logDirect(lazyRecord: () -> String) {
+      getInstance().logDirectImpl(lazyRecord)
+    }
+  }
+
   var isTracingActive: Boolean = false
     private set
 
-  private val LOG = thisLogger()
+  private val logger = thisLogger()
 
   init {
     if (ResourceUpdateTraceSettings.getInstance().enabled) {
@@ -50,12 +77,11 @@ object ResourceUpdateTracer {
     isTracingActive = false
   }
 
-  @JvmStatic
   fun dumpTrace(message: String?) {
     val trace = FlightRecorder.getAndClear()
     if (trace.isEmpty()) {
-      if (message == null) LOG.info("No resource updates recorded")
-      else LOG.info("$message - no resource updates recorded")
+      if (message == null) logger.info("No resource updates recorded")
+      else logger.info("$message - no resource updates recorded")
       return
     }
 
@@ -64,20 +90,18 @@ object ResourceUpdateTracer {
       appendLine("--- Resource update trace: ---")
       trace.forEach { appendLine(it) }
     }
-    LOG.info(log)
+    logger.info(log)
   }
 
-  @JvmStatic
-  fun log(lazyRecord: () -> String) {
+  private fun logImpl(lazyRecord: () -> String) {
     if (isTracingActive) FlightRecorder.log { "$currentTime ${lazyRecord()}" }
   }
 
-  @JvmStatic
-  fun logDirect(lazyRecord: () -> String) {
+  private fun logDirectImpl(lazyRecord: () -> String) {
     if (isTracingActive) {
       val message = lazyRecord()
       FlightRecorder.log { "$currentTime $message" }
-      LOG.info(message)
+      logger.info(message)
     }
   }
 
@@ -85,7 +109,6 @@ object ResourceUpdateTracer {
 
   fun pathForLogging(file: PsiFile?): String? = file?.let { pathForLogging(it.virtualFile) }
 
-  @JvmStatic
   fun pathForLogging(file: VirtualFile, project: Project): String =
     pathForLogging(file.toPathString(), project)
 
