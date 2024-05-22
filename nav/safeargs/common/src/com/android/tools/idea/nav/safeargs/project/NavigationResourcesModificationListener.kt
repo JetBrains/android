@@ -26,6 +26,7 @@ import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
@@ -107,6 +108,8 @@ class NavigationResourcesModificationListener(project: Project) :
   override fun fileWithNoDocumentChanged(file: VirtualFile) = possiblyIrrelevantFileChanged(file)
 
   override fun documentChanged(event: DocumentEvent) {
+    if (IntentionPreviewUtils.isIntentionPreviewActive()) return
+
     val document = event.document
     val psiFile = psiDocumentManager.getCachedPsiFile(document)
 
