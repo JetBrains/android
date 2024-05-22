@@ -78,6 +78,7 @@ public class FrozenColumnTable<M extends TableModel> {
 
     myFrozenTable.getActionMap().put(NEXT_COLUMN_ACTION, new SelectNextColumnAction(myFrozenTable, myScrollableTable));
     myScrollableTable.getActionMap().put(PREVIOUS_COLUMN_ACTION, new SelectPreviousColumnAction(myFrozenTable, myScrollableTable));
+    new SubTableHoverListener(myFrozenTable, myScrollableTable).install();
 
     mySelectedRow = -1;
     mySelectedColumn = -1;
