@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.common.constants
+package com.android.tools.profilers.taskbased.common.constants.colors
 
 import org.jetbrains.jewel.bridge.retrieveColorOrUnspecified
 

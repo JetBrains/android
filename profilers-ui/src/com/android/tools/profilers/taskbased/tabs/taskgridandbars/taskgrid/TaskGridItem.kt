@@ -43,11 +43,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_TOOLTIP_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_SELECTION_BACKGROUND_COLOR
+import com.android.tools.profilers.taskbased.common.constants.colors.TaskBasedUxColors.TASK_HOVER_BACKGROUND_COLOR
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_TOOLTIP_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.icons.TaskIconUtils
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.foundation.modifier.onHover
 import org.jetbrains.jewel.ui.component.ButtonState
@@ -115,6 +115,7 @@ fun TaskIconAndDescriptionWrapper(task: ProfilerTaskType, isSelectedTask: Boolea
 fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
   val taskTitle = TaskBasedUxStrings.getTaskTitle(task)
   val taskSubtitle = TaskBasedUxStrings.getTaskSubtitle(task)
+
   with(boxScope) {
     Column(
       modifier = Modifier.align(Alignment.Center).fillMaxWidth().padding(vertical = 20.dp, horizontal = 10.dp).testTag(task.description)
@@ -132,14 +133,12 @@ fun TaskIconAndDescription(task: ProfilerTaskType, boxScope: BoxScope) {
         modifier = Modifier.align(Alignment.CenterHorizontally)
       )
       Spacer(modifier = Modifier.height(5.dp))
-      taskSubtitle?.let {
-        Text(
-          text = it,
-          textAlign = TextAlign.Center,
-          color = Color.Gray,
-          modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-      }
+      Text(
+        text = taskSubtitle,
+        textAlign = TextAlign.Center,
+        color = Color.Gray,
+        modifier = Modifier.align(Alignment.CenterHorizontally)
+      )
     }
   }
 }

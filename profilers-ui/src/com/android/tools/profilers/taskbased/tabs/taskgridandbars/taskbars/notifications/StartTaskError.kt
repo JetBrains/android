@@ -16,7 +16,7 @@
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.notifications
 
 import androidx.compose.runtime.Composable
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.START_TASK_SELECTION_ERROR_ICON_DESC
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.START_TASK_SELECTION_ERROR_ICON_DESC
 import icons.StudioIconsCompose
 
 @Composable

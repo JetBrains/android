@@ -20,8 +20,8 @@ import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
 import com.android.tools.idea.util.CommonAndroidUtil
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILE_WITH_COMPLETE_DATA_ACTION_NAME
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILE_WITH_LOW_OVERHEAD_ACTION_NAME
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile

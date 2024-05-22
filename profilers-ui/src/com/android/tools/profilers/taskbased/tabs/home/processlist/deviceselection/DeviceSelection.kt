@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.android.tools.idea.IdeInfo
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.DEVICE_SELECTION_TOOLTIP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.DEVICE_SELECTION_TOOLTIP
 import com.android.tools.profilers.taskbased.common.dividers.ToolWindowHorizontalDivider
 import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel.ProfilerDeviceSelection
 import com.android.tools.profilers.taskbased.tabs.home.processlist.deviceselection.common.DeviceSelectionContent

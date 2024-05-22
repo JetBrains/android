@@ -255,7 +255,7 @@ class AndroidProfilerToolWindowFactoryTest {
     waitForCondition(5L, TimeUnit.SECONDS) {
       toolWindow.contentManager.contentCount == 3 &&
       toolWindow.contentManager.selectedContent != null &&
-      toolWindow.contentManager.selectedContent!!.displayName == "System Trace"
+      toolWindow.contentManager.selectedContent!!.displayName == "Capture System Activities (System Trace)"
     }
 
     // Store task tab content to be used to make sure the re-opened task tab is the same as the original task tab.

@@ -19,9 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.android.tools.profilers.sessions.SessionItem
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.OPEN_PROFILER_TASK
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.START_PROFILER_TASK
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.START_PROFILER_TASK_ANYWAY
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.OPEN_PROFILER_TASK
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.START_PROFILER_TASK
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.START_PROFILER_TASK_ANYWAY
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
 import com.android.tools.profilers.tasks.ProfilerTaskType
 import org.jetbrains.jewel.ui.component.DefaultButton

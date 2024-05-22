@@ -28,10 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.font.FontWeight
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_NOTIFICATION_CONTAINER_PADDING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOOLTIP_MAX_WIDTH_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_ICON_TEXT_HORIZONTAL_SPACE_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_MAX_WIDTH_DP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.Tooltip

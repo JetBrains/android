@@ -21,11 +21,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.INFO_ICON_DESC
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.PROFILEABLE_PREFERRED_REBUILD_INSTRUCTION_TOOLTIP
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT
-import com.android.tools.profilers.taskbased.common.constants.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_TOOLTIP
+import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TOOLTIP_VERTICAL_SPACING_DP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.INFO_ICON_DESC
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_REBUILD_INSTRUCTION_TOOLTIP
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_MAIN_TEXT
+import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.PROFILEABLE_PREFERRED_WARNING_TOOLTIP
 import icons.StudioIconsCompose
 import org.jetbrains.jewel.ui.component.Text
 

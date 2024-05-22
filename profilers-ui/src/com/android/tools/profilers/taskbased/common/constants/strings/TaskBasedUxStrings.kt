@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.common.constants
+package com.android.tools.profilers.taskbased.common.constants.strings
 
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.tasks.ProfilerTaskType
@@ -119,7 +119,7 @@ object TaskBasedUxStrings {
       ProfilerTaskType.JAVA_KOTLIN_ALLOCATIONS,
       ProfilerTaskType.JAVA_KOTLIN_METHOD_RECORDING,
       ProfilerTaskType.NATIVE_ALLOCATIONS -> taskType.description
-      ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.UNSPECIFIED -> null
+      ProfilerTaskType.LIVE_VIEW, ProfilerTaskType.UNSPECIFIED -> ""
     }
 
   fun getStartTaskErrorMessage(taskStartError: StartTaskSelectionError) =
