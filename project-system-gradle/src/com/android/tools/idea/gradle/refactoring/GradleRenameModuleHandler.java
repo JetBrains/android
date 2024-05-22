@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -64,6 +65,7 @@ import com.intellij.refactoring.rename.RenameHandler;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
@@ -180,7 +182,7 @@ public class GradleRenameModuleHandler implements RenameHandler, TitledHandler {
 
       // Rename all references in Gradle build files
       final List<GradleBuildModel> modifiedBuildModels = new ArrayList<>();
-      for (Module module : ModuleManager.getInstance(project).getModules()) { // TODO: investigate the effect of ModulePerSourceSet here
+      for (Module module : Arrays.stream(ModuleManager.getInstance(project).getModules()).filter(ModuleSystemUtil::isHolderModule).toList()) {
         GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
         if (buildModel != null) {
           DependenciesModel dependenciesModel = buildModel.dependencies();
