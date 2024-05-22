@@ -54,16 +54,16 @@ class AnimationTabsTest {
       // First added tab should has key listeners for navigation.
       TabInfo(JPanel()).let {
         tabs.addTab(it)
-        assertEquals(1, tabs.infoToLabel[it]?.keyListeners?.size)
+        assertEquals(1, tabs.getTabLabel(it)?.keyListeners?.size)
       }
       // Later added tabs also should have key listeners for navigation.
       TabInfo(JPanel()).let {
         tabs.addTab(it)
-        assertEquals(1, tabs.infoToLabel[it]?.keyListeners?.size)
+        assertEquals(1, tabs.getTabLabel(it)?.keyListeners?.size)
       }
       TabInfo(JPanel()).let {
         tabs.addTab(it)
-        assertEquals(1, tabs.infoToLabel[it]?.keyListeners?.size)
+        assertEquals(1, tabs.getTabLabel(it)?.keyListeners?.size)
       }
     }
   }
@@ -83,17 +83,17 @@ class AnimationTabsTest {
       val ui = FakeUi(tabs)
 
       // Close first tab.
-      ui.clickOn(tabs.infoToLabel[firstInfo]?.components?.get(1)!!)
+      ui.clickOn(tabs.getTabLabel(firstInfo)?.components?.get(1)!!)
       assertEquals(firstInfo, closedInfo)
       assertEquals(2, tabs.tabCount)
 
       // Close third tab.
-      ui.clickOn(tabs.infoToLabel[thirdInfo]?.components?.get(1)!!)
+      ui.clickOn(tabs.getTabLabel(thirdInfo)?.components?.get(1)!!)
       assertEquals(thirdInfo, closedInfo)
       assertEquals(1, tabs.tabCount)
 
       // Close second tab.
-      ui.clickOn(tabs.infoToLabel[secondInfo]?.components?.get(1)!!)
+      ui.clickOn(tabs.getTabLabel(secondInfo)?.components?.get(1)!!)
       assertEquals(secondInfo, closedInfo)
       assertEquals(0, tabs.tabCount)
     }
