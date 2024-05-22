@@ -114,26 +114,8 @@ public class ModelBuilder {
   }
 
   @Nullable
-  public ComponentDescriptor findById(@NotNull String id) {
-    return myRoot.findById(id);
-  }
-
-  @Nullable
   public ComponentDescriptor findByPath(@NotNull String... path) {
     return myRoot.findByPath(path);
-  }
-
-  @Nullable
-  public ComponentDescriptor findByTag(@NotNull String tag) {
-    return myRoot.findByTag(tag);
-  }
-
-  @Nullable
-  public ComponentDescriptor findByBounds(@AndroidCoordinate int x,
-                                          @AndroidCoordinate int y,
-                                          @AndroidCoordinate int width,
-                                          @AndroidCoordinate int height) {
-    return myRoot.findByBounds(x, y, width, height);
   }
 
   public ModelBuilder setDevice(@NotNull Device device) {
