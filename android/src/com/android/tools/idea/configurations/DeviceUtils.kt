@@ -83,15 +83,15 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
  * - For mobiles devices which are *NOT* nexus devices: [DeviceGroup.GENERIC]
  * - Other devices: [DeviceGroup.OTHER]
  *
- * The order of devices is ascending by its screen size.
+ * The order of devices by category is in descending alphabetical order (more recent Pixels appear first)
  *
  * @see DeviceGroup
  * @return map of sorted devices
  */
 fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
-  return devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
-    .apply { sortDevicesByScreenSize(this) }
-    .groupBy {
+  val sorted = devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
+    .sortedByDescending { it.displayName }
+  return  sorted.groupBy {
       when {
         isCanonicalDevice(it) -> DeviceGroup.CANONICAL_DEVICE
         isAdditionalDevice(it) -> DeviceGroup.ADDITIONAL_DEVICE
