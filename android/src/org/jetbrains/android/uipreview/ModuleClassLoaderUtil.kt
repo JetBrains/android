@@ -123,7 +123,6 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   private val _projectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
   private val _nonProjectLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
-  private val _projectOverlayLoadedClassNames: MutableSet<String> = Collections.newSetFromMap(ConcurrentHashMap())
 
   /**
    * List of libraries used in this [ModuleClassLoaderImpl].
@@ -146,28 +145,21 @@ internal class ModuleClassLoaderImpl(module: Module,
   val nonProjectLoadedClassNames: Set<String> get() = _nonProjectLoadedClassNames
 
   /**
-   * Set of class FQN for the classes that have been loaded from the overlay.
-   */
-  internal val projectOverlayLoadedClassNames: Set<String> get() = _projectOverlayLoadedClassNames
-
-  /**
    * [ModificationTracker] that changes every time the classes overlay has changed.
    */
   private val overlayManager: ClassLoaderOverlays = ModuleClassLoaderOverlays.getInstance(module)
 
   /**
-   * Modification count for the overlay when the first overlay class was loaded. Used to detect if this [ModuleClassLoaderImpl] is up to
-   * date or if the overlay has changed.
+   * Modification count for the overlay when this [ModuleClassLoaderImpl] was created, used for out-of-date detection.
    */
   @GuardedBy("overlayManager")
-  private var overlayModificationStamp = -1L
+  private var initialOverlayModificationStamp = overlayManager.modificationStamp
 
   private fun createProjectLoader(loader: DelegatingClassLoader.Loader,
                                   dependenciesLoader: DelegatingClassLoader.Loader?,
                                   onClassRewrite: (String, Long, Int) -> Unit) = AsmTransformingLoader(
     projectTransforms,
     ListeningLoader(loader, onAfterLoad = { fqcn, _ ->
-      recordFirstLoadModificationCount()
       _projectLoadedClassNames.add(fqcn) }),
     PseudoClassLocatorForLoader(
       listOfNotNull(projectSystemLoader, dependenciesLoader, parentLoader).asSequence(),
@@ -175,15 +167,6 @@ internal class ModuleClassLoaderImpl(module: Module,
     ClassWriter.COMPUTE_FRAMES,
     onClassRewrite
   )
-
-  private fun recordFirstLoadModificationCount() {
-    if (!hasLoadedAnyUserCode) {
-      // First class being added, record the current overlay status
-      synchronized(overlayManager) {
-        overlayModificationStamp = overlayManager.modificationStamp
-      }
-    }
-  }
 
   private fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
                              binaryCache: ClassBinaryCache,
@@ -260,18 +243,11 @@ internal class ModuleClassLoaderImpl(module: Module,
     loader = MultiLoaderWithAffinity(allLoaders)
   }
 
-  private fun recordOverlayLoadedClass(fqcn: String) {
-    recordFirstLoadModificationCount()
-    _projectOverlayLoadedClassNames.add(fqcn)
-  }
-
   /**
    * Creates an overlay loader. See [OverlayLoader].
    */
   private fun createOptionalOverlayLoader(dependenciesLoader: DelegatingClassLoader.Loader?, onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
-    return createProjectLoader(ListeningLoader(OverlayLoader(overlayManager), onAfterLoad = { fqcn, _ ->
-      recordOverlayLoadedClass(fqcn)
-    }), dependenciesLoader, onClassRewrite)
+    return createProjectLoader(OverlayLoader(overlayManager), dependenciesLoader, onClassRewrite)
   }
 
   override fun loadClass(fqcn: String): ByteArray? {
@@ -295,7 +271,7 @@ internal class ModuleClassLoaderImpl(module: Module,
    * Returns if the overlay is up-to-date.
    */
   private fun isOverlayUpToDate() = synchronized(overlayManager) {
-    overlayManager.modificationStamp == overlayModificationStamp
+    overlayManager.modificationStamp == initialOverlayModificationStamp
   }
 
   private val isUserCodeUpToDateCached: ChangeTrackerCachedValue<Boolean> = ChangeTrackerCachedValue.softReference()
@@ -328,8 +304,5 @@ internal class ModuleClassLoaderImpl(module: Module,
    * This method just provides the non-cached version of {@link #isUserCodeUpToDate}. {@link #isUserCodeUpToDate} will cache
    * the result of this call until a PSI modification happens.
    */
-  private fun isUserCodeUpToDateNonCached() = !hasLoadedAnyUserCode || (projectSystemLoader.isUpToDate() && isOverlayUpToDate())
+  private fun isUserCodeUpToDateNonCached() = projectSystemLoader.isUpToDate() && isOverlayUpToDate()
 }
-
-private val ModuleClassLoaderImpl.hasLoadedAnyUserCode: Boolean
-  get() = projectLoadedClassNames.isNotEmpty() || projectOverlayLoadedClassNames.isNotEmpty()

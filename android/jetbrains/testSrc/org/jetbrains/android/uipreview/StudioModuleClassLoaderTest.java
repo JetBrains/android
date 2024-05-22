@@ -220,6 +220,18 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     StudioModuleClassLoaderManager.get().release(loaderReference);
   }
 
+  public void testNotUsedLoaderCouldBeOutOfDate() throws Exception {
+    ModuleClassLoaderManager.Reference<StudioModuleClassLoader> loaderReference =
+      StudioModuleClassLoaderManager.get().getShared(null, StudioModuleRenderContext.forModule(myModule));
+    StudioModuleClassLoader loader = loaderReference.getClassLoader();
+    Path overlayTestDir = Files.createDirectories(Files.createTempDirectory("overlayTest"));
+    assertTrue(loader.isUserCodeUpToDate());
+    // New overlay will make the code out-of-date, even if the class loader hasn't been used to load any class
+    ModuleClassLoaderOverlays.getInstance(myModule).pushOverlayPath(overlayTestDir);
+    assertFalse(loader.isUserCodeUpToDate());
+    StudioModuleClassLoaderManager.get().release(loaderReference);
+  }
+
   private void doTestLibRClass(boolean finalIdsUsed) throws Exception {
     testResourceIdManager.setFinalIdsUsed(finalIdsUsed);
 
