@@ -8,33 +8,9 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.sync-memory-tests.iml"],
     split_test_targets = {
-        "Benchmark200Repeated20TimesMemory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
-        },
-        "Benchmark1000Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
-        },
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
-        },
-        "Benchmark4200Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark4200MemoryTest",
-            "exec_properties": LARGE_MACHINE,
-            "tags": ["manual"],
-        },
-        "BenchmarkMultiApp100Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
-        },
-        "BenchmarkMultiApp190Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
-            "exec_properties": LARGE_MACHINE,
-        },
-        "Benchmark200Cpu": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
-        },
-        "Benchmark500Cpu": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
         },
         "Benchmark1000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
@@ -44,6 +20,26 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
         },
+        # Tests without regression analyzers, to reduce noise
+        "Benchmark200Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
+        },
+        "Benchmark500Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
+        },
+        "Benchmark200Repeated20TimesMemory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
+        },
+        "Benchmark1000Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
+        },
+        "Benchmark1000MemoryRuntimeClasspath": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
+        },
+        "Benchmark1000CpuRuntimeClasspath": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
+        },
+        # Disabled tests
         "Benchmark4200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark4200CpuTest",
             "exec_properties": LARGE_MACHINE,
@@ -51,17 +47,26 @@ iml_module(
         },
         "BenchmarkMultiApp100Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp100CpuTest",
+            "tags": ["manual"],
         },
         "BenchmarkMultiApp190Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp190CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
+            "tags": ["manual"],
         },
-        "Benchmark1000MemoryRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
+        "Benchmark4200Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark4200MemoryTest",
+            "exec_properties": LARGE_MACHINE,
+            "tags": ["manual"],
         },
-        "Benchmark1000CpuRuntimeClasspath": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
+        "BenchmarkMultiApp100Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
+            "tags": ["manual"],
+        },
+        "BenchmarkMultiApp190Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
+            "tags": ["manual"],
         },
     },
     test_data = [
