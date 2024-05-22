@@ -121,7 +121,6 @@ public class AvdManagerConnection {
   public static final String AVD_INI_HW_LCD_DENSITY = "hw.lcd.density";
 
   private static final Map<Path, AvdManagerConnection> ourAvdCache = new WeakHashMap<>();
-  private static final @NotNull Map<Path, AvdManagerConnection> ourGradleAvdCache = new WeakHashMap<>();
 
   private static @NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> ourConnectionFactory =
     AvdManagerConnection::new;
@@ -168,29 +167,6 @@ public class AvdManagerConnection {
       });
   }
 
-  public synchronized static @NotNull AvdManagerConnection getDefaultGradleAvdManagerConnection() {
-    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    if (handler.getLocation() == null) {
-      return NULL_CONNECTION;
-    }
-    return getGradleAvdManagerConnection(handler);
-  }
-
-  public synchronized static @NotNull AvdManagerConnection getGradleAvdManagerConnection(@NotNull AndroidSdkHandler handler) {
-    Path sdkPath = handler.getLocation();
-    return ourGradleAvdCache.computeIfAbsent(
-      sdkPath, path -> {
-        try {
-          return ourConnectionFactory.apply(handler, AndroidLocationsSingleton.INSTANCE.getGradleAvdLocation());
-
-        }
-        catch (AndroidLocationsException e) {
-          IJ_LOG.warn(e);
-          return NULL_CONNECTION;
-        }
-      });
-  }
-
   private AvdManagerConnection(@Nullable AndroidSdkHandler sdkHandler, @Nullable Path avdHomeFolder) {
     this(sdkHandler, avdHomeFolder, MoreExecutors.listeningDecorator(EdtExecutorService.getInstance()));
   }
@@ -211,7 +187,6 @@ public class AvdManagerConnection {
   @TestOnly
   public synchronized static void setConnectionFactory(@NotNull BiFunction<AndroidSdkHandler, Path, AvdManagerConnection> factory) {
     ourAvdCache.clear();
-    ourGradleAvdCache.clear();
     ourConnectionFactory = factory;
   }
 
