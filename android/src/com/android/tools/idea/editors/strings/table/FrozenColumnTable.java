@@ -63,6 +63,9 @@ public class FrozenColumnTable<M extends TableModel> {
   @Nullable
   private FrozenColumnTableRowSorter<M> myRowSorter;
 
+  private static final String NEXT_COLUMN_ACTION = "selectNextColumn";
+  private static final String PREVIOUS_COLUMN_ACTION = "selectPreviousColumn";
+
   FrozenColumnTable(@NotNull M model, int frozenColumnCount) {
     myModel = model;
     myFrozenColumnCount = frozenColumnCount;
@@ -71,6 +74,9 @@ public class FrozenColumnTable<M extends TableModel> {
     initFrozenTable();
     initScrollableTable();
     initScrollPane();
+
+    myFrozenTable.getActionMap().put(NEXT_COLUMN_ACTION, new SelectNextColumnAction(myFrozenTable, myScrollableTable));
+    myScrollableTable.getActionMap().put(PREVIOUS_COLUMN_ACTION, new SelectPreviousColumnAction(myFrozenTable, myScrollableTable));
 
     mySelectedRow = -1;
     mySelectedColumn = -1;

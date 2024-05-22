@@ -19,6 +19,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.ide.structureView.StructureViewBuilder
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
@@ -39,7 +41,7 @@ import javax.swing.JComponent
  *
  * This editor is mostly a wrapper around the [StringResourceViewPanel] which holds most of the functionality.
  */
-class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolderBase(), FileEditor {
+class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolderBase(), DataProvider, FileEditor {
   // We sometimes get extra calls to `selectNotify`. This ensures that we know when
   // those calls represent a real transition.
   private val selected = AtomicBoolean()
@@ -105,6 +107,10 @@ class StringResourceEditor(private val file: StringsVirtualFile) : UserDataHolde
   override fun dispose() {}
 
   override fun toString() = "StringResourceEditor ${panel.facet} ${System.identityHashCode(this)}"
+
+  override fun getData(dataId: String): Any? {
+    return if (PlatformDataKeys.FILE_EDITOR.`is`(dataId)) this else null;
+  }
 
   private fun addListener() {
     val facet: AndroidFacet = file.facet
