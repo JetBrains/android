@@ -1298,6 +1298,35 @@ class DependencyManagementTest {
       assertThat(flavorModule.parsedModel!!.configurations().all().find { it.name() == "implementation" }, nullValue())
     }
   }
+
+  @Test
+  fun testRemoveModule() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_DEPENDENCY)
+    projectRule.psTestWithProject(preparedProject) {
+      run {
+        assertThat(project.findModuleByGradlePath(":jModuleL"), notNullValue())
+        val jModuleK = project.findModuleByGradlePath(":jModuleK")!!
+        val jModuleZ = project.findModuleByGradlePath(":jModuleZ")!!
+        val moduleB = project.findModuleByGradlePath(":moduleB")!!
+        assertTrue(jModuleK.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertTrue(jModuleZ.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertTrue(moduleB.dependencies.modules.map { it.name }.contains("jModuleL"))
+      }
+      project.removeModule(":jModuleL")
+      project.applyChanges()
+      requestSyncAndWait()
+      reparse()
+      run {
+        assertThat(project.findModuleByGradlePath(":jModuleL"), nullValue())
+        val jModuleK = project.findModuleByGradlePath(":jModuleK")!!
+        val jModuleZ = project.findModuleByGradlePath(":jModuleZ")!!
+        val moduleB = project.findModuleByGradlePath(":moduleB")!!
+        assertFalse(jModuleK.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertFalse(jModuleZ.dependencies.modules.map { it.name }.contains("jModuleL"))
+        assertFalse(moduleB.dependencies.modules.map { it.name }.contains("jModuleL"))
+      }
+    }
+  }
 }
 
 private fun <T> PsDeclaredDependencyCollection<*, T, *, *>.findLibraryDependency(
