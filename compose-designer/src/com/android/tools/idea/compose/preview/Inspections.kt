@@ -317,7 +317,7 @@ class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
           if (KotlinPluginModeProvider.isK2Mode()) {
             analyze(this) {
               val functionSymbol = resolveCall()?.singleFunctionCallOrNull()?.symbol
-              functionSymbol?.callableIdIfNonLocal?.callableName
+              functionSymbol?.callableId?.callableName
             }
           } else {
             val resolvedExpression = resolveToCall()
