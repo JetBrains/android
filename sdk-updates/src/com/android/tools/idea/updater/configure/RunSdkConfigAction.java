@@ -53,7 +53,9 @@ public class RunSdkConfigAction extends DumbAwareAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
 
-    if (ActionPlaces.MAIN_TOOLBAR.equals(e.getPlace()) && !IdeInfo.getInstance().isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) return;
+
+    if (e.getPlace().equals(ActionPlaces.MAIN_TOOLBAR) || e.getPlace().equals(ActionPlaces.POPUP)) {
       @Nullable Project project = e.getProject();
       boolean hasAndroidFacets = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
       presentation.setVisible(hasAndroidFacets);
