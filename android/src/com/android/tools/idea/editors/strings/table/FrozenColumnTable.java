@@ -85,7 +85,7 @@ public class FrozenColumnTable<M extends TableModel> {
 
     myFrozenTable.getSelectionModel().addListSelectionListener(event -> {
       myScrollableTable.setSelectedRow(myFrozenTable.getSelectedRow());
-      fireSelectedCellChanged();
+      fireSelectedCellChanged(false);
     });
 
     myFrozenTable.getColumnModel().getSelectionModel().addListSelectionListener(event -> {
@@ -94,7 +94,7 @@ public class FrozenColumnTable<M extends TableModel> {
       }
 
       myScrollableTable.getColumnModel().getSelectionModel().clearSelection();
-      fireSelectedCellChanged();
+      fireSelectedCellChanged(false);
     });
 
     myFrozenTable.addComponentListener(new ComponentAdapter() {
@@ -122,7 +122,7 @@ public class FrozenColumnTable<M extends TableModel> {
 
     myScrollableTable.getSelectionModel().addListSelectionListener(event -> {
       myFrozenTable.setSelectedRow(myScrollableTable.getSelectedRow());
-      fireSelectedCellChanged();
+      fireSelectedCellChanged(false);
     });
 
     myScrollableTable.getColumnModel().getSelectionModel().addListSelectionListener(event -> {
@@ -131,7 +131,7 @@ public class FrozenColumnTable<M extends TableModel> {
       }
 
       myFrozenTable.getColumnModel().getSelectionModel().clearSelection();
-      fireSelectedCellChanged();
+      fireSelectedCellChanged(false);
     });
 
     myScrollableTable.addMouseListener(new CellPopupTriggerListener<>(converter));
@@ -178,11 +178,11 @@ public class FrozenColumnTable<M extends TableModel> {
     }
   }
 
-  private void fireSelectedCellChanged() {
+  private void fireSelectedCellChanged(boolean force) {
     int selectedRow = getSelectedRow();
     int selectedColumn = getSelectedColumn();
 
-    if (mySelectedRow == selectedRow && mySelectedColumn == selectedColumn) {
+    if (!force && (mySelectedRow == selectedRow && mySelectedColumn == selectedColumn)) {
       return;
     }
 
@@ -415,6 +415,7 @@ public class FrozenColumnTable<M extends TableModel> {
 
       row++;
     }
+    fireSelectedCellChanged(/* force update even though the selected cell has not changed */ true);
   }
 
   @NotNull
