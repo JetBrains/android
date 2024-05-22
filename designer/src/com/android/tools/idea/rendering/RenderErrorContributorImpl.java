@@ -1107,6 +1107,7 @@ public class RenderErrorContributorImpl implements RenderErrorContributor {
         addHtmlForIssue164378(throwable, project, myLinkManager, builder, false);
         break;
       }
+      else if (DataBindingErrorUtils.handleDataBindingMapperError(throwable, builder)) break;
     }
 
     builder.add("The following classes could not be instantiated:");

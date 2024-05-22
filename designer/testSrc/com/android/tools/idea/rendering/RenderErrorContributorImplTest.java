@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.rendering.ProblemSeverity.WARNING;
+import static com.google.common.truth.Truth.assertThat;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
@@ -755,6 +756,60 @@ public class RenderErrorContributorImplTest extends AndroidTestCase {
     assertSize(2, issues);
     assertEquals(HighlightSeverity.ERROR, issues.get(0).getSeverity());
     assertEquals(HighlightSeverity.WARNING, issues.get(1).getSeverity());
+  }
+
+  /**
+   * Tests that the RenderErrorContributor builds the correct help message for errors with data binding.
+   */
+  public void testDataBindingIssue() {
+    LogOperation operation = (logger, render) -> {
+      Throwable throwable = createExceptionFromDesc(
+        "java.lang.ClassNotFoundException: androidx.databinding.DataBinderMapperImpl\n" +
+        "\tat com.android.tools.rendering.classloading.loaders.DelegatingClassLoader.findClass(DelegatingClassLoader.kt:76)\n" +
+        "\tat java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:592)\n" +
+        "\tat java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:525)\n" +
+        "\tat com.android.tools.rendering.classloading.loaders.DelegatingClassLoader.loadClass(DelegatingClassLoader.kt:62)\n" +
+        "\tat com.example.module.databinding.ViewTestBinding.inflate(ViewTestBinding.java:23)\n" +
+        "\tat com.example.module.TestCustomView.<init>(TestCustomView.kt:15)\n" +
+        "\tat com.example.module.TestCustomView.<init>(TestCustomView.kt:10)\n" +
+        "\tat java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n" +
+        "\tat java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)\n" +
+        "\tat java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n" +
+        "\tat java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)\n" +
+        "\tat java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:480)\n" +
+        "\tat com.android.tools.rendering.ViewLoader.createNewInstance(ViewLoader.java:292)\n" +
+        "\tat com.android.tools.rendering.ViewLoader.loadClass(ViewLoader.java:155)\n" +
+        "\tat com.android.tools.rendering.ViewLoader.loadView(ViewLoader.java:116)\n" +
+        "\tat com.android.tools.rendering.LayoutlibCallbackImpl.loadView(LayoutlibCallbackImpl.java:280)\n" +
+        "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:429)\n" +
+        "\tat android.view.BridgeInflater.loadCustomView(BridgeInflater.java:440)\n" +
+        "\tat android.view.BridgeInflater.createViewFromTag(BridgeInflater.java:344)\n" +
+        "\tat android.view.LayoutInflater.createViewFromTag(LayoutInflater.java:973)\n" +
+        "\tat android.view.LayoutInflater.rInflate_Original(LayoutInflater.java:1135)\n" +
+        "\tat android.view.LayoutInflater_Delegate.rInflate(LayoutInflater_Delegate.java:72)\n" +
+        "\tat android.view.LayoutInflater.rInflate(LayoutInflater.java:1109)\n" +
+        "\tat android.view.LayoutInflater.rInflateChildren(LayoutInflater.java:1096)\n" +
+        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:694)\n" +
+        "\tat android.view.LayoutInflater.inflate(LayoutInflater.java:505)\n" +
+        "\tat com.android.layoutlib.bridge.impl.RenderSessionImpl.inflate(RenderSessionImpl.java:365)\n" +
+        "\tat com.android.layoutlib.bridge.Bridge.createSession(Bridge.java:454)\n" +
+        "\tat com.android.tools.idea.layoutlib.LayoutLibrary.createSession(LayoutLibrary.java:120)\n" +
+        "\tat com.android.tools.rendering.RenderTask.createRenderSession(RenderTask.java:777)\n" +
+        "\tat com.android.tools.rendering.RenderTask.lambda$inflate$6(RenderTask.java:925)\n" +
+        "\tat com.android.tools.rendering.RenderExecutor$runAsyncActionWithTimeout$3.run(RenderExecutor.kt:203)\n" +
+        "\tat com.android.tools.rendering.RenderExecutor$PriorityRunnable.run(RenderExecutor.kt:317)\n" +
+        "\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)\n" +
+        "\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)\n" +
+        "\tat java.base/java.lang.Thread.run(Thread.java:840)\n");
+      logger.addBrokenClass("com.example.module.TestCustomView", throwable);
+    };
+
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertSize(1, issues);
+    assertThat(issues.get(0).getHtmlContent()).startsWith("<I>androidx.databinding.DataBinderMapperImpl</I> class could not be found." +
+                                                      "<BR/>This is likely caused by trying to render a layout using data binding directly " +
+                                                      "from a library module.<BR/><BR/>The following classes");
   }
 
   private String stripSdkHome(@NotNull String html) {
