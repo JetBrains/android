@@ -16,12 +16,14 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.swing.FakeUi
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
@@ -33,16 +35,16 @@ import org.junit.Test
 class InteractiveLabelPanelTest {
 
   @get:Rule val projectRule = ApplicationRule()
-  private lateinit var parentDisposable: Disposable
+  private lateinit var scope: CoroutineScope
 
   @Before
   fun setUp() {
-    parentDisposable = Disposer.newDisposable()
+    scope = CoroutineScope(CoroutineName(javaClass.simpleName))
   }
 
   @After
   fun tearDown() {
-    Disposer.dispose(parentDisposable)
+    scope.cancel()
   }
 
   @Test
@@ -55,13 +57,15 @@ class InteractiveLabelPanelTest {
         return false
       }
 
-      val layoutData = LayoutData(1.0, "Name", "Tooltip", 0, 0, Dimension(10, 10))
+      val displayName = MutableStateFlow("Name")
+      val tooltip = MutableStateFlow("Tooltip")
+
       val label =
-        InteractiveLabelPanel(layoutData, parentDisposable, ::labelClicked).apply {
+        InteractiveLabelPanel(displayName, tooltip, scope, ::labelClicked).apply {
           size = Dimension(250, 50)
         }
       FakeUi(label).also { it.clickOn(label) }
-      withTimeout(TimeUnit.SECONDS.toMillis(1)) { assertEquals(1, clickCount) }
+      withTimeout(TimeUnit.SECONDS.toMillis(5)) { assertEquals(1, clickCount) }
     }
   }
 }

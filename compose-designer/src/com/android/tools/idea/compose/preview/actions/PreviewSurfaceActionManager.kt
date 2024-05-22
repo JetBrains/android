@@ -21,7 +21,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractiveLabelPanel
 import com.android.tools.idea.common.surface.LabelPanel
-import com.android.tools.idea.common.surface.LayoutData
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.actions.ml.SendPreviewToStudioBotAction
 import com.android.tools.idea.compose.preview.message
@@ -40,6 +39,7 @@ import com.intellij.openapi.actionSystem.Separator
 import java.awt.MouseInfo
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
+import kotlinx.coroutines.CoroutineScope
 
 /** [ActionManager] to be used by the Compose Preview. */
 internal class PreviewSurfaceActionManager(
@@ -57,10 +57,11 @@ internal class PreviewSurfaceActionManager(
     registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
   }
 
-  override fun createSceneViewLabel(sceneView: SceneView): LabelPanel {
+  override fun createSceneViewLabel(sceneView: SceneView, scope: CoroutineScope): LabelPanel {
     return InteractiveLabelPanel(
-      LayoutData.fromSceneView(sceneView),
-      surface,
+      sceneView.sceneManager.model.modelDisplayName,
+      sceneView.sceneManager.model.tooltip,
+      scope,
       suspend { navigationHandler.handleNavigate(sceneView, false) },
     )
   }

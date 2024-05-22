@@ -51,7 +51,7 @@ import javax.swing.JPanel
  */
 class SceneViewPeerPanel(
   val sceneView: SceneView,
-  private val labelPanel: LabelPanel,
+  private val labelPanel: JComponent,
   sceneViewStatusIconAction: AnAction?,
   sceneViewToolbarActions: List<AnAction>,
   sceneViewLeftBar: JComponent?,
@@ -194,8 +194,6 @@ class SceneViewPeerPanel(
 
   override fun doLayout() {
     layoutData = LayoutData.fromSceneView(sceneView)
-    labelPanel.updateFromLayoutData(layoutData)
-    labelPanel.doLayout()
 
     //      SceneViewPeerPanel layout:
     //

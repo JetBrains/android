@@ -18,14 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.idea.common.model.scaleBy
 import java.awt.Dimension
 
-data class LayoutData(
-  val scale: Double,
-  val modelName: String?,
-  val modelTooltip: String?,
-  val x: Int,
-  val y: Int,
-  val scaledSize: Dimension,
-) {
+data class LayoutData(val scale: Double, val x: Int, val y: Int, val scaledSize: Dimension) {
 
   // Used to avoid extra allocations in isValidFor calls
   private val cachedDimension = Dimension()
@@ -37,15 +30,12 @@ data class LayoutData(
     scale == sceneView.scale &&
       x == sceneView.x &&
       y == sceneView.y &&
-      modelName == sceneView.scene.sceneManager.model.modelDisplayName.value &&
       scaledSize == sceneView.getContentSize(cachedDimension).scaleBy(sceneView.scale)
 
   companion object {
     fun fromSceneView(sceneView: SceneView): LayoutData =
       LayoutData(
         sceneView.scale,
-        sceneView.scene.sceneManager.model.modelDisplayName.value,
-        sceneView.scene.sceneManager.model.tooltip.value,
         sceneView.x,
         sceneView.y,
         sceneView.getContentSize(null).scaleBy(sceneView.scale),

@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.organization.createOrganizationHead
 import com.android.tools.idea.common.surface.organization.paintLines
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.scene.hasValidImage
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfacePositionableContentLayoutManager
@@ -35,6 +36,7 @@ import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.getScaledContentSize
 import com.intellij.openapi.Disposable
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -42,6 +44,8 @@ import java.awt.Point
 import java.awt.Rectangle
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 /**
@@ -106,6 +110,19 @@ internal class SceneViewPanel(
 
   private val scope = AndroidCoroutineScope(disposable)
 
+  private val sceneScopes = mutableMapOf<JComponent, CoroutineScope>()
+
+  override fun remove(comp: Component?) {
+    sceneScopes.remove(comp)?.cancel()
+    super.remove(comp)
+  }
+
+  override fun removeAll() {
+    sceneScopes.values.forEach { it.cancel() }
+    sceneScopes.clear()
+    super.removeAll()
+  }
+
   init {
     (layoutManager as? NlDesignSurfacePositionableContentLayoutManager)?.let {
       scope.launch(uiThread) {
@@ -152,7 +169,8 @@ internal class SceneViewPanel(
       val errorsPanel =
         if (shouldRenderErrorsPanel()) actionManagerProvider().createErrorPanel(sceneView) else null
 
-      val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView)
+      val sceneScope = this.scope.createChildScope()
+      val labelPanel = actionManagerProvider().createSceneViewLabel(sceneView, sceneScope)
       val peerPanel =
         SceneViewPeerPanel(
             sceneView,
@@ -174,6 +192,7 @@ internal class SceneViewPanel(
         groups[organizationGroup]?.add(peerPanel)
       }
       add(peerPanel)
+      sceneScopes[peerPanel] = sceneScope
     }
   }
 

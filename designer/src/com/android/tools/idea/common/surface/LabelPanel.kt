@@ -17,34 +17,39 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Dimension
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 /** This label displays the [SceneView] model label. */
-open class LabelPanel(initialLayoutData: LayoutData) : JBLabel() {
+open class LabelPanel(
+  private val displayName: StateFlow<String?>,
+  private val tooltip: StateFlow<String?>,
+  protected val scope: CoroutineScope,
+) : JBLabel() {
+
   init {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
     foreground = AdtUiUtils.HEADER_COLOR
     font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
-    updateFromLayoutData(initialLayoutData)
-  }
-
-  /** Updates the label data from the given [LayoutData] information. */
-  fun updateFromLayoutData(layoutData: LayoutData) {
-    // If there is a model name, we manually assign the content of the modelNameLabel and position
-    // it here.
-    // Once this panel gets more functionality, we will need the use of a layout manager. For now,
-    // we just lay out the component manually.
-    if (layoutData.modelName == null) {
-      text = ""
-      toolTipText = ""
-      isVisible = false
-    } else {
-      text = layoutData.modelName
-      // Use modelName for tooltip if none has been specified.
-      toolTipText = layoutData.modelTooltip ?: layoutData.modelName
-      isVisible = true
+    text = displayName.value
+    toolTipText = tooltip.value ?: displayName.value ?: ""
+    scope.launch(uiThread) {
+      displayName.collect {
+        text = it ?: ""
+        isVisible = text.isNotBlank()
+        invalidate()
+      }
+    }
+    scope.launch(uiThread) {
+      tooltip.collect {
+        toolTipText = it ?: text ?: ""
+        invalidate()
+      }
     }
   }
 

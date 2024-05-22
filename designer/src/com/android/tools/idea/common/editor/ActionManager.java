@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import kotlinx.coroutines.CoroutineScope;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -136,8 +137,10 @@ public abstract class ActionManager<S extends DesignSurface<?>> {
    * Creates a {@link LabelPanel} with a label for a {@link SceneView}.
    */
   @NotNull
-  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView) {
-    return new LabelPanel(LayoutData.Companion.fromSceneView(sceneView));
+  public LabelPanel createSceneViewLabel(@NotNull SceneView sceneView, CoroutineScope scope) {
+    return new LabelPanel(sceneView.getSceneManager().getModel().getModelDisplayName(),
+                          sceneView.getSceneManager().getModel().getTooltip(),
+                          scope);
   }
 
   /**

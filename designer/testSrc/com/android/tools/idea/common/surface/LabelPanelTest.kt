@@ -16,26 +16,75 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.swing.FakeUi
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.testFramework.ApplicationRule
 import java.awt.Dimension
+import kotlin.test.assertEquals
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 class LabelPanelTest {
 
+  @Rule @JvmField val rule = ApplicationRule()
+  private lateinit var scope: CoroutineScope
+
+  @Before
+  fun setUp() {
+    scope = CoroutineScope(CoroutineName(javaClass.simpleName))
+  }
+
+  @After
+  fun tearDown() {
+    scope.cancel()
+  }
+
   @Test
-  fun `label is visible`() {
-    val layoutData = LayoutData(1.0, "Name", "Tooltip", 0, 0, Dimension(10, 10))
-    val label = LabelPanel(layoutData).apply { size = Dimension(250, 50) }
-    FakeUi(label).also { it.layout() }
+  fun `change name`() {
+    val displayName = MutableStateFlow("Name")
+    val tooltip = MutableStateFlow("Tooltip")
+    val label = LabelPanel(displayName, tooltip, scope).apply { size = Dimension(250, 50) }
+    val ui = FakeUi(label)
+    invokeAndWaitIfNeeded { ui.layout() }
+    assertTrue(label.isVisible)
+    assertEquals("Name", label.text)
+    displayName.value = "New Name"
+    invokeAndWaitIfNeeded { ui.layout() }
+    assertEquals("New Name", label.text)
+  }
+
+  @Test
+  fun `change visibility`() {
+    val displayName = MutableStateFlow<String?>(null)
+    val tooltip = MutableStateFlow<String?>("Tooltip")
+    val label = LabelPanel(displayName, tooltip, scope).apply { size = Dimension(250, 50) }
+    val ui = FakeUi(label)
+    invokeAndWaitIfNeeded { ui.layout() }
+    assertFalse(label.isVisible)
+    displayName.value = "Name"
+    invokeAndWaitIfNeeded { ui.layout() }
     assertTrue(label.isVisible)
   }
 
   @Test
-  fun `label is not visible`() {
-    val layoutData = LayoutData(1.0, null, null, 0, 0, Dimension(10, 10))
-    val label = LabelPanel(layoutData).apply { size = Dimension(250, 50) }
-    FakeUi(label).also { it.layout() }
-    assertFalse(label.isVisible)
+  fun `not updated when disposed`() {
+    val scope = CoroutineScope(CoroutineName(javaClass.simpleName))
+    val displayName = MutableStateFlow("Name")
+    val tooltip = MutableStateFlow("Tooltip")
+    val label = LabelPanel(displayName, tooltip, scope).apply { size = Dimension(250, 50) }
+    val ui = FakeUi(label)
+    invokeAndWaitIfNeeded { ui.layout() }
+    scope.cancel()
+    displayName.value = "New Name"
+    invokeAndWaitIfNeeded { ui.layout() }
+    // Still old name
+    assertEquals("Name", label.text)
   }
 }

@@ -48,7 +48,7 @@ class SceneViewTopPanel(
   private val toolbarTargetComponent: JComponent,
   private val statusIconAction: AnAction?,
   toolbarActions: List<AnAction>,
-  private val labelPanel: LabelPanel,
+  private val labelPanel: JComponent,
 ) : JPanel(BorderLayout()) {
 
   init {
