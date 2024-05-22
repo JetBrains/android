@@ -17,10 +17,7 @@ package com.android.tools.compose
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.LightCalloutPopup
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
+import com.android.tools.adtui.MaterialColorPaletteProvider
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProviderDescriptor
@@ -30,6 +27,9 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiTypes
 import com.intellij.psi.util.elementType
+import com.intellij.ui.colorpicker.ColorPickerBuilder
+import com.intellij.ui.colorpicker.MaterialGraphicalColorPipetteProvider
+import com.intellij.ui.picker.ColorListener
 import com.intellij.util.ui.ColorIcon
 import java.awt.Color
 import java.awt.MouseInfo
@@ -115,7 +115,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
     val project = element.sourcePsi?.project ?: return
     val setColorTask: (Color) -> Unit = getSetColorTask() ?: return
 
-    val pickerListener = ColorPickerListener { color, _ ->
+    val pickerListener = ColorListener { color, _ ->
       ApplicationManager.getApplication()
         .invokeLater(
           {
@@ -132,7 +132,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
 
     val dialog = LightCalloutPopup()
     val colorPicker =
-      ColorPickerBuilder()
+      ColorPickerBuilder(showAlpha = true, showAlphaAsPercent = false)
         .setOriginalColor(color)
         .addSaturationBrightnessComponent()
         .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
@@ -140,11 +140,11 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) :
         .withFocus()
         .addSeparator()
         .addCustomComponent(MaterialColorPaletteProvider)
-        .addColorPickerListener(pickerListener)
+        .addColorListener(pickerListener)
         .focusWhenDisplay(true)
         .setFocusCycleRoot(true)
         .build()
-    dialog.show(colorPicker, null, MouseInfo.getPointerInfo().location)
+    dialog.show(colorPicker.content, null, MouseInfo.getPointerInfo().location)
   }
 
   @VisibleForTesting

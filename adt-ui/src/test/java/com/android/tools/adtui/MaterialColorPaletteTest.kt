@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser.colorpicker2.internal
+package com.android.tools.adtui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.ui.MaterialColors
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
 import com.intellij.testFramework.HeavyPlatformTestCase
+import com.intellij.ui.colorpicker.ColorPickerBuilder
+import com.intellij.ui.colorpicker.ColorPickerComponentProvider
+import com.intellij.ui.colorpicker.ColorPickerModel
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 
@@ -30,7 +30,7 @@ class MaterialColorPaletteTest : HeavyPlatformTestCase() {
   fun testCreatePickerWithColorPalette() {
     val picker = ColorPickerBuilder().addCustomComponent(object : ColorPickerComponentProvider {
       override fun createComponent(colorPickerModel: ColorPickerModel) = MaterialColorPalette(colorPickerModel)
-    }).build()
+    }).build().content
     assertEquals(1, picker.components.size)
     assertTrue(picker.getComponent(0) is MaterialColorPalette)
   }

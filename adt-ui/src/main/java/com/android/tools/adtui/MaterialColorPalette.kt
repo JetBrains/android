@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcechooser.colorpicker2.internal
+package com.android.tools.adtui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.idea.ui.MaterialColors
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerComponentProvider
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerModel
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.HORIZONTAL_MARGIN_TO_PICKER_BORDER
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.PICKER_BACKGROUND_COLOR
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.COLOR_PICKER_WIDTH
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ui.colorpicker.ColorButton
+import com.intellij.ui.colorpicker.ColorPickerComponentProvider
+import com.intellij.ui.colorpicker.ColorPickerModel
+import com.intellij.ui.colorpicker.HORIZONTAL_MARGIN_TO_PICKER_BORDER
+import com.intellij.ui.colorpicker.PICKER_BACKGROUND_COLOR
+import com.intellij.ui.colorpicker.PICKER_PREFERRED_WIDTH
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.TestOnly
 import java.awt.GridLayout
@@ -51,11 +52,11 @@ class MaterialColorPalette(private val pickerModel: ColorPickerModel) : JPanel()
   init {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     border = JBUI.Borders.empty(5, HORIZONTAL_MARGIN_TO_PICKER_BORDER, 10, HORIZONTAL_MARGIN_TO_PICKER_BORDER)
-    preferredSize = JBUI.size(COLOR_PICKER_WIDTH, PANEL_HEIGHT)
+    preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, PANEL_HEIGHT)
     background = PICKER_BACKGROUND_COLOR
 
     val comboBoxPanel = JPanel(GridLayout(1, 1)).apply {
-      preferredSize = JBUI.size(COLOR_PICKER_WIDTH, 35)
+      preferredSize = JBUI.size(PICKER_PREFERRED_WIDTH, 35)
       border = JBUI.Borders.empty(0, 2, 8, 2)
       background = PICKER_BACKGROUND_COLOR
     }

@@ -25,14 +25,13 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.virtualFile
 import com.android.tools.idea.ui.resourcechooser.CompactResourcePicker
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider
-import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider
+import com.android.tools.adtui.MaterialColorPaletteProvider
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.colorpicker.ColorPickerBuilder
+import com.intellij.ui.colorpicker.MaterialGraphicalColorPipetteProvider
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Color
 import java.awt.Component
@@ -151,14 +150,14 @@ fun createAndShowColorPickerPopup(
   val popupDialog = LightCalloutPopup(onPopupClosed, onPopupClosed, null)
 
   val colorPicker = if (colorPickedCallback == null) null else {
-    ColorPickerBuilder()
+    ColorPickerBuilder(showAlpha = true, showAlphaAsPercent = false)
     .setOriginalColor(initialColor)
     .addSaturationBrightnessComponent()
     .addColorAdjustPanel(MaterialGraphicalColorPipetteProvider())
     .addColorValuePanel().withFocus()
     .addSeparator()
     .addCustomComponent(MaterialColorPaletteProvider)
-    .addColorPickerListener(ColorPickerListener { color, _ -> colorPickedCallback(color) })
+    .addColorListener { color, _ -> colorPickedCallback(color) }
     .focusWhenDisplay(true)
     .setFocusCycleRoot(true)
     .addKeyAction(KeyStrokes.ESCAPE, object : AbstractAction() {
@@ -193,7 +192,7 @@ fun createAndShowColorPickerPopup(
     // TODO: Use relative resource url instead.
     HorizontalTabbedPanelBuilder() // Use tabbed panel instead.
       .addTab("Resources", resourcePicker)
-      .addTab("Custom", colorPicker)
+      .addTab("Custom", colorPicker.content)
       .setDefaultPage(if (initialColorResource != null) 0 else 1)
       .addKeyAction(KeyStrokes.ESCAPE, object : AbstractAction() {
         override fun actionPerformed(event: ActionEvent) {
@@ -203,7 +202,7 @@ fun createAndShowColorPickerPopup(
       })
       .build()
   }
-  else colorPicker ?: resourcePicker!!
+  else colorPicker?.content ?: resourcePicker!!
 
   popupDialog.show(popupContent, null, locationToShow ?: MouseInfo.getPointerInfo().location)
 }
