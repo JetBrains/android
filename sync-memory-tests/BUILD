@@ -1,6 +1,6 @@
+load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
-load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 # managed by go/iml_to_build
 iml_module(
@@ -8,17 +8,8 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.sync-memory-tests.iml"],
     split_test_targets = {
-        "Benchmark100Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark100MemoryTest",
-        },
-        "Benchmark200Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200MemoryTest",
-        },
         "Benchmark200Repeated20TimesMemory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
-        },
-        "Benchmark500Memory": {
-            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
         },
         "Benchmark1000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
