@@ -88,7 +88,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
           .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      firstModel.modelDisplayName = "Default (no locale)"
+      firstModel.setDisplayName("Default (no locale)")
       models.add(firstModel)
 
       registerModelsProviderConfigurationListener(
@@ -117,7 +117,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       models.add(model)
-      model.modelDisplayName = label
+      model.setDisplayName(label)
 
       registerModelsProviderConfigurationListener(model, currentFileConfig, config, EFFECTIVE_FLAGS)
     }

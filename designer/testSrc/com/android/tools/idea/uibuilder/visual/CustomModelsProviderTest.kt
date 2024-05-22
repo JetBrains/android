@@ -98,7 +98,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val nlModelsAfterAdded = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     assertSize(2, nlModelsAfterAdded)
     assertEquals(defaultConfig, nlModelsAfterAdded[0].configuration)
-    assertEquals("Preview", nlModelsAfterAdded[1].modelDisplayName)
+    assertEquals("Preview", nlModelsAfterAdded[1].modelDisplayName.value)
 
     modelsProvider.removeCustomConfigurationAttributes(nlModelsAfterAdded[1])
     assertSize(0, modelsProvider.customConfigSet.customConfigAttributes)

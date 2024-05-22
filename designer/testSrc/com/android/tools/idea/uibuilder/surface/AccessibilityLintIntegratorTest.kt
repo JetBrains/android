@@ -23,6 +23,7 @@ import com.android.tools.idea.validator.ValidatorData
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -43,6 +44,7 @@ class AccessibilityLintIntegratorTest {
   fun setUp() {
     MockitoAnnotations.openMocks(this)
     Mockito.`when`(mockModel.virtualFile).thenReturn(mockFile)
+    Mockito.`when`(mockModel.modelDisplayName).thenReturn(MutableStateFlow(""))
   }
 
   @Test

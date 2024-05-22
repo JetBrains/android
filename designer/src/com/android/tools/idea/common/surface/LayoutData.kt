@@ -37,15 +37,15 @@ data class LayoutData(
     scale == sceneView.scale &&
       x == sceneView.x &&
       y == sceneView.y &&
-      modelName == sceneView.scene.sceneManager.model.modelDisplayName &&
+      modelName == sceneView.scene.sceneManager.model.modelDisplayName.value &&
       scaledSize == sceneView.getContentSize(cachedDimension).scaleBy(sceneView.scale)
 
   companion object {
     fun fromSceneView(sceneView: SceneView): LayoutData =
       LayoutData(
         sceneView.scale,
-        sceneView.scene.sceneManager.model.modelDisplayName,
-        sceneView.scene.sceneManager.model.modelTooltip,
+        sceneView.scene.sceneManager.model.modelDisplayName.value,
+        sceneView.scene.sceneManager.model.tooltip.value,
         sceneView.x,
         sceneView.y,
         sceneView.getContentSize(null).scaleBy(sceneView.scale),

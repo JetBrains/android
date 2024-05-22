@@ -58,7 +58,7 @@ class NlModelBuilder(
               modelUpdater,
               dataContext,
             )
-            .apply { setTooltip(tooltip) }
+            .apply { setTooltip(this@NlModelBuilder.tooltip) }
         }
     }
 

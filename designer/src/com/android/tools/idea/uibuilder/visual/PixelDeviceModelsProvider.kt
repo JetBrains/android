@@ -103,7 +103,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.modelDisplayName = device.displayName
+      model.setDisplayName(device.displayName)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

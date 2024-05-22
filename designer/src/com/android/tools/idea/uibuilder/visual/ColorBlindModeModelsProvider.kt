@@ -62,7 +62,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
           .withModelTooltip(defaultConfig.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      model.modelDisplayName = mode.displayName
+      model.setDisplayName(mode.displayName)
       models.add(model)
 
       registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)

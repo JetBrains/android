@@ -139,7 +139,7 @@ class CustomModelsProvider(
       NlModel.builder(parentDisposable, facet, currentFile, currentFileConfig)
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
-        .apply { modelDisplayName = "Default (Current File)" }
+        .apply { setDisplayName("Default (Current File)") }
     )
 
     // Custom Configurations
@@ -162,7 +162,7 @@ class CustomModelsProvider(
           .withComponentRegistrar(NlComponentRegistrar)
           .withDataContext(CustomModelDataContext)
           .build()
-      model.modelDisplayName = customConfig.name
+      model.setDisplayName(customConfig.name)
       models.add(model)
       configurationToConfigurationAttributesMap[config] = attributes
     }

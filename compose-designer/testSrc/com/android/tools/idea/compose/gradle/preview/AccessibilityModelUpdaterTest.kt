@@ -110,7 +110,7 @@ class AccessibilityModelUpdaterTest {
   @Test
   fun testNlComponentTreeCreation() {
     val twoElementsPreviewModel =
-      previewView.mainSurface.models.first { it.modelDisplayName == "TwoElementsPreview" }
+      previewView.mainSurface.models.first { it.modelDisplayName.value == "TwoElementsPreview" }
 
     val uiCheckElement = twoElementsPreviewModel.dataContext.previewElement()!!
 
@@ -128,7 +128,7 @@ class AccessibilityModelUpdaterTest {
 
     val twoElementsPreviewRoot =
       previewView.mainSurface.models
-        .first { it.modelDisplayName == "Medium Phone - TwoElementsPreview" }
+        .first { it.modelDisplayName.value == "Medium Phone - TwoElementsPreview" }
         .treeReader
         .components[0]
 

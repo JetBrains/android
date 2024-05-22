@@ -32,6 +32,7 @@ import com.android.tools.rendering.RenderResultStats
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.mockito.Mockito
 
 /**
@@ -61,10 +62,12 @@ class ScannerTestHelper {
     val mixin = NlComponentMixin(nlComponent)
     whenever(nlComponent.mixin).thenReturn(mixin)
 
+    val displayName = MutableStateFlow("displayName")
+
     val nlModel =
       model
         ?: Mockito.mock(NlModel::class.java).apply {
-          whenever(modelDisplayName).thenReturn("displayName")
+          whenever(modelDisplayName).thenReturn(displayName)
           val mockFile = Mockito.mock(VirtualFile::class.java)
           whenever(virtualFile).thenReturn(mockFile)
         }
@@ -151,6 +154,9 @@ class ScannerTestHelper {
     val module = Mockito.mock(Module::class.java)
     whenever(module.isDisposed).thenReturn(false)
     whenever(model.module).thenReturn(module)
+
+    val modelName = MutableStateFlow("")
+    whenever(model.modelDisplayName).thenReturn(modelName)
 
     val configuration = Mockito.mock(Configuration::class.java)
     whenever(model.configuration).thenReturn(configuration)

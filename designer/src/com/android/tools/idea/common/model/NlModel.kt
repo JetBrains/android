@@ -51,6 +51,9 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.BiFunction
 import java.util.function.Consumer
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
@@ -88,12 +91,23 @@ protected constructor(
 
   private val listeners = createWithDirectExecutor<ModelListener>()
 
+  private val _displayName = MutableStateFlow<String?>(null)
+
   /** Model name. This can be used when multiple models are displayed at the same time */
-  var modelDisplayName: String? = null
+  val modelDisplayName: StateFlow<String?> = _displayName.asStateFlow()
+
+  fun setDisplayName(value: String?) {
+    _displayName.value = value
+  }
+
+  private val _tooltip = MutableStateFlow<String?>(null)
 
   /** Text to display when displaying a tooltip related to this model */
-  var modelTooltip: String? = null
-    private set
+  val tooltip: StateFlow<String?> = _tooltip.asStateFlow()
+
+  fun setTooltip(value: String?) {
+    _tooltip.value = value
+  }
 
   // Deliberately not rev'ing the model version and firing changes here;
   // we know only the warnings layer cares about this change and can be
@@ -352,10 +366,6 @@ protected constructor(
     val component = NlComponent(this, tag)
     componentRegistrar.accept(component)
     return component
-  }
-
-  fun setTooltip(tooltip: String?) {
-    modelTooltip = tooltip
   }
 
   override fun dispose() {

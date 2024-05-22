@@ -146,7 +146,7 @@ class VisualLintAtfIssue(result: ValidatorData.Issue, component: NlComponent) :
 
   fun appliedColorBlindFilter(): ColorBlindMode {
     return ColorBlindMode.values().firstOrNull {
-      sourceModel?.modelDisplayName?.startsWith(it.displayName) ?: false
+      sourceModel?.modelDisplayName?.value?.startsWith(it.displayName) ?: false
     } ?: ColorBlindMode.NONE
   }
 }
