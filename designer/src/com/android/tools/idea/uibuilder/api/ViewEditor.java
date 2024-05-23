@@ -37,7 +37,6 @@ import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
@@ -47,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
 import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
@@ -204,17 +202,10 @@ public abstract class ViewEditor {
   public static String displayClassInput(@NotNull NlModel model,
                                          @NotNull String title,
                                          @NotNull Set<String> superTypes,
-                                         @Nullable Predicate<String> filter,
                                          @Nullable String currentValue) {
     Module module = model.getModule();
     String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
-
-    Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
-    if (filter == null) {
-      filter = ChooseClassDialog.getIsUserDefinedFilter();
-    }
-    psiFilter = psiFilter.and(ChooseClassDialog.qualifiedNameFilter(filter));
-    return ChooseClassDialog.openDialog(module, title, currentValue, psiFilter, superTypesArray);
+    return ChooseClassDialog.openDialog(module, title, currentValue, superTypesArray);
   }
 
   @NotNull

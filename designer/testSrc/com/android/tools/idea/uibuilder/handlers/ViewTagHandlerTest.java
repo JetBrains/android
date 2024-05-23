@@ -15,8 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.AndroidXConstants;
-import com.android.SdkConstants;
+
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -35,7 +34,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import static com.android.SdkConstants.CLASS_VIEW;
-import static com.android.tools.idea.uibuilder.handlers.ViewTagHandler.SUITABLE_LAYOUT_CLASS;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -93,14 +91,6 @@ public class ViewTagHandlerTest extends AndroidTestCase {
     }
   }
 
-  /**
-   * Checks the {@link ViewTagHandler#isViewSuitableForLayout} method.
-   */
-  public void testIsViewSuitableForLayout() {
-    assertTrue(SUITABLE_LAYOUT_CLASS.test("com.example.myownpackage.TestView"));
-    assertTrue(SUITABLE_LAYOUT_CLASS.test(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.defaultName()));
-    assertFalse(SUITABLE_LAYOUT_CLASS.test(SdkConstants.FQCN_IMAGE_BUTTON));
-  }
 
   public void testIcon() {
     ViewTagHandler handler = new ViewTagHandler();
@@ -120,7 +110,7 @@ public class ViewTagHandlerTest extends AndroidTestCase {
         handler.onCreate(null, component, InsertType.CREATE);
         int time = component.getId().equals("view1") ? 1 : 0;
         editor.verify(
-          () -> ViewEditor.displayClassInput(eq(component.getModel()), eq("Views"), eq(classes), eq(SUITABLE_LAYOUT_CLASS), isNull()),
+          () -> ViewEditor.displayClassInput(eq(component.getModel()), eq("Views"), eq(classes), isNull()),
           times(time)
         );
       }

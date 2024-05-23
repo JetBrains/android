@@ -15,14 +15,12 @@
  */
 package org.jetbrains.android.uipreview;
 
-import com.android.AndroidXConstants;
 import com.intellij.psi.PsiClass;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.util.function.Predicate;
 
-import static com.android.SdkConstants.*;
 
 public class ChooseClassDialogTest extends AndroidTestCase {
   public void testIsPublicAndUnRestricted() {
@@ -103,16 +101,5 @@ public class ChooseClassDialogTest extends AndroidTestCase {
     assertFalse(isPublicAndUnRestricted.test(myFixture.addClass(protectedView)));
     assertFalse(isPublicAndUnRestricted.test(myFixture.addClass(restrictedView)));
     assertTrue(isPublicAndUnRestricted.test(myFixture.addClass(view)));
-  }
-
-  public void testIsUserDefined() {
-    Predicate<String> isUserDefined = ChooseClassDialog.getIsUserDefinedFilter();
-    assertFalse(isUserDefined.test(FQCN_IMAGE_VIEW));
-    assertFalse(isUserDefined.test("android.view.ViewStub"));
-    assertFalse(isUserDefined.test("android.webkit.WebView"));
-    assertFalse(isUserDefined.test(CLASS_AD_VIEW));
-    assertFalse(isUserDefined.test(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.oldName()));
-    assertFalse(isUserDefined.test(AndroidXConstants.CLASS_CONSTRAINT_LAYOUT.newName()));
-    assertTrue(isUserDefined.test("p1.p2.CustomImageView"));
   }
 }

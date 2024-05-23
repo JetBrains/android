@@ -32,10 +32,12 @@ import java.awt.event.MouseEvent;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JList;
@@ -52,7 +54,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     new JBScrollPane(myList, JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
   private String myResultClassName;
 
-  private ChooseClassDialog(Module module, String title, @NotNull Collection<PsiClass> classes) {
+  private ChooseClassDialog(Module module, String title, @NotNull List<PsiClass> userDefinedClasses, List<PsiClass> nonUserDefinedClasses) {
     super(module.getProject());
 
     new DoubleClickListener() {
@@ -71,7 +73,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     myComponent.setPreferredSize(JBUI.size(900, 300));
 
     DefaultListModel<PsiClass> model = new DefaultListModel<>();
-    model.addAll(classes);
+    model.addAll(userDefinedClasses);
 
     myList.setModel(model);
     myList.setCellRenderer(new PsiClassListCellRenderer());
@@ -107,14 +109,13 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
   }
 
   @NotNull
-  protected static Collection<PsiClass> findClasses(@NotNull Module module,
-                                                    boolean includeAll,
-                                                    @NotNull Predicate<PsiClass> filter,
-                                                    @NotNull String[] classes) {
+  private static Collection<PsiClass> findPublicAndUnrestrictedClasses(@NotNull Module module,
+                                                                       @NotNull String[] classes) {
     Collection<PsiClass> collection = new ArrayList<>(classes.length);
+    Predicate<PsiClass> filter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
 
     for (String className : classes) {
-      for (PsiClass psiClass : findInheritors(module, className, includeAll)) {
+      for (PsiClass psiClass : findInheritors(module, className)) {
         if (!filter.test(psiClass)) {
           continue;
         }
@@ -128,15 +129,13 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     return collection.stream()
       .sorted((psiClass1, psiClass2) -> collator.compare(SymbolPresentationUtil.getSymbolPresentableText(psiClass1),
                                                          SymbolPresentationUtil.getSymbolPresentableText(psiClass2)))
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
   }
 
-  private static Collection<PsiClass> findInheritors(Module module, String name, boolean includeAll) {
+  private static Collection<PsiClass> findInheritors(Module module, String name) {
     PsiClass base = findClass(module, name);
     if (base != null) {
-      GlobalSearchScope scope = includeAll ?
-                                GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false) :
-                                GlobalSearchScope.moduleScope(module);
+      GlobalSearchScope scope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module, false);
       Collection<PsiClass> classes;
       try {
         classes = ClassInheritorsSearch.search(base, scope, true).findAll();
@@ -150,7 +149,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
   }
 
   @Nullable
-  public static PsiClass findClass(Module module, @Nullable String name) {
+  private static PsiClass findClass(Module module, @Nullable String name) {
     if (name == null) {
       return null;
     }
@@ -174,7 +173,6 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
   public static String openDialog(@NotNull Module module,
                                   @NotNull String title,
                                   @Nullable String currentValue,
-                                  @Nullable Predicate<PsiClass> filter,
                                   @NotNull String... classes) {
     final Project project = module.getProject();
     final DumbService dumbService = DumbService.getInstance(project);
@@ -185,8 +183,16 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       return null;
     }
 
-    Collection<PsiClass> filteredClasses = findClasses(module, true, filter != null ? filter : aClass -> true, classes);
-    ChooseClassDialog dialog = new ChooseClassDialog(module, title, filteredClasses);
+    Collection<PsiClass> publicAndUnrestrictedClasses = findPublicAndUnrestrictedClasses(module, classes);
+    Predicate<PsiClass> filter = getIsUserDefinedClassesFilter();
+
+    Map<Boolean, List<PsiClass>> partitionedMap = publicAndUnrestrictedClasses.stream()
+      .collect(Collectors.partitioningBy(filter));
+
+    List<PsiClass> userDefinedClasses = partitionedMap.get(true);
+    List<PsiClass> nonUserDefinedClasses = partitionedMap.get(false);
+
+    ChooseClassDialog dialog = new ChooseClassDialog(module, title, userDefinedClasses, nonUserDefinedClasses);
     if (currentValue != null) {
       dialog.setSelectedClass(currentValue);
     }
@@ -223,7 +229,11 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
   }
 
   @NotNull
-  public static Predicate<PsiClass> qualifiedNameFilter(@NotNull Predicate<String> filter) {
+  static Predicate<PsiClass> getIsUserDefinedClassesFilter() {
+    Predicate<String> filter = qualifiedName -> !qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
+                              !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) &&
+                              !qualifiedName.startsWith(ANDROIDX_PKG_PREFIX) &&
+                              !qualifiedName.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX);
     return psiClass -> {
       String qualifiedName = psiClass.getQualifiedName();
       if (qualifiedName == null) {
@@ -231,19 +241,6 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       }
       return filter.test(qualifiedName);
     };
-  }
-
-  @NotNull
-  public static Predicate<String> getIsUserDefinedFilter() {
-    return qualifiedName -> !qualifiedName.startsWith(ANDROID_PKG_PREFIX) &&
-                            !qualifiedName.startsWith(ANDROID_SUPPORT_PKG_PREFIX) &&
-                            !qualifiedName.startsWith(ANDROIDX_PKG_PREFIX) &&
-                            !qualifiedName.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX);
-  }
-
-  @NotNull
-  public static Predicate<PsiClass> getUserDefinedPublicAndUnrestrictedFilter() {
-    return getIsPublicAndUnrestrictedFilter().and(qualifiedNameFilter(getIsUserDefinedFilter()));
   }
 
   private boolean hasChoices() {
@@ -260,7 +257,7 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     return myComponent;
   }
 
-  public String getClassName() {
+  private String getClassName() {
     return myResultClassName;
   }
 
