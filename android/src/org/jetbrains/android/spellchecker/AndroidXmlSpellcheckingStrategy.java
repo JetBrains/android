@@ -293,6 +293,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
             break;
           }
 
+          // TODO(b/130570600): Handle words with apostrophes.
           // Ideally we'd also be able to handle a scenario like "Android\'s" and turn this into "Android's" for the
           // spell checker, but that's not possible with the splitter/tokenizer API; they can just segment characters
           // into tokens, not drop characters and combine into a single word.
