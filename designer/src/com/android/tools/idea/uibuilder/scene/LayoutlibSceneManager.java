@@ -58,6 +58,7 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.modes.essentials.EssentialsMode;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.RenderResultUtilKt;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
@@ -1093,7 +1094,8 @@ public class LayoutlibSceneManager extends SceneManager implements InteractiveSc
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? RenderServiceUtilsKt.createHtmlLogger(renderService, project) : renderService.getNopLogger();
-    RenderService.RenderTaskBuilder renderTaskBuilder = taskBuilder(renderService, facet, configuration, logger, this::wrapRenderModule)
+    RenderService.RenderTaskBuilder renderTaskBuilder =
+      taskBuilder(renderService, BuildTargetReference.gradleOnly(facet), configuration, logger, this::wrapRenderModule)
       .withPsiFile(new PsiXmlFile(getModel().getFile()))
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled())
       .withTopic(myRenderingTopic)

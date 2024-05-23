@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.taskBuilder
@@ -36,11 +37,11 @@ import java.util.function.Supplier
 
 private val FRAMEWORK_DRAWABLE_KEY = Key.create<FrameworkDrawableRenderer>(FrameworkDrawableRenderer::class.java.name)
 
-private fun createRenderTask(facet: AndroidFacet,
+private fun createRenderTask(buildTarget: BuildTargetReference,
                              configuration: Configuration
 ): CompletableFuture<RenderTask?> {
-  return StudioRenderService.getInstance(facet.module.project)
-    .taskBuilder(facet, configuration)
+  return StudioRenderService.getInstance(buildTarget.project)
+    .taskBuilder(buildTarget, configuration)
     .build()
 }
 
@@ -51,7 +52,7 @@ class FrameworkDrawableRenderer
 @VisibleForTesting
 constructor(
   facet: AndroidFacet,
-  private val renderTaskProvider: (AndroidFacet, Configuration) -> CompletableFuture<RenderTask?>,
+  private val renderTaskProvider: (BuildTargetReference, Configuration) -> CompletableFuture<RenderTask?>,
   private val futuresManager: ImageFuturesManager<ResourceValue>
 ) : AndroidFacetScopedService(facet) {
 
@@ -68,7 +69,7 @@ constructor(
 
   private fun getImage(value: ResourceValue, fileForConfiguration: VirtualFile, dimension: Dimension): CompletableFuture<BufferedImage?> {
     return getConfigurationFuture(facet, fileForConfiguration).thenComposeAsync(Function { configuration ->
-      renderTaskProvider(facet, configuration).thenCompose { renderTask ->
+      renderTaskProvider(BuildTargetReference.gradleOnly(facet), configuration).thenCompose { renderTask ->
         renderTask?.setOverrideRenderSize(dimension.width, dimension.height)
         renderTask?.setMaxRenderSize(dimension.width, dimension.height)
         renderTask?.renderDrawable(value)?.whenComplete { _, _ ->

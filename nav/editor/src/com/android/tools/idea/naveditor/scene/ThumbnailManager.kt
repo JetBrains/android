@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.scene
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -235,7 +236,7 @@ open class ThumbnailManager protected constructor(facet: AndroidFacet) : Android
                                 file: XmlFile,
                                 configuration: Configuration,
                                 renderService: RenderService): CompletableFuture<RenderTask> {
-    return renderService.taskBuilder(facet, configuration)
+    return renderService.taskBuilder(BuildTargetReference.gradleOnly(facet), configuration)
       .withPsiFile(PsiXmlFile(file))
       .build()
       .whenComplete { task, _ -> task.setDecorations(false) }

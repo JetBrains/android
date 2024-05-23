@@ -140,7 +140,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
 
       ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
-        RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+        RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
           new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
         ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
@@ -181,7 +181,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
 
       ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
-        RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+        RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
           new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
 
@@ -210,7 +210,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
 
       ModuleRenderContext renderContext = StudioModuleRenderContext.forFile(psiFile);
       ModuleClassLoaderManagerKt.useWithClassLoader(StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext), classLoader -> {
-        RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+        RenderModelModule module = new AndroidFacetRenderModelModule(myBuildTarget);
         LayoutlibCallbackImpl layoutlibCallback =
           new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader, true);
         layoutlibCallback.setProjectFonts(myProjectFonts);

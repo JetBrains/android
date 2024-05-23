@@ -174,12 +174,13 @@ public class RenderTestUtil {
     XmlFile xmlFile = (XmlFile)ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(xmlFile);
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, configuration, logger)
-      .withPsiFile(new PsiXmlFile(xmlFile))
-      .disableSecurityManager()
-      .withTopic(topic)
-      .setTestEventListener(testEventListener)
-      .build();
+    final CompletableFuture<RenderTask> taskFuture =
+      taskBuilder(renderService, BuildTargetReference.gradleOnly(facet), configuration, logger)
+        .withPsiFile(new PsiXmlFile(xmlFile))
+        .disableSecurityManager()
+        .withTopic(topic)
+        .setTestEventListener(testEventListener)
+        .build();
     RenderTask task = Futures.getUnchecked(taskFuture);
     assertNotNull(task);
     return task;

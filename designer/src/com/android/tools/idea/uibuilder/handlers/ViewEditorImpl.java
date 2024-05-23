@@ -29,6 +29,7 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.rendering.RenderServiceUtilsKt;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -162,7 +163,8 @@ public class ViewEditorImpl extends ViewEditor {
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, model.getFacet(), getConfiguration())
+    final CompletableFuture<RenderTask> taskFuture =
+      RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, BuildTargetReference.gradleOnly(model.getFacet()), getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
 

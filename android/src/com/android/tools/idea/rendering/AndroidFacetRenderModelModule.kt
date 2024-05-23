@@ -50,9 +50,10 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** Studio-specific [RenderModelModule] constructed from [AndroidFacet]. */
-class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderModelModule {
+class AndroidFacetRenderModelModule(private val buildTarget: BuildTargetReference) : RenderModelModule {
   private val LOG = Logger.getInstance(AndroidFacetRenderModelModule::class.java)
   private val _isDisposed = AtomicBoolean(false)
+  private val facet: AndroidFacet get() = buildTarget.facet
   init {
     if (!Disposer.tryRegister(facet, this)) {
       _isDisposed.set(true)
