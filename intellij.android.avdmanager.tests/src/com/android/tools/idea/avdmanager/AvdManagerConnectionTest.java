@@ -26,6 +26,8 @@ import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_NAME;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_SKIN_PATH;
 import static com.android.sdklib.internal.avd.AvdManager.USER_SETTINGS_INI_PREFERRED_ABI;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_HEIGHT;
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_WIDTH;
@@ -33,7 +35,6 @@ import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_X
 import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_Y_OFFSET;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.repository.Revision;
 import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage.FakeLocalPackage;
@@ -46,6 +47,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdManager;
+import com.android.sdklib.internal.avd.OnDiskSkin;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.meta.DetailsTypes.SysImgDetailsType;
@@ -58,7 +60,7 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.utils.NullLogger;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.intellij.openapi.util.SystemInfo;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -108,7 +110,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     AvdManagerConnection.resetConnectionFactory();
   }
 
-  public void testResizableAvd() {
+  public void testResizableAvd() throws IOException {
     RepositoryPackages packages = new RepositoryPackages();
 
     // google api31 image
@@ -119,6 +121,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    Files.createDirectories(g31Package.getLocation().resolve("data"));
 
     packages.setLocalPkgInfos(ImmutableList.of(g31Package));
     FakeRepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
@@ -137,7 +140,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(resizableDevice);
 
-    mAvdManagerConnection.createOrUpdateAvd(
+    AvdInfo avdInfo = mAvdManagerConnection.createOrUpdateAvd(
       null,
       "testResizable",
       resizableDevice,
@@ -149,25 +152,29 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       hardwareProperties,
       null,
       false);
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1080");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2092");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1080-0-0-1840");
-    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
-    assertThat(hardwareProperties.get(AVD_INI_RESIZABLE_CONFIG)).
+
+    Map<String, String> avdConfig = avdInfo.getProperties();
+    assertThat(avdConfig.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1080");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2092");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
+    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("1080-0-0-1840");
+    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(avdConfig.get(AVD_INI_RESIZABLE_CONFIG)).
       isEqualTo("phone-0-1080-2400-420, foldable-1-2208-1840-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
+    assertThat(avdConfig.get(AVD_INI_SKIN_NAME)).isEqualTo("1080x2400");
+    assertThat(avdConfig.get(AVD_INI_SKIN_PATH)).isEqualTo("1080x2400");
   }
 
-  public void testFoldableAvds() {
+  public void testFoldableAvds() throws IOException {
     RepositoryPackages packages = new RepositoryPackages();
 
     // google api31 image
@@ -178,6 +185,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     g31Details.getTags().add(IdDisplay.create("google_apis", "Google APIs"));
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    Files.createDirectories(g31Package.getLocation().resolve("data"));
 
     packages.setLocalPkgInfos(List.of(g31Package));
     FakeRepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
@@ -198,7 +206,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     assert foldable != null;
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(foldable);
 
-    mAvdManagerConnection.createOrUpdateAvd(
+    AvdInfo avdInfo = mAvdManagerConnection.createOrUpdateAvd(
       null,
       "test7p6Foldable",
       foldable,
@@ -210,26 +218,28 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       hardwareProperties,
       null,
       false);
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("884-0-1-2208");
-    assertThat(hardwareProperties.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
-    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+
+    Map<String, String> avdConfig = avdInfo.getProperties();
+    assertThat(avdConfig.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
+    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("884-0-1-2208");
+    assertThat(avdConfig.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
+    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
 
     // 8in foldable
     foldable = devMgr.getDevice("8in Foldable", "Generic");
     assert foldable != null;
     hardwareProperties = DeviceManager.getHardwareProperties(foldable);
-    mAvdManagerConnection.createOrUpdateAvd(
+    avdInfo = mAvdManagerConnection.createOrUpdateAvd(
       null,
       "test8Foldable",
       foldable,
@@ -241,26 +251,27 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       hardwareProperties,
       null,
       false);
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1148");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2480");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
-    assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("180-360");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("1148-0-1-2480");
-    assertThat(hardwareProperties.get(AVD_INI_FOLD_AT_POSTURE)).isEqualTo("4");
-    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("3, 4");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("180-330, 330-360");
+    avdConfig = avdInfo.getProperties();
+    assertThat(avdConfig.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("1148");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2480");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
+    assertThat(avdConfig.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
+    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("180-360");
+    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("1148-0-1-2480");
+    assertThat(avdConfig.get(AVD_INI_FOLD_AT_POSTURE)).isEqualTo("4");
+    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("3, 4");
+    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("180-330, 330-360");
 
     // 6.7in Foldable
     foldable = devMgr.getDevice("6.7in Foldable", "Generic");
     assert foldable != null;
     hardwareProperties = DeviceManager.getHardwareProperties(foldable);
-    mAvdManagerConnection.createOrUpdateAvd(
+    avdInfo = mAvdManagerConnection.createOrUpdateAvd(
       null,
       "test6p7Foldable",
       foldable,
@@ -272,16 +283,18 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       hardwareProperties,
       null,
       false);
-    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("0");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("0-1318-1080-1");
-    assertThat(hardwareProperties.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
-    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
-    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    avdConfig = avdInfo.getProperties();
+
+    assertThat(avdConfig.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(avdConfig.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_TYPE)).isEqualTo("0");
+    assertThat(avdConfig.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(avdConfig.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(avdConfig.get(AVD_INI_HINGE_AREAS)).isEqualTo("0-1318-1080-1");
+    assertThat(avdConfig.containsKey(AVD_INI_FOLD_AT_POSTURE)).isFalse();
+    assertThat(avdConfig.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1, 2, 3");
+    assertThat(avdConfig.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
   }
 
   public void testWipeAvd() {
@@ -291,7 +304,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       mAvdFolder,
       getName(),
       mSystemImage,
-      null,
       null,
       null,
       null,
@@ -400,8 +412,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       skinnyAvdFolder,
       skinnyAvdName,
       mSystemImage,
-      skinFolder,
-      "skinName",
+      new OnDiskSkin(skinFolder),
       null,
       null,
       null,
@@ -437,7 +448,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       null,
       null,
-      null,
       false,
       true,
       false);
@@ -467,6 +477,7 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
     g31Details.getAbis().add(Abi.X86_64.toString());
     g31Package.setTypeDetails((TypeDetails)g31Details);
     InMemoryFileSystems.recordExistingFile(g31Package.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+    Files.createDirectories(g31Package.getLocation().resolve("data"));
 
     packages.setLocalPkgInfos(ImmutableList.of(g31Package));
     FakeRepoManager mgr = new FakeRepoManager(mSdkRoot, packages);
@@ -482,7 +493,6 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
 
     DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
     Device device = devMgr.getDevice("medium_phone", "Generic");
-    Files.createDirectories(mSdkRoot.resolve("mySysImg").resolve("data"));
 
     Map<String, String> hardwareProperties = DeviceManager.getHardwareProperties(device);
 

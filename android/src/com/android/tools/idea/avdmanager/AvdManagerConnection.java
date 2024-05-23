@@ -39,8 +39,11 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.internal.avd.EmulatorAdvancedFeatures;
 import com.android.sdklib.internal.avd.EmulatorPackage;
 import com.android.sdklib.internal.avd.EmulatorPackages;
+import com.android.sdklib.internal.avd.GenericSkin;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.sdklib.internal.avd.OnDiskSkin;
 import com.android.sdklib.internal.avd.SdCard;
+import com.android.sdklib.internal.avd.Skin;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode;
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
@@ -680,17 +683,18 @@ public class AvdManagerConnection {
 
     Dimension resolution = device.getScreenSize(orientation);
     assert resolution != null;
-    String skinName = null;
-
+    Skin skin;
     if (skinFolder == null && isCircular) {
-      File skin = getRoundSkin(systemImageDescription);
-      skinFolder = skin == null ? null : mySdkHandler.toCompatiblePath(skin);
+      File skinFile = getRoundSkin(systemImageDescription);
+      skinFolder = skinFile == null ? null : mySdkHandler.toCompatiblePath(skinFile);
     }
     if (Objects.equals(skinFolder, SkinUtils.noSkin())) {
       skinFolder = null;
     }
     if (skinFolder == null) {
-      skinName = String.format(Locale.US, "%dx%d", Math.round(resolution.getWidth()), Math.round(resolution.getHeight()));
+      skin = new GenericSkin((int) Math.round(resolution.getWidth()), (int) Math.round(resolution.getHeight()));
+    } else {
+      skin = new OnDiskSkin(skinFolder);
     }
     if (orientation == ScreenOrientation.LANDSCAPE) {
       hardwareProperties.put(HardwareProperties.HW_INITIAL_ORIENTATION,
@@ -708,8 +712,7 @@ public class AvdManagerConnection {
     return myAvdManager.createAvd(avdFolder,
                                   avdName,
                                   systemImageDescription.getSystemImage(),
-                                  skinFolder,
-                                  skinName,
+                                  skin,
                                   sdCard,
                                   hardwareProperties,
                                   userSettings,
