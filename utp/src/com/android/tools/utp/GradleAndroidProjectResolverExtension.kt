@@ -17,6 +17,7 @@ package com.android.tools.utp
 
 import com.google.common.io.Resources
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.util.Consumer
 import com.intellij.util.ResourceUtil
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
@@ -37,6 +38,7 @@ class GradleAndroidProjectResolverExtension : AbstractProjectResolverExtension()
   private val LOG by lazy { Logger.getInstance(GradleAndroidProjectResolverExtension::class.java) }
 
   override fun enhanceTaskProcessing(
+    project: Project?,
     taskNames: MutableList<String>,
     initScriptConsumer: Consumer<String>,
     parameters: MutableMap<String, String>) {
