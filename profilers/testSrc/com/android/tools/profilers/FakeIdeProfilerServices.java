@@ -307,6 +307,12 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
+  public boolean openOkCancelDialog(@NotNull String message, @NotNull String title, @NotNull Consumer<Boolean> okCallback) {
+    return true;
+  }
+
+
+  @Override
   @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,

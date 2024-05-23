@@ -171,6 +171,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   private final Function0<String> myPreferredProcessNameFetcher;
 
   @Nullable
+  private Function0<ProfilerTaskHandler> myCurrentTaskHandlerFetcher;
+
+  @Nullable
   private ToolbarDeviceSelection myLastToolbarDeviceSelection = null;
 
   /**
@@ -251,7 +254,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @VisibleForTesting
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices, @NotNull StopwatchTimer timer) {
-    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, null);
+    this(client, ideServices, timer, new HashMap<>(), (i, j) -> {}, () -> {}, ArrayList::new, null, null);
   }
 
   /**
@@ -267,9 +270,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                          @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                          @NotNull Runnable openTaskTab,
                          @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
-                         @Nullable Function0<String> preferredProcessNameFetcher) {
+                         @Nullable Function0<String> preferredProcessNameFetcher,
+                         @Nullable Function0<ProfilerTaskHandler> currentTaskHandlerFetcher) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE), taskHandlers, createTaskTab, openTaskTab,
-         toolbarDeviceSelectionsFetcher, preferredProcessNameFetcher);
+         toolbarDeviceSelectionsFetcher, preferredProcessNameFetcher, currentTaskHandlerFetcher);
   }
 
   private StudioProfilers(@NotNull ProfilerClient client,
@@ -279,7 +283,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
                           @NotNull BiConsumer<ProfilerTaskType, TaskArgs> createTaskTab,
                           @NotNull Runnable openTaskTab,
                           @NotNull Function0<List<ToolbarDeviceSelection>> toolbarDeviceSelectionsFetcher,
-                          @Nullable Function0<String> preferredProcessNameFetcher) {
+                          @Nullable Function0<String> preferredProcessNameFetcher,
+                          @Nullable Function0<ProfilerTaskHandler> currentTaskHandlerFetcher) {
     myClient = client;
     myIdeServices = ideServices;
     myStage = createDefaultStage();
@@ -293,6 +298,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myOpenTaskTab = openTaskTab;
     myToolbarDeviceSelectionsFetcher = toolbarDeviceSelectionsFetcher;
     myPreferredProcessNameFetcher = preferredProcessNameFetcher;
+    myCurrentTaskHandlerFetcher = currentTaskHandlerFetcher;
     myStage.enter();
 
     myUpdater = new Updater(timer);
@@ -1041,6 +1047,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     return myTaskHandlers;
   }
 
+  @Nullable
+  public ProfilerTaskHandler getCurrentTaskHandler() {
+    assert myCurrentTaskHandlerFetcher != null;
+    return myCurrentTaskHandlerFetcher.invoke();
+  }
+
   /**
    * Return the selected app's package name if present, otherwise returns empty string.
    * <p>
@@ -1184,6 +1196,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   @VisibleForTesting
   public void addTaskHandler(ProfilerTaskType taskType, ProfilerTaskHandler taskHandler) {
     myTaskHandlers.putIfAbsent(taskType, taskHandler);
+  }
+
+  @VisibleForTesting
+  public void setCurrentTaskHandlerFetcher(@Nullable Function0<ProfilerTaskHandler> currentTaskHandlerFetcher) {
+    myCurrentTaskHandlerFetcher = currentTaskHandlerFetcher;
   }
 
   // TODO: Unify with how monitors expand.
