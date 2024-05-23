@@ -20,6 +20,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.gradle.util.GradleProperties
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.project.Project
@@ -108,6 +109,7 @@ class ProjectSetupRuleImpl(
       testProjectTemplateFromPath(
         path = DIRECTORY,
         testDataPath = rootDirectory.toString()),
+        agpVersion =  AgpVersionSoftwareEnvironmentDescriptor.FOR_SYNC_BENCHMARKS
     ).open(
       updateOptions = {
         it.copy(

@@ -82,6 +82,7 @@ enum class AgpVersionSoftwareEnvironmentDescriptor(
   AGP_81(agpVersion = "8.1.0", gradleVersion = "8.0", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
   AGP_82(agpVersion = "8.2.0", gradleVersion = "8.2", jdkVersion = JDK_17, modelVersion = ModelVersion.V2),
 
+  FOR_SYNC_BENCHMARKS(agpVersion = null, gradleVersion = null),
   // Must be last to represent the newest version.
   AGP_LATEST(null, gradleVersion = null);
   override fun toString(): String {
@@ -154,7 +155,8 @@ fun IntegrationTestEnvironment.outputCurrentlyRunningTest(testDefinition: AgpInt
 }
 
 private fun AgpVersionSoftwareEnvironmentDescriptor.agpSuffix(): String = when (this) {
-  AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST -> "_"
+  AgpVersionSoftwareEnvironmentDescriptor.AGP_LATEST,
+  AgpVersionSoftwareEnvironmentDescriptor.FOR_SYNC_BENCHMARKS-> "_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_82 -> "_Agp_8.2_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_81 -> "_Agp_8.1_"
   AgpVersionSoftwareEnvironmentDescriptor.AGP_80 -> "_Agp_8.0_"

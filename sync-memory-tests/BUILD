@@ -11,62 +11,94 @@ iml_module(
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
+            "tags": ["perfgate"],
         },
         "Benchmark1000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
+            "tags": ["perfgate"],
         },
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
+            "tags": ["perfgate"],
+        },
+        # Presubmit tests
+        "SyncBenchmarkVersionTest": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.SyncBenchmarkVersionTest",
+            "timeout": "long",
         },
         # Tests without regression analyzers, to reduce noise
         "Benchmark200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
+            "tags": ["perfgate"],
         },
         "Benchmark500Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark500CpuTest",
+            "tags": ["perfgate"],
         },
         "Benchmark200Repeated20TimesMemory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
+            "tags": ["perfgate"],
         },
         "Benchmark1000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
+            "tags": ["perfgate"],
         },
         "Benchmark1000MemoryRuntimeClasspath": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
+            "tags": ["perfgate"],
         },
         "Benchmark1000CpuRuntimeClasspath": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
+            "tags": ["perfgate"],
         },
         # Disabled tests
         "Benchmark4200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark4200CpuTest",
             "exec_properties": LARGE_MACHINE,
-            "tags": ["manual"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
         "BenchmarkMultiApp100Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp100CpuTest",
-            "tags": ["manual"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
         "BenchmarkMultiApp190Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp190CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
-            "tags": ["manual"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
         "Benchmark4200Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark4200MemoryTest",
             "exec_properties": LARGE_MACHINE,
-            "tags": ["manual"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
         "BenchmarkMultiApp100Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
-            "tags": ["manual"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
         "BenchmarkMultiApp190Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
-            "tags": ["manual"],
+            "tags": [
+                "manual",
+                "perfgate",
+            ],
         },
     },
     test_data = [
@@ -94,7 +126,6 @@ iml_module(
         "cpu:3",
         "no_test_mac",
         "no_test_windows",
-        "perfgate",
     ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
