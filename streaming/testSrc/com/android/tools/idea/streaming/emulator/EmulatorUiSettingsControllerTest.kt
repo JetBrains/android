@@ -340,7 +340,7 @@ class EmulatorUiSettingsControllerTest {
     assertThat(commands[1]).isEqualTo(POPULATE_COMMAND)
     assertThat(commands[2]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
-    assertThat(model.differentFromDefault.value).isFalse()
+    waitForCondition(10.seconds) { !model.differentFromDefault.value }
   }
 
   private fun createController() =
