@@ -30,6 +30,7 @@ import com.android.sdklib.getReleaseNameAndDetails
 import com.android.tools.idea.adddevicedialog.Table
 import com.android.tools.idea.adddevicedialog.TableColumn
 import com.android.tools.idea.adddevicedialog.TableColumnWidth
+import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.TableTextColumn
 import com.android.utils.CpuArchitecture
 import com.android.utils.osArchitecture
@@ -51,6 +52,7 @@ internal fun DevicePanel(
   state: DevicePanelState,
   servicesCollection: ImmutableCollection<Services>,
   images: ImmutableList<SystemImage>,
+  systemImageTableSelectionState: TableSelectionState<SystemImage>,
   onDeviceChange: (VirtualDevice) -> Unit,
   onStateChange: (DevicePanelState) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
@@ -80,6 +82,7 @@ internal fun DevicePanel(
   SystemImageTable(
     images,
     state,
+    systemImageTableSelectionState,
     onDownloadButtonClick,
     Modifier.height(150.dp).padding(bottom = Padding.SMALL),
   )
@@ -137,7 +140,8 @@ private fun ServicesDropdown(
 @Composable
 private fun SystemImageTable(
   images: ImmutableList<SystemImage>,
-  state: DevicePanelState,
+  devicePanelState: DevicePanelState,
+  selectionState: TableSelectionState<SystemImage>,
   onDownloadButtonClick: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -168,7 +172,7 @@ private fun SystemImageTable(
     )
 
   // TODO: http://b/339247492 - Stop calling distinct
-  Table(columns, images.filter(state::test).distinct(), { it }, modifier)
+  Table(columns, images.filter(devicePanelState::test).distinct(), { it }, modifier, selectionState)
 }
 
 internal data class DevicePanelState

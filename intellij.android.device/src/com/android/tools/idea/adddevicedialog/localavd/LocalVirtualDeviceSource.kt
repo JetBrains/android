@@ -29,6 +29,7 @@ import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.adddevicedialog.DeviceProfile
 import com.android.tools.idea.adddevicedialog.DeviceSource
 import com.android.tools.idea.adddevicedialog.FormFactors
+import com.android.tools.idea.adddevicedialog.TableSelectionState
 import com.android.tools.idea.adddevicedialog.WizardAction
 import com.android.tools.idea.adddevicedialog.WizardPageScope
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
@@ -36,7 +37,6 @@ import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.collect.Range
 import com.intellij.openapi.fileChooser.FileChooser
@@ -79,11 +79,17 @@ internal class LocalVirtualDeviceSource(
       }
 
     val api = device.apiRange.upperEndpoint()
+    val images = state.systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList()
+
+    // TODO: http://b/342003916
+    val systemImageTableSelectionState = remember { TableSelectionState(images.first()) }
+
     @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
     ConfigureDevicePanel(
       state.device,
-      state.systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList(),
+      images,
+      systemImageTableSelectionState,
       state.skins,
       onDeviceChange = { state.device = it },
       onDownloadButtonClick = { state.downloadSystemImage(parent, it) },
@@ -105,7 +111,9 @@ internal class LocalVirtualDeviceSource(
 
     nextAction = WizardAction.Disabled
     finishAction = WizardAction {
-      VirtualDevices().add(state.device, getArbitrarySystemImage())
+      // TODO: http://b/342003691
+      VirtualDevices().add(state.device, systemImageTableSelectionState.selection!!)
+
       close()
     }
   }
@@ -162,11 +170,3 @@ private val Device.formFactor: String
       Device.isTablet(this) -> FormFactors.TABLET
       else -> FormFactors.PHONE
     }
-
-// TODO(b/335263078): Delete this.
-private fun getArbitrarySystemImage() =
-  AndroidSdks.getInstance()
-    .tryToChooseSdkHandler()
-    .getSystemImageManager(StudioLoggerProgressIndicator(LocalVirtualDeviceSource::class.java))
-    .images
-    .first { it.`package`.path == "system-images;android-34;google_apis;x86_64" }

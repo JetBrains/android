@@ -113,8 +113,8 @@ internal fun SortOrder.Icon() =
   }
 
 @Stable
-internal class TableSelectionState<T> {
-  var selection: T? by mutableStateOf(null)
+internal class TableSelectionState<T>(selectedValue: T? = null) {
+  var selection by mutableStateOf(selectedValue)
 }
 
 @Stable

@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import com.android.repository.api.RepoPackage
 import com.android.resources.ScreenOrientation
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argumentCaptor
 import com.android.testutils.MockitoKt.eq
@@ -43,8 +44,8 @@ class VirtualDevicesTest {
 
     whenever(avdManagerConnection.avdExists(any())).thenReturn(false)
 
-    VirtualDevices(allDevices, avdManagerConnection)
-      .add(autoDevice.toVirtualDevice(), mock<ISystemImage>())
+    VirtualDevices(allDevices, avdManagerConnection, mockSystemImageManager())
+      .add(autoDevice.toVirtualDevice(), mockSystemImage())
 
     val hardwarePropertiesCaptor = argumentCaptor<Map<String, String>>()
     verify(avdManagerConnection)
@@ -63,5 +64,27 @@ class VirtualDevicesTest {
       )
 
     assertThat(hardwarePropertiesCaptor.value).containsKey(AvdManager.AVD_INI_CLUSTER_WIDTH)
+  }
+
+  private companion object {
+    private fun mockSystemImageManager(): SystemImageManager {
+      val repoPackage = mock<RepoPackage>()
+      whenever(repoPackage.path).thenReturn("system-images;android-33;android-automotive;x86_64")
+
+      val sdklibImage = mock<com.android.sdklib.repository.targets.SystemImage>()
+      whenever(sdklibImage.`package`).thenReturn(repoPackage)
+
+      val manager = mock<SystemImageManager>()
+      whenever(manager.images).thenReturn(listOf(sdklibImage))
+
+      return manager
+    }
+
+    private fun mockSystemImage(): SystemImage {
+      val image = mock<SystemImage>()
+      whenever(image.path).thenReturn("system-images;android-33;android-automotive;x86_64")
+
+      return image
+    }
   }
 }

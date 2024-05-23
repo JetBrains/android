@@ -16,32 +16,36 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import com.android.resources.ScreenOrientation
-import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
+import com.android.sdklib.repository.targets.SystemImageManager
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.DeviceManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription
 import com.android.tools.idea.avdmanager.ui.AvdWizardUtils
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator
+import com.android.tools.idea.sdk.AndroidSdks
 
 internal class VirtualDevices(
   val devices: List<Device> =
     DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.toList(),
   val avdManagerConnection: AvdManagerConnection =
     AvdManagerConnection.getDefaultAvdManagerConnection(),
+  private val manager: SystemImageManager = getSystemImageManager(),
 ) {
-  internal fun add(device: VirtualDevice, systemImage: ISystemImage) {
-    val id = AvdWizardUtils.cleanAvdName(avdManagerConnection, device.name, /* uniquify= */ true)
+  internal fun add(device: VirtualDevice, image: SystemImage) {
+    // First, the defaults to use if the device definition doesn't specify them.
+    val properties =
+      mutableMapOf("hw.keyboard" to "no", "skin.dynamic" to "yes", "showDeviceFrame" to "yes")
 
     val definition =
       devices.firstOrNull { it.id == device.deviceId }
         ?: throw IllegalArgumentException("Device ${device.deviceId} does not exist")
 
+    val id = AvdWizardUtils.cleanAvdName(avdManagerConnection, device.name, /* uniquify= */ true)
     val skin = device.skin.path()
 
-    // First, the defaults to use if the device definition doesn't specify them.
-    val properties =
-      mutableMapOf("hw.keyboard" to "no", "skin.dynamic" to "yes", "showDeviceFrame" to "yes")
+    val sdklibImage = manager.images.first { it.`package`.path == image.path }
 
     // Next, the values from device definition.
     properties.putAll(DeviceManager.getHardwareProperties(definition))
@@ -77,7 +81,7 @@ internal class VirtualDevices(
       /* currentInfo= */ null,
       /* avdName= */ id,
       /* device= */ definition,
-      /* systemImageDescription= */ SystemImageDescription(systemImage),
+      /* systemImageDescription= */ SystemImageDescription(sdklibImage),
       /* orientation= */ device.orientation,
       /* isCircular= */ false,
       /* sdCard= */ null, // TODO(341790805): pass SD card settings
@@ -86,5 +90,12 @@ internal class VirtualDevices(
       /* userSettings= */ null,
       /* removePrevious= */ true,
     )
+  }
+
+  private companion object {
+    private fun getSystemImageManager() =
+      AndroidSdks.getInstance()
+        .tryToChooseSdkHandler()
+        .getSystemImageManager(StudioLoggerProgressIndicator(VirtualDevices::class.java))
   }
 }
