@@ -17,13 +17,11 @@ package com.android.tools.adtui.common
 
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.common.AdtUiUtils.ShrinkDirection.TRUNCATE_END
-import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener
 import com.android.tools.adtui.stdui.TooltipLayeredPane
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.keymap.MacKeymapUtil
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
@@ -256,17 +254,6 @@ object AdtUiUtils {
     separatorWrapper.preferredSize = size
     separatorWrapper.isOpaque = false
     return separatorWrapper
-  }
-
-  /**
-   * Creates a scroll pane that the vertical scrolling is delegated to upper level scroll pane and its own vertical scroll bar is hidden.
-   * This is needed when the outer pane has vertical scrolling and the inner pane has horizontal scrolling.
-   */
-  @JvmStatic
-  fun createNestedVScrollPane(component: JComponent): JBScrollPane {
-    val scrollPane = JBScrollPane(component)
-    NestedScrollPaneMouseWheelListener.installOn(scrollPane)
-    return scrollPane
   }
 
   /**
