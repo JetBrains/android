@@ -171,8 +171,7 @@ private fun SystemImageTable(
       TableTextColumn("Translated ABIs", attribute = { it.translatedAbis.joinToString() }),
     )
 
-  // TODO: http://b/339247492 - Stop calling distinct
-  Table(columns, images.filter(devicePanelState::test).distinct(), { it }, modifier, selectionState)
+  Table(columns, images.filter(devicePanelState::test), { it }, modifier, selectionState)
 }
 
 internal data class DevicePanelState
