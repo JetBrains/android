@@ -27,6 +27,7 @@ import com.android.tools.idea.compose.preview.PSI_COMPOSE_PREVIEW_ELEMENT_INSTAN
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.getPreviewNodes
 import com.android.tools.idea.preview.rendering.createRenderTaskFuture
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
@@ -105,7 +106,12 @@ class ComposeVisualLintSuppressTaskTest {
     renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
     val renderResult = renderResultFuture.get()!!
     val nlModel =
-      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        BuildTargetReference.gradleOnly(facet),
+        file,
+      )
     nlModel.dataContext = DataContext {
       when (it) {
         PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
@@ -201,7 +207,12 @@ class ComposeVisualLintSuppressTaskTest {
     renderResultFuture.handle { _, _ -> renderTaskFuture.get().dispose() }
     val renderResult = renderResultFuture.get()!!
     val nlModel =
-      SyncNlModel.create(projectRule.fixture.testRootDisposable, NlComponentRegistrar, facet, file)
+      SyncNlModel.create(
+        projectRule.fixture.testRootDisposable,
+        NlComponentRegistrar,
+        BuildTargetReference.gradleOnly(facet),
+        file,
+      )
     nlModel.dataContext = DataContext {
       when (it) {
         PSI_COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement

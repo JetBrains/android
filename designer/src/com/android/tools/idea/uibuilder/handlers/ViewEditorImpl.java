@@ -164,7 +164,7 @@ public class ViewEditorImpl extends ViewEditor {
     Module module = model.getModule();
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
     final CompletableFuture<RenderTask> taskFuture =
-      RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, BuildTargetReference.gradleOnly(model.getFacet()), getConfiguration())
+      RenderServiceUtilsKt.taskBuilderWithHtmlLogger(renderService, model.getBuildTarget(), getConfiguration())
       .withPsiFile(new PsiXmlFile(xmlFile))
       .build();
 

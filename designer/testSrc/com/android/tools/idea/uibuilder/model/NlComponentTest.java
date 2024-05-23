@@ -362,7 +362,7 @@ public final class NlComponentTest extends LayoutTestCase {
 
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
 
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myBuildTarget, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
 
     NlComponent component = myModel.getTreeReader().find("button");
@@ -431,7 +431,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "</RelativeLayout>\n" +
                       "</layout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myBuildTarget, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
     NlComponent relativeLayout = myModel.getTreeReader().getComponents().get(0).getChild(0);
 
@@ -491,7 +491,7 @@ public final class NlComponentTest extends LayoutTestCase {
                       "         tools123:layout_editor_absoluteY=\"43dp\"\n/>" +
                       "</RelativeLayout>\n";
     XmlFile xmlFile = (XmlFile)myFixture.addFileToProject("res/layout/layout.xml", editText);
-    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myFacet, xmlFile.getVirtualFile());
+    myModel = SyncNlModel.create(getTestRootDisposable(), NlComponentRegistrar.INSTANCE, myBuildTarget, xmlFile.getVirtualFile());
     myModel.syncWithPsi(xmlFile.getRootTag(), Collections.emptyList());
     NlComponent relativeLayout = myModel.getTreeReader().getComponents().get(0);
 

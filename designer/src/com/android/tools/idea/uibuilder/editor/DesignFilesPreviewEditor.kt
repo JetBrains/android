@@ -30,6 +30,7 @@ import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.actions.DrawableScreenViewProvider
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -55,7 +56,6 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.function.Consumer
 import javax.swing.JPanel
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
@@ -137,11 +137,11 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
     override fun createModel(
       parentDisposable: Disposable,
       project: Project,
-      facet: AndroidFacet,
+      buildTarget: BuildTargetReference,
       componentRegistrar: Consumer<NlComponent>,
       file: VirtualFile,
     ): NlModel {
-      val config = ConfigurationManager.getOrCreateInstance(facet.module).getPreviewConfig()
+      val config = ConfigurationManager.getOrCreateInstance(buildTarget.module).getPreviewConfig()
       animatedSelectorModel =
         WriteCommandAction.runWriteCommandAction(
           project,
@@ -150,7 +150,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) :
               file,
               parentDisposable,
               project,
-              facet,
+              buildTarget,
               componentRegistrar,
               config,
             )

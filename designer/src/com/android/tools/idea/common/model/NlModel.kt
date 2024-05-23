@@ -27,6 +27,7 @@ import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirectExecutor
 import com.google.common.annotations.VisibleForTesting
@@ -81,7 +82,7 @@ open class NlModel
 @VisibleForTesting
 protected constructor(
   parent: Disposable,
-  val facet: AndroidFacet,
+  val buildTarget: BuildTargetReference,
   val virtualFile: VirtualFile,
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
@@ -90,7 +91,8 @@ protected constructor(
   override var dataContext: DataContext,
 ) : ModificationTracker, DataContextHolder {
 
-  val treeWriter = NlTreeWriter(facet, { file }, ::notifyModified, { createComponent(it) })
+  val treeWriter =
+    NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
   val treeReader = NlTreeReader { file }
 
   private val listeners = createWithDirectExecutor<ModelListener>()
@@ -186,7 +188,7 @@ protected constructor(
    * @return true if the model was not active before and was activated.
    */
   fun activate(source: Any): Boolean {
-    if (facet.isDisposed) {
+    if (buildTarget.facet.isDisposed) {
       return false
     }
 
@@ -341,11 +343,14 @@ protected constructor(
     listeners.forEach { listener: ModelListener -> listener.modelChangedOnLayout(this, animate) }
   }
 
+  val facet: AndroidFacet
+    get() = buildTarget.facet
+
   val module: Module
-    get() = facet.module
+    get() = buildTarget.module
 
   val project: Project
-    get() = module.project
+    get() = buildTarget.project
 
   /**
    * This will warn model listeners that the model has been changed "live", without the attributes
@@ -465,11 +470,11 @@ protected constructor(
     @JvmStatic
     fun builder(
       parent: Disposable,
-      facet: AndroidFacet,
+      buildTarget: BuildTargetReference,
       file: VirtualFile,
       configuration: Configuration,
     ): NlModelBuilder {
-      return NlModelBuilder(parent, facet, file, configuration)
+      return NlModelBuilder(parent, buildTarget, file, configuration)
     }
 
     /**
@@ -479,7 +484,7 @@ protected constructor(
     @Slow
     internal fun create(
       parent: Disposable,
-      facet: AndroidFacet,
+      buildTarget: BuildTargetReference,
       file: VirtualFile,
       configuration: Configuration,
       componentRegistrar: Consumer<NlComponent>,
@@ -489,7 +494,7 @@ protected constructor(
     ): NlModel {
       return NlModel(
         parent,
-        facet,
+        buildTarget,
         file,
         configuration,
         componentRegistrar,

@@ -81,7 +81,7 @@ public abstract class LayoutTestCase extends AndroidTestCase {
 
   @NotNull
   protected ModelBuilder model(@NotNull String resourceFolder, @NotNull String name, @NotNull ComponentDescriptor root) {
-    return NlModelBuilderUtil.model(myFacet, myFixture, resourceFolder, name, root);
+    return NlModelBuilderUtil.model(myBuildTarget, myFixture, resourceFolder, name, root);
   }
 
   protected ComponentDescriptor component(@NotNull String tag) {

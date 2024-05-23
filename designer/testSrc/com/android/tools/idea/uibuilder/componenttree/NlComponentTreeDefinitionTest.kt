@@ -54,6 +54,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentReference
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog
@@ -632,7 +633,7 @@ class NlComponentTreeDefinitionTest {
   private fun createFlowModel(): SyncNlModel {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     return NlModelBuilderUtil.model(
-        facet,
+        BuildTargetReference.gradleOnly(facet),
         projectRule.fixture,
         SdkConstants.FD_RES_LAYOUT,
         "some_layout.xml",

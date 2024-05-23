@@ -30,6 +30,7 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.navigation.PreviewNavigationHandler
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -281,7 +282,12 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           Configuration.create(configurationManager, FolderConfiguration.createDefault())
         newModel =
           withContext(AndroidDispatchers.workerThread) {
-            NlModel.builder(parentDisposable, facet, file, configuration)
+            NlModel.builder(
+                parentDisposable,
+                BuildTargetReference.from(facet, psiFile.virtualFile),
+                file,
+                configuration,
+              )
               .withComponentRegistrar(NlComponentRegistrar)
               .withXmlProvider { project, virtualFile ->
                 NlModelBuilder.getDefaultFile(project, virtualFile).also {

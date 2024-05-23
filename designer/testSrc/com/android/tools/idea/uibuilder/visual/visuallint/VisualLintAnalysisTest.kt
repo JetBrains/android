@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -328,7 +329,7 @@ class VisualLintAnalysisTest {
         SyncNlModel.create(
           projectRule.fixture.testRootDisposable,
           NlComponentRegistrar,
-          facet,
+          BuildTargetReference.gradleOnly(facet),
           file,
           configuration,
         )

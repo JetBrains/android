@@ -17,6 +17,7 @@ package com.android.tools.idea.glance.preview
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -36,7 +37,7 @@ class GlanceScreenViewProviderTest {
   fun setUp() {
     val model = invokeAndWaitIfNeeded {
       NlModelBuilderUtil.model(
-          projectRule.module.androidFacet!!,
+          BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
           projectRule.fixture,
           SdkConstants.FD_RES_LAYOUT,
           "model.xml",

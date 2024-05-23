@@ -36,6 +36,7 @@ import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.setupBuildListener
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -400,7 +401,12 @@ class CustomViewPreviewRepresentation(
             CustomViewLightVirtualFile("custom_preview.xml", fileContent, psiFile.virtualFile)
           val config =
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
-          NlModel.builder(this@CustomViewPreviewRepresentation, facet, customPreviewXml, config)
+          NlModel.builder(
+              this@CustomViewPreviewRepresentation,
+              BuildTargetReference.from(facet, psiFile.virtualFile),
+              customPreviewXml,
+              config,
+            )
             .withXmlProvider(
               BiFunction { project, _ ->
                 AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile

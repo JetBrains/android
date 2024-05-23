@@ -20,8 +20,10 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.TagSnapshotTreeNode
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.runWriteAction
@@ -54,7 +56,7 @@ fun createNlModelFromTagName(
   val model =
     NlModel.builder(
         androidFacet.module,
-        androidFacet,
+        BuildTargetReference.gradleOnly(androidFacet),
         file,
         configurationManager.getConfiguration(file),
       )

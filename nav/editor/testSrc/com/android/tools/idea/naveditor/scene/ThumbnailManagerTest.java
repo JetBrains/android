@@ -70,7 +70,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -129,7 +129,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -178,7 +178,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -202,7 +202,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myFacet, virtualFile,
+    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();

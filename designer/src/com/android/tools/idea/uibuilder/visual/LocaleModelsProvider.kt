@@ -22,6 +22,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
@@ -84,7 +85,12 @@ object LocaleModelsProvider : VisualizationModelsProvider {
 
     run {
       val firstModel =
-        NlModel.builder(parentDisposable, facet, defaultFile, defaultLocaleConfig)
+        NlModel.builder(
+            parentDisposable,
+            BuildTargetReference.gradleOnly(facet),
+            defaultFile,
+            defaultLocaleConfig,
+          )
           .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
@@ -112,7 +118,12 @@ object LocaleModelsProvider : VisualizationModelsProvider {
       config.locale = locale
       val label = Locale.getLocaleLabel(locale, false)
       val model =
-        NlModel.builder(parentDisposable, facet, betterFile, config)
+        NlModel.builder(
+            parentDisposable,
+            BuildTargetReference.gradleOnly(facet),
+            betterFile,
+            config,
+          )
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

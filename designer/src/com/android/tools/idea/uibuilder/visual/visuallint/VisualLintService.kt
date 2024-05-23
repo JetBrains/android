@@ -20,7 +20,6 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createHtmlLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
@@ -351,7 +350,7 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
   val logger = renderService.createHtmlLogger(model.project)
 
   return renderService
-    .taskBuilder(BuildTargetReference.gradleOnly(model.facet), model.configuration, logger)
+    .taskBuilder(model.buildTarget, model.configuration, logger)
     .withPsiFile(PsiXmlFile(model.file))
     .withLayoutScanner(runAtfChecks)
     .withTopic(RenderingTopic.VISUAL_LINT)

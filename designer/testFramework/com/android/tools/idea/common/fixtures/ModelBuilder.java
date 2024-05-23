@@ -31,6 +31,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.InteractionHandler;
+import com.android.tools.idea.rendering.BuildTargetReference;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -63,7 +64,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ModelBuilder {
   private final ComponentDescriptor myRoot;
-  private final AndroidFacet myFacet;
+  private final BuildTargetReference myBildTarget;
   private final CodeInsightTestFixture myFixture;
   private String myName;
   private final Function2<DesignSurface<? extends SceneManager>, SyncNlModel, SceneManager> myManagerFactory;
@@ -74,7 +75,7 @@ public class ModelBuilder {
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
   private Device myDevice;
 
-  public ModelBuilder(@NotNull AndroidFacet facet,
+  public ModelBuilder(@NotNull BuildTargetReference buildTarget,
                       @NotNull CodeInsightTestFixture fixture,
                       @NotNull String name,
                       @NotNull ComponentDescriptor root,
@@ -85,7 +86,7 @@ public class ModelBuilder {
                       @NotNull Function1<DesignSurface<? extends SceneManager>, InteractionHandler> interactionHandlerCreator,
                       @NotNull Consumer<NlComponent> componentRegistrar) {
     assertTrue(name, name.endsWith(DOT_XML));
-    myFacet = facet;
+    myBildTarget = buildTarget;
     myFixture = fixture;
     myRoot = root;
     myName = name;
@@ -126,7 +127,7 @@ public class ModelBuilder {
   @NotNull
   public SyncNlModel build(boolean activate) {
     // Creates a design-time version of a model
-    final Project project = myFacet.getModule().getProject();
+    final Project project = myBildTarget.getProject();
     final SyncNlModel model = buildWithoutSurface();
     if (activate) {
       // We use the class to activate the model since the builder might be collected and we do not want the model to accidentally be
@@ -156,7 +157,7 @@ public class ModelBuilder {
   @Deprecated
   public SyncNlModel buildWithoutSurface() {
     // Creates a design-time version of a model
-    final Project project = myFacet.getModule().getProject();
+    final Project project = myBildTarget.getProject();
     return EdtTestUtil.runInEdtAndGet(() -> WriteAction.compute(() -> {
       String xml = toXml();
       try {
@@ -185,7 +186,7 @@ public class ModelBuilder {
       assertNotNull(document);
 
       SyncNlModel model =
-        SyncNlModel.create(myFixture.getTestRootDisposable(), myComponentRegistrar, myFacet, xmlFile.getVirtualFile());
+        SyncNlModel.create(myFixture.getTestRootDisposable(), myComponentRegistrar, myBildTarget, xmlFile.getVirtualFile());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }

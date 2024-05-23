@@ -25,6 +25,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
@@ -136,7 +137,12 @@ class CustomModelsProvider(
 
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(
-      NlModel.builder(parentDisposable, facet, currentFile, currentFileConfig)
+      NlModel.builder(
+          parentDisposable,
+          BuildTargetReference.gradleOnly(facet),
+          currentFile,
+          currentFileConfig,
+        )
         .withComponentRegistrar(NlComponentRegistrar)
         .build()
         .apply { setDisplayName("Default (Current File)") }
@@ -157,7 +163,12 @@ class CustomModelsProvider(
         ) ?: currentFile
 
       val model =
-        NlModel.builder(parentDisposable, facet, betterFile, config)
+        NlModel.builder(
+            parentDisposable,
+            BuildTargetReference.gradleOnly(facet),
+            betterFile,
+            config,
+          )
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .withDataContext(CustomModelDataContext)

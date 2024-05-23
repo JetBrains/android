@@ -21,6 +21,7 @@ import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.AdditionalDeviceService
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
@@ -63,7 +64,12 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
       val betterFile =
         ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model =
-        NlModel.builder(parentDisposable, facet, betterFile, config)
+        NlModel.builder(
+            parentDisposable,
+            BuildTargetReference.gradleOnly(facet),
+            betterFile,
+            config,
+          )
           .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

@@ -20,6 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
@@ -70,7 +71,12 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
       val fontConfig = ConfigurationForFile.create(defaultConfig, virtualFile)
       fontConfig.fontScale = scale
       val fontModel =
-        NlModel.builder(parentDisposable, facet, virtualFile, fontConfig)
+        NlModel.builder(
+            parentDisposable,
+            BuildTargetReference.gradleOnly(facet),
+            virtualFile,
+            fontConfig,
+          )
           .withModelTooltip(fontConfig.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()

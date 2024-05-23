@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model
 import com.android.annotations.concurrency.Slow
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
@@ -25,7 +26,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import java.util.function.BiFunction
 import java.util.function.Consumer
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Interface to be implemented by factories that can produce {@link NlModel}s from {@link
@@ -40,7 +40,7 @@ interface NlModelFactoryInterface {
 // TODO: Migrate next to NlModel if/when NlModel is migrated to Kotlin
 class NlModelBuilder(
   val parentDisposable: Disposable,
-  val facet: AndroidFacet,
+  val buildTarget: BuildTargetReference,
   val file: VirtualFile,
   val configuration: Configuration,
 ) {
@@ -50,7 +50,7 @@ class NlModelBuilder(
         with(nlModelBuilder) {
           NlModel.create(
               parentDisposable,
-              facet,
+              buildTarget,
               file,
               configuration,
               componentRegistrar,
