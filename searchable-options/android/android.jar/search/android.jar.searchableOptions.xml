@@ -16,16 +16,6 @@
     <option name="rtl" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="support" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="where" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
-    <option name="add" path="ActionManager" hit="Add sample data file" />
-    <option name="data" path="ActionManager" hit="Add sample data file" />
-    <option name="file" path="ActionManager" hit="Add sample data file" />
-    <option name="sample" path="ActionManager" hit="Add sample data file" />
-    <option name="a" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="adds" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="data" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="file" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="new" path="ActionManager" hit="Adds a new data sample file" />
-    <option name="sample" path="ActionManager" hit="Adds a new data sample file" />
     <option name="a" path="ActionManager" hit="Adds a new module to the project" />
     <option name="adds" path="ActionManager" hit="Adds a new module to the project" />
     <option name="module" path="ActionManager" hit="Adds a new module to the project" />
