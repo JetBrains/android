@@ -30,7 +30,7 @@ import com.intellij.openapi.editor.EditorGutter
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationApplicationWithArgumentsInfo
 import org.jetbrains.kotlin.analysis.api.annotations.KtKClassAnnotationValue
@@ -149,7 +149,7 @@ private fun KtAnnotationEntry.providerClassName(): String? {
 }
 
 /** Get the provider fully qualified class name of a `@PreviewParameter` annotated parameter. */
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 private fun KtParameter.providerClassNameK2(): String? {
   allowAnalysisOnEdt {
     return analyze(this) {

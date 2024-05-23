@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions.annotations
 
 import com.android.tools.idea.lint.common.findAnnotation
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
@@ -100,7 +100,7 @@ fun KtModifierListOwner.addAnnotationWithUsageSite(
  * matches the specified use site.
  */
 // TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTarget: AnnotationUseSiteTarget?): KtAnnotationEntry? {
   if (annotationEntries.isEmpty()) return null
 

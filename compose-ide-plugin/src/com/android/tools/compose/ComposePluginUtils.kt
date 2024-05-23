@@ -21,7 +21,7 @@ import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
@@ -93,7 +93,7 @@ internal fun KtDeclaration.returnTypeFqName(): FqName? =
     this.type()?.fqName
   }
 
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 internal fun KtElement.callReturnTypeFqName() =
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {

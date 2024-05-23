@@ -41,8 +41,8 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
@@ -219,10 +219,10 @@ class AddTargetVersionCheckQuickFix(
     return current
   }
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   private fun getKotlinSurrounder(element: KtElement, todoText: String?): KotlinIfSurrounder {
     val used = allowAnalysisOnEdt {
-      @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+      @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
       allowAnalysisFromWriteAction {
         analyze(element) { (element as? KtExpression)?.isUsedAsExpression() ?: false }
       }

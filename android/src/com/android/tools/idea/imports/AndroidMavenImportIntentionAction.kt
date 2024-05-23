@@ -50,7 +50,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.ui.popup.list.ListPopupImpl
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
@@ -474,7 +474,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
   private fun PsiElement.findElementAtAbsoluteOffset(targetOffset: Int): PsiElement? =
     findElementAt(targetOffset - textRange.startOffset)
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   private fun KtDotQualifiedExpression.formText(): Pair<String, String>? {
     val referenceNameElement =
       when (val selector = selectorExpression) {
