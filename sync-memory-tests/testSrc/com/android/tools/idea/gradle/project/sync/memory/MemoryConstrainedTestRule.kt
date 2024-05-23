@@ -41,22 +41,6 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-private val GC_COLLECTION_TIME_ANALYZER = listOf(
-  WindowDeviationAnalyzer.Builder()
-    .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
-    // This means, out of last 100 runs, only consider the last 50 "recent", including the current one.
-    // The rest is "historic". The analyzer works by compares the set of recent values and historic values
-    .setRunInfoQueryLimit(100)
-    .setRecentWindowSize(50)
-    .addMedianTolerance(
-      WindowDeviationAnalyzer.MedianToleranceParams.Builder()
-        .setConstTerm(0.0)
-        .setMadCoeff(0.0)
-        .setMedianCoeff(0.05) // flag 5% regressions
-        .build())
-    .build()
-)
-
 class MemoryConstrainedTestRule(
   private val projectName: String,
   private val maxHeapMB: Int
@@ -124,19 +108,16 @@ class MemoryConstrainedTestRule(
         values.forEach { value ->
           println("Recording ${projectName}_$type -> ${value.second.inWholeMilliseconds} ms (${value.second.inWholeSeconds} seconds)")
         }
-        recordMeasurement("${projectName}_$type", values.map { it.first to it.second.inWholeMilliseconds}, analyzer = GC_COLLECTION_TIME_ANALYZER)
+        recordMeasurement("${projectName}_$type", values.map { it.first to it.second.inWholeMilliseconds})
       }
   }
 
-  private fun recordMeasurement(metricName: String, values: List<Pair<Instant, Long>>, analyzer: List<WindowDeviationAnalyzer>? = null) {
+  private fun recordMeasurement(metricName: String, values: List<Pair<Instant, Long>>) {
     val benchmarks = listOf(MEMORY_BENCHMARK, CPU_BENCHMARK)
     Metric(metricName).apply {
       benchmarks.forEach { benchmark ->
         values.forEach {
           addSamples(benchmark, Metric.MetricSample(it.first.toEpochMilliseconds(), it.second))
-        }
-        analyzer?.let {
-          setAnalyzers(benchmark, it)
         }
         commit()
       }
