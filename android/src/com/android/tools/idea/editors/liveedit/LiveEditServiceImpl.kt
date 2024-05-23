@@ -16,6 +16,7 @@
 
 package com.android.tools.idea.editors.liveedit
 
+import com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.toolwindow.ContentManagerHierarchyAdapter
@@ -28,6 +29,7 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.deployment.liveedit.DefaultApkClassProvider
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
+import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditNotifications
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
@@ -79,6 +81,8 @@ import java.util.concurrent.Executor
 class LiveEditServiceImpl(val project: Project,
                           var executor: Executor,
                           override val adbEventsListener: LiveEditAdbEventsListener) : Disposable, LiveEditService {
+
+  private val LOGGER = LiveEditLogger("LiveEditService")
 
   private val notifications = LiveEditNotifications(project)
 
@@ -249,15 +253,28 @@ class LiveEditServiceImpl(val project: Project,
     // To properly catch this, we need to parse the APK for the debugability flag, which is a much bigger change than we want for now.
     val profilerSetting = getExecutorSetting(executor.id)
     if (!usesCompose(project)) {
+      LOGGER.log("Not Live Editable: Not Compose")
       return false
     }
     if (profilerSetting != null && profilerSetting.profilingMode !== ProfilingMode.DEBUGGABLE) {
+      LOGGER.log("Not Live Editable: Profiling")
       return false
     }
     if (runProfile is AndroidRunConfigurationBase) {
       val module: Module = runProfile.configurationModule.module ?: return false
       val facet = AndroidFacet.getInstance(module)
-      return facet != null && LaunchUtils.canDebugApp(facet)
+      if (facet != null) {
+        if (!LaunchUtils.canDebugApp(facet)) {
+          LOGGER.log("Not Live Editable: Non-debuggable")
+          return false
+        }
+
+        if (facet.configuration.projectType == PROJECT_TYPE_INSTANTAPP) {
+          LOGGER.log("Not Live Editable: Instant App")
+          return false
+        }
+      }
+      return true
     }
     // TODO(b/286911223): Check if its possible to retrieve AndroidFacet from BlazeCommandRunConfiguration instance of RunProfile and if LaunchUtils.canDebugApp may be run on it
     // Check if the run profile deploys to local device to allow BlazeCommandRunConfiguration based run profiles
