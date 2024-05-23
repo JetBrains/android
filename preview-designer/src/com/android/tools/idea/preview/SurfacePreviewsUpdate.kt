@@ -281,7 +281,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
           Configuration.create(configurationManager, FolderConfiguration.createDefault())
         newModel =
           withContext(AndroidDispatchers.workerThread) {
-            NlModel.builder(
+            NlModel.Builder(
                 parentDisposable,
                 BuildTargetReference.from(facet, psiFile.virtualFile),
                 file,

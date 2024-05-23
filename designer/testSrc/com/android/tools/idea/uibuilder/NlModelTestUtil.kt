@@ -54,7 +54,7 @@ fun createNlModelFromTagName(
   val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet.module)
   val file = LightLayoutFile(xmlContent)
   val model =
-    NlModel.builder(
+    NlModel.Builder(
         androidFacet.module,
         BuildTargetReference.gradleOnly(androidFacet),
         file,

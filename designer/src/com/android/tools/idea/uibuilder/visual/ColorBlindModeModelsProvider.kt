@@ -59,7 +59,7 @@ object ColorBlindModeModelsProvider : VisualizationModelsProvider {
     for (mode in ColorBlindMode.values()) {
       val config = defaultConfig.clone()
       val model =
-        NlModel.builder(parent, BuildTargetReference.gradleOnly(facet), virtualFile, config)
+        NlModel.Builder(parent, BuildTargetReference.gradleOnly(facet), virtualFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       model.setTooltip(defaultConfig.toHtmlTooltip())

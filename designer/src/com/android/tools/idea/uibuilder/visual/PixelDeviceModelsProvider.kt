@@ -100,7 +100,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
       val betterFile =
         ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model =
-        NlModel.builder(
+        NlModel.Builder(
             parentDisposable,
             BuildTargetReference.gradleOnly(facet),
             betterFile,

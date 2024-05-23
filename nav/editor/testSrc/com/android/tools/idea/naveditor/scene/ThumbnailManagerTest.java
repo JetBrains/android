@@ -30,7 +30,6 @@ import com.android.tools.rendering.RenderService;
 import com.android.tools.rendering.RenderTask;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.scale.ScaleContext;
@@ -70,7 +69,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -129,7 +128,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -178,7 +177,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     ScaleContext scaleContext = ScaleContext.createIdentity();
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();
@@ -202,7 +201,7 @@ public class ThumbnailManagerTest extends NavTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     VirtualFile virtualFile = psiFile.getVirtualFile();
-    NlModel model = NlModel.builder(getMyRootDisposable(), myBuildTarget, virtualFile,
+    NlModel model = new NlModel.Builder(getMyRootDisposable(), myBuildTarget, virtualFile,
                                       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(virtualFile))
       .withComponentRegistrar(NavComponentRegistrar.INSTANCE)
       .build();

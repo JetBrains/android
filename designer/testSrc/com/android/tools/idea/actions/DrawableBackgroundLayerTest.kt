@@ -52,7 +52,7 @@ class DrawableBackgroundLayerTest {
 
       val mockLayoutlibSceneManager = Mockito.mock<LayoutlibSceneManager>()
       val nlModel =
-        NlModel.builder(
+        NlModel.Builder(
             projectRule.testRootDisposable,
             BuildTargetReference.gradleOnly(projectRule.module.androidFacet!!),
             virtualFile,

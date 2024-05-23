@@ -213,7 +213,7 @@ class NavDesignSurfaceZoomControlsTest {
     surface.activate()
 
     val model =
-      NlModel.builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
+      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
@@ -281,7 +281,7 @@ class NavDesignSurfaceZoomControlsTest {
     surface.activate()
 
     val model =
-      NlModel.builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
+      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 
@@ -351,7 +351,7 @@ class NavDesignSurfaceZoomControlsTest {
     surface.activate()
 
     val model =
-      NlModel.builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
+      NlModel.Builder(androidProjectRule.testRootDisposable, BuildTargetReference.gradleOnly(facet), navGraph.virtualFile, configuration)
       .withComponentRegistrar(NavComponentRegistrar)
       .build()
 

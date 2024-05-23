@@ -137,7 +137,7 @@ class CustomModelsProvider(
 
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(
-      NlModel.builder(
+      NlModel.Builder(
           parentDisposable,
           BuildTargetReference.gradleOnly(facet),
           currentFile,
@@ -163,7 +163,7 @@ class CustomModelsProvider(
         ) ?: currentFile
 
       val model =
-        NlModel.builder(
+        NlModel.Builder(
             parentDisposable,
             BuildTargetReference.gradleOnly(facet),
             betterFile,

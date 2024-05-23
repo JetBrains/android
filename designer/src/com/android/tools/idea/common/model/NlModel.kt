@@ -472,20 +472,10 @@ protected constructor(
 
     fun getDefaultFile(project: Project, virtualFile: VirtualFile) =
       AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as XmlFile
-
-    @JvmStatic
-    fun builder(
-      parent: Disposable,
-      buildTarget: BuildTargetReference,
-      file: VirtualFile,
-      configuration: Configuration,
-    ): NlModelBuilder {
-      return NlModelBuilder(parent, buildTarget, file, configuration)
-    }
   }
 
   /** An [NlModel] builder */
-  class NlModelBuilder(
+  class Builder(
     val parentDisposable: Disposable,
     val buildTarget: BuildTargetReference,
     val file: VirtualFile,
@@ -498,17 +488,16 @@ protected constructor(
       }
     private var dataContext: DataContext = DataContext.EMPTY_CONTEXT
 
-    fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): NlModelBuilder = also {
+    fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): Builder = also {
       this.componentRegistrar = componentRegistrar
     }
 
-    fun withXmlProvider(
-      xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>
-    ): NlModelBuilder = also { this.xmlFileProvider = xmlFileProvider }
+    fun withXmlProvider(xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>): Builder =
+      also {
+        this.xmlFileProvider = xmlFileProvider
+      }
 
-    fun withDataContext(dataContext: DataContext): NlModelBuilder = also {
-      this.dataContext = dataContext
-    }
+    fun withDataContext(dataContext: DataContext): Builder = also { this.dataContext = dataContext }
 
     /** Instantiate a new [NlModel]. */
     @Slow

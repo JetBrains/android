@@ -85,7 +85,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
 
     run {
       val firstModel =
-        NlModel.builder(
+        NlModel.Builder(
             parentDisposable,
             BuildTargetReference.gradleOnly(facet),
             defaultFile,
@@ -118,7 +118,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
       config.locale = locale
       val label = Locale.getLocaleLabel(locale, false)
       val model =
-        NlModel.builder(
+        NlModel.Builder(
             parentDisposable,
             BuildTargetReference.gradleOnly(facet),
             betterFile,

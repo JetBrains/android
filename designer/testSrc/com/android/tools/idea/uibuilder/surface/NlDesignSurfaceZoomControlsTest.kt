@@ -114,7 +114,7 @@ class NlDesignSurfaceZoomControlsTest {
     }
 
     val model =
-      NlModel.builder(
+      NlModel.Builder(
           androidProjectRule.testRootDisposable,
           BuildTargetReference.gradleOnly(facet),
           layout.virtualFile,

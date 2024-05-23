@@ -401,7 +401,7 @@ class CustomViewPreviewRepresentation(
             CustomViewLightVirtualFile("custom_preview.xml", fileContent, psiFile.virtualFile)
           val config =
             Configuration.create(configurationManager, FolderConfiguration.createDefault())
-          NlModel.builder(
+          NlModel.Builder(
               this@CustomViewPreviewRepresentation,
               BuildTargetReference.from(facet, psiFile.virtualFile),
               customPreviewXml,

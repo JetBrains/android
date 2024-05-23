@@ -89,7 +89,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
         if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
       val model =
-        NlModel.builder(
+        NlModel.Builder(
             parentDisposable,
             BuildTargetReference.gradleOnly(facet),
             virtualFile,

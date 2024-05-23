@@ -71,7 +71,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
       val fontConfig = ConfigurationForFile.create(defaultConfig, virtualFile)
       fontConfig.fontScale = scale
       val fontModel =
-        NlModel.builder(
+        NlModel.Builder(
             parentDisposable,
             BuildTargetReference.gradleOnly(facet),
             virtualFile,
