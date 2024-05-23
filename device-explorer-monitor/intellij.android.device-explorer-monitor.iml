@@ -10,6 +10,7 @@
     <orderEntry type="module" module-name="intellij.android.device-explorer-common" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
     <orderEntry type="module" module-name="android.sdktools.backup" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" />
@@ -28,5 +29,6 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.ddmlibcompatibility" />
   </component>
 </module>

@@ -11,6 +11,7 @@ iml_module(
         "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
         "//tools/base/backup:studio.android.sdktools.backup[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module]",
@@ -28,6 +29,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility[module]",
     ],
 )
 
@@ -53,6 +55,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common.tests[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module, test]",
         "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -66,5 +69,6 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility[module, test]",
     ],
 )
