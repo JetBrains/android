@@ -245,6 +245,24 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
+  public boolean openOkCancelDialog(@NotNull String message, @NotNull String title, @NotNull Consumer<Boolean> doNotShowSettingSaver) {
+    return Messages.OK ==
+           Messages.showOkCancelDialog(message, title, "OK", "Cancel", Messages.getInformationIcon(),
+                                       new DialogWrapper.DoNotAskOption.Adapter() {
+                                         @Override
+                                         public void rememberChoice(boolean isSelected, int exitCode) {
+                                           doNotShowSettingSaver.accept(isSelected);
+                                         }
+
+                                         @NotNull
+                                         @Override
+                                         public String getDoNotShowMessage() {
+                                           return "Do not show again";
+                                         }
+                                       });
+  }
+
+  @Override
   @Nullable
   public <T> T openListBoxChooserDialog(@NotNull String title,
                                         @Nullable String message,

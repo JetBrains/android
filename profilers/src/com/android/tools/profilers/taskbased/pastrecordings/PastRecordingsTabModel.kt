@@ -33,16 +33,8 @@ class PastRecordingsTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(
   @VisibleForTesting
   val selectedRecording get() = recordingListModel.selectedRecording.value
 
-  override fun onEnterTaskButtonClick() {
+  override fun doEnterTaskButton() {
     val selectedSession = selectedRecording!!.session
-
-    // If the existing Profiler task tab is already showing the selected recording, there is no need to load the task again. Instead, the
-    // existing task tab will be re-opened.
-    if (selectedSession == profilers.session) {
-      profilers.openTaskTab()
-      return
-    }
-
     // Update the currently selected task type used to launch the recording with before setting the session. This guarantees that the
     // most up-to-date Profiler task will be used to handle the set session's data.
     profilers.sessionsManager.currentTaskType = selectedTaskType

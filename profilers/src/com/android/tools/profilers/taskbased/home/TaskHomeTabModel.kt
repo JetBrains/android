@@ -143,7 +143,7 @@ class TaskHomeTabModel(profilers: StudioProfilers) : TaskEntranceTabModel(profil
   @VisibleForTesting
   val selectedProcess: Common.Process get() = processListModel.selectedProcess.value
 
-  override fun onEnterTaskButtonClick() {
+  override fun doEnterTaskButton() {
     // Save snapshot of the task home selections made just in case user changes any selection in between enter task button click and usage
     // of the selection state.
     setSelectionState()
