@@ -250,8 +250,20 @@ class PTableImplTest {
   fun testCollapseAction() {
     table!!.model.expand(4)
     table!!.setRowSelectionInterval(4, 4)
+    assertThat(table!!.rowCount).isEqualTo(9)
     dispatchAction(KeyStrokes.LEFT)
     assertThat(table!!.rowCount).isEqualTo(6)
+  }
+
+  @Test
+  fun testCollapseActionWithActiveValueEditor() {
+    table!!.model.expand(4)
+    table!!.setRowSelectionInterval(4, 4)
+    assertThat(table!!.rowCount).isEqualTo(9)
+    table!!.editingRow = 4
+    table!!.editingColumn = 1
+    dispatchAction(KeyStrokes.LEFT)
+    assertThat(table!!.rowCount).isEqualTo(9)
   }
 
   @Test

@@ -606,6 +606,11 @@ open class PTableImpl(
 
   /** Expand/Collapse items after right/left key press */
   private fun modifyGroup(expand: Boolean) {
+    if (editingColumn == 1) {
+      // If the value column is being edited: we should not expand/collapse the table row.
+      // Then the editor will disappear unexpectedly.
+      return
+    }
     val row = selectedRow
     if (row == -1) {
       return
