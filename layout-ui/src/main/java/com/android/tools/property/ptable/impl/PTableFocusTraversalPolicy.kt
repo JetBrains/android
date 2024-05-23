@@ -57,11 +57,18 @@ class PTableFocusTraversalPolicy(val table: JTable) : LayoutFocusTraversalPolicy
     }
     val rows = table.rowCount
     val columns = table.columnCount
+    val selectedRow = if (table.hasFocus()) table.selectedRow else -1
     val pos =
       when {
+        // If we are editing start from the cell being edited:
         table.isEditing -> PTablePosition(table.editingRow, table.editingColumn, rows, columns)
-        forwards -> PTablePosition(-1, columns - 1, rows, columns)
-        else -> PTablePosition(rows, 0, rows, columns)
+        // Going backwards start from the cell after the last cell in the table.
+        // Note: if the table has focus, the focus will (unfortunately) transfer out of the table.
+        !forwards -> PTablePosition(rows, 0, rows, columns)
+        // If the table has focus start from the cell before the left column of the selected row:
+        selectedRow >= 0 -> PTablePosition(selectedRow - 1, columns - 1, rows, columns)
+        // Otherwise go forward from the cell before the first cell in the table:
+        else -> PTablePosition(-1, columns - 1, rows, columns)
       }
 
     while (true) {

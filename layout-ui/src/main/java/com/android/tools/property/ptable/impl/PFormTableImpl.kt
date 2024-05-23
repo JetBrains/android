@@ -47,7 +47,11 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
       // If this table is empty just move the focus to the next component after the table.
       // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the first
       // editable cell.
-      transferFocus()
+      // Clear the selection such since getFirstComponent will start at the currently selected row
+      // if there is one.
+      clearSelection()
+      val editor = focusTraversalPolicy.getFirstComponent(this)
+      editor?.requestFocusInWindow() ?: transferFocus()
     } else {
       // If no cells are editable, accept focus in the table and select the first row.
       setRowSelectionInterval(0, 0)
@@ -60,6 +64,9 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
       // If this table is empty just move the focus to the next component before the table.
       // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the last
       // editable cell.
+      // Clear the selection such since getLastComponent could start at the currently selected row
+      // if there is one.
+      clearSelection()
       val editor = focusTraversalPolicy.getLastComponent(this)
       editor?.requestFocusInWindow() ?: transferFocusBackward()
     } else {

@@ -664,6 +664,19 @@ class PTableImplTest {
   }
 
   @Test
+  fun testNavigateForwardFromSelectedRow() {
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    val panel = createPanel()
+    FakeUi(panel, createFakeWindow = true)
+    focusManager.focusOwner = table!!
+    table!!.changeSelection(3, 0, false, false)
+    table!!.transferFocus()
+    assertThat(table!!.editingRow).isEqualTo(3)
+    assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(focusManager.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
+  }
+
+  @Test
   fun testDepth() {
     table!!.model.expand(4)
     table!!.model.expand(7)
