@@ -16,12 +16,15 @@ import com.intellij.ide.actions.TemplateKindCombo;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.TextFieldWithAutoCompletion;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.SlowOperations;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -208,15 +211,18 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     final CreateTypedResourceFileAction action = getSelectedAction(myResourceTypeCombo);
 
     if (action != null) {
-      final Module module = myFacet.getModule();
-      final List<String> allowedTagNames = action.getSortedAllowedTagNames(myFacet);
-      myRootElementField = new TextFieldWithAutoCompletion<>(
-        module.getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null);
-      myRootElementField.setEnabled(allowedTagNames.size() > 1);
-      myRootElementField.setText(action.isChooseTagName() ? "" : action.getDefaultRootTag(module));
-      myRootElementFieldWrapper.removeAll();
-      myRootElementFieldWrapper.add(myRootElementField, BorderLayout.CENTER);
-      myRootElementLabel.setLabelFor(myRootElementField);
+      try {
+        final Module module = myFacet.getModule();
+        final List<String> allowedTagNames =
+          SlowOperations.allowSlowOperations((ThrowableComputable<List<String>, Throwable>)() -> action.getSortedAllowedTagNames(myFacet));
+        myRootElementField = new TextFieldWithAutoCompletion<>(
+          module.getProject(), new TextFieldWithAutoCompletion.StringsCompletionProvider(allowedTagNames, null), true, null);
+        myRootElementField.setEnabled(allowedTagNames.size() > 1);
+        myRootElementField.setText(action.isChooseTagName() ? "" : action.getDefaultRootTag(module));
+        myRootElementFieldWrapper.removeAll();
+        myRootElementFieldWrapper.add(myRootElementField, BorderLayout.CENTER);
+        myRootElementLabel.setLabelFor(myRootElementField);
+      } catch (Throwable ignore) {}
     }
   }
 
