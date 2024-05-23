@@ -21,7 +21,7 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.editor.EditorModificationUtil
-import com.intellij.openapi.editor.actionSystem.CaretSpecificDataContext
+import com.intellij.openapi.editor.actionSystem.EditorActionHandler
 import com.intellij.openapi.editor.actionSystem.EditorActionManager
 import com.intellij.openapi.editor.actions.EditorActionUtil
 import com.intellij.psi.PsiDocumentManager
@@ -51,7 +51,7 @@ class FormatWithNewLineInsertHandler(private val format: InsertionFormat) : Inse
       EditorActionManager.getInstance().getActionHandler(IdeActions.ACTION_EDITOR_ENTER).execute(
         editor,
         caret,
-        CaretSpecificDataContext.create(DataManager.getInstance().getDataContext(editor.contentComponent), caret)
+        EditorActionHandler.caretDataContext(DataManager.getInstance().getDataContext(editor.contentComponent), caret)
       )
     }
   }
