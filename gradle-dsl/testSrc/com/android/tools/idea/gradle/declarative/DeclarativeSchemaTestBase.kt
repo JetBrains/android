@@ -34,15 +34,15 @@ abstract class DeclarativeSchemaTestBase {
   fun writeToSchemaFile(filename: TestFileName) {
     val myTestDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser"
     val folder = filename.toFile(myTestDataRelativePath, "")
-      val children = VfsUtil.getChildren(VfsUtil.findFileByIoFile(folder, true)!!)
+    val children = folder.list()
     val projectDir = projectRule.project.guessProjectDir()!!
     runWriteAction {
       val gradlePath = projectDir.createChildDirectory(this, ".gradle")
       val schemaFolder = gradlePath.createChildDirectory(this, "declarative-schema")
-      children.filter { it.name.endsWith("dcl.schema") }.forEach {
-        val newFile = schemaFolder.createChildData(this, it.name)
-        VfsUtil.saveText(newFile, VfsUtilCore.loadText(
-          it))
+      children.filter { it.endsWith("dcl.schema") }.forEach {
+        val newFile = schemaFolder.createChildData(this, it)
+        val file = VfsUtil.findFileByIoFile(File(folder,it), true)
+        VfsUtil.saveText(newFile, VfsUtilCore.loadText(file!!))
       }
     }
   }
