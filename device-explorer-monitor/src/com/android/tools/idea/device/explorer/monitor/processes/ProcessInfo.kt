@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.device.explorer.monitor.processes
 
+import com.android.adblib.serialNumber
+import com.android.adblib.tools.debugging.JdwpProcessInfo
 import com.android.ddmlib.ClientData
 
 /**
- * Snapshot of data related to a process of a [Device].
+ * Snapshot of data related to a device process.
  */
 data class ProcessInfo(
   /**
-   * The [Device] this entry belongs to.
+   * A unique identifier of a device the process belongs to. The identifier is unique as long as
+   * the device is connected, i.e. an identifier value can be re-used if a device
+   * is disconnected and another device becomes connected.
    */
-  val device: Device,
+  val deviceSerialNumber: String,
 
   /**
    * The process ID on the device
@@ -50,10 +54,28 @@ data class ProcessInfo(
 
   val abi: String? = null,
 
-  val debuggerStatus: ClientData.DebuggerStatus = ClientData.DebuggerStatus.DEFAULT,
-
-  val killAction: (() -> Unit)? = null
+  val debuggerStatus: ClientData.DebuggerStatus = ClientData.DebuggerStatus.DEFAULT
 )
+
+internal fun JdwpProcessInfo.toProcessInfo() =
+  ProcessInfo(
+    deviceSerialNumber = device.serialNumber,
+    pid = properties.pid,
+    // JdwpProcess.packageName is only supported for R+, we need to default to processName for < R.
+    packageName = properties.packageName ?: properties.processName,
+    processName = properties.processName,
+    userId = properties.userId,
+    vmIdentifier = properties.vmIdentifier,
+    abi = properties.abi,
+    debuggerStatus = toDebuggerStatus()
+  )
+
+private fun JdwpProcessInfo.toDebuggerStatus(): ClientData.DebuggerStatus =  when  {
+  properties.isWaitingForDebugger -> ClientData.DebuggerStatus.WAITING
+  properties.jdwpSessionProxyStatus.isExternalDebuggerAttached -> ClientData.DebuggerStatus.ATTACHED
+  properties.exception != null -> ClientData.DebuggerStatus.ERROR
+  else -> ClientData.DebuggerStatus.DEFAULT
+}
 
 /**
  * Return `true` if the only valid field is [ProcessInfo.pid], everything else is unknown about the process.

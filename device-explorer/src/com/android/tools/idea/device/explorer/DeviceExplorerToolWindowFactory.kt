@@ -23,7 +23,6 @@ import com.android.tools.idea.device.explorer.files.DeviceFileExplorerModel
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerViewImpl
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
-import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewImpl
@@ -57,11 +56,10 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
   }
 
   private fun createDeviceMonitorController(project: Project): DeviceExplorerTabController {
-    val adbService = project.getService(AdbDeviceService::class.java)
     val processService = project.getService(DeviceProcessService::class.java)
     val model = DeviceMonitorModel(project, processService)
     val view = DeviceMonitorViewImpl(project, model)
-    return DeviceMonitorControllerImpl(project, model, view, adbService)
+    return DeviceMonitorControllerImpl(project, model, view)
   }
 
   private fun createDeviceFilesController(project: Project): DeviceExplorerTabController {
