@@ -18,9 +18,7 @@ package com.android.tools.adtui.stdui
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.GraphicsUtil
-import com.intellij.util.ui.UIUtil
 import java.awt.*
-import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 import javax.swing.JComponent
 
@@ -35,20 +33,6 @@ fun Graphics2D.setColorAndAlpha(color: Color) {
   else {
     this.composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, color.alpha / 255.0f)
   }
-}
-
-fun Rectangle2D.Float.applyInset(inset: Float) {
-  this.x += inset
-  this.y += inset
-  this.width -= 2 * inset
-  this.height -= 2 * inset
-}
-
-fun Rectangle2D.Float.applyInsets(insets: Insets) {
-  this.x += insets.left
-  this.y += insets.top
-  this.width -= insets.left + insets.right
-  this.height -= insets.top + insets.bottom
 }
 
 /**

@@ -15,13 +15,9 @@
  */
 package com.android.tools.adtui.util;
 
-import com.intellij.util.ui.UIUtil;
-
 import java.awt.*;
 
 public class GraphicsUtil {
-
-  private static final int BACKGROUND_CELL_SIZE = 4;
 
   /**
    * Paints a checkered board style background. Each grid square is {@code cellSize} pixels.
@@ -41,35 +37,5 @@ public class GraphicsUtil {
     }
 
     g.setClip(savedClip);
-  }
-
-  /**
-   * Paints a checkered board style background.
-   */
-  public static void paintCheckeredBackground(Graphics g, Shape clip) {
-    //noinspection UseJBColor
-    paintCheckeredBackground(g, Color.LIGHT_GRAY, Color.GRAY, clip, BACKGROUND_CELL_SIZE);
-  }
-
-  /**
-   * Draws a centered string in the passed rectangle.
-   * @param g the {@link Graphics} instance to draw to
-   * @param rect the {@link Rectangle} to use as bounding box
-   * @param str the string to draw
-   * @param horzCentered if true, the string will be centered horizontally
-   * @param vertCentered if true, the string will be centered vertically
-   */
-  public static void drawCenteredString(Graphics2D g, Rectangle rect, String str, boolean horzCentered, boolean vertCentered) {
-    UIUtil.drawCenteredString(g, rect, str, horzCentered, vertCentered);
-  }
-
-  /**
-   * Draws a centered string in the passed rectangle.
-   * @param g the {@link Graphics} instance to draw to
-   * @param rect the {@link Rectangle} to use as bounding box
-   * @param str the string to draw
-   */
-  public static void drawCenteredString(Graphics2D g, Rectangle rect, String str) {
-    UIUtil.drawCenteredString(g, rect, str);
   }
 }
