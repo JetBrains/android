@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.util.isValidComposePreview
+import com.android.tools.idea.compose.preview.util.isValidComposePreviewForRunConfiguration
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
@@ -169,5 +169,7 @@ private fun KtNamedFunction.composePreviewFunctionFqn() = "${getClassName()}.${n
 
 private fun ConfigurationContext.containingComposePreviewFunction() =
   psiLocation?.let { location ->
-    location.getNonStrictParentOfType<KtNamedFunction>()?.takeIf { it.isValidComposePreview() }
+    location.getNonStrictParentOfType<KtNamedFunction>()?.takeIf {
+      it.isValidComposePreviewForRunConfiguration()
+    }
   }

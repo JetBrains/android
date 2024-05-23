@@ -70,7 +70,7 @@ fun DataContext.previewElement(): PsiComposePreviewElementInstance? =
  *
  * @see [isValidPreviewLocation]
  */
-internal fun KtNamedFunction.isValidComposePreview() =
+internal fun KtNamedFunction.isValidComposePreviewForRunConfiguration() =
   !isInTestFile() &&
     isValidPreviewLocation() &&
     annotationEntries.any { annotation ->
