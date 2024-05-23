@@ -91,9 +91,9 @@ object LocaleModelsProvider : VisualizationModelsProvider {
             defaultFile,
             defaultLocaleConfig,
           )
-          .withModelTooltip(defaultLocaleConfig.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
+      firstModel.setTooltip(defaultLocaleConfig.toHtmlTooltip())
       firstModel.setDisplayName("Default (no locale)")
       models.add(firstModel)
 
@@ -124,11 +124,11 @@ object LocaleModelsProvider : VisualizationModelsProvider {
             betterFile,
             config,
           )
-          .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
-      models.add(model)
+      model.setTooltip(config.toHtmlTooltip())
       model.setDisplayName(label)
+      models.add(model)
 
       registerModelsProviderConfigurationListener(model, currentFileConfig, config, EFFECTIVE_FLAGS)
     }

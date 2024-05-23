@@ -23,6 +23,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.type.DesignerEditorFileType
@@ -69,10 +70,6 @@ import org.jetbrains.annotations.TestOnly
  *   custom Android [View]s)that do not have explicit conversion to [XmlFile] (but might have
  *   implicit). This provider should provide us with [XmlFile] representation of the VirtualFile fed
  *   to the model.
- * @param modelUpdater Adds information to the model from a render result. A given model can use
- *   different updaters depending on what its usage requires. E.g. interactive preview may need less
- *   information from an [NlModel] than a standard preview, so different updaters can be used in
- *   those cases.
  * @param dataContext Returns the [DataContext] associated to this model. The [DataContext] allows
  *   storing information that is specific to this model but is not part of it. For example, context
  *   information about how the model should be represented in a specific surface. The [DataContext]
@@ -87,13 +84,19 @@ protected constructor(
   open val configuration: Configuration,
   private val componentRegistrar: Consumer<NlComponent>,
   private val xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>,
-  private var modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater(),
   override var dataContext: DataContext,
 ) : ModificationTracker, DataContextHolder {
 
   val treeWriter =
     NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
   val treeReader = NlTreeReader { file }
+
+  /**
+   * Adds information to the model from a render result. A given model can use different updaters
+   * depending on what its usage requires. E.g. interactive preview may need less information from
+   * an [NlModel] than a standard preview, so different updaters can be used in those cases.
+   */
+  private var modelUpdater: NlModelUpdaterInterface = DefaultModelUpdater()
 
   private val listeners = createWithDirectExecutor<ModelListener>()
 
@@ -467,6 +470,9 @@ protected constructor(
   companion object {
     const val DELAY_AFTER_TYPING_MS: Int = 250
 
+    fun getDefaultFile(project: Project, virtualFile: VirtualFile) =
+      AndroidPsiUtils.getPsiFileSafely(project, virtualFile) as XmlFile
+
     @JvmStatic
     fun builder(
       parent: Disposable,
@@ -476,32 +482,45 @@ protected constructor(
     ): NlModelBuilder {
       return NlModelBuilder(parent, buildTarget, file, configuration)
     }
+  }
 
-    /**
-     * Method called by the [NlModelBuilder] to instantiate a new NlModel. Should only be called by
-     * [NlModelBuilder].
-     */
+  /** An [NlModel] builder */
+  class NlModelBuilder(
+    val parentDisposable: Disposable,
+    val buildTarget: BuildTargetReference,
+    val file: VirtualFile,
+    val configuration: Configuration,
+  ) {
+    private var componentRegistrar: Consumer<NlComponent> = Consumer {}
+    private var xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile> =
+      BiFunction { project, virtualFile ->
+        getDefaultFile(project, virtualFile)
+      }
+    private var dataContext: DataContext = DataContext.EMPTY_CONTEXT
+
+    fun withComponentRegistrar(componentRegistrar: Consumer<NlComponent>): NlModelBuilder = also {
+      this.componentRegistrar = componentRegistrar
+    }
+
+    fun withXmlProvider(
+      xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>
+    ): NlModelBuilder = also { this.xmlFileProvider = xmlFileProvider }
+
+    fun withDataContext(dataContext: DataContext): NlModelBuilder = also {
+      this.dataContext = dataContext
+    }
+
+    /** Instantiate a new [NlModel]. */
     @Slow
-    internal fun create(
-      parent: Disposable,
-      buildTarget: BuildTargetReference,
-      file: VirtualFile,
-      configuration: Configuration,
-      componentRegistrar: Consumer<NlComponent>,
-      xmlFileProvider: BiFunction<Project, VirtualFile, XmlFile>,
-      modelUpdater: NlModelUpdaterInterface?,
-      dataContext: DataContext,
-    ): NlModel {
-      return NlModel(
-        parent,
+    fun build(): NlModel =
+      NlModel(
+        parentDisposable,
         buildTarget,
         file,
         configuration,
         componentRegistrar,
         xmlFileProvider,
-        modelUpdater ?: DefaultModelUpdater(),
         dataContext,
       )
-    }
   }
 }

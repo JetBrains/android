@@ -70,9 +70,9 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
             betterFile,
             config,
           )
-          .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
+      model.setTooltip(config.toHtmlTooltip())
       model.setDisplayName(device.displayName)
       models.add(model)
 

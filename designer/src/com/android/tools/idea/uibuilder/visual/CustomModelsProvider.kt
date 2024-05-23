@@ -169,10 +169,10 @@ class CustomModelsProvider(
             betterFile,
             config,
           )
-          .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .withDataContext(CustomModelDataContext)
           .build()
+      model.setTooltip(config.toHtmlTooltip())
       model.setDisplayName(customConfig.name)
       models.add(model)
       configurationToConfigurationAttributesMap[config] = attributes

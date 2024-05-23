@@ -19,7 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.common.model.NlModelBuilder
 import com.android.tools.idea.common.model.NlModelUpdaterInterface
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.scene.render
@@ -290,7 +289,7 @@ suspend fun <T : PsiPreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
               )
               .withComponentRegistrar(NlComponentRegistrar)
               .withXmlProvider { project, virtualFile ->
-                NlModelBuilder.getDefaultFile(project, virtualFile).also {
+                NlModel.getDefaultFile(project, virtualFile).also {
                   it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
                 }
               }

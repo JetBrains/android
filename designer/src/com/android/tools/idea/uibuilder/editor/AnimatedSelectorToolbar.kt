@@ -306,9 +306,9 @@ class AnimatedSelectorModel(
 
     return NlModel.builder(parentDisposable, buildTarget, file, config)
       .withComponentRegistrar(componentRegistrar)
-      .withModelUpdater(EmptyModelUpdater)
       .withXmlProvider { _, _ -> psiXmlFile }
       .build()
+      .apply { setModelUpdater(EmptyModelUpdater) }
   }
 
   private fun createTempAnimatedSelectorFile(): VirtualFile {

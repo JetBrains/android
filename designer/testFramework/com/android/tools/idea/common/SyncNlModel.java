@@ -17,7 +17,6 @@ package com.android.tools.idea.common;
 
 import com.android.tools.idea.common.model.DefaultModelUpdater;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModelBuilder;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.rendering.BuildTargetReference;
 import com.google.common.annotations.VisibleForTesting;
@@ -29,9 +28,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.function.Consumer;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link NlModel} that runs all the operations synchronously for testing
@@ -66,7 +63,7 @@ public class SyncNlModel extends NlModel {
                       @NotNull BuildTargetReference buildTarget,
                       @NotNull VirtualFile file,
                       @NotNull Configuration configuration) {
-    super(parent, buildTarget, file, configuration, componentRegistrar, NlModelBuilder.Companion::getDefaultFile, new DefaultModelUpdater(), DataContext.EMPTY_CONTEXT);
+    super(parent, buildTarget, file, configuration, componentRegistrar, NlModel.Companion::getDefaultFile, DataContext.EMPTY_CONTEXT);
   }
 
   /**

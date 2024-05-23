@@ -95,9 +95,9 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
             virtualFile,
             config,
           )
-          .withModelTooltip(config.toHtmlTooltip())
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
+      model.setTooltip(config.toHtmlTooltip())
       model.setDisplayName(device.displayName)
       models.add(model)
 
