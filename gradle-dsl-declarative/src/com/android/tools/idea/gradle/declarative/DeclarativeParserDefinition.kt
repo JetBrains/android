@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.declarative
 
-import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.BLOCK_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.LINE_COMMENT
 import com.android.tools.idea.gradle.declarative.parser.DeclarativeElementTypeHolder.STRING
@@ -42,7 +41,9 @@ class DeclarativeParserDefinition : ParserDefinition {
 
   override fun getStringLiteralElements(): TokenSet = STRING_LITERAL_TOKENS
 
-  override fun createElement(node: ASTNode?): PsiElement = DeclarativeElementTypeHolder.Factory.createElement(node)
+  override fun createElement(node: ASTNode?): PsiElement =
+    throw UnsupportedOperationException(node?.elementType.toString()) // See DeclarativeASTFactory
+
   override fun createFile(viewProvider: FileViewProvider): PsiFile = DeclarativeFile(viewProvider)
 
   companion object {

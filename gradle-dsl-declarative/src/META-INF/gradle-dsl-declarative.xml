@@ -7,6 +7,7 @@
               extensions="dcl"/>
     <lang.parserDefinition language="Declarative"
                            implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition"/>
+    <lang.ast.factory language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.psi.DeclarativeASTFactory"/>
     <lang.syntaxHighlighter language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeHighlighter"/>
     <lang.quoteHandler language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativeQuoteHandler"/>
     <lang.braceMatcher language="Declarative" implementationClass="com.android.tools.idea.gradle.declarative.DeclarativePairedBraceMatcher"/>

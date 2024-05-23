@@ -27,6 +27,7 @@
   psiImplClassSuffix="Impl"
 
   implements = "com.android.tools.idea.gradle.declarative.psi.DeclarativeElement"
+  extends="com.intellij.psi.impl.source.tree.CompositePsiElement"
   classHeader='generatedFilesHeader.txt'
 
   tokens = [
