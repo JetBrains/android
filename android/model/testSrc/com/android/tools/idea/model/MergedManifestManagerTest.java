@@ -19,6 +19,8 @@ import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
 import static com.android.resources.ScreenSize.LARGE;
 import static com.android.resources.ScreenSize.NORMAL;
 import static com.android.resources.ScreenSize.XLARGE;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.xml.XmlFormatPreferences;
@@ -341,7 +343,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals("com.android.unittest2", supplier.getNow().getPackage());
   }
 
-  public void testBadManifest() throws Exception {
+  public void testUnparsableManifest() throws Exception {
     @Language("xml") final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                                     "    <uses-sdk android:minSdkVersion='9' android:targetSdkVersion='24'/>\n" +
                                                     "    <uses-permission android:name=\"android.permission.BLUETOOTH\" />\n" +
@@ -357,6 +359,49 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     MergedManifestSnapshot snapshot = supplier.get().get();
     assertNotNull(snapshot);
     assertNotNull(snapshot.getException());
+    assertThat(snapshot.getException().getClass().getName(), containsString("MergedManifestException$ParsingError"));
+    assertNull(snapshot.getPackage());
+    assertNull(snapshot.getDocument());
+  }
+
+  public void testUnparsableApplicationManifest() throws Exception {
+    @Language("xml") final String originalContent = "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                                    "  package='com.example' android:enabled='true'>\n" +
+                                                    "  <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>\n" +
+                                                    "    <  > />" +
+                                                    "</manifest>";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    MergedManifestSnapshot snapshot = supplier.get().get();
+    assertNotNull(snapshot);
+    assertNotNull(snapshot.getException());
+    // still want MergedManifestException to be internal class so compare names here
+    assertThat(snapshot.getException().getClass().getName(), containsString("MergedManifestException$ParsingError"));
+    assertNull(snapshot.getPackage());
+    assertNull(snapshot.getDocument());
+  }
+
+  public void testMissingAttributeApplicationManifest() throws Exception {
+    @Language("xml") final String originalContent = "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                                                    // missing package
+                                                    "    <application android:label=\"MinApp\">\n" +
+                                                    "        <activity android:name=\".MainActivity\" android:exported=\"true\">\n" +
+                                                    "            <intent-filter>\n" +
+                                                    "                <action android:name=\"android.intent.action.MAIN\" />\n" +
+                                                    "                <category android:name=\"android.intent.category.LAUNCHER\" />\n" +
+                                                    "            </intent-filter>\n" +
+                                                    "        </activity>\n" +
+                                                    "    </application>\n" +
+                                                    "</manifest>";
+    updateManifestContents(originalContent);
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myModule);
+
+    MergedManifestSnapshot snapshot = supplier.get().get();
+    assertNotNull(snapshot);
+    assertNotNull(snapshot.getException());
+    assertThat(snapshot.getException().getClass().getName(), containsString("MergedManifestException$MissingAttribute"));
+
     assertNull(snapshot.getPackage());
     assertNull(snapshot.getDocument());
   }

@@ -61,6 +61,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Document;
+import org.xml.sax.SAXParseException;
 
 /**
  * Immutable data object encapsulating the result of merging all of the manifest files related to a particular
@@ -257,6 +258,9 @@ final class MergedManifestInfo {
     catch (ManifestMerger2.MergeFailureException e) {
       if (e.getCause() instanceof ProcessCanceledException) {
         throw (ProcessCanceledException) e.getCause();
+      }
+      if (e.getCause() instanceof SAXParseException) {
+        throw new MergedManifestException.ParsingError(e.getCause());
       }
       throw new MergedManifestException.MergingError(facet.getModule(), e);
     }

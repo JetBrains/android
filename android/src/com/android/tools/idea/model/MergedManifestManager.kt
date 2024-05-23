@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.ThrottlingAsyncSupplier
 import com.android.tools.idea.model.MergedManifestException.MergingError
 import com.android.tools.idea.model.MergedManifestException.MissingAttribute
 import com.android.tools.idea.model.MergedManifestException.MissingElement
+import com.android.tools.idea.model.MergedManifestException.ParsingError
 import com.android.tools.idea.model.MergedManifestManager.Companion.LOG
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.stats.ManifestMergerStatsTracker.MergeResult
@@ -140,12 +141,13 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
       when (e) {
         is MergingError,
         is MissingElement,
+        is ParsingError,
         is MissingAttribute -> {
           LOG.info("Manifest merge attempt failed", e)
           snapshot = MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module, facet, e)
         }
-        // skipping ParsingError as it is a wrapper for general Exception
-        is MergedManifestException.ParsingError -> throw e
+        // skipping InfrastructureError as it is a wrapper for general Exception
+        is MergedManifestException.InfrastructureError -> throw e
       }
     }
     finally {

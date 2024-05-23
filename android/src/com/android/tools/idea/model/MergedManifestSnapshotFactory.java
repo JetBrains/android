@@ -181,8 +181,9 @@ class MergedManifestSnapshotFactory {
 
   @NotNull
   static MergedManifestSnapshot createMergedManifestSnapshot(@NotNull AndroidFacet facet) {
-    MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(facet);
     try {
+      MergedManifestInfo mergedManifestInfo = MergedManifestInfo.create(facet);
+
       Document document = mergedManifestInfo.getXmlDocument();
       Element root = document == null ? null : document.getDocumentElement();
       if (root == null) {
@@ -310,7 +311,7 @@ class MergedManifestSnapshotFactory {
       throw e;
     }
     catch (Exception e) {
-      throw new MergedManifestException.ParsingError(mergedManifestInfo, e);
+      throw new MergedManifestException.InfrastructureError(e);
     }
   }
 
