@@ -68,7 +68,6 @@ import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
@@ -872,10 +871,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @Nullable
   @Override
   public Magnificator getMagnificator() {
-    if (!getSupportPinchAndZoom()) {
-      return null;
-    }
-
     return (scale, at) -> null;
   }
 
@@ -1329,10 +1324,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   public GuiInputHandler getGuiInputHandler() {
     return myGuiInputHandler;
-  }
-
-  protected boolean getSupportPinchAndZoom() {
-    return true;
   }
 
   /**

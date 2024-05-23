@@ -52,7 +52,6 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.ScenesOwner;
 import com.android.tools.idea.common.surface.ZoomChange;
 import com.android.tools.idea.common.surface.ZoomListener;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
@@ -705,12 +704,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> implements 
       myCurrentNavigation = match;
       getSelectionModel().setSelection((ImmutableList.of(myCurrentNavigation)));
     }
-  }
-
-  @Override
-  protected boolean getSupportPinchAndZoom() {
-    // TODO: Enable pinch and zoom for navigation editor
-    return false;
   }
 
   /**
