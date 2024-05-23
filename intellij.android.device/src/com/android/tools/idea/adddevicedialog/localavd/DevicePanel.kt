@@ -155,7 +155,9 @@ private fun SystemImageTable(
       ),
       TableTextColumn(
         "API",
-        attribute = { it.androidVersion.getFullApiName() },
+        attribute = {
+          it.androidVersion.getFullApiName(includeReleaseName = true, includeCodeName = true)
+        },
         comparator = Comparator.comparing(SystemImage::androidVersion),
       ),
       TableTextColumn("ABIs", attribute = { it.abis.joinToString() }),
