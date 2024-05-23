@@ -104,7 +104,7 @@ data class GenerationConfig(
  *   citation's [CitationAction] to see what the necessary action to take is.
  * @param metadata Arbitrary metadata attached to the response. Mostly to be used internally.
  */
-class Content(
+data class Content(
   val text: String,
   val citations: List<Citation> = emptyList(),
   val metadata: Map<String, Any> = emptyMap(),
