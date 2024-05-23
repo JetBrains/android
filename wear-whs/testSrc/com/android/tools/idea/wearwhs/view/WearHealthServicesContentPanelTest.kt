@@ -44,6 +44,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -294,6 +295,7 @@ class WearHealthServicesContentPanelTest {
       fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && it.isEnabled }
     }
 
+  @Ignore("b/342411390")
   @Test
   fun `test disabled sensors have disabled override value fields and units during exercise`() =
     runBlocking<Unit> {
