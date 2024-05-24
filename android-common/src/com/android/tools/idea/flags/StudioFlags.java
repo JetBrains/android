@@ -920,7 +920,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_SETTINGS_PICKER = new BooleanFlag(
     EMBEDDED_EMULATOR, "settings.picker", "Show settings picker",
     "Enables the settings picker to be shown for testing an application",
-    ChannelDefault.enabledUpTo(CANARY));
+    true);
   //endregion
 
   //region Device Mirroring
