@@ -51,6 +51,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.TableCell
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.hover.TableHoverListener
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.util.height
@@ -64,6 +65,7 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
+import java.awt.KeyboardFocusManager
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.datatransfer.Clipboard
@@ -72,6 +74,7 @@ import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
+import javax.swing.BoxLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -100,9 +103,14 @@ private const val TABLE_NAME = "Table"
 
 @RunsInEdt
 class PTableImplTest {
-  private var model: PTableTestModel? = null
+  private var model1: PTableTestModel? = null
+  private var table1: PTableImpl? = null
+  private var model2: PTableTestModel? = null
+  private var table2: PTableImpl? = null
+  private var model3: PTableTestModel? = null
+  private var table3: PTableImpl? = null
+  private var scrollPane: JBScrollPane? = null
   private var nameColumnFraction: ColumnFraction? = null
-  private var table: PTableImpl? = null
   private var rendererProvider: SimplePTableCellRendererProvider? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
 
@@ -125,7 +133,7 @@ class PTableImplTest {
     nameColumnFraction = ColumnFraction(initialValue = 0.5f, resizeSupported = true)
     rendererProvider = SimplePTableCellRendererProvider()
     editorProvider = SimplePTableCellEditorProvider()
-    model =
+    model1 =
       createModel(
         Item("weight"),
         Item("size"),
@@ -134,14 +142,54 @@ class PTableImplTest {
         Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
         Item("new"),
       )
-    table =
+    table1 =
       PTableImpl(
-        model!!,
+        model1!!,
         null,
         rendererProvider!!,
         editorProvider!!,
         nameColumnFraction = nameColumnFraction!!,
       )
+    model2 =
+      createModel(Item("minWidth"), Item("maxWidth"), Item("minHeight", "9dp"), Item("maxHeight"))
+    table2 =
+      PTableImpl(
+        model2!!,
+        null,
+        rendererProvider!!,
+        editorProvider!!,
+        nameColumnFraction = nameColumnFraction!!,
+      )
+    model3 =
+      createModel(
+        Item("paddingLeft"),
+        Item("paddingRight"),
+        Item("elevation"),
+        Item("enabled", "true"),
+        Item("gravity"),
+      )
+    table3 =
+      PTableImpl(
+        model3!!,
+        null,
+        rendererProvider!!,
+        editorProvider!!,
+        nameColumnFraction = nameColumnFraction!!,
+      )
+    table1!!.nextTable = table2
+    table2!!.nextTable = table3
+    table3!!.previousTable = table2
+    table2!!.previousTable = table1
+    table1!!.rowHeight = 20
+    table2!!.rowHeight = 20
+    table3!!.rowHeight = 20
+    val panel = JPanel()
+    panel.layout = BoxLayout(panel, BoxLayout.PAGE_AXIS)
+    panel.isOpaque = false
+    panel.add(table1)
+    panel.add(table2)
+    panel.add(table3)
+    scrollPane = JBScrollPane(panel)
     val app = ApplicationManager.getApplication()
     app.replaceService(
       IdeFocusManager::class.java,
@@ -152,254 +200,254 @@ class PTableImplTest {
 
   @After
   fun tearDown() {
-    model = null
-    table = null
+    model1 = null
+    table1 = null
     editorProvider = null
   }
 
   @Test
   fun testFilterWithNoMatch() {
-    table!!.filter = "xyz"
-    assertThat(table!!.rowCount).isEqualTo(0)
+    table1!!.filter = "xyz"
+    assertThat(table1!!.rowCount).isEqualTo(0)
   }
 
   @Test
   fun testFilterWithPartialMatch() {
-    table!!.filter = "iz"
-    assertThat(table!!.rowCount).isEqualTo(1)
-    assertThat(table!!.item(0).name).isEqualTo("size")
+    table1!!.filter = "iz"
+    assertThat(table1!!.rowCount).isEqualTo(1)
+    assertThat(table1!!.item(0).name).isEqualTo("size")
   }
 
   @Test
   fun testFilterWithGroupMatch() {
-    table!!.filter = "we"
-    assertThat(table!!.rowCount).isEqualTo(2)
-    assertThat(table!!.item(0).name).isEqualTo("weight")
-    assertThat(table!!.item(1).name).isEqualTo("weiss")
+    table1!!.filter = "we"
+    assertThat(table1!!.rowCount).isEqualTo(2)
+    assertThat(table1!!.item(0).name).isEqualTo("weight")
+    assertThat(table1!!.item(1).name).isEqualTo("weiss")
   }
 
   @Test
   fun testFilterWithGroupChildMatch() {
-    table!!.filter = "si"
-    assertThat(table!!.rowCount).isEqualTo(3)
-    assertThat(table!!.item(0).name).isEqualTo("size")
-    assertThat(table!!.item(1).name).isEqualTo("visible")
-    assertThat(table!!.item(2).name).isEqualTo("weiss")
+    table1!!.filter = "si"
+    assertThat(table1!!.rowCount).isEqualTo(3)
+    assertThat(table1!!.item(0).name).isEqualTo("size")
+    assertThat(table1!!.item(1).name).isEqualTo("visible")
+    assertThat(table1!!.item(2).name).isEqualTo("weiss")
   }
 
   @Test
   fun testFilterWithExpandedGroupChildMatch() {
-    table!!.filter = "si"
-    table!!.model.expand(4)
-    assertThat(table!!.rowCount).isEqualTo(4)
-    assertThat(table!!.item(0).name).isEqualTo("size")
-    assertThat(table!!.item(1).name).isEqualTo("visible")
-    assertThat(table!!.item(2).name).isEqualTo("weiss")
-    assertThat(table!!.item(3).name).isEqualTo("siphon")
+    table1!!.filter = "si"
+    table1!!.model.expand(4)
+    assertThat(table1!!.rowCount).isEqualTo(4)
+    assertThat(table1!!.item(0).name).isEqualTo("size")
+    assertThat(table1!!.item(1).name).isEqualTo("visible")
+    assertThat(table1!!.item(2).name).isEqualTo("weiss")
+    assertThat(table1!!.item(3).name).isEqualTo("siphon")
   }
 
   @Test
   fun testFilterWithParentMatch() {
-    table!!.filter = "eis"
-    assertThat(table!!.rowCount).isEqualTo(1)
-    assertThat(table!!.item(0).name).isEqualTo("weiss")
+    table1!!.filter = "eis"
+    assertThat(table1!!.rowCount).isEqualTo(1)
+    assertThat(table1!!.item(0).name).isEqualTo("weiss")
   }
 
   @Test
   fun testFilterWithExpandedParentMatch() {
-    table!!.filter = "eis"
-    table!!.model.expand(4)
-    assertThat(table!!.rowCount).isEqualTo(4)
-    assertThat(table!!.item(0).name).isEqualTo("weiss")
-    assertThat(table!!.item(1).name).isEqualTo("siphon")
-    assertThat(table!!.item(2).name).isEqualTo("extra")
-    assertThat(table!!.item(3).name).isEqualTo("flower")
+    table1!!.filter = "eis"
+    table1!!.model.expand(4)
+    assertThat(table1!!.rowCount).isEqualTo(4)
+    assertThat(table1!!.item(0).name).isEqualTo("weiss")
+    assertThat(table1!!.item(1).name).isEqualTo("siphon")
+    assertThat(table1!!.item(2).name).isEqualTo("extra")
+    assertThat(table1!!.item(3).name).isEqualTo("flower")
   }
 
   @Test
   fun testHomeNavigation() {
-    table!!.model.expand(3)
-    table!!.setRowSelectionInterval(4, 4)
+    table1!!.model.expand(3)
+    table1!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.HOME)
-    assertThat(table!!.selectedRow).isEqualTo(0)
+    assertThat(table1!!.selectedRow).isEqualTo(0)
   }
 
   @Test
   fun testEndNavigation() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.model.expand(4)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.END)
-    assertThat(table!!.selectedRow).isEqualTo(8)
+    assertThat(table1!!.selectedRow).isEqualTo(8)
   }
 
   @Test
   fun testExpandAction() {
-    table!!.setRowSelectionInterval(4, 4)
+    table1!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.RIGHT)
-    assertThat(table!!.rowCount).isEqualTo(9)
+    assertThat(table1!!.rowCount).isEqualTo(9)
   }
 
   @Test
   fun testExpandActionWithNumericKeyboard() {
-    table!!.setRowSelectionInterval(4, 4)
+    table1!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.NUM_RIGHT)
-    assertThat(table!!.rowCount).isEqualTo(9)
+    assertThat(table1!!.rowCount).isEqualTo(9)
   }
 
   @Test
   fun testCollapseAction() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(4, 4)
-    assertThat(table!!.rowCount).isEqualTo(9)
+    table1!!.model.expand(4)
+    table1!!.setRowSelectionInterval(4, 4)
+    assertThat(table1!!.rowCount).isEqualTo(9)
     dispatchAction(KeyStrokes.LEFT)
-    assertThat(table!!.rowCount).isEqualTo(6)
+    assertThat(table1!!.rowCount).isEqualTo(6)
   }
 
   @Test
   fun testCollapseActionWithActiveValueEditor() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(4, 4)
-    assertThat(table!!.rowCount).isEqualTo(9)
-    table!!.editingRow = 4
-    table!!.editingColumn = 1
+    table1!!.model.expand(4)
+    table1!!.setRowSelectionInterval(4, 4)
+    assertThat(table1!!.rowCount).isEqualTo(9)
+    table1!!.editingRow = 4
+    table1!!.editingColumn = 1
     dispatchAction(KeyStrokes.LEFT)
-    assertThat(table!!.rowCount).isEqualTo(9)
+    assertThat(table1!!.rowCount).isEqualTo(9)
   }
 
   @Test
   fun testCollapseActionWithNumericKeyboard() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(4, 4)
+    table1!!.model.expand(4)
+    table1!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.NUM_LEFT)
-    assertThat(table!!.rowCount).isEqualTo(6)
+    assertThat(table1!!.rowCount).isEqualTo(6)
   }
 
   @Test
   fun enterExpandsClosedGroup() {
-    table!!.setRowSelectionInterval(4, 4)
+    table1!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.rowCount).isEqualTo(9)
+    assertThat(table1!!.rowCount).isEqualTo(9)
   }
 
   @Test
   fun enterCollapsesOpenGroup() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(4, 4)
+    table1!!.model.expand(4)
+    table1!!.setRowSelectionInterval(4, 4)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.rowCount).isEqualTo(6)
+    assertThat(table1!!.rowCount).isEqualTo(6)
   }
 
   @Test
   fun toggleBooleanValue() {
-    table!!.setRowSelectionInterval(3, 3)
+    table1!!.setRowSelectionInterval(3, 3)
     dispatchAction(KeyStrokes.SPACE)
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(1)
-    assertThat(table!!.editingRow).isEqualTo(3)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
+    assertThat(table1!!.editingRow).isEqualTo(3)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[3])
   }
 
   @Test
   fun toggleNonBooleanValueIsNoop() {
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.SPACE)
-    assertThat(table!!.editingRow).isEqualTo(-1)
-    assertThat(table!!.editingColumn).isEqualTo(-1)
-    assertThat(model!!.editedItem).isNull()
+    assertThat(table1!!.editingRow).isEqualTo(-1)
+    assertThat(table1!!.editingColumn).isEqualTo(-1)
+    assertThat(model1!!.editedItem).isNull()
   }
 
   @Test
   fun smartEnterStartsEditingNameColumnFirst() {
-    table!!.setRowSelectionInterval(5, 5)
+    table1!!.setRowSelectionInterval(5, 5)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(5)
-    assertThat(table!!.editingColumn).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
+    assertThat(table1!!.editingRow).isEqualTo(5)
+    assertThat(table1!!.editingColumn).isEqualTo(0)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[5])
   }
 
   @Test
   fun smartEnterStartsEditingValueIfNameIsNotEditable() {
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+    assertThat(table1!!.editingRow).isEqualTo(0)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[0])
   }
 
   @Test
   fun smartEnterDoesNotToggleBooleanValue() {
-    table!!.setRowSelectionInterval(3, 3)
+    table1!!.setRowSelectionInterval(3, 3)
     dispatchAction(KeyStrokes.ENTER)
     assertThat(editorProvider!!.editor.toggleCount).isEqualTo(0)
-    assertThat(table!!.editingRow).isEqualTo(3)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
+    assertThat(table1!!.editingRow).isEqualTo(3)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[3])
   }
 
   @Test
   fun startNextEditor() {
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
-    assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.editingRow).isEqualTo(1)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
+    assertThat(table1!!.editingRow).isEqualTo(0)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[0])
+    assertThat(table1!!.startNextEditor()).isTrue()
+    assertThat(table1!!.editingRow).isEqualTo(1)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[1])
   }
 
   @Test
   fun startNextEditorSkipsNonEditableRows() {
-    table!!.setRowSelectionInterval(1, 1)
+    table1!!.setRowSelectionInterval(1, 1)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
-    assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.editingRow).isEqualTo(3)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
+    assertThat(table1!!.editingRow).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[1])
+    assertThat(table1!!.startNextEditor()).isTrue()
+    assertThat(table1!!.editingRow).isEqualTo(3)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[3])
   }
 
   @Test
   fun startNextEditorWhenAtEndOfTable() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(8, 8)
+    table1!!.model.expand(4)
+    table1!!.setRowSelectionInterval(8, 8)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(8)
-    assertThat(table!!.editingColumn).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
-    assertThat(table!!.startNextEditor()).isFalse()
-    assertThat(table!!.editingRow).isEqualTo(-1)
-    assertThat(table!!.editingColumn).isEqualTo(-1)
-    assertThat(model!!.editedItem).isNull()
+    assertThat(table1!!.editingRow).isEqualTo(8)
+    assertThat(table1!!.editingColumn).isEqualTo(0)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[5])
+    assertThat(table1!!.startNextEditor()).isFalse()
+    assertThat(table1!!.editingRow).isEqualTo(-1)
+    assertThat(table1!!.editingColumn).isEqualTo(-1)
+    assertThat(model1!!.editedItem).isNull()
   }
 
   @Test
   fun startNextEditorWhenNextRowAllowsNameEditing() {
-    table!!.model.expand(4)
-    table!!.setRowSelectionInterval(6, 6)
+    table1!!.model.expand(4)
+    table1!!.setRowSelectionInterval(6, 6)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(6)
-    assertThat(model!!.editedItem).isEqualTo((model!!.items[4] as PTableGroupItem).children[1])
-    assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.startNextEditor()).isTrue()
-    assertThat(table!!.editingRow).isEqualTo(8)
-    assertThat(table!!.item(8).name).isEqualTo("new")
-    assertThat(table!!.editingColumn).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
+    assertThat(table1!!.editingRow).isEqualTo(6)
+    assertThat(model1!!.editedItem).isEqualTo((model1!!.items[4] as PTableGroupItem).children[1])
+    assertThat(table1!!.startNextEditor()).isTrue()
+    assertThat(table1!!.startNextEditor()).isTrue()
+    assertThat(table1!!.editingRow).isEqualTo(8)
+    assertThat(table1!!.item(8).name).isEqualTo("new")
+    assertThat(table1!!.editingColumn).isEqualTo(0)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[5])
   }
 
   @Test
   fun editingCanceled() {
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
-    table!!.editingCanceled(ChangeEvent(table!!))
-    assertThat(table!!.editingRow).isEqualTo(-1)
+    assertThat(table1!!.editingRow).isEqualTo(0)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[0])
+    table1!!.editingCanceled(ChangeEvent(table1!!))
+    assertThat(table1!!.editingRow).isEqualTo(-1)
     assertThat(editorProvider!!.editor.cancelCount).isEqualTo(1)
-    assertThat(model!!.editedItem).isNull()
+    assertThat(model1!!.editedItem).isNull()
   }
 
   @Test
@@ -408,137 +456,137 @@ class PTableImplTest {
     // decide the proper action. The editor for "size" is
     // setup to decline cell editing cancellation.
     // Check that this works.
-    table!!.setRowSelectionInterval(1, 1)
+    table1!!.setRowSelectionInterval(1, 1)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
-    table!!.editingCanceled(ChangeEvent(table!!))
-    assertThat(table!!.editingRow).isEqualTo(1)
-    assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(table1!!.editingRow).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[1])
+    table1!!.editingCanceled(ChangeEvent(table1!!))
+    assertThat(table1!!.editingRow).isEqualTo(1)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
     assertThat(editorProvider!!.editor.cancelCount).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[1])
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[1])
   }
 
   @Test
   fun typingStartsEditingNameIfNameIsEditable() {
-    table!!.setRowSelectionInterval(5, 5)
-    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    table1!!.setRowSelectionInterval(5, 5)
+    val event = KeyEvent(table1, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
     imitateFocusManagerIsDispatching(event)
-    table!!.dispatchEvent(event)
-    assertThat(table!!.editingRow).isEqualTo(5)
-    assertThat(table!!.editingColumn).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[5])
+    table1!!.dispatchEvent(event)
+    assertThat(table1!!.editingRow).isEqualTo(5)
+    assertThat(table1!!.editingColumn).isEqualTo(0)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[5])
   }
 
   @Test
   fun typingSpaceDoesNotStartEditing() {
-    table!!.setRowSelectionInterval(5, 5)
-    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, ' ')
+    table1!!.setRowSelectionInterval(5, 5)
+    val event = KeyEvent(table1, KeyEvent.KEY_TYPED, 0, 0, 0, ' ')
     imitateFocusManagerIsDispatching(event)
-    table!!.dispatchEvent(event)
-    assertThat(table!!.editingRow).isEqualTo(-1)
-    assertThat(model!!.editedItem).isNull()
+    table1!!.dispatchEvent(event)
+    assertThat(table1!!.editingRow).isEqualTo(-1)
+    assertThat(model1!!.editedItem).isNull()
   }
 
   @Test
   fun typingIsNoopIfNeitherNameNorValueIsEditable() {
-    table!!.setRowSelectionInterval(2, 2)
-    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    table1!!.setRowSelectionInterval(2, 2)
+    val event = KeyEvent(table1, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
     imitateFocusManagerIsDispatching(event)
-    table!!.dispatchEvent(event)
-    assertThat(table!!.editingRow).isEqualTo(-1)
-    assertThat(model!!.editedItem).isNull()
+    table1!!.dispatchEvent(event)
+    assertThat(table1!!.editingRow).isEqualTo(-1)
+    assertThat(model1!!.editedItem).isNull()
   }
 
   @Test
   fun typingStartsEditingValue() {
-    table!!.setRowSelectionInterval(0, 0)
-    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    table1!!.setRowSelectionInterval(0, 0)
+    val event = KeyEvent(table1, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
     imitateFocusManagerIsDispatching(event)
-    table!!.dispatchEvent(event)
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(table!!.editingColumn).isEqualTo(1)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+    table1!!.dispatchEvent(event)
+    assertThat(table1!!.editingRow).isEqualTo(0)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[0])
   }
 
   @Test
   fun resizeRowHeight() {
-    table!!.setRowSelectionInterval(5, 5)
-    val item = table!!.item(5)
-    val event = KeyEvent(table, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
+    table1!!.setRowSelectionInterval(5, 5)
+    val item = table1!!.item(5)
+    val event = KeyEvent(table1, KeyEvent.KEY_TYPED, 0, 0, 0, 's')
     imitateFocusManagerIsDispatching(event)
-    table!!.dispatchEvent(event)
-    assertThat(table!!.editingRow).isEqualTo(5)
-    val editor = table!!.editorComponent as SimpleEditorComponent
-    table!!.updateRowHeight(item, PTableColumn.VALUE, editor, false)
-    assertThat(table!!.getRowHeight(5)).isEqualTo(404)
+    table1!!.dispatchEvent(event)
+    assertThat(table1!!.editingRow).isEqualTo(5)
+    val editor = table1!!.editorComponent as SimpleEditorComponent
+    table1!!.updateRowHeight(item, PTableColumn.VALUE, editor, false)
+    assertThat(table1!!.getRowHeight(5)).isEqualTo(404)
 
-    table!!.removeEditor()
-    table!!.updateRowHeight(item, PTableColumn.VALUE, editor, false)
-    assertThat(table!!.getRowHeight(5)).isEqualTo(404)
+    table1!!.removeEditor()
+    table1!!.updateRowHeight(item, PTableColumn.VALUE, editor, false)
+    assertThat(table1!!.getRowHeight(5)).isEqualTo(404)
   }
 
   @Test
   fun tableChangedWithEditingChangeSpec() {
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+    assertThat(table1!!.editingRow).isEqualTo(0)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[0])
 
-    table!!.tableChanged(PTableModelEvent(table!!.model, 3))
-    assertThat(table!!.editingRow).isEqualTo(3)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[3])
+    table1!!.tableChanged(PTableModelEvent(table1!!.model, 3))
+    assertThat(table1!!.editingRow).isEqualTo(3)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[3])
   }
 
   @Test
   fun tableChangedWithEditingButWithoutChangeSpec() {
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(model!!.editedItem).isEqualTo(model!!.items[0])
+    assertThat(table1!!.editingRow).isEqualTo(0)
+    assertThat(model1!!.editedItem).isEqualTo(model1!!.items[0])
 
-    table!!.tableChanged(TableModelEvent(table!!.model))
-    assertThat(table!!.editingRow).isEqualTo(0)
+    table1!!.tableChanged(TableModelEvent(table1!!.model))
+    assertThat(table1!!.editingRow).isEqualTo(0)
   }
 
   @Test
   fun tableChangedWithoutEditing() {
-    assertThat(model!!.editedItem).isNull()
+    assertThat(model1!!.editedItem).isNull()
 
-    table!!.tableChanged(PTableModelEvent(table!!.model, 3))
+    table1!!.tableChanged(PTableModelEvent(table1!!.model, 3))
 
     // Since no row was being edited before the update, make sure no row is being edited after the
     // update:
-    assertThat(table!!.editingRow).isEqualTo(-1)
-    assertThat(model!!.editedItem).isNull()
+    assertThat(table1!!.editingRow).isEqualTo(-1)
+    assertThat(model1!!.editedItem).isNull()
   }
 
   @Test
   fun testSelectionRemainsAfterRepaintEvent() {
-    table!!.selectionModel.setSelectionInterval(2, 2)
-    assertThat(table!!.selectedRow).isEqualTo(2)
+    table1!!.selectionModel.setSelectionInterval(2, 2)
+    assertThat(table1!!.selectedRow).isEqualTo(2)
 
-    table!!.tableChanged(PTableModelRepaintEvent(table!!.model))
-    assertThat(table!!.selectedRow).isEqualTo(2)
+    table1!!.tableChanged(PTableModelRepaintEvent(table1!!.model))
+    assertThat(table1!!.selectedRow).isEqualTo(2)
   }
 
   @Test
   fun testEditorIsRefreshedDuringRepaintEvent() {
-    table!!.setRowSelectionInterval(0, 0)
+    table1!!.setRowSelectionInterval(0, 0)
     dispatchAction(KeyStrokes.ENTER)
-    assertThat(table!!.editingRow).isEqualTo(0)
+    assertThat(table1!!.editingRow).isEqualTo(0)
 
-    table!!.tableChanged(PTableModelRepaintEvent(table!!.model))
-    assertThat(table!!.editingRow).isEqualTo(0)
+    table1!!.tableChanged(PTableModelRepaintEvent(table1!!.model))
+    assertThat(table1!!.editingRow).isEqualTo(0)
     assertThat(editorProvider!!.editor.refreshCount).isEqualTo(1)
   }
 
   @Test
   fun testDeleteLastLineWhenEditing() {
-    table!!.setRowSelectionInterval(5, 5)
+    table1!!.setRowSelectionInterval(5, 5)
     dispatchAction(KeyStrokes.ENTER)
 
-    model!!.updateTo(
+    model1!!.updateTo(
       true,
       Item("weight"),
       Item("size"),
@@ -547,8 +595,8 @@ class PTableImplTest {
       Group("weiss", Item("siphon"), Item("extra")),
     )
 
-    assertThat(table!!.selectedRow).isEqualTo(-1)
-    assertThat(table!!.isEditing).isFalse()
+    assertThat(table1!!.selectedRow).isEqualTo(-1)
+    assertThat(table1!!.isEditing).isFalse()
   }
 
   @Test
@@ -558,21 +606,21 @@ class PTableImplTest {
     FakeUi(panel, createFakeWindow = true)
     focusManager.focusOwner = panel
     panel.components[0].transferFocus()
-    assertThat(table!!.editingRow).isEqualTo(0)
-    assertThat(table!!.editingColumn).isEqualTo(1)
+    assertThat(table1!!.editingRow).isEqualTo(0)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
     assertThat(focusManager.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
   }
 
   @Test
   fun testNavigateForwardsIntoReadOnlyTable() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
-    model!!.readOnly = true
+    model1!!.readOnly = true
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
     focusManager.focusOwner = panel
     panel.components[0].transferFocus()
-    assertThat(table!!.isEditing).isFalse()
-    assertThat(table!!.selectedRow).isEqualTo(0)
+    assertThat(table1!!.isEditing).isFalse()
+    assertThat(table1!!.selectedRow).isEqualTo(0)
     assertThat(focusManager.focusOwner?.name).isEqualTo(TABLE_NAME)
     focusManager.focusOwner?.transferFocus()
     assertThat(focusManager.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
@@ -595,16 +643,16 @@ class PTableImplTest {
       }
       val name = "value in row $row"
       focusManager.focusOwner?.transferFocus()
-      assertThat(table!!.editingRow).named(name).isEqualTo(row)
-      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(table1!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table1!!.editingColumn).named(name).isEqualTo(column)
       assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
       focusManager.focusOwner?.transferFocus()
-      assertThat(table!!.editingRow).named(name).isEqualTo(row)
-      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(table1!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table1!!.editingColumn).named(name).isEqualTo(column)
       assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
     }
     focusManager.focusOwner?.transferFocus()
-    assertThat(table!!.isEditing).isFalse()
+    assertThat(table1!!.isEditing).isFalse()
     assertThat(focusManager.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
@@ -625,16 +673,16 @@ class PTableImplTest {
       }
       val name = "value in row $row"
       focusManager.focusOwner?.transferFocusBackward()
-      assertThat(table!!.editingRow).named(name).isEqualTo(row)
-      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(table1!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table1!!.editingColumn).named(name).isEqualTo(column)
       assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(ICON_CELL_EDITOR)
       focusManager.focusOwner?.transferFocusBackward()
-      assertThat(table!!.editingRow).named(name).isEqualTo(row)
-      assertThat(table!!.editingColumn).named(name).isEqualTo(column)
+      assertThat(table1!!.editingRow).named(name).isEqualTo(row)
+      assertThat(table1!!.editingColumn).named(name).isEqualTo(column)
       assertThat(focusManager.focusOwner?.name).named(name).isEqualTo(TEXT_CELL_EDITOR)
     }
     focusManager.focusOwner?.transferFocusBackward()
-    assertThat(table!!.isEditing).isFalse()
+    assertThat(table1!!.isEditing).isFalse()
     assertThat(focusManager.focusOwner?.name).isEqualTo(FIRST_FIELD_EDITOR)
   }
 
@@ -644,20 +692,20 @@ class PTableImplTest {
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
     panel.components[2].transferFocusBackward()
-    assertThat(table!!.editingRow).isEqualTo(5)
-    assertThat(table!!.editingColumn).isEqualTo(0)
+    assertThat(table1!!.editingRow).isEqualTo(5)
+    assertThat(table1!!.editingColumn).isEqualTo(0)
     assertThat(focusManager.focusOwner?.name).isEqualTo(ICON_CELL_EDITOR)
   }
 
   @Test
   fun testNavigateBackwardsIntoReadOnlyTable() {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
-    model!!.readOnly = true
+    model1!!.readOnly = true
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
     panel.components[2].transferFocusBackward()
-    assertThat(table!!.isEditing).isFalse()
-    assertThat(table!!.selectedRow).isEqualTo(5)
+    assertThat(table1!!.isEditing).isFalse()
+    assertThat(table1!!.selectedRow).isEqualTo(5)
     assertThat(focusManager.focusOwner?.name).isEqualTo(TABLE_NAME)
     focusManager.focusOwner?.transferFocus()
     assertThat(focusManager.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
@@ -668,32 +716,32 @@ class PTableImplTest {
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
     val panel = createPanel()
     FakeUi(panel, createFakeWindow = true)
-    focusManager.focusOwner = table!!
-    table!!.changeSelection(3, 0, false, false)
-    table!!.transferFocus()
-    assertThat(table!!.editingRow).isEqualTo(3)
-    assertThat(table!!.editingColumn).isEqualTo(1)
+    focusManager.focusOwner = table1!!
+    table1!!.changeSelection(3, 0, false, false)
+    table1!!.transferFocus()
+    assertThat(table1!!.editingRow).isEqualTo(3)
+    assertThat(table1!!.editingColumn).isEqualTo(1)
     assertThat(focusManager.focusOwner?.name).isEqualTo(TEXT_CELL_EDITOR)
   }
 
   @Test
   fun testDepth() {
-    table!!.model.expand(4)
-    table!!.model.expand(7)
-    assertThat(table!!.rowCount).isEqualTo(10)
-    assertThat(table!!.depth(table!!.item(0))).isEqualTo(0)
-    assertThat(table!!.depth(table!!.item(5))).isEqualTo(1)
-    assertThat(table!!.depth(table!!.item(8))).isEqualTo(2)
+    table1!!.model.expand(4)
+    table1!!.model.expand(7)
+    assertThat(table1!!.rowCount).isEqualTo(10)
+    assertThat(table1!!.depth(table1!!.item(0))).isEqualTo(0)
+    assertThat(table1!!.depth(table1!!.item(5))).isEqualTo(1)
+    assertThat(table1!!.depth(table1!!.item(8))).isEqualTo(2)
   }
 
   @Test
   fun testToggle() {
-    table!!.toggle(table!!.item(4) as PTableGroupItem)
-    assertThat(table!!.rowCount).isEqualTo(9)
-    table!!.toggle(table!!.item(7) as PTableGroupItem)
-    assertThat(table!!.rowCount).isEqualTo(10)
-    table!!.toggle(table!!.item(4) as PTableGroupItem)
-    assertThat(table!!.rowCount).isEqualTo(6)
+    table1!!.toggle(table1!!.item(4) as PTableGroupItem)
+    assertThat(table1!!.rowCount).isEqualTo(9)
+    table1!!.toggle(table1!!.item(7) as PTableGroupItem)
+    assertThat(table1!!.rowCount).isEqualTo(10)
+    table1!!.toggle(table1!!.item(4) as PTableGroupItem)
+    assertThat(table1!!.rowCount).isEqualTo(6)
   }
 
   @Test
@@ -701,13 +749,13 @@ class PTableImplTest {
     if (ApplicationManager.getApplication().isHeadlessEnvironment) {
       return
     }
-    val fakeUI = FakeUi(table!!)
-    table!!.setBounds(0, 0, 400, 4000)
-    table!!.doLayout()
-    fakeUI.mouse.click(10, table!!.rowHeight * 4 + 10)
-    assertThat(table!!.rowCount).isEqualTo(9)
+    val fakeUI = FakeUi(table1!!)
+    table1!!.setBounds(0, 0, 400, 4000)
+    table1!!.doLayout()
+    fakeUI.mouse.click(10, table1!!.rowHeight * 4 + 10)
+    assertThat(table1!!.rowCount).isEqualTo(9)
     // Called from attempt to make cell editable & from expander icon check
-    assertThat(model!!.countOfIsCellEditable).isEqualTo(2)
+    assertThat(model1!!.countOfIsCellEditable).isEqualTo(2)
   }
 
   @Test
@@ -715,20 +763,20 @@ class PTableImplTest {
     if (ApplicationManager.getApplication().isHeadlessEnvironment) {
       return
     }
-    val fakeUI = FakeUi(table!!)
-    table!!.setBounds(0, 0, 400, 4000)
-    table!!.doLayout()
-    fakeUI.mouse.click(210, table!!.rowHeight * 4 + 10)
+    val fakeUI = FakeUi(table1!!)
+    table1!!.setBounds(0, 0, 400, 4000)
+    table1!!.doLayout()
+    fakeUI.mouse.click(210, table1!!.rowHeight * 4 + 10)
     // Called from attempt to make cell editable but NOT from expander icon check
-    assertThat(model!!.countOfIsCellEditable).isEqualTo(1)
+    assertThat(model1!!.countOfIsCellEditable).isEqualTo(1)
   }
 
   @Test
   fun testCopy() {
-    table!!.setRowSelectionInterval(3, 3)
-    val transferHandler = table!!.transferHandler
+    table1!!.setRowSelectionInterval(3, 3)
+    val transferHandler = table1!!.transferHandler
     val clipboard: Clipboard = mock()
-    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.COPY)
+    transferHandler.exportToClipboard(table1!!, clipboard, TransferHandler.COPY)
     val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
     verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
     val transferable = transferableCaptor.value
@@ -738,14 +786,15 @@ class PTableImplTest {
 
   @Test
   fun testCopyFromTextFieldEditor() {
-    table!!.setRowSelectionInterval(3, 3)
-    table!!.editCellAt(3, 1)
-    val textField = (table!!.editorComponent as SimpleEditorComponent).getComponent(0) as JTextField
+    table1!!.setRowSelectionInterval(3, 3)
+    table1!!.editCellAt(3, 1)
+    val textField =
+      (table1!!.editorComponent as SimpleEditorComponent).getComponent(0) as JTextField
     textField.text = "Text being edited"
     textField.select(5, 10)
-    val transferHandler = table!!.transferHandler
+    val transferHandler = table1!!.transferHandler
     val clipboard: Clipboard = mock()
-    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.COPY)
+    transferHandler.exportToClipboard(table1!!, clipboard, TransferHandler.COPY)
     val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
     verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
     val transferable = transferableCaptor.value
@@ -755,41 +804,41 @@ class PTableImplTest {
 
   @Test
   fun testCut() {
-    table!!.setRowSelectionInterval(3, 3)
-    val transferHandler = table!!.transferHandler
+    table1!!.setRowSelectionInterval(3, 3)
+    val transferHandler = table1!!.transferHandler
     val clipboard: Clipboard = mock()
-    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.MOVE)
+    transferHandler.exportToClipboard(table1!!, clipboard, TransferHandler.MOVE)
 
     // Deletes are not supported in the model, do not expect anything copied to the clipboard, and
     // the row should still exist:
     verifyNoInteractions(clipboard)
-    assertThat(model!!.items.size).isEqualTo(6)
+    assertThat(model1!!.items.size).isEqualTo(6)
 
-    model!!.supportDeletes = true
-    transferHandler.exportToClipboard(table!!, clipboard, TransferHandler.MOVE)
+    model1!!.supportDeletes = true
+    transferHandler.exportToClipboard(table1!!, clipboard, TransferHandler.MOVE)
 
     val transferableCaptor = ArgumentCaptor.forClass(Transferable::class.java)
     verify(clipboard).setContents(transferableCaptor.capture(), eq(null))
     val transferable = transferableCaptor.value
     assertThat(transferable.isDataFlavorSupported(DataFlavor.stringFlavor)).isTrue()
     assertThat(transferable.getTransferData(DataFlavor.stringFlavor)).isEqualTo("visible\ttrue")
-    assertThat(model!!.items.size).isEqualTo(5)
+    assertThat(model1!!.items.size).isEqualTo(5)
   }
 
   @Test
   fun testPaste() {
-    table!!.setRowSelectionInterval(3, 3)
-    val transferHandler = table!!.transferHandler
-    transferHandler.importData(table!!, StringSelection("data\t123"))
+    table1!!.setRowSelectionInterval(3, 3)
+    val transferHandler = table1!!.transferHandler
+    transferHandler.importData(table1!!, StringSelection("data\t123"))
 
     // Inserts are not supported in the model, do not expect the model to be changed:
-    assertThat(model!!.items.size).isEqualTo(6)
+    assertThat(model1!!.items.size).isEqualTo(6)
 
-    model!!.supportInserts = true
-    transferHandler.importData(table!!, StringSelection("data\t123"))
-    assertThat(model!!.items.size).isEqualTo(7)
-    assertThat(model!!.items[6].name).isEqualTo("data")
-    assertThat(model!!.items[6].value).isEqualTo("123")
+    model1!!.supportInserts = true
+    transferHandler.importData(table1!!, StringSelection("data\t123"))
+    assertThat(model1!!.items.size).isEqualTo(7)
+    assertThat(model1!!.items[6].name).isEqualTo("data")
+    assertThat(model1!!.items[6].value).isEqualTo("123")
   }
 
   @Test
@@ -798,22 +847,22 @@ class PTableImplTest {
     val selectedColor = UIUtil.getTableBackground(true, true)
 
     // Without focus:
-    assertThat(cellBackground(table!!, selected = false, hovered = false))
-      .isEqualTo(table!!.background)
-    assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
-    assertThat(cellBackground(table!!, selected = true, hovered = false))
-      .isEqualTo(table!!.background)
-    assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(hoverColor)
+    assertThat(cellBackground(table1!!, selected = false, hovered = false))
+      .isEqualTo(table1!!.background)
+    assertThat(cellBackground(table1!!, selected = false, hovered = true)).isEqualTo(hoverColor)
+    assertThat(cellBackground(table1!!, selected = true, hovered = false))
+      .isEqualTo(table1!!.background)
+    assertThat(cellBackground(table1!!, selected = true, hovered = true)).isEqualTo(hoverColor)
 
     val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
-    focusManager.focusOwner = table
+    focusManager.focusOwner = table1
 
     // With focus:
-    assertThat(cellBackground(table!!, selected = false, hovered = false))
-      .isEqualTo(table!!.background)
-    assertThat(cellBackground(table!!, selected = false, hovered = true)).isEqualTo(hoverColor)
-    assertThat(cellBackground(table!!, selected = true, hovered = false)).isEqualTo(selectedColor)
-    assertThat(cellBackground(table!!, selected = true, hovered = true)).isEqualTo(selectedColor)
+    assertThat(cellBackground(table1!!, selected = false, hovered = false))
+      .isEqualTo(table1!!.background)
+    assertThat(cellBackground(table1!!, selected = false, hovered = true)).isEqualTo(hoverColor)
+    assertThat(cellBackground(table1!!, selected = true, hovered = false)).isEqualTo(selectedColor)
+    assertThat(cellBackground(table1!!, selected = true, hovered = true)).isEqualTo(selectedColor)
   }
 
   @Suppress("UnstableApiUsage")
@@ -875,39 +924,39 @@ class PTableImplTest {
         }
       }
 
-    model!!.hasCustomCursors = true
-    table = PTableImpl(model!!, null, rendererProvider, editorProvider!!)
+    model1!!.hasCustomCursors = true
+    table1 = PTableImpl(model1!!, null, rendererProvider, editorProvider!!)
 
-    table!!.size = Dimension(600, 800)
-    val ui = FakeUi(table!!)
-    val cell = table!!.getCellRect(3, 1, false)
+    table1!!.size = Dimension(600, 800)
+    val ui = FakeUi(table1!!)
+    val cell = table1!!.getCellRect(3, 1, false)
     component.size = cell.size
     TreeWalker(component).descendantStream().forEach(Component::doLayout)
     ui.mouse.moveTo(cell.x + 8, cell.centerY.toInt())
-    assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+    assertThat(table1?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
     ui.mouse.moveTo(cell.centerX.toInt(), cell.centerY.toInt())
-    assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
+    assertThat(table1?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
     ui.mouse.moveTo(cell.x + cell.width - 8, cell.centerY.toInt())
-    assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR))
+    assertThat(table1?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR))
   }
 
   @Test
   fun testColumnResize() {
-    table!!.size = Dimension(600, 800)
-    table!!.setUI(HeadlessTableUI())
-    val ui = FakeUi(table!!)
+    table1!!.size = Dimension(600, 800)
+    table1!!.setUI(HeadlessTableUI())
+    val ui = FakeUi(table1!!)
     ui.mouse.moveTo(10, 5)
-    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+    assertThat(table1!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
     ui.mouse.moveTo(300, 5)
-    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR))
+    assertThat(table1!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR))
     ui.mouse.press(300, 5)
     assertThat(nameColumnFraction!!.value).isEqualTo(0.5f)
     ui.mouse.dragTo(200, 5)
     assertThat(nameColumnFraction!!.value).isWithin(0.001f).of(0.333f)
     ui.mouse.release()
-    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR))
+    assertThat(table1!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR))
     ui.mouse.moveTo(300, 5)
-    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+    assertThat(table1!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
   }
 
   @Test
@@ -956,8 +1005,8 @@ class PTableImplTest {
           }
         }
       }
-    table!!.setSize(100, 1000)
-    table!!.doLayout()
+    table1!!.setSize(100, 1000)
+    table1!!.doLayout()
 
     // The first rows should fit.
     checkAllRowsFit(0..1)
@@ -966,14 +1015,139 @@ class PTableImplTest {
     checkNoRowsFit(2..3)
   }
 
+  @Test
+  fun testNavigateAbsoluteEnd() {
+    scrollPane!!.size = Dimension(300, 60)
+    table1!!.rowHeight = 20
+    table2!!.rowHeight = 20
+    table3!!.rowHeight = 20
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = table1
+    table1!!.changeSelection(1, 0, false, false)
+    ui.keyboard.press(KeyEvent.VK_CONTROL)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_END)
+    ui.keyboard.release(KeyEvent.VK_CONTROL)
+    assertSelection(table3!!, 4)
+    ui.keyboard.press(KeyEvent.VK_CONTROL)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_HOME)
+    ui.keyboard.release(KeyEvent.VK_CONTROL)
+    assertSelection(table1!!, 0)
+  }
+
+  @Test
+  fun testNavigateUpDownAcrossTables() {
+    scrollPane!!.size = Dimension(300, 400)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = table1
+    table1!!.changeSelection(4, 0, false, false)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table1!!, 5)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table2!!, 0)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table2!!, 1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table2!!, 2)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table2!!, 3)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table3!!, 0)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    assertSelection(table2!!, 3)
+  }
+
+  @Test
+  fun testNavigateUpDownAcrossTablesWithClosedSection() {
+    scrollPane!!.size = Dimension(300, 400)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = table1
+
+    // Close section 2:
+    table2!!.isVisible = false
+
+    table1!!.changeSelection(4, 0, false, false)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table1!!, 5)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
+    assertSelection(table3!!, 0)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
+    assertSelection(table1!!, 5)
+  }
+
+  @Test
+  fun testNavigatePageUpDownAcrossTables() {
+    scrollPane!!.size = Dimension(300, 60)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = table1
+    table1!!.changeSelection(1, 0, false, false)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table1!!, 4)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table2!!, 1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table3!!, 0)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table3!!, 3)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table3!!, 4)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table3!!, 1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table2!!, 2)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table1!!, 5)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table1!!, 2)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table1!!, 0)
+  }
+
+  @Test
+  fun testNavigatePageUpDownAcrossTablesWithClosedSection() {
+    scrollPane!!.size = Dimension(300, 60)
+    val ui = FakeUi(scrollPane!!, createFakeWindow = true)
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    focusManager.focusOwner = table1
+
+    // Close section 2:
+    table2!!.isVisible = false
+
+    table1!!.changeSelection(1, 0, false, false)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table1!!, 4)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table3!!, 0)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table3!!, 3)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
+    assertSelection(table3!!, 4)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table3!!, 1)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table1!!, 5)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table1!!, 2)
+    ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_UP)
+    assertSelection(table1!!, 0)
+  }
+
+  private fun assertSelection(table: PTableImpl, row: Int) {
+    assertThat(KeyboardFocusManager.getCurrentKeyboardFocusManager().focusOwner).isSameAs(table)
+    assertThat(table.selectedRow).isEqualTo(row)
+  }
+
   private fun middleOf(row: Int, column: Int, left: Boolean): Point {
-    val rect = table!!.getCellRect(row, column, true)
+    val rect = table1!!.getCellRect(row, column, true)
     return if (left) Point(rect.x + rect.width / 4, rect.centerY.toInt())
     else Point(rect.x + 3 * rect.width / 4, rect.centerY.toInt())
   }
 
   private fun checkAllRowsFit(rows: IntRange) {
-    val handler = table!!.expandableItemsHandler as PTableExpandableItemsHandler
+    val handler = table1!!.expandableItemsHandler as PTableExpandableItemsHandler
     for (row in rows) {
       for (column in 0..1) {
         for (left in listOf(true, false)) {
@@ -984,7 +1158,7 @@ class PTableImplTest {
   }
 
   private fun checkNoRowsFit(rows: IntRange) {
-    val handler = table!!.expandableItemsHandler as PTableExpandableItemsHandler
+    val handler = table1!!.expandableItemsHandler as PTableExpandableItemsHandler
     for (row in rows) {
       for (column in 0..1) {
         // The left side of the component is expandable:
@@ -1016,7 +1190,7 @@ class PTableImplTest {
     panel.isFocusCycleRoot = true
     panel.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     panel.add(JTextField())
-    panel.add(table)
+    panel.add(table1)
     panel.add(JTextField())
     panel.components[0].name = FIRST_FIELD_EDITOR
     panel.components[1].name = TABLE_NAME
@@ -1025,8 +1199,8 @@ class PTableImplTest {
   }
 
   private fun dispatchAction(key: KeyStroke) {
-    val action = table!!.getActionForKeyStroke(key)
-    action.actionPerformed(ActionEvent(table, 0, action.toString()))
+    val action = table1!!.getActionForKeyStroke(key)
+    action.actionPerformed(ActionEvent(table1, 0, action.toString()))
   }
 
   private fun imitateFocusManagerIsDispatching(event: KeyEvent) {

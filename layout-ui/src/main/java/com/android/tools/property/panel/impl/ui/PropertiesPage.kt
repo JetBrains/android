@@ -66,6 +66,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
       resizeSupported = true,
     )
   private val inspector = InspectorPanelImpl(inspectorModel, nameColumnFraction, parentDisposable)
+  private var previousTableEditor: TableEditor? = null
 
   init {
     nameColumnFraction.listeners.add(
@@ -97,6 +98,7 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
   fun clear() {
     inspectorModel.clear()
     inspector.removeAll()
+    previousTableEditor = null
     lastAddedLine = null
     lastTitleLine = null
   }
@@ -226,6 +228,9 @@ class PropertiesPage(parentDisposable: Disposable) : InspectorPanel {
         actions,
         nameColumnFraction,
       )
+    editor.setPreviousTableEditor(previousTableEditor)
+    previousTableEditor?.setNextTableEditor(editor)
+    previousTableEditor = editor
     addLine(model, parent)
     inspector.addLineElement(editor.component)
     return model
