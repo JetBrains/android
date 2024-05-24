@@ -22,10 +22,10 @@ import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.ide.DataManager
+import com.intellij.ide.ui.IdeUiService
 import com.intellij.openapi.actionSystem.ActionPlaces.TOOLWINDOW_GRADLE
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.impl.EdtDataContext
 import com.intellij.openapi.externalSystem.action.task.RunExternalSystemTaskAction
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
@@ -90,7 +90,7 @@ class GradleRunTaskActionIntegrationTest {
       linkedExternalProjectPath: @SystemIndependent String
     ) {
       val gradleTaskActionEvent = mock<AnActionEvent>().apply {
-        whenever(dataContext).thenReturn(EdtDataContext(createContextComponent(project, fixture)))
+        whenever(dataContext).thenReturn(IdeUiService.getInstance().createUiDataContext(createContextComponent(project, fixture)))
         whenever(place).thenReturn(TOOLWINDOW_GRADLE)
       }
       val gradleTaskData = TaskData(GRADLE_SYSTEM_ID, taskName, linkedExternalProjectPath, "Test run task from Gradle tool window").apply {
