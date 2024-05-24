@@ -18,12 +18,11 @@ package com.android.tools.idea.uibuilder.troubleshooting
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.projectsystem.DependencyScopeType
+import com.android.tools.idea.projectsystem.LibraryDependenciesTroubleInfoCollectorToken
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isScreenshotTestModule
-import com.android.tools.idea.projectsystem.isTestFixturesModule
-import com.android.tools.idea.projectsystem.isUnitTestModule
+import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.getTokenOrNull
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.troubleshooting.TroubleInfoCollector
@@ -42,24 +41,20 @@ internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
 
     output.appendLine("Project:")
     project.modules.forEach { module ->
-      val scopeType =
-        when {
-          module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
-          module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
-          module.isTestFixturesModule() -> DependencyScopeType.TEST_FIXTURES
-          module.isScreenshotTestModule() -> DependencyScopeType.SCREENSHOT_TEST
-          else -> DependencyScopeType.MAIN
-        }
       val moduleSystem = module.getModuleSystem()
-      val libraryDependencies = moduleSystem.getAndroidLibraryDependencies(scopeType)
+      val token =
+        project
+          .getProjectSystem()
+          .getTokenOrNull(LibraryDependenciesTroubleInfoCollectorToken.EP_NAME)
+      val libraryDependencies =
+        token?.run { getDependencies(moduleSystem, module) }
+          // fall back to the library dependencies of the main artifact, if the module system can
+          // determine that.
+          ?: moduleSystem.getAndroidLibraryDependencies(DependencyScopeType.MAIN)
       output.appendLine(
-        """
-          Module(${module.name}): isLoaded=${module.isLoaded} type=${moduleSystem.type} isDisposed=${module.isDisposed}
-            isGradleModule=${module.isGradleModule} isAndroidTest=${module.isAndroidTestModule()} isUnitTest=${module.isUnitTestModule()}
-            scopeType=$scopeType useAndroidX=${moduleSystem.useAndroidX} rClassTransitive=${moduleSystem.isRClassTransitive}
-            libDepCount=${libraryDependencies.size}
-        """
-          .trimIndent()
+        """Module(${module.name}): isLoaded=${module.isLoaded} type=${moduleSystem.type} isDisposed=${module.isDisposed}
+  isGradleModule=${module.isGradleModule}${token?.getInfoString(module) ?: "\n "} useAndroidX=${moduleSystem.useAndroidX} rClassTransitive=${moduleSystem.isRClassTransitive}
+  libDepCount=${libraryDependencies.size}"""
       )
       libraryDependencies.forEach { library ->
         val libraryName =

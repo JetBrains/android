@@ -37,7 +37,7 @@ class GradleTokensTest {
       val matches = system.installation.ideaLog.waitForMatchingLine(".*VerifyGradleTokens - ([0-9]+)/([0-9]+) problems? found.*", 900, TimeUnit.SECONDS)
       assertThat(matches.groupCount()).isEqualTo(2)
       assertThat(matches.group(1)).isEqualTo("0")
-      assertThat(matches.group(2)).isEqualTo("16")
+      assertThat(matches.group(2)).isEqualTo("17")
     }
   }
 }
