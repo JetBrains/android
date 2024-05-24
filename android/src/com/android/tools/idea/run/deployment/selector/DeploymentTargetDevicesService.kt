@@ -33,7 +33,6 @@ import com.android.tools.idea.run.asDdmlibDeviceLookup
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.serviceContainer.NonInjectable
@@ -108,11 +107,9 @@ constructor(
     launchCompatibilityChecker: LaunchCompatibilityChecker
   ): Flow<List<DeploymentTargetDevice>> = channelFlow {
     val handles = ConcurrentHashMap<DeviceHandle, DeploymentTargetDevice>()
-    if (ApplicationManager.getApplication().run { !isHeadlessEnvironment || isUnitTestMode }) {
-      // Immediately send empty list, since if the actual list is empty, there will be no Add,
-      // and we don't want to be stuck in the Loading state if we're not working in a headless environment.
-      send(emptyList())
-    }
+    // Immediately send empty list, since if the actual list is empty, there will be no Add,
+    // and we don't want to be stuck in the Loading state.
+    send(emptyList())
     devicesFlow
       .map { it.toSet() }
       .trackSetChanges()
