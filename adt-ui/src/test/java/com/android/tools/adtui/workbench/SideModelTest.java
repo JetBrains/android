@@ -15,12 +15,16 @@
  */
 package com.android.tools.adtui.workbench;
 
+import com.android.flags.junit.FlagRule;
 import com.android.tools.adtui.workbench.AttachedToolWindow.PropertyType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.InjectMocks;
@@ -63,6 +67,9 @@ public class SideModelTest {
   private Project myProject;
   @InjectMocks
   private SideModel<String> mySideModel;
+
+  @Rule
+  public TestRule myFlagRule = new FlagRule<>(StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS, true);
 
   @Before
   public void setUp() {

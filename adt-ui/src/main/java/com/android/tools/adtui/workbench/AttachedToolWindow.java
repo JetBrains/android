@@ -5,6 +5,7 @@ import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.util.ActionToolbarUtil;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.DataManager;
@@ -213,7 +214,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   public boolean isFloating() {
-    return getProperty(PropertyType.FLOATING);
+    return getProperty(PropertyType.FLOATING) && StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS.get();
   }
 
   public void setFloating(boolean value) {
@@ -221,7 +222,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   }
 
   public boolean isDetached() {
-    return getProperty(PropertyType.DETACHED);
+    return getProperty(PropertyType.DETACHED) && StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS.get();
   }
 
   public void setDetached(boolean value) {
@@ -494,7 +495,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     attachedLocation.add(new SwapAction());
-    if (myDefinition.isFloatingAllowed()) {
+    if (myDefinition.isFloatingAllowed() && StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS.get()) {
       attachedLocation.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
     }
     group.add(attachedLocation);
@@ -503,7 +504,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
       group.add(
         new ToggleOppositePropertyTypeAction(PropertyType.AUTO_HIDE, manager.getAction(InternalDecorator.TOGGLE_DOCK_MODE_ACTION_ID)));
     }
-    if (myDefinition.isFloatingAllowed()) {
+    if (myDefinition.isFloatingAllowed() && StudioFlags.DETACHABLE_ATTACHED_TOOLWINDOWS.get()) {
       group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
     }
   }

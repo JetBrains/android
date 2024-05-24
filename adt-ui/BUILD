@@ -39,6 +39,7 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
