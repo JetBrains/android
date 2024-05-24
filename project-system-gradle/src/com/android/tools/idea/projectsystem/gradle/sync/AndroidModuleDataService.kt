@@ -46,7 +46,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.getAllLinkedModules
+import com.android.tools.idea.projectsystem.gradle.getAllLinkedModules
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.ServerFlagService

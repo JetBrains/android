@@ -28,14 +28,11 @@ import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
-import com.intellij.facet.ProjectFacetManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
 /**
@@ -452,8 +449,6 @@ fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): Scope
   }
 }
 
-fun Module.getAllLinkedModules() : List<Module> = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.getModules() ?: listOf(this)
-
 fun Module.getHolderModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.holder ?: this
 
 fun Module.isHolderModule() : Boolean = getHolderModule() == this
@@ -461,10 +456,6 @@ fun Module.isHolderModule() : Boolean = getHolderModule() == this
 fun Module.getMainModule() : Module = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.main ?: this
 
 fun Module.isMainModule() : Boolean = getMainModule() == this
-
-fun Module.getUnitTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.unitTest
-
-fun Module.isUnitTestModule() : Boolean = getUnitTestModule() == this
 
 fun Module.getScreenshotTestModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.screenshotTest
 
@@ -474,34 +465,8 @@ fun Module.getAndroidTestModule() : Module? = getUserData(CommonAndroidUtil.LINK
 
 fun Module.isAndroidTestModule() : Boolean = getAndroidTestModule() == this
 
-fun Module.getTestFixturesModule() : Module? = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP)?.testFixtures
-
-fun Module.isTestFixturesModule() : Boolean = getTestFixturesModule() == this
-
-/**
- * Utility method to find out if a module is derived from an Android Gradle project. This will return true
- * if the given module is the module representing any of the Android source sets (main/unitTest/androidTest/screenshotTest) or the
- * holder module used as the parent of these source set modules.
- */
-fun Module.isLinkedAndroidModule() = getUserData(CommonAndroidUtil.LINKED_ANDROID_MODULE_GROUP) != null
-
 /**
  * Returns the type of Android project this module represents.
  */
 fun Module.androidProjectType(): AndroidModuleSystem.Type = getModuleSystem().type
-
-/** Returns all [AndroidFacet]s on the project. It uses a sequence in order to avoid allocations. */
-fun Project.androidFacetsForNonHolderModules(): Sequence<AndroidFacet> {
-  return ProjectFacetManager.getInstance(this).getModulesWithFacet(AndroidFacet.ID).asSequence().let {
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      // We are running some tests that don't set up real-world project structure, so fetch all modules.
-      // See http://b/258162266 for more details.
-      it
-    }
-    else {
-      // Holder module has associated facet, but it can be ignored.
-      it.filter { module -> !module.isHolderModule() }
-    }
-  }.mapNotNull { it.androidFacet }
-}
 
