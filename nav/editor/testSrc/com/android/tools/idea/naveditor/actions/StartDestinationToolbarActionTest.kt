@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.naveditor.actions
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.util.NlTreeDumper
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
-import com.intellij.openapi.actionSystem.AnActionEvent
-import org.mockito.Mockito
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
+import com.intellij.testFramework.TestActionEvent
 
 class StartDestinationToolbarActionTest : NavTestCase() {
 
@@ -39,9 +38,12 @@ class StartDestinationToolbarActionTest : NavTestCase() {
     val surface = model.surface as NavDesignSurface
     surface.selectionModel.setSelection(listOf(component))
 
+    val dataContext = SimpleDataContext.builder()
+      .add(DESIGN_SURFACE, surface)
+      .build()
+
     val action = StartDestinationToolbarAction.instance
-    val actionEvent = Mockito.mock(AnActionEvent::class.java)
-    whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)
+    val actionEvent = TestActionEvent(dataContext)
     action.actionPerformed(actionEvent)
 
     assertEquals(
@@ -70,8 +72,10 @@ class StartDestinationToolbarActionTest : NavTestCase() {
     surface.selectionModel.setSelection(listOf(fragment1))
 
     val action = StartDestinationToolbarAction.instance
-    val actionEvent = Mockito.mock(AnActionEvent::class.java)
-    whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)
+    val dataContext = SimpleDataContext.builder()
+      .add(DESIGN_SURFACE, surface)
+      .build()
+    val actionEvent = TestActionEvent(dataContext)
     action.actionPerformed(actionEvent)
 
     assertEquals(
