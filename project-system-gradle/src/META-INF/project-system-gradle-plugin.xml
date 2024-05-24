@@ -293,6 +293,7 @@
     <projectsystem.libraryDependenciesTroubleInfoCollectorToken
         implementation="com.android.tools.idea.projectsystem.gradle.LibraryDependenciesTroubleInfoCollectorGradleToken"/>
     <projectsystem.dynamicAppFeatureOnFeatureToken implementation="com.android.tools.idea.gradle.util.DynamicAppFeatureOnFeatureGradleToken"/>
+    <projectsystem.findDependenciesWithResourcesToken implementation="com.android.tools.idea.projectsystem.gradle.FindDependenciesWithResourcesGradleToken"/>
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.android.actions">
     <newResourceCreationHandler
