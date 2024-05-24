@@ -166,9 +166,10 @@ public final class GradleModelSource extends GradleModelProvider {
 
   @NotNull
   private static File getBaseDirPath(@NotNull Project project) {
-    if (project.isDefault()) {
+    String path = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(project);
+    if (project.isDefault() || path == null) {
       return new File("");
     }
-    return new File(Objects.requireNonNull(FileUtil.toCanonicalPath(project.getBasePath())));
+    return new File(path);
   }
 }
