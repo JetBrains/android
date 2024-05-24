@@ -22,6 +22,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isScreenshotTestModule
+import com.android.tools.idea.projectsystem.isTestFixturesModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
@@ -45,6 +46,7 @@ internal class ProjectInfoTroubleInfoCollector : TroubleInfoCollector {
         when {
           module.isAndroidTestModule() -> DependencyScopeType.ANDROID_TEST
           module.isUnitTestModule() -> DependencyScopeType.UNIT_TEST
+          module.isTestFixturesModule() -> DependencyScopeType.TEST_FIXTURES
           module.isScreenshotTestModule() -> DependencyScopeType.SCREENSHOT_TEST
           else -> DependencyScopeType.MAIN
         }
