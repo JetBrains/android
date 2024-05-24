@@ -20,7 +20,6 @@ import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.google.common.base.Splitter
 import com.google.common.collect.ImmutableMap
@@ -94,8 +93,7 @@ class EmulatorConfiguration private constructor(
         else -> DeviceType.HANDHELD
       }
       val hasOrientationSensors = configIni["hw.sensors.orientation"]?.equals("yes", ignoreCase = true) ?: true
-      val postureMode = if (StudioFlags.EMBEDDED_EMULATOR_RESIZABLE_FOLDING.get())
-          parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1) else -1
+      val postureMode = parseInt(hardwareIni["hw.sensor.hinge.resizable.config"], -1)
       val displayModes = try {
         configIni["hw.resizable.configs"]?.let { parseDisplayModes(it, postureMode) } ?: emptyList()
       }
