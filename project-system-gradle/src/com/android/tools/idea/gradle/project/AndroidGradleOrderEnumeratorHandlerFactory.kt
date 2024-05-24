@@ -24,8 +24,8 @@ import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.projectsystem.isScreenshotTestModule
-import com.android.tools.idea.projectsystem.isTestFixturesModule
-import com.android.tools.idea.projectsystem.isUnitTestModule
+import com.android.tools.idea.projectsystem.gradle.isTestFixturesModule
+import com.android.tools.idea.projectsystem.gradle.isUnitTestModule
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ModuleRootModel
 import com.intellij.openapi.roots.OrderRootType

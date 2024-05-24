@@ -18,7 +18,6 @@ package com.android.tools.idea.projectsystem.gradle
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.isHolderModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.intellij.openapi.components.ComponentManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule
