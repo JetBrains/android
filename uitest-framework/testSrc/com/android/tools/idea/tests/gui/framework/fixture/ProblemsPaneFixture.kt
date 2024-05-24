@@ -17,7 +17,6 @@ package com.android.tools.idea.tests.gui.framework.fixture
 
 import com.android.tools.idea.common.error.DesignerCommonIssuePanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-import com.intellij.analysis.problemsView.toolWindow.ProblemsViewToolWindowUtils
 import com.intellij.openapi.util.text.StringUtil
 import org.fest.swing.util.TextMatcher
 
@@ -33,7 +32,7 @@ class ProblemsPaneFixture(ideFrameFixture: IdeFrameFixture) :
     waitUntilIsVisible()
   }
 
-  fun isTabExist(tabTitle: String): Boolean {
+  fun doesTabExist(tabTitle: String): Boolean {
     val nameMatcher = TabNameMatcher(tabTitle)
     return contents.any { nameMatcher.isMatching(it.displayName) }
   }
