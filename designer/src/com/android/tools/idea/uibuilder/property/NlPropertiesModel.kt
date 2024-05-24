@@ -52,9 +52,11 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
@@ -217,38 +219,43 @@ open class NlPropertiesModel(
     ApplicationManager.getApplication()
       .invokeLater(
         {
-          NlWriteCommandActionUtil.run(
-            property.components,
-            "Set $componentName.${property.name} to $newValue",
-          ) {
-            property.components.forEach {
-              it.setAttribute(property.namespace, property.name, newValue)
-            }
-            val compatibleAttribute = compatibleMarginAttribute(property)
-            if (compatibleAttribute != null) {
-              property.components.forEach {
-                it.setAttribute(property.namespace, compatibleAttribute, newValue)
-              }
-            }
-            logPropertyValueChanged(property)
-            if (property.namespace == TOOLS_URI) {
-              if (newValue != null) {
-                // A tools property may not be in the current set of possible properties. So add it
-                // now:
-                if (properties.isEmpty) {
-                  properties = provider.createEmptyTable()
+          SlowOperations.allowSlowOperations(
+            ThrowableComputable {
+              NlWriteCommandActionUtil.run(
+                property.components,
+                "Set $componentName.${property.name} to $newValue",
+              ) {
+                property.components.forEach {
+                  it.setAttribute(property.namespace, property.name, newValue)
                 }
-                properties.put(property)
-              }
+                val compatibleAttribute = compatibleMarginAttribute(property)
+                if (compatibleAttribute != null) {
+                  property.components.forEach {
+                    it.setAttribute(property.namespace, compatibleAttribute, newValue)
+                  }
+                }
+                logPropertyValueChanged(property)
+                if (property.namespace == TOOLS_URI) {
+                  if (newValue != null) {
+                    // A tools property may not be in the current set of possible properties. So add
+                    // it
+                    // now:
+                    if (properties.isEmpty) {
+                      properties = provider.createEmptyTable()
+                    }
+                    properties.put(property)
+                  }
 
-              if (property.name == ATTR_PARENT_TAG) {
-                // When the "parentTag" attribute is set on a <merge> tag,
-                // we may have a different set of available properties available,
-                // since the attributes of the "parentTag" are included if set.
-                firePropertiesGenerated()
+                  if (property.name == ATTR_PARENT_TAG) {
+                    // When the "parentTag" attribute is set on a <merge> tag,
+                    // we may have a different set of available properties available,
+                    // since the attributes of the "parentTag" are included if set.
+                    firePropertiesGenerated()
+                  }
+                }
               }
             }
-          }
+          )
         },
         { Disposer.isDisposed(this) },
       )
