@@ -39,7 +39,7 @@ interface BuildTargetReference {
   val project: Project get() = module.project
 
   companion object {
-    private data class GradleOnlyBuildTargetRefernece(override val facet: AndroidFacet): BuildTargetReference
+    private data class GradleOnlyBuildTargetReference(override val facet: AndroidFacet): BuildTargetReference
 
     @JvmStatic
     fun from(facet: AndroidFacet, targetFile: VirtualFile): BuildTargetReference = gradleOnly(facet)
@@ -55,7 +55,7 @@ interface BuildTargetReference {
      */
     @JvmStatic
     fun gradleOnly(facet: AndroidFacet): BuildTargetReference {
-      return GradleOnlyBuildTargetRefernece(facet)
+      return GradleOnlyBuildTargetReference(facet)
     }
   }
 }
