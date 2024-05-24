@@ -225,6 +225,10 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
             return editor;
           }
         };
+        myRootElementField.addSettingsProvider(editor -> {
+          Color bgColor = myRootElementField.isEnabled() ? null : UIManager.getColor("Panel.background");
+          editor.setBackgroundColor(bgColor);
+        });
         myRootElementField.setEnabled(allowedTagNames.size() > 1);
         myRootElementField.setText(action.isChooseTagName() ? "" : action.getDefaultRootTag(module));
         myRootElementFieldWrapper.removeAll();
