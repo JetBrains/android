@@ -185,7 +185,13 @@ class ResourceExplorerListView(
 
   private val listeners = mutableListOf<SelectionListener>()
   private val sectionListModel: SectionListModel = SectionListModel()
-  private val dragHandler = resourceDragHandler(resourceImportDragTarget)
+
+  /**
+   * Drag-and-drop in the resource explorer is enabled to invoke the "Import drawable" dialog. Therefore, trying to drag a layout or
+   * navigation file to their corresponding tabs, for example, won't work. We should then disable drag-and-drop for unsupported resources.
+   */
+  private val validDragTargets = listOf("Drawable", "Mip Map")
+  private val dragHandler = resourceDragHandler(resourceImportDragTarget) { validDragTargets.contains(viewModel.selectedTabName) }
 
   private val topActionsPanel = JPanel().apply {
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
