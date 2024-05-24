@@ -54,4 +54,47 @@ class StartDestinationToolbarActionTest : NavTestCase() {
 
     assert(component.isStartDestination)
   }
+
+  fun testActivityCannotBeStartDestination() {
+    val model = model("nav.xml") {
+      NavModelBuilderUtil.navigation {
+        fragment("fragment1")
+        activity("activity1")
+        fragment("fragment2")
+      }
+    }
+
+    val fragment1 = model.treeReader.find("fragment1")!!
+
+    val surface = model.surface as NavDesignSurface
+    surface.selectionModel.setSelection(listOf(fragment1))
+
+    val action = StartDestinationToolbarAction.instance
+    val actionEvent = Mockito.mock(AnActionEvent::class.java)
+    whenever(actionEvent.getData(DESIGN_SURFACE)).thenReturn(surface)
+    action.actionPerformed(actionEvent)
+
+    assertEquals(
+      """
+        NlComponent{tag=<navigation>, instance=0}
+            NlComponent{tag=<fragment>, instance=1}
+            NlComponent{tag=<activity>, instance=2}
+            NlComponent{tag=<fragment>, instance=3}
+      """.trimIndent(),
+      NlTreeDumper().toTree(model.treeReader.components)
+    )
+
+    assert(fragment1.isStartDestination)
+
+    val fragment2 = model.treeReader.find("fragment2")!!
+    surface.selectionModel.setSelection(listOf(fragment2))
+    action.actionPerformed(actionEvent)
+    assert(fragment2.isStartDestination)
+
+    val activity1 = model.treeReader.find("activity1")!!
+    surface.selectionModel.setSelection(listOf(activity1))
+    action.actionPerformed(actionEvent)
+    // Activity cannot be a start destination, so fragment2 should still be selected.
+    assert(fragment2.isStartDestination)
+  }
 }
