@@ -161,9 +161,16 @@ def _load_include(include, external_xmls, cwd, index):
       for child in include
   )
 
+  # See `PluginXmlPathResolver.toLoadPath` for the platform implementation
   rel = href
   if rel not in index:
-    rel = href[1:] if href.startswith("/") else cwd + "/" + href
+    if href.startswith("/"):
+      rel = href[1:]
+    elif cwd == "":
+      # By default, plugin xmls are resolved from META-INF
+      rel = "META-INF/" + href
+    else:
+      rel = cwd + "/" + href
 
   if rel in external_xmls or is_optional:
     return [], None
