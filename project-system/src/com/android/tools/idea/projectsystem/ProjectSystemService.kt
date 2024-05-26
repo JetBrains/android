@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -71,11 +72,14 @@ class ProjectSystemService(val project: Project) {
   fun replaceProjectSystemForTests(projectSystem: AndroidProjectSystem) {
     val old = cachedProjectSystem.getAndUpdate { projectSystem }
     if (old != null) {
-      runWriteAction {
-        val publisher = project.messageBus.syncPublisher(ModuleRootListener.TOPIC)
-        val rootChangedEvent = ModuleRootEventImpl(project, false)
-        publisher.beforeRootsChange(rootChangedEvent)
-        publisher.rootsChanged(rootChangedEvent)
+      // require EDT explicitly, due to issue with TransactionGuard IJPL-150392
+      ApplicationManager.getApplication().invokeAndWait {
+        runWriteAction {
+          val publisher = project.messageBus.syncPublisher(ModuleRootListener.TOPIC)
+          val rootChangedEvent = ModuleRootEventImpl(project, false)
+          publisher.beforeRootsChange(rootChangedEvent)
+          publisher.rootsChanged(rootChangedEvent)
+        }
       }
     }
   }
