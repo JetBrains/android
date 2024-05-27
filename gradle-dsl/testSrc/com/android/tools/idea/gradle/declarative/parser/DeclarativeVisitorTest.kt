@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.declarative.parser
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeAssignment
 import com.android.tools.idea.gradle.declarative.psi.DeclarativeBlock
