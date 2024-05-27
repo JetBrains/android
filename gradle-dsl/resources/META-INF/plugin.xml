@@ -22,6 +22,7 @@
     <module name="intellij.android.gradle.dsl/groovy"/>
     <module name="intellij.android.gradle.dsl.kotlin"/>
     <module name="intellij.android.gradle.dsl.toml"/>
+    <module name="intellij.android.gradle.dsl.declarative"/>
   </content>
 
 </idea-plugin>

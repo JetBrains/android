@@ -29,5 +29,6 @@
     <orderEntry type="module" module-name="intellij.platform.externalSystem" />
     <orderEntry type="module" module-name="intellij.gradle.common" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" />
   </component>
 </module>
