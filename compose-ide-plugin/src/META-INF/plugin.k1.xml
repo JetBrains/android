@@ -21,9 +21,9 @@
     <quickFixContributor implementation="com.android.tools.compose.intentions.AddComposableAnnotationQuickFix$Contributor"/>
 
     <!-- Compose compiler plugin -->
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableCallChecker"/>
-    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.ComposableDeclarationChecker"/>
-    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.ComposeDiagnosticSuppressor"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableCallChecker"/>
+    <storageComponentContainerContributor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposableDeclarationChecker"/>
+    <diagnosticSuppressor implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeDiagnosticSuppressor"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

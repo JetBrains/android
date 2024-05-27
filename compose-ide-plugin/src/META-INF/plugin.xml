@@ -171,7 +171,7 @@
   </projectListeners>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin.extensions.internal">
-    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.ComposeTypeResolutionInterceptorExtension"/>
+    <typeResolutionInterceptorExtension implementation="androidx.compose.compiler.plugins.kotlin.k1.ComposeTypeResolutionInterceptorExtension"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
