@@ -48,7 +48,7 @@ class ConfigureCatalogSingleModuleProjectTest {
 
     private val projectRule = AndroidProjectRule.withAndroidModel(AndroidProjectBuilder())
     companion object {
-        private const val DEFAULT_VERSION = TestUtils.KOTLIN_VERSION_FOR_TESTS
+        private val DEFAULT_VERSION = TestUtils.KOTLIN_VERSION_FOR_TESTS
         private const val GRADLE_CATALOG_DIR = "idea-android/testData/configuration/android-gradle/catalog"
     }
 
