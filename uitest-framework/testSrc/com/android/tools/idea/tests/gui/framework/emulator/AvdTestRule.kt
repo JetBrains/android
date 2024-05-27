@@ -34,7 +34,7 @@ import com.android.sdklib.devices.State
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.TestUtils.getSdk
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.TestUtils.runningFromBazel
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.SystemImageDescription

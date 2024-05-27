@@ -16,7 +16,7 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.testutils.TestUtils.KOTLIN_VERSION_FOR_TESTS
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule

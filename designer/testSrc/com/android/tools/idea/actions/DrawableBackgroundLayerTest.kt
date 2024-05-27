@@ -17,7 +17,7 @@ package com.android.tools.idea.actions
 
 import com.android.testutils.ImageDiffUtil.assertImageSimilar
 import com.android.testutils.MockitoKt
-import com.android.testutils.TestUtils.resolveWorkspacePathUnchecked
+import com.android.test.testutils.TestUtils.resolveWorkspacePathUnchecked
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.configurations.ConfigurationManager

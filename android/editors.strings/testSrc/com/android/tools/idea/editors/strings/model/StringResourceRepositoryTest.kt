@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.projectmodel.DynamicResourceValue
 import com.android.resources.ResourceType
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.res.DynamicValueResourceRepository
 import com.android.tools.idea.res.ModuleResourceRepository
 import com.android.tools.res.LocalResourceRepository

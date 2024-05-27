@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.declarative.parser
 
-import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.test.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.gradle.declarative.DeclarativeParserDefinition
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ParsingTestCase
