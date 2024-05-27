@@ -29,7 +29,7 @@ import static org.fest.reflect.core.Reflection.method;
 import static org.fest.reflect.core.Reflection.type;
 
 import com.android.SdkConstants;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.idea.bleak.Bleak;
 import com.android.tools.idea.bleak.StudioBleakOptions;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;

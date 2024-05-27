@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.flags.junit.FlagRule
 import com.android.resources.ResourceUrl
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.databinding.util.DataBindingUtil

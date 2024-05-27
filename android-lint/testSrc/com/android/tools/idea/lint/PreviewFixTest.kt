@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lint
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.lint.common.AnnotateQuickFix
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintExternalAnnotator

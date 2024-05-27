@@ -2,7 +2,7 @@
 package com.intellij.testGuiFramework.launcher
 
 import com.android.prefs.AbstractAndroidLocations
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.tests.gui.framework.AnalyticsTestUtils
 import com.android.tools.idea.tests.gui.framework.GuiTests

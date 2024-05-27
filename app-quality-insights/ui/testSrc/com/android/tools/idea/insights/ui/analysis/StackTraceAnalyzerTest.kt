@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.analysis
 
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.insights.Frame
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.analysis.Confidence

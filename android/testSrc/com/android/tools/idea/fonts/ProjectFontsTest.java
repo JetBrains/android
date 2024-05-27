@@ -23,7 +23,7 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
-import com.android.testutils.TestUtils;
+import com.android.test.testutils.TestUtils;
 import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.FontDownloader;
 import com.android.tools.fonts.ProjectFonts;

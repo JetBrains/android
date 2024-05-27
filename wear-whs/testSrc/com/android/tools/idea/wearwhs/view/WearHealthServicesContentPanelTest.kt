@@ -16,7 +16,7 @@
 package com.android.tools.idea.wearwhs.view
 
 import com.android.testutils.ImageDiffUtil
-import com.android.testutils.TestUtils
+import com.android.test.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.stdui.menu.CommonDropDownButton
 import com.android.tools.adtui.swing.FakeUi
