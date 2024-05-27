@@ -20,5 +20,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleDslModelExperimentalSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap"/>
+    <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
+                        serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleModelSource"/>
   </extensions>
 </idea-plugin>
