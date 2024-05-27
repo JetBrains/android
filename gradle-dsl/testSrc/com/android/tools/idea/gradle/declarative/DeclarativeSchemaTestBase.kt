@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.declarative
 
+import com.android.test.testutils.TestUtils
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.testing.EdtAndroidProjectRule
 import com.intellij.openapi.application.runWriteAction
@@ -24,6 +25,7 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 import java.io.IOException
+import kotlin.io.path.pathString
 
 abstract class DeclarativeSchemaTestBase {
 
@@ -35,7 +37,7 @@ abstract class DeclarativeSchemaTestBase {
     val projectFileName = "project.dcl.schema"
     val pluginFileName = "plugins.dcl.schema"
 
-    val myTestDataRelativePath = "tools/adt/idea/gradle-dsl/testData/parser"
+    val myTestDataRelativePath = TestUtils.resolveWorkspacePath("tools/adt/idea/gradle-dsl/testData/parser").pathString
     val projectFile = filename.toFile(myTestDataRelativePath, projectFileName)
     val pluginFile = filename.toFile(myTestDataRelativePath, pluginFileName)
     val virtualProjectFile = VfsUtil.findFileByIoFile(projectFile, true)
