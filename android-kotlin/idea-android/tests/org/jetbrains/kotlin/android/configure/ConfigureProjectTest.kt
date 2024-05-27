@@ -63,7 +63,7 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
   companion object {
     // Note: this default version was chosen arbitrarily based on current test expectations.
-    private const val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
+    private val DEFAULT_VERSION = KOTLIN_VERSION_FOR_TESTS
     private const val GRADLE_DIR = "idea-android/testData/configuration/android-gradle"
     private const val GSK_DIR = "idea-android/testData/configuration/android-gsk"
   }
