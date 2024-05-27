@@ -73,10 +73,8 @@ import com.intellij.openapi.module.StdModuleTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.HeavyPlatformTestCase;
@@ -214,6 +212,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   @Before
   public void before() throws Exception {
     // ignore Gradle declarative test cases
+    assumeFalse(isGradleDeclarative());
 
     IdeSdks.removeJdksOn(getTestRootDisposable());
 
@@ -334,7 +333,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
-    saveFileUnderWrite(destination, VfsUtilCore.loadText(virtualTestFile));
+    saveFileUnderWrite(destination, loadText(virtualTestFile));
     injectTestInformation(destination);
   }
 
@@ -366,7 +365,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
     final File testFile = filename.toFile(myTestDataResolvedPath, "");
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
-    saveFileUnderWrite(myVersionCatalogFile, VfsUtilCore.loadText(virtualTestFile));
+    saveFileUnderWrite(myVersionCatalogFile, loadText(virtualTestFile));
   }
 
   protected void writeToVersionCatalogFile(@NotNull String text) throws IOException {
@@ -440,7 +439,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
 
   @NotNull
   protected String loadBuildFile() throws IOException {
-    return VfsUtilCore.loadText(myBuildFile);
+    return loadText(myBuildFile);
   }
 
   protected void writeToPropertiesFile(@NotNull String text) throws IOException {
@@ -456,7 +455,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   private static void injectTestInformation(@NotNull VirtualFile file) throws IOException {
-    String content = VfsUtilCore.loadText(file);
+    String content = loadText(file);
     content = content.replace("<SUB_MODULE_NAME>", SUB_MODULE_NAME);
     saveFileUnderWrite(file, content);
   }
@@ -527,7 +526,7 @@ public abstract class GradleFileModelTestCase extends HeavyPlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull String contents) throws IOException {
-    assertEquals(contents.replaceAll("[ \\r\\t]+", "").trim(), VfsUtilCore.loadText(file).replaceAll("[ \\r\\t]+", "").trim());
+    assertEquals(contents.replaceAll("[ \\r\\t]+", "").trim(), loadText(file).replaceAll("[ \\r\\t]+", "").trim());
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
