@@ -16,17 +16,17 @@
 package org.jetbrains.android.facet
 
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isLinkedAndroidModule
+import com.android.tools.idea.projectsystem.isScreenshotTestModule
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
-import com.google.common.base.Splitter
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.messages.Topic
 
 /**
@@ -116,21 +116,23 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
   }
 
   private fun readFromFacetState(facet: AndroidFacet): List<VirtualFile> {
-    val module = facet.module
+    val sourceProviderManager = SourceProviderManager.getInstance(facet)
+    return when {
+      module.isLinkedAndroidModule() && module.isAndroidTestModule() -> sourceProviderManager.run {
+        val sources = currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.flatMap { it.resDirectories } ?: listOf()
+        val generated = generatedDeviceTestSources[CommonTestType.ANDROID_TEST]?.resDirectories ?: listOf()
+        (sources + generated).toList()
+      }
 
-    // TODO(b/246530964): can we use SourceProviders to get this information?
-    val folders = when {
-      module.isLinkedAndroidModule() && module.isAndroidTestModule() ->
-        facet.configuration.state.TEST_RES_FOLDERS_RELATIVE_PATH
-      else ->
-        facet.mainModule.androidFacet?.configuration?.state?.RES_FOLDERS_RELATIVE_PATH
-    } ?: return emptyFolders
+      module.isLinkedAndroidModule() && module.isScreenshotTestModule() -> sourceProviderManager.run {
+        val sources = currentDeviceTestSourceProviders[CommonTestType.SCREENSHOT_TEST]?.flatMap { it.resDirectories } ?: listOf()
+        val generated = generatedDeviceTestSources[CommonTestType.SCREENSHOT_TEST]?.resDirectories ?: listOf()
+        (sources + generated).toList()
+      }
 
-    val manager = VirtualFileManager.getInstance()
-    return Splitter.on(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION)
-      .omitEmptyStrings()
-      .trimResults()
-      .split(folders)
-      .mapNotNull(manager::findFileByUrl)
+      else -> sourceProviderManager.run {
+        (currentSourceProviders.flatMap { it.resDirectories } + generatedSources.resDirectories).toList()
+      }
+    }
   }
 }
