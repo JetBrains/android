@@ -46,10 +46,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.getAllLinkedModules
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -75,10 +72,8 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.io.FileUtil.getRelativePath
 import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION
 import org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -327,28 +322,6 @@ private fun configureFacet(androidFacet: AndroidFacet, module: Module, gradleAnd
   androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH = relativePath(modulePath, sourceProvider.manifestFile)
   androidFacet.properties.RES_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.resDirectories.firstOrNull())
   androidFacet.properties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.assetsDirectories.firstOrNull())
-
-  androidFacet.properties.RES_FOLDERS_RELATIVE_PATH = when {
-    module.isMainModule() ->
-      (gradleAndroidModel.activeSourceProviders.flatMap { provider ->
-        provider.resDirectories
-      } + gradleAndroidModel.mainArtifact.generatedResourceFolders).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
-        VfsUtilCore.pathToUrl(file.absolutePath)
-      }
-    else -> ""
-  }
-
-  val testGenResources = gradleAndroidModel.getArtifactForAndroidTest()?.generatedResourceFolders ?: listOf()
-  // Why don't we include the standard unit tests source providers here?
-  androidFacet.properties.TEST_RES_FOLDERS_RELATIVE_PATH = when {
-    module.isAndroidTestModule() ->
-      ((gradleAndroidModel.deviceTestSourceProviders[CommonTestType.ANDROID_TEST]?.flatMap { provider ->
-        provider.resDirectories
-      } ?: listOf()) + testGenResources).joinToString(PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION) { file ->
-        VfsUtilCore.pathToUrl(file.absolutePath)
-      }
-    else -> ""
-  }
 
   AndroidModel.set(androidFacet, gradleAndroidModel)
   syncSelectedVariant(androidFacet, gradleAndroidModel.selectedVariant)

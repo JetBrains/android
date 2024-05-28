@@ -28,7 +28,6 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
-import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.idea.artifacts.KotlinArtifacts
 import java.io.File
@@ -114,9 +113,6 @@ class ProjectDumper(
     if (name in Abi.values().map{it -> it.toString()}.toSet()) return file.name
     return findAbiSegment(file.parentFile?:return null)
   }
-
-  fun String.toPrintablePaths(): Collection<String> =
-    split(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION).map { it.toPrintablePath() }
 
   /**
    * Replaces well-known instable parts of a path/url string with stubs and adds [-] to the end if the file does not exist.

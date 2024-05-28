@@ -23,8 +23,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
             PackTestCode                  : false
@@ -77,9 +75,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/build/generated/res/resValues/androidTest/debug [-]
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
             PackTestCode                  : false
@@ -139,10 +134,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      : file://<TEMP>/res
-            - ResFoldersRelativePath      : file://<TEMP>/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<TEMP>/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
             PackTestCode                  : false
@@ -211,8 +202,6 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /AndroidManifest.xml
             ResFolderRelativePath         : /res
-            - ResFoldersRelativePath      :  [-]
-            - TestResFoldersRelativePath  :  [-]
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
             PackTestCode                  : false
