@@ -84,8 +84,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
         deviceCaches[configurationManager] = deviceList
         Disposer.register(
           configurationManager,
-          Disposable { deviceCaches.remove(configurationManager) },
-        )
+        ) { deviceCaches.remove(configurationManager) }
         deviceList
       }
 
