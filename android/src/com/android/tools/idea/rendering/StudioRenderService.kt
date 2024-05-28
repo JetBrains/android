@@ -24,14 +24,11 @@ import com.android.tools.rendering.RenderLogger
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
 import com.android.tools.rendering.api.RenderModelModule
-import com.android.tools.sdk.getLayoutLibrary
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ShutDownTracker
-import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.identity
