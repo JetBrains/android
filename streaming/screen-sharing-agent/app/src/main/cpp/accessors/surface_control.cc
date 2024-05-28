@@ -93,7 +93,7 @@ JObject SurfaceControl::CreateDisplay(Jni jni, const char* name, bool secure) {
 
 void SurfaceControl::DestroyDisplay(Jni jni, jobject display_token) {
   InitializeStatics(jni);
-  surface_control_class_.CallStaticObjectMethod(jni, destroy_display_method_, display_token);
+  surface_control_class_.CallStaticVoidMethod(jni, destroy_display_method_, display_token);
 }
 
 void SurfaceControl::SetDisplaySurface(Jni jni, jobject display_token, ANativeWindow* surface) {
