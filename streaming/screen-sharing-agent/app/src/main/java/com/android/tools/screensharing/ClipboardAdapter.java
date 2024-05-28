@@ -45,8 +45,11 @@ public class ClipboardAdapter {
   static {
     clipboard = ServiceManager.getServiceAsInterface("clipboard", "android/content/IClipboard", true);
 
-    try {
-      if (clipboard != null) {
+    if (clipboard == null) {
+      Log.w(ATTRIBUTION_TAG, "Could not find \"clipboard\" service - clipboard synchronization is not possible.");
+    }
+    else {
+      try {
         Class<?> clipboardClass = clipboard.getClass();
         Method[] methods = clipboardClass.getDeclaredMethods();
         getPrimaryClipMethod = findMethodAndMakeAccessible(methods, "getPrimaryClip");
@@ -67,10 +70,10 @@ public class ClipboardAdapter {
           clipboard = null;
         }
       }
-    }
-    catch (NoSuchMethodException e) {
-      Log.e(ATTRIBUTION_TAG, e.getMessage());
-      clipboard = null;
+      catch (NoSuchMethodException e) {
+        Log.e(ATTRIBUTION_TAG, e.getMessage());
+        clipboard = null;
+      }
     }
   }
 
