@@ -104,7 +104,7 @@ interface SourceProviders {
   val currentSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
-   * Returns a list of source providers for Host test artifacts (e.g. for unit test arifact: `test/`source sets), in increasing
+   * Returns a list of source providers for Host test artifacts (e.g. for unit test artifact: `test/`source sets), in increasing
    * precedence order.
    *
    * @see currentSourceProviders
