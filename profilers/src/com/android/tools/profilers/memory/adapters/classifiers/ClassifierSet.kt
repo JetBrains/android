@@ -25,7 +25,6 @@ import java.util.IdentityHashMap
 import java.util.Objects
 import java.util.stream.Stream
 import kotlin.math.min
-import kotlin.streams.toList
 
 /**
  * A general base class for classifying/filtering objects into categories.
@@ -371,16 +370,30 @@ abstract class ClassifierSet(supplyName: () -> String) : MemoryObject {
   private fun filterOutInstances(remainders: MutableSet<InstanceObject>) {
     val s = state
     when {
+      remainders.isEmpty() -> return
       s is State.Coalesced -> {
-        remainders.removeAll(s.deltaInstances)
-        remainders.removeAll(s.snapshotInstances)
+        remainders.removeAllFast(s.deltaInstances)
+        remainders.removeAllFast(s.snapshotInstances)
       }
-      s is State.Partitioned && remainders.isNotEmpty() -> s.classifier.allClassifierSets.forEach { child ->
+      s is State.Partitioned -> s.classifier.allClassifierSets.forEach { child ->
         child.filterOutInstances(remainders)
         if (remainders.isEmpty()) {
           return
         }
       }
+    }
+  }
+
+  /**
+   *  Like [removeAll], but iterating over the smaller set.
+   *  For our specific use of [IdentityHashMap], this restores the optimization from [AbstractSet],
+   *  which [IdentityHashMap] wouldn't be able to do in general when [those] uses structural
+   *  instead of referential equality.
+   */
+  private fun<X> MutableSet<X>.removeAllFast(those: Set<X>) {
+    when {
+      size < those.size -> removeAll(those)
+      else -> for (that in those) remove(that)
     }
   }
 
