@@ -384,30 +384,31 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
       }
     }
 
-    enum class AgpPlugin(val id: String, val defaultPluginName: String) {
-      APPLICATION("com.android.application", "androidApplication"),
-      LIBRARY("com.android.library", "androidLibrary"),
-      TEST("com.android.test", "androidTest"),
-      ASSET_PACK("com.android.asset-pack", "androidAssetPack"),
-      ASSET_PACK_BUNDLE("com.android.asset-pack-bundle", "androidAssetPackBundle"),
-      DYNAMIC_FEATURE("com.android.dynamic-feature", "androidDynamicFeature"),
-      FUSED_LIBRARY("com.android.fused-library", "androidFusedLibrary"),
-      INTERNAL_SETTINGS("com.android.internal.settings", "androidInternalSettings"),
-      SETTINGS("com.android.settings", "androidSettings"),
-      LINT("com.android.lint", "androidLint")
+    enum class AgpPlugin(val id: String) {
+      APPLICATION("com.android.application"),
+      LIBRARY("com.android.library"),
+      TEST("com.android.test"),
+      ASSET_PACK("com.android.asset-pack"),
+      ASSET_PACK_BUNDLE("com.android.asset-pack-bundle"),
+      DYNAMIC_FEATURE("com.android.dynamic-feature"),
+      FUSED_LIBRARY("com.android.fused-library"),
+      INTERNAL_SETTINGS("com.android.internal.settings"),
+      SETTINGS("com.android.settings"),
+      LINT("com.android.lint")
       ;
+
       companion object {
-        val defaultVersionName = "agp"
+        const val defaultVersionName = "agp"
       }
     }
 
     enum class KotlinPlugin(val id: String, val defaultPluginName: String) {
-      KOTLIN_ANDROID("org.jetbrains.kotlin.android", "kotlinAndroid"),
-      KOTLIN_COMPOSE("org.jetbrains.kotlin.plugin.compose", "kotlinCompose")
+      KOTLIN_ANDROID("org.jetbrains.kotlin.android", "kotlin-android"),
+      KOTLIN_COMPOSE("org.jetbrains.kotlin.plugin.compose", "kotlin-compose")
       ;
 
       companion object {
-        val defaultVersionName = "kotlin"
+        const val defaultVersionName = "kotlin"
       }
     }
   }
