@@ -34,7 +34,6 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
-import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Compatibility.NotCompatible.Reason.API_29_PLAY_STORE
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
@@ -126,8 +125,12 @@ class AppInspectionInspectorClient(
       capabilities.remove(Capability.SUPPORTS_SKP)
     })
 
-  override val treeLoader: TreeLoader =
-    AppInspectionTreeLoader(notificationModel, logEvent = ::logEvent, skiaParser)
+  override val treeLoader =
+    AppInspectionTreeLoader(
+      notificationModel = notificationModel,
+      logEvent = ::logEventToMetrics,
+      skiaParser = skiaParser,
+    )
   override val provider: PropertiesProvider
     get() = propertiesProvider
 
@@ -140,7 +143,7 @@ class AppInspectionInspectorClient(
     checkApi29Version(process, model.project, sdkHandler)
 
     runCatching {
-        logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+        logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
         // Create the app inspection connection now, so we can log that it happened.
         apiServices.attachToProcess(process, model.project.name)
@@ -180,7 +183,7 @@ class AppInspectionInspectorClient(
           )
         viewInspector = viewIns
 
-        logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
+        logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
         when (val setFlagResult = debugViewAttributes.set(process.device)) {
           is SetFlagResult.Set -> {
@@ -295,7 +298,7 @@ class AppInspectionInspectorClient(
         composeInspector?.disconnect()
         // TODO: skiaParser#shutdown is a blocking function. Should be ported to coroutines
         skiaParser.shutdown()
-        logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
+        logEventToMetrics(DynamicLayoutInspectorEventType.SESSION_DATA)
       } catch (t: Throwable) {
         val error = getOriginalError(t)
         notifyError(error)
@@ -347,7 +350,7 @@ class AppInspectionInspectorClient(
     coroutineScope.launch(loggingExceptionHandler) { refreshInternal() }
   }
 
-  private fun logEvent(eventType: DynamicLayoutInspectorEventType) {
+  private fun logEventToMetrics(eventType: DynamicLayoutInspectorEventType) {
     metrics.logEvent(eventType, stats)
   }
 
