@@ -18,16 +18,11 @@ package com.android.tools.idea.startup
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.webp.WebpMetadata
-import com.android.tools.adtui.webp.WebpMetadata.Companion.ensureWebpRegistered
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.UsageTracker.ideBrand
-import com.android.tools.analytics.UsageTracker.ideaIsInternal
-import com.android.tools.analytics.UsageTracker.version
 import com.android.tools.idea.analytics.SystemInfoStatsMonitor
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.res.StudioCodeVersionAdapter
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.AndroidStudioUsageTracker
 import com.intellij.concurrency.JobScheduler
@@ -78,11 +73,9 @@ class AndroidStudioInitializer : ApplicationInitializedListener {
       // the reason why emulator is never run, and that's exactly the data
       // SystemInfoStatsMonitor collects
       SystemInfoStatsMonitor().start()
-
-      StudioCodeVersionAdapter.initialize()
-
       setupAndroidSdkForTests()
     }
+
   }
 
   /** Sets up collection of Android Studio specific analytics.  */

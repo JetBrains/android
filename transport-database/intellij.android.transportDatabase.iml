@@ -19,7 +19,6 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
-    <orderEntry type="library" name="android.tools.testutils" level="project" />
     <orderEntry type="library" scope="TEST" name="android.tools.sdklib" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

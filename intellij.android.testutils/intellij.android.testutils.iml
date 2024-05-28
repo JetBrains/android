@@ -5,59 +5,11 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="studio.android.sdktools.android-annotations-232.1.23.0" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.android-annotations:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.android-annotations/232.1.23.0/studio.android.sdktools.android-annotations-232.1.23.0.jar">
-              <sha256sum>4013a7184f41205bb08169bd3080fe757aeffe684e886ffb6428eb24a220ce23</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.android-annotations/232.1.23.0/studio.android.sdktools.android-annotations-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="studio.android.sdktools.common-232.1.23.0" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common/232.1.23.0/studio.android.sdktools.common-232.1.23.0.jar">
-              <sha256sum>2643587a2e9a60361b1b80cdd99e539381b2e81f00ca7c884f0c5c9251db64af</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common/232.1.23.0/studio.android.sdktools.common-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" scope="TEST">
-      <library name="studio.android.sdktools.testutils_test-232.1.23.0" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils_test:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/232.1.23.0/studio.android.sdktools.testutils_test-232.1.23.0.jar">
-              <sha256sum>8bca19bb59a61eabaf7d900a96fa27510386b4430478891ae585a39a6f37c884</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/232.1.23.0/studio.android.sdktools.testutils_test-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
+    <orderEntry type="library" scope="TEST" name="commons-compress" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
-    <orderEntry type="library" scope="TEST" name="commons-compress" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-stdlib" level="project" />
     <orderEntry type="inheritedJdk" />
