@@ -18,8 +18,6 @@
         </SOURCES>
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-proto" level="project" />
     <orderEntry type="module-library">
@@ -33,7 +31,6 @@
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
   </component>
 </module>

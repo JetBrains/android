@@ -20,7 +20,6 @@
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/232.1.23.0/studio.android.sdktools.testutils_test-232.1.23.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

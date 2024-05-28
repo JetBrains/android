@@ -17,7 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" name="studio-platform" level="project" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="intellij-test-framework" level="project" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -26,9 +25,7 @@
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
     <orderEntry type="module" module-name="google-login-as" />
     <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="library" name="gradle-shared-proto" level="project" />
     <orderEntry type="library" name="google-api-client" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.sdk-common"/>
   </component>
 </module>

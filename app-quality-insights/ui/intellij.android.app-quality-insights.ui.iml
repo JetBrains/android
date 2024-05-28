@@ -13,7 +13,6 @@
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" scope="TEST" name="intellij-test-framework" level="project" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />

@@ -23,7 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="library" name="studio-platform" level="project" />
     <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="studio-analytics-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui.tests" scope="TEST" />
     <orderEntry type="module" module-name="git4insights" scope="TEST" />
