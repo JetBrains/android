@@ -94,16 +94,16 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
            {
              val catalog = project.getTextForFile("gradle/libs.versions.toml")
              assertThat(catalog).contains("kotlin = \"1.9.20\"")
-             assertThat(catalog).contains("jetbrains-kotlin-android = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlin\" }")
-             assertThat(catalog).contains("jetbrains-kotlin-plugin-compose = { id = \"org.jetbrains.kotlin.plugin.compose\", version.ref = \"kotlin\" }")
+             assertThat(catalog).contains("kotlin-android = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlin\" }")
+             assertThat(catalog).contains("kotlin-compose = { id = \"org.jetbrains.kotlin.plugin.compose\", version.ref = \"kotlin\" }")
 
              val projectBuildContent = project.getTextForFile("build.gradle")
-             assertThat(projectBuildContent).contains("alias(libs.plugins.jetbrains.kotlin.android) apply false")
-             assertThat(projectBuildContent).contains("alias(libs.plugins.jetbrains.kotlin.plugin.compose) apply false")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.kotlin.android) apply false")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.kotlin.compose) apply false")
 
              val buildFileContent = project.getTextForFile("app/build.gradle")
-             assertThat(buildFileContent).contains("alias(libs.plugins.jetbrains.kotlin.android)")
-             assertThat(buildFileContent).contains("alias(libs.plugins.jetbrains.kotlin.plugin.compose)")
+             assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.android)")
+             assertThat(buildFileContent).contains("alias(libs.plugins.kotlin.compose)")
            })
   }
 

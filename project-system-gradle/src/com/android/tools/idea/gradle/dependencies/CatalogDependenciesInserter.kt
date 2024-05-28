@@ -270,7 +270,9 @@ class CatalogDependenciesInserter(private val projectModel: ProjectBuildModel) :
       val plugins = catalogModel.pluginDeclarations()
       val names = plugins.getAllAliases()
 
-      val alias: Alias = pickPluginVariableName(pluginId, names)
+      val defaultName = KotlinPlugin.values().find { it.id == pluginId }?.defaultPluginName?.takeIf { it !in names }
+
+      val alias: Alias = pickPluginVariableName(defaultName ?: pluginId, names)
 
       val versionModel = getOrAddCatalogVersionForPlugin(catalogModel, pluginId, version)
       if (versionModel == null) {

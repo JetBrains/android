@@ -213,7 +213,7 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
 [versions]
 kotlin = "1.7.20"
 [plugins]
-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
     """)
     verifyFileContents(mySettingsFile, EMPTY_SETTINGS_CONTENT)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
@@ -241,7 +241,7 @@ kotlinVersion = "1.7.20"
 [libraries]
 [plugins]
 fake-plugin = { id = "fake.plugin", version.ref = "kotlin" }
-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
     """)
     verifyFileContents(mySettingsFile, EMPTY_SETTINGS_CONTENT)
     verifyFileContents(myBuildFile, TestFile.APPLY_KOTLIN_PLUGIN_BUILD_FILE)
