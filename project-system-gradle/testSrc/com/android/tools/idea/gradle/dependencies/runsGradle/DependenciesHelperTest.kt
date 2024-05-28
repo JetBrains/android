@@ -80,6 +80,34 @@ class DependenciesHelperTest: AndroidGradleTestCase() {
   }
 
   @Test
+  fun testAddTwoKotlinPlugins() {
+    doTest(SIMPLE_APPLICATION_VERSION_CATALOG,
+           { projectBuildModel, moduleModel, helper ->
+             val projectModel = projectBuildModel.projectBuildModel!!
+
+             val updates = helper.addPlugin("org.jetbrains.kotlin.android", "1.9.20", false, projectModel, moduleModel)
+             assertThat(updates.size).isEqualTo(3)
+
+             val updates2 = helper.addPlugin("org.jetbrains.kotlin.plugin.compose", "1.9.20", false, projectModel, moduleModel)
+             assertThat(updates2.size).isEqualTo(3)
+           },
+           {
+             val catalog = project.getTextForFile("gradle/libs.versions.toml")
+             assertThat(catalog).contains("kotlin = \"1.9.20\"")
+             assertThat(catalog).contains("jetbrains-kotlin-android = { id = \"org.jetbrains.kotlin.android\", version.ref = \"kotlin\" }")
+             assertThat(catalog).contains("jetbrains-kotlin-plugin-compose = { id = \"org.jetbrains.kotlin.plugin.compose\", version.ref = \"kotlin\" }")
+
+             val projectBuildContent = project.getTextForFile("build.gradle")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.jetbrains.kotlin.android) apply false")
+             assertThat(projectBuildContent).contains("alias(libs.plugins.jetbrains.kotlin.plugin.compose) apply false")
+
+             val buildFileContent = project.getTextForFile("app/build.gradle")
+             assertThat(buildFileContent).contains("alias(libs.plugins.jetbrains.kotlin.android)")
+             assertThat(buildFileContent).contains("alias(libs.plugins.jetbrains.kotlin.plugin.compose)")
+           })
+  }
+
+  @Test
   fun testSimpleAddNoCatalog() {
     doTest(SIMPLE_APPLICATION,
            { _, moduleModel, helper ->
