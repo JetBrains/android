@@ -45,7 +45,7 @@ class SharedIssuePanelProvider(private val project: Project) : ProblemsViewPanel
       return "No problems found"
     }
 
-    val psiFiles = readAction { files.mapNotNull { it.toPsiFile(project) } }
+    val psiFiles = readAction { files.filter { it.isValid }.mapNotNull { it.toPsiFile(project) } }
     val fileNameString = files.joinToString { it.name }
     return if (
       psiFiles.size == files.size && psiFiles.all { LayoutFileType.isResourceTypeOf(it) }
