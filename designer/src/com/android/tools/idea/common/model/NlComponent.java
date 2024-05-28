@@ -536,7 +536,7 @@ public class NlComponent implements NlAttributesHolder {
         return null;
       }
 
-      ResourceResolver resolver = myModel.getCachedResourceResolver();
+      ResourceResolver resolver = myModel.getThemeUpdater().getCachedResourceResolver();
       StyleResourceValue styleResValue = resolver.getStyle(styleRef);
       if (styleResValue == null) {
         return null;

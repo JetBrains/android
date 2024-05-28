@@ -16,12 +16,7 @@
 package com.android.tools.idea.common.model
 
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.rendering.api.ViewInfo
-import com.android.ide.common.resources.ResourceResolver
-import com.android.resources.ResourceType
-import com.android.resources.ResourceUrl
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.lint.LintAnnotationsModel
@@ -34,7 +29,6 @@ import com.android.tools.idea.util.ListenerCollection.Companion.createWithDirect
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -43,14 +37,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.Alarm
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import java.util.Collections
 import java.util.WeakHashMap
-import java.util.concurrent.Callable
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,6 +81,7 @@ protected constructor(
   val treeWriter =
     NlTreeWriter(buildTarget.facet, { file }, ::notifyModified, { createComponent(it) })
   val treeReader = NlTreeReader { file }
+  val themeUpdater = NlThemeUpdater({ configuration }, this)
 
   /**
    * Adds information to the model from a render result. A given model can use different updaters
@@ -149,20 +141,7 @@ protected constructor(
   var lastChangeType: ChangeType? = null
     private set
 
-  /** Executor used for asynchronous updates. */
-  private val updateExecutor = AppExecutorUtil.createBoundedApplicationPoolExecutor("NlModel", 1)
-
-  private val themeUpdateComputation = AtomicReference<Disposable?>()
   var isDisposed: Boolean = false
-    private set
-
-  /**
-   * Returns the latest calculated [ResourceResolver]. This is just to be used from those context
-   * where obtaining the resource resolver can not be done like the UI thread. The cached resource
-   * resolver is updated after every model update, including theme changes.
-   */
-  @get:Deprecated("Call Configuration.getResourceResolver from a background context")
-  var cachedResourceResolver: ResourceResolver
     private set
 
   /**
@@ -173,7 +152,6 @@ protected constructor(
 
   init {
     Disposer.register(parent, this)
-    cachedResourceResolver = configuration.resourceResolver
   }
 
   /** Returns if this model is currently active. */
@@ -212,63 +190,13 @@ protected constructor(
       // update
 
       if (configuration.modificationCount != configurationModificationCount) {
-        updateTheme()
+        themeUpdater.updateTheme()
       }
       listeners.forEach { listener: ModelListener -> listener.modelActivated(this) }
       updateQueue.resume()
       return true
     } else {
       return false
-    }
-  }
-
-  fun updateTheme() {
-    val computationToken = Disposer.newDisposable()
-    Disposer.register(this, computationToken)
-    val oldComputation = themeUpdateComputation.getAndSet(computationToken)
-    if (oldComputation != null) {
-      Disposer.dispose(oldComputation)
-    }
-    ReadAction.nonBlocking(
-        Callable<Void?> {
-          if (themeUpdateComputation.get() !== computationToken) {
-            return@Callable null // A new update has already been scheduled.
-          }
-          val themeUrl = ResourceUrl.parse(configuration.theme)
-          if (themeUrl != null && themeUrl.type == ResourceType.STYLE) {
-            updateTheme(themeUrl, computationToken)
-          }
-          null
-        }
-      )
-      .expireWith(computationToken)
-      .submit(updateExecutor)
-  }
-
-  @Slow
-  private fun updateTheme(themeUrl: ResourceUrl, computationToken: Disposable) {
-    if (themeUpdateComputation.get() !== computationToken) {
-      return // A new update has already been scheduled.
-    }
-    try {
-      val resolver = configuration.resourceResolver
-      val themeReference =
-        ResourceReference.style(
-          if (themeUrl.isFramework) ResourceNamespace.ANDROID else ResourceNamespace.RES_AUTO,
-          themeUrl.name,
-        )
-      if (resolver.getStyle(themeReference) == null) {
-        val theme = configuration.preferredTheme
-        if (themeUpdateComputation.get() !== computationToken) {
-          return // A new update has already been scheduled.
-        }
-        configuration.setTheme(theme)
-        cachedResourceResolver = configuration.resourceResolver
-      }
-    } finally {
-      if (themeUpdateComputation.compareAndSet(computationToken, null)) {
-        Disposer.dispose(computationToken)
-      }
     }
   }
 
@@ -415,7 +343,7 @@ protected constructor(
 
   private fun fireNotifyModified(reason: ChangeType) {
     modelVersion.increase(reason)
-    updateTheme()
+    themeUpdater.updateTheme()
     lastChangeType = reason
     listeners.forEach { listener: ModelListener -> listener.modelChanged(this) }
   }
