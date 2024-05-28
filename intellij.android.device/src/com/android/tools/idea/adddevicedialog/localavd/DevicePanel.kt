@@ -144,14 +144,15 @@ private fun SystemImageTable(
 ) {
   val columns =
     listOf(
-      TableColumn("", TableColumnWidth.Weighted(1F), Comparator.comparing(SystemImage::isRemote)) {
+      TableColumn("", TableColumnWidth.Fixed(16.dp), Comparator.comparing(SystemImage::isRemote)) {
         if (it.isRemote) DownloadButton(onClick = { onDownloadButtonClick(it.path) })
       },
       TableTextColumn("System Image", attribute = SystemImage::name),
       TableTextColumn(
         "Services",
+        TableColumnWidth.Fixed(132.dp),
         attribute = { it.services.toString() },
-        comparator = Comparator.comparing(SystemImage::services),
+        Comparator.comparing(SystemImage::services),
       ),
       TableTextColumn(
         "API",
@@ -160,8 +161,16 @@ private fun SystemImageTable(
         },
         comparator = Comparator.comparing(SystemImage::androidVersion),
       ),
-      TableTextColumn("ABIs", attribute = { it.abis.joinToString() }),
-      TableTextColumn("Translated ABIs", attribute = { it.translatedAbis.joinToString() }),
+      TableTextColumn(
+        "ABIs",
+        TableColumnWidth.Fixed(77.dp),
+        attribute = { it.abis.joinToString() },
+      ),
+      TableTextColumn(
+        "Translated ABIs",
+        TableColumnWidth.Fixed(77.dp),
+        attribute = { it.translatedAbis.joinToString() },
+      ),
     )
 
   Table(columns, images.filter(devicePanelState::test), { it }, modifier, selectionState)
