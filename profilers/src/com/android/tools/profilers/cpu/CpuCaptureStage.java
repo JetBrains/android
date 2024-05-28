@@ -397,14 +397,21 @@ public class CpuCaptureStage extends Stage<Timeline> {
           myCapture = capture;
           onCaptureParsed(capture);
           setState(State.ANALYZING);
-          trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), TaskFinishedState.COMPLETED);
+          if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+            trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                              TaskFinishedState.COMPLETED);
+          }
         }
       }
       catch (Exception ex) {
         // Logging if an exception happens since setState may trigger various callbacks.
         Logger.getInstance(CpuCaptureStage.class).error(ex);
       }
-    }, finishedState -> trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), finishedState));
+    }, finishedState -> {
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        trackTaskFinished(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(), finishedState);
+      }
+    });
   }
 
   @Override

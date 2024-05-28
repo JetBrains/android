@@ -389,8 +389,10 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
       getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_START_FAILURE);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
-      TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                 new TaskStartFailedMetadata(status, null, null));
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        TaskEventTrackerUtils.trackStartTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                   new TaskStartFailedMetadata(status, null, null));
+      }
     }
   }
 
@@ -426,8 +428,10 @@ public class CpuProfilerStage extends StreamingStage implements InterimStage {
     }
     else if (!status.getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
       CpuCaptureMetadata captureMetadata = trackAndLogTraceStopFailures(status);
-      TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
-                                                new TaskStopFailedMetadata(null, null, captureMetadata));
+      if (getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+        TaskEventTrackerUtils.trackStopTaskFailed(getStudioProfilers(), getStudioProfilers().getSessionsManager().isSessionAlive(),
+                                                  new TaskStopFailedMetadata(null, null, captureMetadata));
+      }
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
     }
