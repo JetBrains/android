@@ -302,9 +302,7 @@ class AddDestinationMenuTest {
 
   @Test
   fun testCreateBlank() {
-    model.treeReader.flattenComponents().map { it.id } .forEach {
-      if(it != null) model.treeWriter.pendingIds.add(it)
-    }
+    addPendingIds()
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
@@ -336,9 +334,7 @@ class AddDestinationMenuTest {
 
   @Test
   fun testCreateBlankNoLayout() {
-    model.treeReader.flattenComponents().map { it.id } .forEach {
-      if(it != null) model.treeWriter.pendingIds.add(it)
-    }
+    addPendingIds()
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
@@ -368,9 +364,7 @@ class AddDestinationMenuTest {
   @Test
   @RunsInEdt
   fun testCreateSettingsFragment() {
-    model.treeReader.flattenComponents().map { it.id } .forEach {
-      if(it != null) model.treeWriter.pendingIds.add(it)
-    }
+    addPendingIds()
     val createdFiles = mutableListOf<File>()
     val createFragmentFileTask = {
       val root = projectRule.module.rootManager.contentRoots[0].path
@@ -395,6 +389,12 @@ class SettingsFragment : PreferenceFragmentCompat()
                                  .setDestinationInfo(NavDestinationInfo.newBuilder()
                                                        .setHasClass(true)
                                                        .setType(FRAGMENT)).build())
+    }
+  }
+
+  private fun addPendingIds() {
+    model.treeReader.flattenComponents().forEach {
+      it.id?.let { id -> model.treeWriter.pendingIds.add(id) }
     }
   }
 
