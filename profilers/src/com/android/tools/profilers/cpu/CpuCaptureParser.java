@@ -575,9 +575,12 @@ public class CpuCaptureParser {
                      : metadata.getProfilingConfiguration().getTraceType(); // best effort to get info
           var isSuccess = capture != null;
           if (myServices.getFeatureConfig().isTaskBasedUxEnabled()) {
-            TaskEventTrackerUtils.trackProcessingTaskFailed(myProfilers, myProfilers.getSessionsManager().isSessionAlive(),
-                                                            new TaskProcessingFailedMetadata(metadata));
-          } else {
+            if (!isSuccess) {
+              TaskEventTrackerUtils.trackProcessingTaskFailed(myProfilers, myProfilers.getSessionsManager().isSessionAlive(),
+                                                              new TaskProcessingFailedMetadata(metadata));
+            }
+          }
+          else {
             myServices.getFeatureTracker()
               .trackImportTrace(createCpuImportTraceMetadata(type, isSuccess, metadata.getHasComposeTracingNodes()));
           }
