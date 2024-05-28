@@ -274,7 +274,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> SCROLLABLE_ZOOM_ON_GRID = new BooleanFlag(
     NELE, "scrollable.zoom.grid.layout", "Enable scrollable zoom on grid layout",
     "If enabled, zooming on a grid layout will not re-layout the items and will make the preview scrollable.",
-    ChannelDefault.enabledUpTo(CANARY));
+    false);
 
   public static final Flag<Boolean> DETACHABLE_ATTACHED_TOOLWINDOWS = new BooleanFlag(
     NELE, "detached.attached.toolwindows", "Allow floating attached tool windows",
