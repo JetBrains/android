@@ -20,6 +20,7 @@ import com.android.tools.idea.actions.SCENE_VIEW
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.organization.OrganizationGroup
 import com.android.tools.idea.common.surface.sceneview.SceneViewTopPanel
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
 import com.android.tools.idea.uibuilder.surface.layout.PositionablePanel
@@ -37,6 +38,8 @@ import java.awt.Dimension
 import java.awt.Insets
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /** Distance between bottom bound of SceneView and bottom of [SceneViewPeerPanel]. */
 @SwingCoordinate private const val BOTTOM_BORDER_HEIGHT = 3
@@ -50,6 +53,7 @@ import javax.swing.JPanel
  * coordinates of the [SceneView] and can be used to paint Swing elements on top of the [SceneView].
  */
 class SceneViewPeerPanel(
+  val scope: CoroutineScope,
   val sceneView: SceneView,
   private val labelPanel: JComponent,
   sceneViewStatusIconAction: AnAction?,
@@ -58,6 +62,12 @@ class SceneViewPeerPanel(
   sceneViewRightBar: JComponent?,
   private val sceneViewErrorsPanel: JComponent?,
 ) : JPanel(), PositionablePanel, DataProvider {
+
+  init {
+    scope.launch(uiThread) {
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.collect { invalidate() }
+    }
+  }
 
   /**
    * Contains cached layout data that can be used by this panel to verify when it's been invalidated
@@ -278,7 +288,8 @@ class SceneViewPeerPanel(
   }
 
   override fun isVisible(): Boolean {
-    return sceneView.isVisible
+    return sceneView.isVisible &&
+      sceneView.sceneManager.model.organizationGroup?.isOpened?.value ?: true
   }
 
   override fun getData(dataId: String): Any? {
