@@ -15,9 +15,6 @@
  */
 package org.jetbrains.android.facet
 
-import com.android.SdkConstants.FD_MAIN
-import com.android.SdkConstants.FD_RES
-import com.android.SdkConstants.FD_SOURCES
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.isAndroidTestModule
@@ -114,8 +111,6 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
       SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList()
     }
     else {
-      // Listen to root change events. Be notified when project is initialized, so we can update
-      // the resource set when necessary.
       readFromFacetState(facet)
     }
   }
