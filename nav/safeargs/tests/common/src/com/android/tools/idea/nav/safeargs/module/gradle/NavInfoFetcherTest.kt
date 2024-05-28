@@ -21,7 +21,6 @@ import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.util.EnumSet
-import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -178,11 +177,7 @@ class NavInfoFetcherTest {
     DumbModeTestUtils.runInDumbModeSynchronously(module.project) {
       assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)
       assertThat(fetcher.isEnabled).isTrue()
-      assertFailsWith<AssertionError> {
-        // In real code, this logs an error and returns null. But in test scenarios, logging an
-        // error ends up failing the test instead; catch the error as expected for this scenario.
-        fetcher.getCurrentNavInfo()
-      }
+      assertThat(fetcher.getCurrentNavInfo()).isNull()
     }
 
     assertModified(NavInfoChangeReason.DUMB_MODE_CHANGED)

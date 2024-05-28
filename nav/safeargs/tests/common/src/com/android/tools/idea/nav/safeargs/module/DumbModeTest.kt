@@ -23,7 +23,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.RunsInEdt
-import kotlin.test.assertFailsWith
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -79,13 +78,8 @@ class DumbModeTest {
       WriteCommandAction.runWriteCommandAction(project) {
         navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
       }
-      assertFailsWith<AssertionError> {
-        // In real code, this logs an error, but continues executing with potentially bad values. In
-        // test scenarios, logging an error ends up failing the test instead; catch the error as
-        // expected for this scenario. What we care about is that after dumb mode ends, the returned
-        // value recovers and is correct.
-        moduleCache.args
-      }
+      // still 1 NavArgumentData due to dumb mode --previously cached results are returned
+      assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
     }
 
     // fresh results are generated since smart mode
