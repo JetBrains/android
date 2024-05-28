@@ -107,6 +107,7 @@
     <orderEntry type="module" module-name="kotlin.gradle.gradle-tooling.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.kotlin" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.toml" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.gradle.dsl.declarative" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea.common" scope="RUNTIME" />
