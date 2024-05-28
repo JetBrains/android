@@ -418,7 +418,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     event.action = action;
     event.button_state = message.button_state();
     event.event_time_millis = duration_cast<milliseconds>(event_time).count();;
-    if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_SCROLL) {
+    if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL) {
       if (action == AMOTION_EVENT_ACTION_DOWN) {
         motion_event_start_time_ = event.event_time_millis;
       }
