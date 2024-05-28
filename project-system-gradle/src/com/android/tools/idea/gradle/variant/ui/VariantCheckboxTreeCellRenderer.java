@@ -23,6 +23,7 @@ import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.projectsystem.gradle.AndroidIconProviderProjectGradleToken.getModuleIcon;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.SimpleTextAttributes.*;
 
@@ -36,7 +37,7 @@ public abstract class VariantCheckboxTreeCellRenderer extends CheckboxTree.Check
   protected void appendModule(@NotNull Module module, @Nullable String variant) {
     ColoredTreeCellRenderer textRenderer = getTextRenderer();
     textRenderer.append(module.getName());
-    textRenderer.setIcon(AndroidIconProvider.getModuleIcon(module));
+    textRenderer.setIcon(getModuleIcon(module));
     if (isNotEmpty(variant)) {
       textRenderer.append(" ", REGULAR_ATTRIBUTES);
       textRenderer.append("(" + variant + ")", GRAY_ATTRIBUTES);

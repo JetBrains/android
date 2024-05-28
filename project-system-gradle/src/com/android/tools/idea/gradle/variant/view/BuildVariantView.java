@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.gradle.variant.view;
 
+import static com.android.tools.idea.projectsystem.gradle.AndroidIconProviderProjectGradleToken.getModuleIcon;
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
 import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
 import com.android.tools.adtui.common.AdtUiUtils;
-import com.android.tools.idea.fileTypes.AndroidIconProvider;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
@@ -585,7 +585,7 @@ public class BuildVariantView {
           String modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(module);
           // Note: modulePath should never be null here.
           moduleName = modulePath != null ? modulePath : module.getName();
-          moduleIcon = AndroidIconProvider.getModuleIcon(module);
+          moduleIcon = getModuleIcon(module);
           isAndriodGradleModule = GradleAndroidModel.get(module) != null;
         }
       }
