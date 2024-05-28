@@ -276,6 +276,14 @@ public:
   };
 
   [[nodiscard]] std::string GetValue() const;
+  // Returns the result of calling String.valueOf(obj).
+  [[nodiscard]] static std::string ValueOf(jobject obj);
+
+private:
+  static void InitializeStatics(Jni jni);
+
+  static JClass string_class_;
+  static jmethodID value_of_method_;
 };
 
 class JCharArray : public JRef<JCharArray, jcharArray> {
