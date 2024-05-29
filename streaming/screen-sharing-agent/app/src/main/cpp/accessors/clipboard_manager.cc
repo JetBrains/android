@@ -51,6 +51,7 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
 }
 
 string ClipboardManager::GetText() const {
+  Log::D("ClipboardManager::GetText");
   JObject text = clipboard_adapter_class_.CallStaticObjectMethod(jni_, get_text_method_);
   if (text.IsNull()) {
     Log::W(jni_.GetAndClearException(), "Unable to obtain clipboard text");
@@ -60,23 +61,27 @@ string ClipboardManager::GetText() const {
 }
 
 void ClipboardManager::SetText(const string& text) const {
+  Log::D("ClipboardManager::SetText");
   JString jtext = JString(jni_, text.c_str());
   clipboard_adapter_class_.CallStaticVoidMethod(jni_, set_text_method_, jtext.ref(), jtext.ref());
 }
 
 void ClipboardManager::AddClipboardListener(ClipboardListener* listener) {
+  Log::D("ClipboardManager::AddClipboardListener");
   if (clipboard_listeners_.Add(listener) == 1) {
     clipboard_adapter_class_.CallStaticVoidMethod(jni_, enable_primary_clip_changed_listener_method_);
   }
 }
 
 void ClipboardManager::RemoveClipboardListener(ClipboardListener* listener) {
+  Log::D("ClipboardManager::RemoveClipboardListener");
   if (clipboard_listeners_.Remove(listener) == 0) {
     clipboard_adapter_class_.CallStaticVoidMethod(jni_, disable_primary_clip_changed_listener_method_);
   }
 }
 
 void ClipboardManager::OnPrimaryClipChanged() {
+  Log::D("ClipboardManager::OnPrimaryClipChanged");
   clipboard_listeners_.ForEach([](auto listener) {
     listener->OnPrimaryClipChanged();
   });
