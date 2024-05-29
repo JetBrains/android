@@ -27,8 +27,6 @@ import java.util.EnumSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableSet
-import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
 import org.jetbrains.jewel.ui.component.Text
@@ -43,22 +41,19 @@ internal fun ConfigureDevicePanel(
   onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
-  @OptIn(ExperimentalJewelApi::class)
-  SwingBridgeTheme {
-    Column {
-      Text("Configure device")
-      Text("Add a device to device manager")
+  Column {
+    Text("Configure device")
+    Text("Add a device to device manager")
 
-      Tabs(
-        device,
-        images,
-        systemImageTableSelectionState,
-        skins,
-        onDeviceChange,
-        onDownloadButtonClick,
-        onImportButtonClick,
-      )
-    }
+    Tabs(
+      device,
+      images,
+      systemImageTableSelectionState,
+      skins,
+      onDeviceChange,
+      onDownloadButtonClick,
+      onImportButtonClick,
+    )
   }
 }
 
