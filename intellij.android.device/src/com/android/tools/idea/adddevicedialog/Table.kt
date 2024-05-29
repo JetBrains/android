@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -181,7 +182,7 @@ internal fun <T> TableRow(
       .thenIf(isFocused) { focusBorder() }
       .padding(ROW_PADDING / 2)
       .onFocusChanged { isFocused = it.isFocused }
-      .clickable { onClick(value) }
+      .selectable(selected, onClick = { onClick(value) })
       .fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(CELL_SPACING),
   ) {

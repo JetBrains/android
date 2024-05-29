@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.adddevicedialog
 
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isPopup
@@ -24,6 +26,7 @@ import androidx.compose.ui.test.performClick
 import com.android.tools.adtui.compose.JewelTestTheme
 import com.google.common.collect.Range
 import com.google.common.truth.Truth.assertThat
+import org.jetbrains.jewel.ui.component.Text
 import org.junit.Rule
 import org.junit.Test
 
@@ -45,5 +48,35 @@ class AddDeviceWizardTest {
     composeTestRule.waitForIdle()
 
     assertThat(source.selectedProfile.value?.apiRange).isEqualTo(Range.singleton(28))
+  }
+
+  @Test
+  fun tableSelectionStateIsPreserved() {
+    val source =
+      object : TestDeviceSource() {
+        override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
+          nextAction = WizardAction { pushPage { Text("Configuring ${profile.name}") } }
+        }
+      }
+    TestDevices.allTestDevices.forEach(source::add)
+    val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
+    composeTestRule.setContent { JewelTestTheme { wizard.Content() } }
+
+    composeTestRule.onNodeWithText("Television (4K)").performClick()
+    composeTestRule.waitForIdle()
+    wizard.performAction(wizard.nextAction)
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Configuring Television (4K)").assertIsDisplayed()
+
+    wizard.performAction(wizard.prevAction)
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Television (4K)").assertIsSelected()
+
+    wizard.performAction(wizard.nextAction)
+    composeTestRule.waitForIdle()
+
+    composeTestRule.onNodeWithText("Configuring Television (4K)").assertIsDisplayed()
   }
 }
