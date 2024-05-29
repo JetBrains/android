@@ -16,7 +16,10 @@
 package com.android.tools.idea.adddevicedialog.localavd
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.AndroidVersion
@@ -37,21 +40,31 @@ import com.android.tools.idea.avdmanager.skincombobox.NoSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.collect.Range
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
+import java.awt.Component
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.android.AndroidPluginDisposable
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 
 internal class LocalVirtualDeviceSource(
   private val project: Project?,
-  private val systemImages: ImmutableCollection<SystemImage>,
+  systemImages: ImmutableCollection<SystemImage>,
   private val skins: ImmutableCollection<Skin>,
 ) : DeviceSource {
+  private var systemImages by mutableStateOf(systemImages)
+
   companion object {
     internal fun create(project: Project?): LocalVirtualDeviceSource {
       val images = SystemImage.getSystemImages().toImmutableList()
@@ -73,13 +86,10 @@ internal class LocalVirtualDeviceSource(
 
   @Composable
   private fun WizardPageScope.ConfigurationPage(device: DeviceProfile) {
-    val state =
-      remember(device) {
-        LocalAvdConfigurationState(project, systemImages, skins, device as VirtualDevice)
-      }
+    val state = remember(device) { LocalAvdConfigurationState(skins, device as VirtualDevice) }
 
     val api = device.apiRange.upperEndpoint()
-    val images = state.systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList()
+    val images = systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList()
 
     // TODO: http://b/342003916
     val systemImageTableSelectionState = remember { TableSelectionState(images.first()) }
@@ -92,7 +102,7 @@ internal class LocalVirtualDeviceSource(
       systemImageTableSelectionState,
       state.skins,
       onDeviceChange = { state.device = it },
-      onDownloadButtonClick = { state.downloadSystemImage(parent, it) },
+      onDownloadButtonClick = { downloadSystemImage(parent, it) },
       onImportButtonClick = {
         // TODO Validate the skin
         val skin =
@@ -115,6 +125,31 @@ internal class LocalVirtualDeviceSource(
       VirtualDevices().add(state.device, systemImageTableSelectionState.selection!!)
 
       close()
+    }
+  }
+
+  private fun downloadSystemImage(parent: Component, path: String) {
+    val dialog = SdkQuickfixUtils.createDialogForPaths(parent, listOf(path), false)
+
+    if (dialog == null) {
+      thisLogger().warn("Could not create the SDK Quickfix Installation dialog")
+      return
+    }
+
+    dialog.show()
+
+    val parentDisposable =
+      if (project == null) {
+        AndroidPluginDisposable.getApplicationInstance()
+      } else {
+        AndroidPluginDisposable.getProjectInstance(project)
+      }
+
+    AndroidCoroutineScope(parentDisposable, AndroidDispatchers.uiThread).launch {
+      systemImages =
+        withContext(AndroidDispatchers.workerThread) {
+          SystemImage.getSystemImages().toImmutableList()
+        }
     }
   }
 
