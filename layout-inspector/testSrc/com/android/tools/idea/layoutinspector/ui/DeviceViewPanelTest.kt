@@ -554,6 +554,7 @@ class DeviceViewPanelTest {
         coroutineScope,
         disposableRule.disposable,
         executor = MoreExecutors.directExecutor(),
+        metrics = mock(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
@@ -611,6 +612,7 @@ class DeviceViewPanelTest {
         coroutineScope,
         disposableRule.disposable,
         executor = MoreExecutors.directExecutor(),
+        metrics = mock(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
@@ -659,6 +661,7 @@ class DeviceViewPanelTest {
         coroutineScope,
         disposableRule.disposable,
         executor = MoreExecutors.directExecutor(),
+        metrics = mock(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
@@ -708,6 +711,7 @@ class DeviceViewPanelTest {
         coroutineScope,
         disposableRule.disposable,
         executor = MoreExecutors.directExecutor(),
+        metrics = mock(),
       )
     val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()

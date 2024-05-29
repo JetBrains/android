@@ -62,7 +62,7 @@ class InspectorClientLauncher(
   private val notificationModel: NotificationModel,
   private val scope: CoroutineScope,
   private val parentDisposable: Disposable,
-  private val metrics: LayoutInspectorSessionMetrics? = null,
+  private val metrics: LayoutInspectorSessionMetrics,
   @VisibleForTesting executor: Executor? = null,
 ) {
   companion object {
@@ -213,7 +213,7 @@ class InspectorClientLauncher(
           override val process: ProcessDescriptor = process
           override val disposable: Disposable = parentDisposable
         }
-      metrics?.setProcess(process)
+      metrics.setProcess(process)
       for (clientFactory in clientFactories) {
         checkCancelled()
         val client = clientFactory.createClient(params)
@@ -240,7 +240,7 @@ class InspectorClientLauncher(
               processes.selectedProcess?.isRunning != true ||
                 processes.selectedProcess?.pid != process.pid
             ) {
-              metrics?.logEvent(
+              metrics.logEvent(
                 DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED,
                 client.stats,
               )
@@ -256,7 +256,7 @@ class InspectorClientLauncher(
           } catch (cancellationException: CancellationException) {
             // Disconnect to clean up any partial connection or leftover process
             client.disconnect()
-            metrics?.logEvent(
+            metrics.logEvent(
               DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_CANCELLED,
               client.stats,
             )

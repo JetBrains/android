@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices.ui
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -94,6 +95,7 @@ class SelectedTabStateTest {
         notificationModel,
         coroutineScope,
         displayViewRule.disposable,
+        metrics = mock(),
       )
 
     val fakeForegroundProcessDetection = FakeForegroundProcessDetection()

@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.pipeline
 
 import com.android.ddmlib.testing.FakeAdbRule
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.waitForCondition
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -84,6 +85,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -101,6 +103,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -135,6 +138,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -181,6 +185,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         launcherDisposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -242,6 +247,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -313,6 +319,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -369,6 +376,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -412,6 +420,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
         executor = MoreExecutors.directExecutor(),
       )
 
@@ -519,6 +528,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
       )
 
     processes.selectedProcess = process1
@@ -571,6 +581,7 @@ class InspectorClientLauncherTest {
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
         disposableRule.disposable,
+        metrics = mock(),
       )
 
     processes.selectedProcess = process1
