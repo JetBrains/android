@@ -8,7 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/testSrc/testApp" />
     </content>
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
-    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="layoutlib" level="project" />

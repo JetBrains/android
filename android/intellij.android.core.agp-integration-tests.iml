@@ -5,7 +5,7 @@
     <content url="file://$MODULE_DIR$/agpIntegrationTestSrc">
       <sourceFolder url="file://$MODULE_DIR$/agpIntegrationTestSrc" isTestSource="true" />
     </content>
-    <orderEntry type="library" name="studio-platform" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
