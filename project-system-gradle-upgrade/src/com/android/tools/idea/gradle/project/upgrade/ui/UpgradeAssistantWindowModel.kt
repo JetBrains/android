@@ -354,7 +354,7 @@ class UpgradeAssistantWindowModel(
     uiState.set(UIState.RunningBuild)
   }
 
-  override fun buildFinished(status: BuildStatus, context: BuildContext?) {
+  override fun buildFinished(status: BuildStatus, context: BuildContext) {
     uiState.set(stateBeforeBuild).also { refresh(true) }
   }
 

@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystemBuildManag
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.collect.EnumMultiset
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import org.junit.Assert.assertEquals
@@ -46,8 +47,10 @@ private class TestBuildResultListener(val buildManager: ProjectSystemBuildManage
   override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
     @Suppress("DEPRECATION")
     assertFalse(buildManager.isBuilding)
-    assertEquals("beforeBuildCompleted must be called before buildCompleted with the same result",
-                 beforeBuildCompletedResult, result)
+    assertEquals(
+      "beforeBuildCompleted must be called before buildCompleted with the same result",
+      beforeBuildCompletedResult, result
+    )
     completedBuilds.add(result)
 
     beforeBuildCompletedResult = null
@@ -59,17 +62,19 @@ private class TestBuildResultListener(val buildManager: ProjectSystemBuildManage
   }
 
   fun assertNoCalls() {
-    assertTrue("No calls expected but got $this",
-               completedBuilds.isEmpty()
-               && beforeBuildCompletedResult == null
-               && startedBuildMode.isEmpty())
+    assertTrue(
+      "No calls expected but got $this",
+      completedBuilds.isEmpty()
+        && beforeBuildCompletedResult == null
+        && startedBuildMode.isEmpty()
+    )
   }
 
-  fun completedBuildsDebugString(): String = completedBuilds.joinToString("\n") { "[${it.mode}] ${it.status}"}
+  fun completedBuildsDebugString(): String = completedBuilds.joinToString("\n") { "[${it.mode}] ${it.status}" }
 
   override fun toString(): String = "startedBuildMode = $startedBuildMode, " +
-                                    "beforeBuildCompletedResult = $beforeBuildCompletedResult, " +
-                                    "completedBuildsDebugString = ${completedBuildsDebugString()}"
+    "beforeBuildCompletedResult = $beforeBuildCompletedResult, " +
+    "completedBuildsDebugString = ${completedBuildsDebugString()}"
 }
 
 class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
@@ -97,11 +102,8 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
       .setMode(BuildMode.ASSEMBLE)
       .build()
-    ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
-      GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
-    }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
+    completer.buildFinished(BuildStatus.SUCCESS)
     assertEquals(
       ProjectSystemBuildManager.BuildStatus.SUCCESS,
       buildManager.getLastBuildResult().status
@@ -115,11 +117,8 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
       .setMode(BuildMode.ASSEMBLE)
       .build()
-    ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
-      GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
-    }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
+    completer.buildFinished(BuildStatus.SUCCESS)
     assertEquals(
       ProjectSystemBuildManager.BuildStatus.SUCCESS,
       buildManager.getLastBuildResult().status
@@ -135,11 +134,8 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
       .setMode(BuildMode.ASSEMBLE)
       .build()
-    ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
-      GradleBuildState.getInstance(project).buildFinished(BuildStatus.FAILED)
-    }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
+    completer.buildFinished(BuildStatus.FAILED)
     assertEquals(
       ProjectSystemBuildManager.BuildStatus.FAILED,
       buildManager.getLastBuildResult().status
@@ -155,11 +151,8 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("clean"))
       .setMode(BuildMode.CLEAN)
       .build()
-    ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
-      GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
-    }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
+    completer.buildFinished(BuildStatus.SUCCESS)
     assertEquals(
       ProjectSystemBuildManager.BuildStatus.SUCCESS,
       buildManager.getLastBuildResult().status
@@ -176,17 +169,9 @@ class GradleProjectSystemBuildManagerTest : HeavyPlatformTestCase() {
     val request = GradleBuildInvoker.Request.builder(project, projectDirOrFile.toFile(), listOf("assembleDebug"))
       .setMode(BuildMode.ASSEMBLE)
       .build()
-    ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
-    }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
+    val completer = GradleBuildState.getInstance(project).buildStarted(BuildContext(request))
     assertTrue(buildManager.isBuilding)
-
-    ApplicationManager.getApplication().invokeAndWait {
-      GradleBuildState.getInstance(project).buildFinished(BuildStatus.SUCCESS)
-    }
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    completer.buildFinished(BuildStatus.SUCCESS)
 
     assertFalse(buildManager.isBuilding)
   }

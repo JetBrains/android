@@ -51,9 +51,9 @@ private class GradleProjectSystemBuildPublisher(val project: Project): GradleBui
       .buildStarted(context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN)
   }
 
-  override fun buildFinished(status: BuildStatus, context: BuildContext?) {
+  override fun buildFinished(status: BuildStatus, context: BuildContext) {
     val result = ProjectSystemBuildManager.BuildResult(
-      context?.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN,
+      context.buildMode?.toProjectSystemBuildMode() ?: ProjectSystemBuildManager.BuildMode.UNKNOWN,
       status.toProjectSystemBuildStatus(),
       System.currentTimeMillis())
     project.messageBus.syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).beforeBuildCompleted(result)

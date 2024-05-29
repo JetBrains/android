@@ -237,7 +237,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         taskListener.onStart(id, gradleRootProjectPath)
         taskListener.onTaskOutput(id, executingTasksText + System.lineSeparator() + System.lineSeparator(), true)
         val buildState = GradleBuildState.getInstance(myProject!!)
-        buildState.buildStarted(BuildContext(myRequest))
+        val buildCompleter = buildState.buildStarted(BuildContext(myRequest))
         var buildAttributionManager: BuildAttributionManager? = null
         val enableBuildAttribution = isBuildAttributionEnabledForProject(myProject)
         try {
@@ -331,7 +331,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           } else {
             (operation as BuildLauncher).run()
           }
-          buildState.buildFinished(BuildStatus.SUCCESS)
+          buildCompleter.buildFinished(BuildStatus.SUCCESS)
           taskListener.onSuccess(id)
           val buildInfo: BasicBuildAttributionInfo?
           buildInfo = buildAttributionManager?.onBuildSuccess(myRequest)
@@ -349,10 +349,10 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             if (buildError != null) {
               buildAttributionManager?.onBuildFailure(myRequest)
               if (wasBuildCanceled(buildError)) {
-                buildState.buildFinished(BuildStatus.CANCELED)
+                buildCompleter.buildFinished(BuildStatus.CANCELED)
                 taskListener.onCancel(id)
               } else {
-                buildState.buildFinished(BuildStatus.FAILED)
+                buildCompleter.buildFinished(BuildStatus.FAILED)
                 val projectResolverChain = GradleProjectResolver.createProjectResolverChain()
                 val userFriendlyError = projectResolverChain.getUserFriendlyError(null, buildError, gradleRootProjectPath, null)
                 taskListener.onFailure(id, userFriendlyError)

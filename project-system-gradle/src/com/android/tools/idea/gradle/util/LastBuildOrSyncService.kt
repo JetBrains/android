@@ -53,8 +53,7 @@ internal class LastBuildOrSyncStartupActivity : AndroidStartupActivity {
   @UiThread
   override fun runActivity(project: Project, disposable: Disposable) {
     GradleBuildState.subscribe(project, object : GradleBuildListener.Adapter() {
-      override fun buildFinished(status: BuildStatus, context: BuildContext?) {
-        if (context == null) return
+      override fun buildFinished(status: BuildStatus, context: BuildContext) {
         val service = context.project.getService(LastBuildOrSyncService::class.java)
         service.lastBuildOrSyncTimeStamp = System.currentTimeMillis()
       }
