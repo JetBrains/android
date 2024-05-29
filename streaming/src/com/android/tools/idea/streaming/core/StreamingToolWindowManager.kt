@@ -333,6 +333,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     deviceClientRegistry.removeListener(this)
     contentManagers.clear()
     onToolWindowHidden()
+    RunningEmulatorCatalog.getInstance().removeListener(this)
   }
 
   @AnyThread

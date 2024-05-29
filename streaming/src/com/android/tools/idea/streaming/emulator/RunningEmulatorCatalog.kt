@@ -47,8 +47,6 @@ import java.util.regex.Pattern
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.io.path.deleteIfExists
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Keeps track of Android Emulators running on the local machine under the current user account.
@@ -115,8 +113,13 @@ class RunningEmulatorCatalog : Disposable.Parent {
       listeners = listeners.minus(listener)
       val interval = updateIntervalsByListener.removeLong(listener)
       if (interval == updateInterval) {
-        updateInterval = updateIntervalsByListener.object2LongEntrySet().minOf { it.longValue }
-        scheduleUpdate(updateInterval)
+        if (updateIntervalsByListener.isEmpty()) {
+          updateInterval = Long.MAX_VALUE
+        }
+        else {
+          updateInterval = updateIntervalsByListener.object2LongEntrySet().minOf { it.longValue }
+          scheduleUpdate(updateInterval)
+        }
       }
     }
   }
