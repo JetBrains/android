@@ -19,11 +19,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.Executor
-import com.intellij.execution.Executor.ActionWrapper
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.executors.DefaultRunExecutor
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.EmptyAction
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
 import javax.swing.Icon
@@ -45,24 +42,10 @@ class ProfileRunExecutor : DefaultRunExecutor() {
 
   override fun getHelpId(): String? = null
 
-  override fun isApplicable(project: Project): Boolean = CommonAndroidUtil.getInstance().isAndroidProject(project)
-
-  /**
-   * Wraps the original action so that it's only visible when the feature flag is true or if the project's system doesn't support profiling
-   * mode (e.g. Blaze).
-   */
-  override fun runnerActionsGroupExecutorActionCustomizer() = ActionWrapper { original ->
-    object : EmptyAction.MyDelegatingAction(original) {
-      override fun update(e: AnActionEvent) {
-        val isProfilingModeSupported = e.project?.getProjectSystem()?.supportsProfilingMode() ?: false
-        if (isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()) {
-          e.presentation.isEnabledAndVisible = false
-        }
-        else {
-          super.update(e)
-        }
-      }
-    }
+  override fun isApplicable(project: Project): Boolean {
+    val isProfilingModeSupported = project.getProjectSystem().supportsProfilingMode() == true
+    if (isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()) return false
+    return CommonAndroidUtil.getInstance().isAndroidProject(project)
   }
 
   companion object {
