@@ -528,30 +528,6 @@ public class AvdManagerConnection {
   }
 
   /**
-   * Create a directory under $ANDROID_SDK_ROOT where we can write
-   * temporary files.
-   *
-   * @return The directory file. This will be null if we
-   * could not find, create, or write the directory.
-   */
-  @Nullable
-  public static File tempFileDirectory() {
-    // Create a temporary file in /temp under $ANDROID_SDK_ROOT.
-    String androidSdkRootValue = System.getenv(ANDROID_SDK_ROOT_ENV);
-    if (androidSdkRootValue == null) {
-      // Fall back to the user's home directory
-      androidSdkRootValue = System.getProperty("user.home");
-    }
-    File tempDir = new File(androidSdkRootValue, "temp");
-    //noinspection ResultOfMethodCallIgnored
-    tempDir.mkdirs(); // Create if necessary
-    if (!tempDir.exists()) {
-      return null; // Give up
-    }
-    return tempDir;
-  }
-
-  /**
    * Creates a temporary file and write some parameters into it.
    * This is how we pass parameters to the Emulator (other than
    * on the command line).
@@ -567,11 +543,7 @@ public class AvdManagerConnection {
   public static File writeTempFile(@NotNull List<String> fileContents) {
     File tempFile = null;
     try {
-      File tempDir = tempFileDirectory();
-      if (tempDir == null) {
-        return null; // Fail
-      }
-      tempFile = FileUtil.createTempFile(tempDir, "emu", ".tmp", true);
+      tempFile = FileUtil.createTempFile("emu", ".tmp", true);
       tempFile.deleteOnExit(); // File disappears when Studio exits
       if (!tempFile.setReadable(false, false) || // Non-owner cannot read
           !tempFile.setReadable(true, true)) { // Owner can read

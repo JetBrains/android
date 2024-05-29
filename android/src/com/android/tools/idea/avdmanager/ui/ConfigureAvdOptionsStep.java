@@ -858,21 +858,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       File emuOutputFile = null;
 
       try {
-        // Get a temporary file for us to give parameters to the Emulator
-        tempDir = AvdManagerConnection.tempFileDirectory();
-        if (tempDir == null) {
-          return;
-        }
         try {
           // Get the name of a different temporary file for the Emulator to return parameters to us
-          emuOutputFile = File.createTempFile("emu_output_", ".tmp", tempDir);
+          emuOutputFile = File.createTempFile("emu_output_", ".tmp");
           // Tell the Emulator to use this second file
           String emuOutputFileInfo = "snapshotTempFile=" + emuOutputFile.getAbsolutePath();
           paramFile = AvdManagerConnection.writeTempFile(Collections.singletonList(emuOutputFileInfo));
         }
         catch (IOException ioEx) {
           Logger.getInstance(ConfigureAvdOptionsStep.class)
-            .info("Could not write temporary file to " + tempDir.getAbsolutePath(), ioEx);
+            .info("Could not create temporary file", ioEx);
           return;
         }
         if (paramFile == null) {
