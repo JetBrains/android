@@ -78,7 +78,6 @@ import com.android.tools.idea.projectsystem.CommonTestType
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.util.toVirtualFile
@@ -1533,7 +1532,7 @@ private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
 
   val sourceProviders = SourceProviders.getInstance(facet)
   val namedIdeaSourceProviders =
-    if (module.isLinkedAndroidModule() && module.isAndroidTestModule())
+    if (module.isAndroidTestModule())
       sourceProviders.currentDeviceTestSourceProviders[CommonTestType.ANDROID_TEST]
     else sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
 
