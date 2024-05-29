@@ -18,6 +18,8 @@
 
 #include <mutex>
 
+#include "agent.h"
+#include "flags.h"
 #include "jvm.h"
 #include "log.h"
 #include "service_manager.h"
@@ -34,8 +36,10 @@ void InputManager::InitializeStatics(Jni jni) {
     input_manager_ = ServiceManager::GetServiceAsInterface(jni, "input", "android/hardware/input/IInputManager");
     JClass input_manager_class = input_manager_.GetClass();
     inject_input_event_method_ = input_manager_class.GetMethod("injectInputEvent", "(Landroid/view/InputEvent;I)Z");
-    add_port_association_method_ = input_manager_class.GetMethod("addPortAssociation", "(Ljava/lang/String;I)V");
-    remove_port_association_method_ = input_manager_class.GetMethod("removePortAssociation", "(Ljava/lang/String;)V");
+    if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 30) {
+      add_port_association_method_ = input_manager_class.GetMethod("addPortAssociation", "(Ljava/lang/String;I)V");
+      remove_port_association_method_ = input_manager_class.GetMethod("removePortAssociation", "(Ljava/lang/String;)V");
+    }
     input_manager_.MakeGlobal();
   }
 }

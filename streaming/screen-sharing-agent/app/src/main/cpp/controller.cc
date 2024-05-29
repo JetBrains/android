@@ -378,7 +378,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
     return;
   }
 
-  if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT &&
+  if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 30 &&
       // TODO: Handle hover and scroll motion events using uinput.
       action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_HOVER_EXIT && action != AMOTION_EVENT_ACTION_SCROLL &&
       message.action_button() == 0 && message.button_state() == 0) {
@@ -508,7 +508,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
 
 void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
   nanoseconds event_time = UptimeNanos();
-  if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
+  if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 29) {
     InitializeVirtualKeyboard();
     int32_t action = message.action();
     virtual_keyboard_->WriteKeyEvent(
@@ -535,7 +535,7 @@ void Controller::ProcessKeyboardEvent(Jni jni, const KeyEventMessage& message) {
 
 void Controller::ProcessTextInput(const TextInputMessage& message) {
   nanoseconds event_time;
-  if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
+  if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 29) {
     event_time = UptimeNanos();
     InitializeVirtualKeyboard();
   }
@@ -549,7 +549,7 @@ void Controller::ProcessTextInput(const TextInputMessage& message) {
     auto len = event_array.GetLength();
     for (int i = 0; i < len; i++) {
       JObject key_event = event_array.GetElement(i);
-      if (Agent::feature_level() >= 29 && Agent::flags() & USE_UINPUT) {
+      if (Agent::flags() & USE_UINPUT && Agent::feature_level() >= 29) {
         virtual_keyboard_->WriteKeyEvent(KeyEvent::GetKeyCode(key_event), KeyEvent::GetAction(key_event), event_time);
       } else {
         if (Log::IsEnabled(Log::Level::DEBUG)) {
