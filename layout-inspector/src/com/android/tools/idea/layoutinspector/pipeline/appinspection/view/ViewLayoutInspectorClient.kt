@@ -34,7 +34,7 @@ import com.android.tools.idea.layoutinspector.snapshots.saveAppInspectorSnapshot
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.CaptureSnapshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.DisableBitmapScreenshotCommand
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.EnableBitmapScreenshotCommand
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.ErrorEvent
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Event
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.GetPropertiesCommand
@@ -252,10 +252,10 @@ class ViewLayoutInspectorClient(
     }
   }
 
-  suspend fun disableBitmapScreenshots(disable: Boolean) {
+  suspend fun enableBitmapScreenshots(enable: Boolean) {
     messenger.sendCommand {
-      disableBitmapScreenshotCommand =
-        DisableBitmapScreenshotCommand.newBuilder().apply { this.disable = disable }.build()
+      enableBitmapScreenshotCommand =
+        EnableBitmapScreenshotCommand.newBuilder().apply { this.enable = enable }.build()
     }
   }
 

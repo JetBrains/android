@@ -187,11 +187,11 @@ class AppInspectionInspectorClient(
         logEventToMetrics(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
         val debugViewAttributesDeferred = coroutineScope.async { enableDebugViewAttributes() }
-        val disabledBitmapScreenshotsDeferred = coroutineScope.async { disableBitmapScreenshots() }
+        val enableBitmapScreenshotsDeferred = coroutineScope.async { enableBitmapScreenshots() }
 
         // Perform setup operations in parallel.
         debugViewAttributesDeferred.await()
-        disabledBitmapScreenshotsDeferred.await()
+        enableBitmapScreenshotsDeferred.await()
 
         val viewUpdateDeferred = CompletableDeferred<Unit>()
         val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
@@ -221,9 +221,9 @@ class AppInspectionInspectorClient(
       }
   }
 
-  private suspend fun AppInspectionInspectorClient.disableBitmapScreenshots() {
-    if (inspectorClientSettings.disableBitmapScreenshot) {
-      disableBitmapScreenshots(true)
+  private suspend fun enableBitmapScreenshots() {
+    if (inspectorClientSettings.enableBitmapScreenshot) {
+      enableBitmapScreenshots(true)
     }
   }
 
@@ -336,9 +336,9 @@ class AppInspectionInspectorClient(
     viewInspector?.startFetching(continuous = true)
   }
 
-  private suspend fun disableBitmapScreenshots(disable: Boolean) {
-    // TODO(b/265150325) disableBitmapScreenshots to stats
-    viewInspector?.disableBitmapScreenshots(disable)
+  private suspend fun enableBitmapScreenshots(enable: Boolean) {
+    // TODO(b/265150325) enableBitmapScreenshots to stats
+    viewInspector?.enableBitmapScreenshots(enable)
   }
 
   override suspend fun stopFetching() {
