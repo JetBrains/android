@@ -31,7 +31,6 @@
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/resources" type="java-resource" />
     </content>
-    <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="module-library" scope="TEST">
