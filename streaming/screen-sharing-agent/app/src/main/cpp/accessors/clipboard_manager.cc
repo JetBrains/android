@@ -64,6 +64,10 @@ void ClipboardManager::SetText(const string& text) const {
   Log::D("ClipboardManager::SetText");
   JString jtext = JString(jni_, text.c_str());
   clipboard_adapter_class_.CallStaticVoidMethod(jni_, set_text_method_, jtext.ref(), jtext.ref());
+  JThrowable exception = jni_.GetAndClearException();
+  if (exception.IsNotNull()) {
+    Log::W(std::move(exception), "Unable to set clipboard text");
+  }
 }
 
 void ClipboardManager::AddClipboardListener(ClipboardListener* listener) {
