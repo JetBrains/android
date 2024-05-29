@@ -106,7 +106,12 @@ public final class GradleModelSource extends GradleModelProvider {
   @Override
   public GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject) {
     GradleSettingsModel settings = getSettingsModel(hostProject);
-    return new GradleVersionCatalogViewImpl(settings);
+    if (settings != null) {
+      return new GradleVersionCatalogViewImpl(settings);
+    }
+    else {
+      return new SimplifiedVersionCatalogViewImpl(hostProject);
+    }
   }
 
   @NotNull
