@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorCodeGenException
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorCompileCommandException
@@ -48,6 +49,7 @@ class LiveEditCompiler(val project: Project,
 
   private var desugarer = LiveEditDesugar()
   private val outputBuilder = LiveEditOutputBuilder(apkClassProvider)
+  private val outputBuilderWithAnalysis = LiveEditOutputBuilderWithBytecodeAnalysis(apkClassProvider)
   private val logger = LiveEditLogger("LE Compiler")
 
   /**
@@ -200,7 +202,11 @@ class LiveEditCompiler(val project: Project,
 
       // 3) Diff the newly generated class files from step 2 with the previously generated class files in order to decide which classes
       //    we want to send to the device along with what extra meta-information the agent needs.
-      outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
+      if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_BYTECODE_ANALYSIS.get()) {
+        outputBuilderWithAnalysis.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
+      } else {
+        outputBuilder.getGeneratedCode(file, generationState.factory.asList(), irClassCache, inlineCandidateCache, output)
+      }
       return@runWithCompileLock
     }
   }

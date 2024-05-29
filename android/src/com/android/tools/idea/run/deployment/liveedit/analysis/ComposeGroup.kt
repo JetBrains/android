@@ -28,28 +28,28 @@ private const val KEY_META_CONTAINER = "Landroidx/compose/runtime/internal/Funct
 // Annotation parameter name for the array of KeyMeta annotations
 private const val KEY_META_ARRAY = "value"
 
-data class FunctionKeyMeta(val key: Int, val range: TextRange)
+data class ComposeGroup(val key: Int, val range: TextRange)
 
-fun parseKeyMeta(keyMetaClass: IrClass): List<FunctionKeyMeta> {
+fun parseComposeGroups(keyMetaClass: IrClass): List<ComposeGroup> {
   val annotations = keyMetaClass.annotations.associateBy { it.desc }
 
   // Handle case of single @FunctionKeyMeta annotation
   if (annotations.containsKey(KEY_META)) {
-    return listOf(toFunctionKeyMeta(annotations[KEY_META]!!))
+    return listOf(toComposeGroup(annotations[KEY_META]!!))
   }
 
   val functionKeyMetaContainer = annotations[KEY_META_CONTAINER] ?: throw IllegalStateException()
-  val keyMetaList = mutableListOf<FunctionKeyMeta>()
+  val keyMetaList = mutableListOf<ComposeGroup>()
 
   (functionKeyMetaContainer.values[KEY_META_ARRAY] as List<*>).forEach {
     val annotation = it as IrAnnotation
-    keyMetaList.add(toFunctionKeyMeta(annotation))
+    keyMetaList.add(toComposeGroup(annotation))
   }
 
   return keyMetaList
 }
 
-private fun toFunctionKeyMeta(annotation: IrAnnotation): FunctionKeyMeta {
+private fun toComposeGroup(annotation: IrAnnotation): ComposeGroup {
   val range = TextRange.create(annotation.values["startOffset"] as Int, annotation.values["endOffset"] as Int)
-  return FunctionKeyMeta(annotation.values["key"] as Int, range)
+  return ComposeGroup(annotation.values["key"] as Int, range)
 }

@@ -609,7 +609,7 @@ public class LiveEditProjectMonitor implements Disposable {
     }
 
     final LiveEditDesugarResponse desugaredResponse = compiled.get();
-    event.setHasNonCompose(desugaredResponse.resetState());
+    event.setHasNonCompose(desugaredResponse.getHasNonComposeChanges());
 
     compileFinish = System.nanoTime();
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
@@ -770,15 +770,14 @@ public class LiveEditProjectMonitor implements Disposable {
     AdbClient adb = new AdbClient(device, LOGGER);
 
     boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
-    boolean resetState = update.resetState();
 
     int apiLevel = liveEditDevices.getInfo(device).getApp().getMinAPI();
     LiveUpdateDeployer.UpdateLiveEditsParam param =
       new LiveUpdateDeployer.UpdateLiveEditsParam(
         update.classes(apiLevel),
         update.supportClasses(apiLevel),
-        update.groupIds(),
-        !resetState,
+        update.getGroupIds(),
+        update.getInvalidateMode(),
         useDebugMode);
 
     LiveUpdateDeployer.UpdateLiveEditResult result = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,19 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationClinit
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationConstructor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedSourceModificationWhenEnumPath
+import com.android.tools.idea.run.deployment.liveedit.analysis.ComposeGroup
 import com.android.tools.idea.run.deployment.liveedit.analysis.RegularClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.SyntheticClassVisitor
+import com.android.tools.idea.run.deployment.liveedit.analysis.computeGroupTable
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.Differ
+import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.isInline
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAccessFlag
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
+import com.android.tools.idea.run.deployment.liveedit.analysis.parseComposeGroups
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.util.containers.addIfNotNull
 import org.jetbrains.kotlin.backend.common.output.OutputFile
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPINGS_CLASS_NAME_POSTFIX
 import org.jetbrains.kotlin.codegen.`when`.WhenByEnumsMapping.MAPPING_ARRAY_FIELD_PREFIX
@@ -41,52 +46,122 @@ import java.util.concurrent.TimeUnit
 private val logger = LogWrapper(Logger.getInstance(LiveEditOutputBuilder::class.java))
 private val debug = LiveEditLogger("LiveEditOutputBuilder")
 
-// PLEASE someone help me name this better
-internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvider) {
+// TODO: This is a direct copy of LiveEditOutputBuilder modified to use bytecode analysis for group selection
+//  This has been done to allow for a clean break between the paths that is toggled by a flag. When we are confident
+//  in this new path, the old version should be deleted and this duplication should be cleaned up
+internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassProvider: ApkClassProvider) {
+  // The outputs builder is *cumulative* and will include the outputs from *all previously compiled files* during this LiveEdit operation
+  // Be extremely careful if you use the state inside the outputs object for any reason (or better yet, don't) - it's very easy to
+  // inadvertently re-process classes and break things, especially when running in manual mode
+  // TODO: Refactor this pattern so this isn't a thing that can happen
   internal fun getGeneratedCode(sourceFile: KtFile,
                                 compiledFiles: List<OutputFile>,
                                 irCache: IrClassCache,
                                 inlineCandidateCache: SourceInlineCandidateCache,
                                 outputs: LiveEditCompilerOutput.Builder) {
     val startTimeNs = System.nanoTime()
-    val outputFiles = compiledFiles.filter { it.relativePath.endsWith(".class") }
+    val classFiles = compiledFiles.filter { it.relativePath.endsWith(".class") }
 
-    if (outputFiles.isEmpty()) {
+    if (classFiles.isEmpty()) {
       throw LiveEditUpdateException.internalErrorNoCompilerOutput(sourceFile)
     }
 
-    val keyMetaFiles = outputFiles.filter(::isKeyMeta)
+    val keyMetaFiles = classFiles.filter(::isKeyMeta)
     if (keyMetaFiles.size > 1) {
       throw IllegalStateException("Multiple KeyMeta files Found: $keyMetaFiles")
     }
 
     val keyMetaClass = keyMetaFiles.singleOrNull()?.let{ IrClass(it.asByteArray()) }
-    val groups = if (keyMetaClass != null) { extractComposeGroups(sourceFile, keyMetaClass) } else { emptyList() }
+    val groups = if (keyMetaClass != null) { parseComposeGroups(keyMetaClass) } else { emptyList() }
 
-    for (classFile in outputFiles) {
-      if (isKeyMeta(classFile)) {
-        continue
+    val irClasses = mutableListOf<IrClass>()
+    val modifiedMethods = mutableListOf<IrMethod>()
+    val requiresReinit = mutableListOf<IrClass>()
+    for (classFile in classFiles.filterNot { it in keyMetaFiles }) {
+      val changes = handleClassFile(classFile, sourceFile, irCache, inlineCandidateCache, outputs)
+      irClasses.add(changes.clazz)
+
+      modifiedMethods.addAll(changes.modifiedMethods)
+      if (changes.requiresReinit) {
+        requiresReinit.add(changes.clazz)
       }
-      val newClass = handleClassFile(classFile, sourceFile, groups, irCache, inlineCandidateCache, outputs)
-      outputs.addIrClass(newClass)
+    }
+
+    val groupTable = computeGroupTable(irClasses, groups)
+    debug.log("$groupTable")
+
+    // If a Composable lambda is created in a non-Compose context, re-instantiating it requires restarting the activity. The most common
+    // occurrence of this is a lambda passed to setContent() inside the onCreate() method of a Compose activity
+    for (clazz in requiresReinit.filter { it in groupTable.lambdaGroups }) {
+      val parent = groupTable.lambdaParents[clazz]!!
+      if (groupTable.getComposeGroup(parent) == null) {
+        logger.info("LiveEdit will restart activity because ${clazz.name} needs reinitialization in ${groupTable.lambdaParents[clazz]}")
+        outputs.invalidateMode = InvalidateMode.RESTART_ACTIVITY
+        break
+      }
+    }
+
+    val groupsToInvalidate = mutableListOf<ComposeGroup>()
+    for (method in modifiedMethods) {
+      // Don't bother checking if we're already restarting the activity
+      if (outputs.invalidateMode == InvalidateMode.RESTART_ACTIVITY) {
+        break
+      }
+
+      // If we have method changes but no group information, the best we can do is a save and load
+      if (groups.isEmpty()) {
+        outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
+        break
+      }
+
+      // Restart lambdas are a cached lambda held by Compose. They are invoked to re-run the body of a Composable function during
+      // invalidation. Because they are cached, if they require re-instantiation (due to parameter or interface changes), their parent scope
+      // needs to be invalidated. Since we have no way to determine the set of all parent scopes (every caller of the Composable function),
+      // we need to throw away the entire tree.
+      // TODO: Current Compose versions may resolve this for us, but until we verify which versions and the exact fix, this is sufficient
+      if (method.clazz in groupTable.restartLambdas) {
+        logger.info("LiveEdit will fully invalidate the tree because ${method.clazz.name} has changed and is a restart lambda")
+        outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
+        break
+      }
+
+      val group = groupTable.getComposeGroup(method)
+
+      // Changes to non-composable methods require activity restart to ensure we re-run the changes. The ComposableSingletons class is not
+      // directly associated with a group but is a special case.
+      if (group == null && !method.clazz.name.contains("ComposableSingletons$")) {
+        logger.info("LiveEdit will restart activity due to non-Compose changes in $method")
+        outputs.invalidateMode = InvalidateMode.RESTART_ACTIVITY
+        outputs.hasNonComposeChanges = true
+        break
+      }
+
+      groupsToInvalidate.addIfNotNull(group)
+    }
+
+    if (outputs.invalidateMode == InvalidateMode.INVALIDATE_GROUPS) {
+      groupsToInvalidate.forEach { outputs.addGroupId(it.key) }
     }
 
     val durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs)
     debug.log("Class file analysis ran in ${durationMs}ms")
   }
 
+  private data class ChangeInfo(val clazz: IrClass, val modifiedMethods: List<IrMethod>, val requiresReinit: Boolean)
+
   private fun handleClassFile(classFile: OutputFile,
                               sourceFile: KtFile,
-                              groups: List<ComposeGroup>,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
-                              output: LiveEditCompilerOutput.Builder): IrClass {
+                              output: LiveEditCompilerOutput.Builder): ChangeInfo {
     val classBytes = classFile.asByteArray()
     val newClass = IrClass(classBytes)
     val oldClass = irCache[newClass.name] ?: run {
       logger.info("Live Edit: No cache entry for ${newClass.name}; using the APK for class diff")
       apkClassProvider.getClass(sourceFile, newClass.name)
     }
+
+    output.addIrClass(newClass)
 
     val isFirstDiff = newClass.name !in irCache
     val classType = if (isSyntheticClass(newClass)) LiveEditClassType.SUPPORT_CLASS else LiveEditClassType.NORMAL_CLASS
@@ -100,14 +175,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
       output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
 
-      if (groups.isEmpty()) {
-        output.invalidateMode = InvalidateMode.SAVE_AND_LOAD
-        output.hasNonComposeChanges = true
-        return newClass
-      }
-
-      selectComposeGroups(sourceFile, groups, newClass.methods).forEach { output.addGroupId(it.key) }
-      return newClass
+      return ChangeInfo(newClass, newClass.methods, false)
     }
 
     val diff = Differ.diff(oldClass, newClass)
@@ -122,18 +190,22 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
 
     // If we have no diff, we don't need to check for incompatible changes or resolve group IDs.
     if (diff == null) {
-      return newClass
+      return ChangeInfo(newClass, emptyList(), false)
     }
 
     // Run validation on the class and get a list of method diffs containing all modified methods
-    val modifiedMethods = if (classType == LiveEditClassType.SUPPORT_CLASS) {
+    val modifiedMethods: List<MethodDiff>
+    val requiresReinit: Boolean
+    if (classType == LiveEditClassType.SUPPORT_CLASS) {
       val validator = SyntheticClassVisitor(newClass.name)
       diff.accept(validator)
-      validator.modifiedMethods
+      modifiedMethods = validator.modifiedMethods
+      requiresReinit = validator.requiresReinit
     } else {
       val validator = RegularClassVisitor(newClass.name, logger)
       diff.accept(validator)
-      validator.modifiedMethods
+      modifiedMethods = validator.modifiedMethods
+      requiresReinit = false
     }
 
     if (classType == LiveEditClassType.SUPPORT_CLASS && isWhenMapping(newClass)) {
@@ -155,18 +227,7 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
       modifiedIrMethods.add(irMethod)
     }
 
-    // Skip group ID resolution if the user's change modified any non-composable methods. Generated classes may not have @Composable
-    // annotations, so still perform group ID resolution in that case. Also skip if we don't have any groups.
-    val modifiedNonCompose = classType == LiveEditClassType.NORMAL_CLASS && modifiedIrMethods.any { !isComposableMethod(it) }
-    if (modifiedNonCompose || groups.isEmpty()) {
-      output.invalidateMode = InvalidateMode.SAVE_AND_LOAD
-      output.hasNonComposeChanges = true
-      return newClass
-    }
-
-    debug.log("select groups for ${newClass.name}")
-    selectComposeGroups(sourceFile, groups, modifiedIrMethods).forEach { output.addGroupId(it.key) }
-    return newClass
+    return ChangeInfo(newClass, modifiedIrMethods, requiresReinit)
   }
 }
 
@@ -181,9 +242,9 @@ internal class LiveEditOutputBuilder(private val apkClassProvider: ApkClassProvi
  */
 private fun isSyntheticClass(clazz: IrClass): Boolean {
   if (clazz.superName == "kotlin/jvm/internal/Lambda" ||
-      clazz.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
-      clazz.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
-      clazz.name.contains("ComposableSingletons\$")) {
+    clazz.superName == "kotlin/coroutines/jvm/internal/SuspendLambda" ||
+    clazz.superName == "kotlin/coroutines/jvm/internal/RestrictedSuspendLambda" ||
+    clazz.name.contains("ComposableSingletons\$")) {
     return true
   }
 
@@ -195,10 +256,10 @@ private fun isSyntheticClass(clazz: IrClass): Boolean {
   if (clazz.enclosingMethod != null && clazz.interfaces.size == 1) {
     val publicMethods = clazz.methods.filter {
       it.access.contains(IrAccessFlag.PUBLIC) &&
-      !it.access.contains(IrAccessFlag.SYNTHETIC) &&
-      !it.access.contains(IrAccessFlag.BRIDGE) &&
-      !it.access.contains(IrAccessFlag.STATIC) &&
-      it.name != SpecialNames.INIT.asString()
+        !it.access.contains(IrAccessFlag.SYNTHETIC) &&
+        !it.access.contains(IrAccessFlag.BRIDGE) &&
+        !it.access.contains(IrAccessFlag.STATIC) &&
+        it.name != SpecialNames.INIT.asString()
     }
     if (publicMethods.size == 1) {
       return true
@@ -248,7 +309,4 @@ private fun checkForInit(irClass: IrClass, irMethod: IrMethod, throwOnFail: Bool
 
 private fun isKeyMeta(classFile: OutputFile) = classFile.relativePath.endsWith("\$KeyMeta.class")
 
-
 private fun isNonPrivateInline(method: IrMethod) = method.isInline() && !method.access.contains(IrAccessFlag.PRIVATE)
-
-private fun isComposableMethod(method: IrMethod) = method.annotations.any { it.desc == "Landroidx/compose/runtime/Composable;" }

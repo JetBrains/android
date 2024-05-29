@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.tools.deploy.proto.Deploy.LiveEditRequest.InvalidateMode
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.analysis.createKtFile
 import com.android.tools.idea.run.deployment.liveedit.analysis.diff
@@ -55,6 +56,7 @@ class ComposableCompileTest {
 
   @Before
   fun setUp() {
+    LiveEditAdvancedConfiguration.getInstance().useDebugMode = true
     setUpComposeInProjectFixture(projectRule)
     disableLiveEdit()
   }
@@ -68,22 +70,20 @@ class ComposableCompileTest {
   fun simpleComposeChange() {
     val file = projectRule.createKtFile("ComposeSimple.kt", """
       import androidx.compose.runtime.Composable
-      @Composable fun composableFun() : String {
-        var str = "hi"
-        return str
+      @Composable fun composableFun() {
+        var word = "Hello"
       }
-      @Composable fun composableFun2() : String {
-        return "hi2"
+      @Composable fun composableFun2() {
+        var word = "World"
       }""")
     val cache = projectRule.initialCache(listOf(file))
     projectRule.modifyKtFile(file, """
       import androidx.compose.runtime.Composable
-      @Composable fun composableFun() : String {
-        var str = "hello"
-        return str
+      @Composable fun composableFun() {
+        var word = "Hi!!"
       }
-      @Composable fun composableFun2() : String {
-        return "hi2"
+      @Composable fun composableFun2() {
+        var word = "World"
       }""")
     val output = compile(file, cache)
     // We can't really invoke any composable without a "host". Normally that host will be the
@@ -92,7 +92,7 @@ class ComposableCompileTest {
     // compose compiler was invoked correctly, we can just check the output's methods.
     Assert.assertTrue(output.classesMap["ComposeSimpleKt"]!!.isNotEmpty())
 
-    Assert.assertEquals(1639534479, output.groupIds.first())
+    Assert.assertEquals(-1332540612, output.groupIds.first())
 
     val c = loadClass(output)
     var foundFunction = false;
@@ -108,7 +108,10 @@ class ComposableCompileTest {
   fun simpleComposeNested() {
     val file = projectRule.createKtFile("ComposeNested.kt" , """
       import androidx.compose.runtime.Composable
-      @Composable // group -1050554150
+      @Composable
+      fun caller() {
+        composableNested()(0)
+      }
       fun composableNested(): @Composable (Int) -> Unit {
         return { } // group 22704048
       }""")
@@ -116,12 +119,14 @@ class ComposableCompileTest {
     projectRule.modifyKtFile(file, """
       import androidx.compose.runtime.Composable
       @Composable
+      fun caller() {
+        composableNested()(1)
+      }
       fun composableNested(): @Composable (Int) -> Unit {
-        val x = 0
         return { val y = 0 }
       }""")
     val output = compile(file, cache)
-    Assert.assertTrue(-1050554150 in output.groupIds)
+    Assert.assertTrue(-1369675262 in output.groupIds)
     Assert.assertTrue(22704048 in output.groupIds)
   }
 
@@ -178,7 +183,7 @@ class ComposableCompileTest {
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(1639534479))
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1050554150))
     Assert.assertTrue("groupids = " + output.groupIds.toString(), output.groupIds.contains(-1350204187))
-    Assert.assertFalse(output.resetState) // Compose only edits should not request for a full state reset.
+    Assert.assertEquals(InvalidateMode.INVALIDATE_GROUPS, output.invalidateMode) // Compose only edits should not request for a full state reset.
   }
 
   @Test
@@ -197,7 +202,7 @@ class ComposableCompileTest {
 
     var output = compile(file, cache)
     Assert.assertEquals(-785806172, output.groupIds.first())
-    Assert.assertFalse(output.resetState)
+    Assert.assertEquals(InvalidateMode.INVALIDATE_GROUPS, output.invalidateMode)
 
     val editNonComposable = projectRule.fixture.configureByText("Mixed.kt", """
      import androidx.compose.runtime.Composable
@@ -208,7 +213,7 @@ class ComposableCompileTest {
     output = compile(editNonComposable, cache)
     // Editing a normal Kotlin function should not result any group IDs. Instead, it should manually trigger a full state reset every edit.
     Assert.assertTrue(output.groupIds.isEmpty())
-    Assert.assertTrue(output.resetState)
+    Assert.assertEquals(InvalidateMode.RESTART_ACTIVITY, output.invalidateMode)
   }
 
   @Test

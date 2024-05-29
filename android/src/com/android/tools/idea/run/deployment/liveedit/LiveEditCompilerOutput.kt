@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.deploy.proto.Deploy.LiveEditRequest.InvalidateMode
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.intellij.openapi.module.Module
 
@@ -27,8 +28,9 @@ internal class LiveEditCompiledClass(val name: String, var data: ByteArray, val 
 
 data class LiveEditCompilerOutput internal constructor (internal val classes: List<LiveEditCompiledClass> = emptyList(),
                                                         val irClasses: List<IrClass> = emptyList(),
-                                                        val groupIds: List<Int> = emptyList(),
-                                                        val resetState: Boolean = false) {
+                                                        val groupIds: Set<Int> = emptySet(),
+                                                        val invalidateMode: InvalidateMode = InvalidateMode.INVALIDATE_GROUPS,
+                                                        val hasNonComposeChanges: Boolean = false) {
 
   private fun getMap(type: LiveEditClassType) : Map<String, ByteArray> {
     val map : MutableMap<String, ByteArray> = HashMap()
@@ -44,13 +46,24 @@ data class LiveEditCompilerOutput internal constructor (internal val classes: Li
   val classesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(LiveEditClassType.NORMAL_CLASS)}
   val supportClassesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(LiveEditClassType.SUPPORT_CLASS)}
 
-
-  internal class Builder(
-    var classes: MutableList<LiveEditCompiledClass> = ArrayList(),
-    val groupIds: MutableSet<Int> = mutableSetOf(),
-    var resetState: Boolean = false) {
-
+  internal class Builder {
+    private val classes = mutableListOf<LiveEditCompiledClass>()
+    private val groupIds = mutableSetOf<Int>()
     private val irClasses = mutableListOf<IrClass>()
+
+    var invalidateMode = InvalidateMode.INVALIDATE_GROUPS
+      set(value) {
+        if (value > field) {
+          field = value
+        }
+      }
+
+    var hasNonComposeChanges = false
+      set(value) {
+        if (value) {
+          field = true
+        }
+      }
 
     fun addClass(clazz: LiveEditCompiledClass) : Builder {
       classes.add(clazz)
@@ -67,6 +80,6 @@ data class LiveEditCompilerOutput internal constructor (internal val classes: Li
       return this
     }
 
-    fun build() = LiveEditCompilerOutput(classes, irClasses, groupIds.toList(), resetState)
+    fun build() = LiveEditCompilerOutput(classes, irClasses, groupIds, invalidateMode, hasNonComposeChanges)
   }
 }

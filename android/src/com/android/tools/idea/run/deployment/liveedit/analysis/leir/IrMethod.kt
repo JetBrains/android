@@ -18,18 +18,20 @@ package com.android.tools.idea.run.deployment.liveedit.analysis.leir
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
+import org.objectweb.asm.tree.analysis.Analyzer
+import org.objectweb.asm.tree.analysis.BasicInterpreter
+import org.objectweb.asm.tree.analysis.BasicValue
 
-class IrMethod(node: MethodNode, parent: ClassNode) {
+class IrMethod(val clazz: IrClass, val node: MethodNode) {
   val name: String = node.name
   val desc: String = node.desc
   val access = parseAccess(node.access)
   val signature: String? = node.signature
-  val isOverloadedWithinTheClass = parent.methods.count { it.name.equals(node.name) } > 1
 
   fun getReadableDesc() : String {
-    if (isOverloadedWithinTheClass) {
-      var type = Type.getMethodType(desc)
-      var param = type.argumentTypes.joinToString { it.className }
+    if (clazz.methods.count { it.name == name } > 1) {
+      val type = Type.getMethodType(desc)
+      val param = type.argumentTypes.joinToString { it.className }
       return shortClassName(type.returnType.className) + " " + name + "(" + shortClassName(param) + ")"
     } else {
       return name
@@ -59,6 +61,10 @@ class IrMethod(node: MethodNode, parent: ClassNode) {
   // - visibleTypeAnnotations
   // - visibleAnnotableParameterCount
   // - invisibleAnnotableParameterCount
+
+  override fun toString(): String {
+    return "${clazz.name}.$name$desc"
+  }
 }
 
 private fun shortClassName(name: String) : String {

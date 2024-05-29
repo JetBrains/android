@@ -1286,6 +1286,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_BYTECODE_ANALYSIS = new BooleanFlag(
+    COMPOSE, "deploy.live.edit.deploy.bytecode.analysis",
+    "LiveEdit: Determine which group IDs to invalidate using bytecode analysisr.",
+    "If enabled, compiler output in LE will be analyzed with ASM during the group selection step",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CONFINED_ANALYSIS = new BooleanFlag(
     COMPOSE, "deploy.live.edit.deploy.confined.analysis",
     "LiveEdit: Limit compilation error analysis to only the current file",
