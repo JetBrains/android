@@ -34,7 +34,7 @@ class AddDeviceWizardTest {
   fun apiLevel() {
     val source = TestDeviceSource()
     TestDevices.allTestDevices.forEach(source::add)
-    val wizard = TestComposeWizard { AddDeviceInitialPage(listOf(source)) }
+    val wizard = TestComposeWizard { DeviceGridPage(listOf(source)) }
     composeTestRule.setContent { JewelTestTheme { wizard.Content() } }
 
     composeTestRule.onNodeWithText("Newest on device").performClick()
