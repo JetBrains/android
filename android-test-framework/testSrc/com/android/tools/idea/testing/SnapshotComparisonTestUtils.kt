@@ -81,17 +81,17 @@ private fun SnapshotComparisonTest.assertInSnapshotTextContext() = Truth.assert_
     unzip -d $(bazel info workspace) -o outputs.zip
 
   For a local bazel invocation, outputs.zip will be in bazel-testlogs:
-    unzip -d $(bazel info workspace) -o \\
+    unzip -d $(bazel info workspace) -o \
       $(bazel info bazel-testlogs)/${testLogsPath ?: "<bazel test target for ${getName()}>"}/test.outputs/outputs.zip
 
   Or, to re-run the test and update the expectations in place, either add -DUPDATE_TEST_SNAPSHOTS
   to the jvm options in the idea test configuration and re-run the test, or from bazel, run:
-    bazel test ${System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() } ?: "<bazel test target for ${getName()}>"} \\
-      --nocache_test_results \\
-      --sandbox_writable_path=${'$'}(bazel info workspace) \\
-      --strategy=TestRunner=standalone \\
-      --jvmopt=\"-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)\" \\
-      --test_timeout=6000 \\
+    bazel test ${System.getenv("TEST_TARGET")?.takeIf { it.isNotEmpty() } ?: "<bazel test target for ${getName()}>"} \
+      --nocache_test_results \
+      --sandbox_writable_path=${'$'}(bazel info workspace) \
+      --strategy=TestRunner=standalone \
+      --jvmopt=\"-DUPDATE_TEST_SNAPSHOTS=$(bazel info workspace)\" \
+      --test_timeout=6000 \
       --test_output=streamed
 
   NB: All the commands above assume 'tools/base/bazel' is on your path.
