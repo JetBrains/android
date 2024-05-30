@@ -21,10 +21,9 @@ import com.android.tools.idea.gradle.project.sync.gradle.CaptureType
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementCheckpoint
 import com.android.tools.idea.gradle.project.sync.gradle.MeasurementPluginConfig
 import com.android.tools.idea.gradle.project.sync.memory.OUTPUT_DIRECTORY
-import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
+import com.android.tools.perflogger.EDivisiveAnalyzer
 import com.android.tools.perflogger.Metric
-import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.intellij.openapi.project.Project
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -40,21 +39,7 @@ val CPU_BENCHMARK = Benchmark.Builder("Cpu time")
   .setProject("Android Studio Sync Test")
   .build()
 
-private val ANALYZER = listOf(
-  WindowDeviationAnalyzer.Builder()
-    .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
-    // This means, out of last 100 runs, only consider the last 50 "recent", including the current one.
-    // The rest is "historic". The analyzer works by compares the set of recent values and historic values
-    .setRunInfoQueryLimit(100)
-    .setRecentWindowSize(50)
-    .addMedianTolerance(
-      WindowDeviationAnalyzer.MedianToleranceParams.Builder()
-        .setConstTerm(0.0)
-        .setMadCoeff(0.0)
-        .setMedianCoeff(0.05) // flag 5% regressions
-        .build())
-    .build()
-)
+private val ANALYZER = listOf(EDivisiveAnalyzer)
 
 private data class TimestampedMeasurement(val timestamp: Instant, val measurement: Duration, val analyzed: Boolean)
 

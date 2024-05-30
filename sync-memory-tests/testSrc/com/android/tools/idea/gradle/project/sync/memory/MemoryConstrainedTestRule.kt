@@ -19,27 +19,16 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.cpu.CPU_BENCHMARK
 import com.android.tools.idea.gradle.project.sync.gradle.EventRecorder.GC_COLLECTION_TIME_FILE_NAME_SUFFIX
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
-import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Metric
-import com.android.tools.perflogger.WindowDeviationAnalyzer
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.delay
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices
 import org.junit.rules.ExternalResource
 import java.io.File
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 class MemoryConstrainedTestRule(
   private val projectName: String,
