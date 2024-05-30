@@ -29,8 +29,10 @@ import com.android.tools.idea.uibuilder.actions.DrawableBackgroundType
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
+import com.android.tools.idea.uibuilder.surface.sizepolicy.ContentSizePolicy
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.util.Disposer
+import java.awt.Dimension
 import java.awt.image.BufferedImage
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -68,7 +70,11 @@ class DrawableBackgroundLayerTest {
           ScreenView(
             mockDesignSurface,
             mockLayoutlibSceneManager,
-            { _, outDimension -> outDimension.setSize(300, 200) },
+            object : ContentSizePolicy {
+              override fun measure(screenView: ScreenView, outDimension: Dimension) {
+                outDimension.setSize(300, 200)
+              }
+            },
           ) {
           override val scale: Double
             get() = 1.0

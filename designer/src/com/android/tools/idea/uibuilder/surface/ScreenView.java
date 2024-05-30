@@ -37,12 +37,11 @@ import com.android.tools.idea.uibuilder.surface.layer.BorderLayer;
 import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
 import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer;
 import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
+import com.android.tools.idea.uibuilder.surface.sizepolicy.ContentSizePolicy;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.rendering.RenderResult;
-import com.android.tools.rendering.imagepool.ImagePool;
 import com.google.common.collect.ImmutableList;
-import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -54,29 +53,6 @@ import org.jetbrains.annotations.TestOnly;
  * This is actually painted by {@link ScreenViewLayer}.
  */
 public class ScreenView extends ScreenViewBase {
-  /**
-   * Policy for determining the content size of a {@link ScreenView}.
-   */
-  public interface ContentSizePolicy {
-    /**
-     * Called by the {@link ScreenView} when it needs to be measured.
-     * @param screenView The {@link ScreenView} to measure.
-     * @param outDimension A {@link Dimension} to return the size.
-     */
-    void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension);
-
-    /**
-     * Called by the {@link ScreenView} when it needs to check the content size.
-     * @return true if content size is determined.
-     */
-    default boolean hasContentSize(@NotNull ScreenView screenView) {
-      if (!screenView.isVisible()) {
-        return false;
-      }
-      RenderResult result = screenView.getSceneManager().getRenderResult();
-      return result != null && !isErrorResult(result);
-    }
-  }
 
   /**
    * {@link ContentSizePolicy} that uses the device configuration size.
@@ -361,17 +337,7 @@ public class ScreenView extends ScreenViewBase {
     return myHasBorderLayer;
   }
 
-  /**
-   * Returns if the given {@link RenderResult} is for an error in Layoutlib.
-   */
-  private static boolean isErrorResult(@NotNull RenderResult result) {
-    // If the RenderResult does not have an image, then we probably have an error. If we do, Layoutlib will
-    // sometimes return images of 1x1 when exceptions happen. Try to determine if that's the case here.
-    ImagePool.Image image = result.getRenderedImage();
-    return result.getLogger().hasErrors() &&
-           (!image.isValid() ||
-            image.getWidth() * image.getHeight() < 2);
-  }
+
 
   @Override
   public boolean hasContentSize() {

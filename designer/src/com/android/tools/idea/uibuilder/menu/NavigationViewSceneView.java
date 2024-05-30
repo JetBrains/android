@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.menu;
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.android.tools.idea.uibuilder.surface.sizepolicy.ContentSizePolicy;
 import com.android.tools.rendering.RenderResult;
 import java.awt.Dimension;
 import java.util.List;
@@ -34,7 +35,7 @@ public final class NavigationViewSceneView {
    * Returns the size of the NavigationView view object. The sizes of these SceneViews usually match the size of the device in the
    * configuration.
    */
-  public static final ScreenView.ContentSizePolicy CONTENT_SIZE_POLICY = new ScreenView.ContentSizePolicy() {
+  public static final ContentSizePolicy CONTENT_SIZE_POLICY = new ContentSizePolicy() {
     @Override
     public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
       RenderResult result = screenView.getResult();
