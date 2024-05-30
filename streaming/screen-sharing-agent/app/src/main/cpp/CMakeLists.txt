@@ -51,6 +51,7 @@ add_library(
         string_printf.cc
         string_util.cc
         surface.cc
+        token_iterator.cc
         ui_settings.cc
         ui_settings_state.cc
         video_packet_header.cc
