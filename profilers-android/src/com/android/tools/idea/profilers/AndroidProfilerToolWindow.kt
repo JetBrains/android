@@ -192,7 +192,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   private fun initializeProfilerTab() {
-    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, ideProfilerComponents)
+    profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, window,
+                                                                                                      ideProfilerComponents, project)
     else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
     Disposer.register(this, profilersTab)
 
