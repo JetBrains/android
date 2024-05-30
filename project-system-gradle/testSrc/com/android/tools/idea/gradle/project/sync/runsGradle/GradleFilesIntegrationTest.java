@@ -526,7 +526,7 @@ public class GradleFilesIntegrationTest extends AndroidGradleTestCase {
 
     FileEditorManager mockManager = mock(FileEditorManager.class);
 
-    myGradleFiles.getFileEditorListener().selectionChanged(new FileEditorManagerEvent(mockManager, null, null, file, null));
+    myGradleFiles.getFileEditorListener().selectionChanged(new FileEditorManagerEvent(mockManager, null, null, null, file, null, null));
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(getProject());
 

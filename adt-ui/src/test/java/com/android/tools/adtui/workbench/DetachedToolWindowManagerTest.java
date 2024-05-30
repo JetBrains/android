@@ -44,6 +44,7 @@ import java.awt.KeyboardFocusManager;
 import java.util.Collections;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
@@ -194,8 +195,8 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     verify(myDetachedToolWindow1a).hide();
     verify(myDetachedToolWindow2a).show(eq(myAttachedToolWindow2a));
 
-    FileEditorManagerEvent event1 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor1);
-    FileEditorManagerEvent event2 = new FileEditorManagerEvent(myEditorManager, null, null, null, myFileEditor2);
+    FileEditorManagerEvent event1 = createEvent(myFileEditor1);
+    FileEditorManagerEvent event2 = createEvent(myFileEditor2);
 
     myListener.selectionChanged(event1);
     UIUtil.dispatchAllInvocationEvents();
@@ -212,6 +213,17 @@ public class DetachedToolWindowManagerTest extends WorkBenchTestCase {
     UIUtil.dispatchAllInvocationEvents();
     verify(myDetachedToolWindow1a, times(3)).hide();
     verify(myDetachedToolWindow2a, times(2)).hide();
+  }
+
+  private @NotNull FileEditorManagerEvent createEvent(FileEditor fileEditor1) {
+    return new FileEditorManagerEvent(
+      myEditorManager,
+      null,
+      null,
+      null,
+      null,
+      fileEditor1,
+      null);
   }
 
   @SuppressWarnings("unchecked")
