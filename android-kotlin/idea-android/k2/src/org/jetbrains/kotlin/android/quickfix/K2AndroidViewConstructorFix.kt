@@ -85,7 +85,7 @@ class K2AndroidViewConstructorFix(
 
         }
 
-        private fun KtAnalysisSession.classId(type: KtType): ClassId? = type.expandedClassSymbol?.classIdIfNonLocal
+        private fun KtAnalysisSession.classId(type: KtType): ClassId? = type.expandedClassSymbol?.classId
         private fun KtAnalysisSession.isAndroidView(type: KtType): Boolean =
             classId(type) == KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE
     }

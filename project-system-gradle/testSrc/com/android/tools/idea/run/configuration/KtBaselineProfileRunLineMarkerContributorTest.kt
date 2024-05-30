@@ -25,7 +25,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.RunsInEdt
 import junit.framework.TestCase.assertNull
 import org.jetbrains.kotlin.analysis.api.KtAnalysisApiInternals
-import org.jetbrains.kotlin.analysis.api.lifetime.KtReadActionConfinementLifetimeToken
+import org.jetbrains.kotlin.analysis.api.permissions.KaAnalysisPermissionRegistry
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -66,9 +66,9 @@ class KtBaselineProfileRunLineMarkerContributorTest {
 
     StudioFlags.GENERATE_BASELINE_PROFILE_GUTTER_ICON.override(true)
 
-    // BaselineProfileRunLineMarkerContributor utilizes KtAnalysisSession that is not allowed to run on edt.
+    // BaselineProfileRunLineMarkerContributor utilizes `KaSession` that is not allowed to run on edt.
     // Since this is a test, we can enable this here.
-    KtReadActionConfinementLifetimeToken.allowOnEdt.set(true)
+    KaAnalysisPermissionRegistry.getInstance().isAnalysisAllowedOnEdt = true
 
     data class FileAndContent(val projectFilePath: String, val content: String)
     listOf(
