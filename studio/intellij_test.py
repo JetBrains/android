@@ -1,6 +1,7 @@
 """Tests the spec.bzl version values match the resources.jar contents."""
 
 from collections import defaultdict
+from pathlib import Path
 import json
 import os
 import unittest
@@ -11,8 +12,8 @@ def ides_map():
   """Returns a map of platform to jar path."""
   ides = {}
   for item in os.environ["intellij_paths"].split(","):
-    platform, path = item.split("=")
-    ides[platform] = path
+    platform, path_str = item.split("=")
+    ides[platform] = Path(path_str)
   return ides
 
 

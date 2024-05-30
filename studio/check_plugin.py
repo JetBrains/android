@@ -1,4 +1,5 @@
 """A tool to check consistency of an intellij plugin."""
+from pathlib import Path
 import argparse
 import re
 import sys
@@ -74,6 +75,7 @@ if __name__ == "__main__":
       "--files",
       dest="files",
       nargs="+",
+      type=Path,
       help="Path to files included in the plugin.")
   parser.add_argument(
       "--deps",

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from collections import defaultdict
-import os
+from pathlib import Path
 import intellij
 
 
@@ -69,17 +69,17 @@ def write_spec_file(out, mac_bundle_name, ides):
 
 
 def main(args):
-  ide = intellij.IntelliJ.create(intellij.LINUX, os.path.abspath(args.path))
-  write_spec_file(os.path.abspath(args.out), "", {intellij.LINUX: ide})
+  ide = intellij.IntelliJ.create(intellij.LINUX, args.path.absolute())
+  write_spec_file(args.out.absolute(), "", {intellij.LINUX: ide})
 
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument(
-      "--path", default=".", dest="path", help="The path to the IDE"
+      "--path", default=".", dest="path", type=Path, help="The path to the IDE"
   )
   parser.add_argument(
-      "--out", default="spec.bzl", dest="out", help="Where to save the bzl"
+      "--out", default="spec.bzl", dest="out", type=Path, help="Where to save the bzl"
   )
   args = parser.parse_args()
   main(args)
