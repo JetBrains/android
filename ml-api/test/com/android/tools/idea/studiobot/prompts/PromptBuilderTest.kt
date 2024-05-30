@@ -345,4 +345,63 @@ class PromptBuilderTest : BasePlatformTestCase() {
     buildPrompt(project) { userMessage { text("Hello", listOf(file)) } }
     whenever(mockStudioBot.isContextAllowed(project)).thenReturn(false)
   }
+
+  @Test
+  fun buildPrompt_withFunction() {
+    val prompt =
+      buildPrompt(project) {
+        userMessage {
+          text("Tell me if my code is good", emptyList())
+          code(
+            """
+            var x = 0
+            for (i in 1..100000) {
+              x++
+            }
+            println(x)
+          """
+              .trimIndent(),
+            KotlinLanguage.INSTANCE,
+            emptyList(),
+          )
+          functions {
+            function(
+              Prompt.Function(
+                name = "giveFeedback",
+                description = "Give the user feedback on their code",
+                parameters =
+                  listOf(
+                    Prompt.FunctionParameter(
+                      name = "isCodeGood",
+                      type = Prompt.FunctionParameterType.Boolean,
+                      description = "true if the user's code is good, false otherwise",
+                      required = true,
+                    )
+                  ),
+              )
+            )
+            setMode(Prompt.FunctionCallingMode.ANY)
+          }
+        }
+      }
+
+    assertThat(prompt.functions)
+      .containsExactly(
+        Prompt.Function(
+          name = "giveFeedback",
+          description = "Give the user feedback on their code",
+          parameters =
+            listOf(
+              Prompt.FunctionParameter(
+                name = "isCodeGood",
+                type = Prompt.FunctionParameterType.Boolean,
+                description = "true if the user's code is good, false otherwise",
+                required = true,
+              )
+            ),
+        )
+      )
+
+    assertThat(prompt.functionCallingMode).isEqualTo(Prompt.FunctionCallingMode.ANY)
+  }
 }

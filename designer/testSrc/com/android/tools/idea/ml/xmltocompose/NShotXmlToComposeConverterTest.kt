@@ -48,8 +48,8 @@ class NShotXmlToComposeConverterTest {
         object : StubModel() {
           override fun generateContent(prompt: Prompt, config: GenerationConfig): Flow<Content> {
             return flowOf(
-              Content("Here is your code"),
-              Content("```kotlin\n${simpleKotlinCode()}\n```"),
+              Content.TextContent("Here is your code"),
+              Content.TextContent("```kotlin\n${simpleKotlinCode()}\n```"),
             )
           }
         }

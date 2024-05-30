@@ -27,10 +27,17 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting data class PromptImpl(override val messages: List<Prompt.Message>) : Prompt
+@VisibleForTesting
+data class PromptImpl(
+  override val messages: List<Prompt.Message>,
+  override val functions: List<Prompt.Function> = emptyList(),
+  override val functionCallingMode: Prompt.FunctionCallingMode = Prompt.FunctionCallingMode.AUTO,
+) : Prompt
 
 class PromptBuilderImpl(private val project: Project) : PromptBuilder {
-  override val messages = mutableListOf<Prompt.Message>()
+  private val messages = mutableListOf<Prompt.Message>()
+  private val functions = mutableListOf<Prompt.Function>()
+  private var functionCallingMode = Prompt.FunctionCallingMode.AUTO
 
   open class MessageBuilderImpl(val makeMessage: (List<Prompt.Message.Chunk>) -> Prompt.Message) :
     PromptBuilder.MessageBuilder {
@@ -74,6 +81,20 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     fun build() = makeMessage(this)
   }
 
+  inner class FunctionsBuilderImpl : PromptBuilder.FunctionsBuilder {
+    override fun function(function: Prompt.Function) {
+      functions.add(function)
+    }
+
+    override fun functions(functions: List<Prompt.Function>) {
+      this@PromptBuilderImpl.functions.addAll(functions)
+    }
+
+    override fun setMode(mode: Prompt.FunctionCallingMode) {
+      this@PromptBuilderImpl.functionCallingMode = mode
+    }
+  }
+
   override fun systemMessage(builderAction: PromptBuilder.MessageBuilder.() -> Unit) {
     if (messages.isNotEmpty()) {
       throw MalformedPromptException(
@@ -93,6 +114,10 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
 
   override fun context(builderAction: PromptBuilder.ContextBuilder.() -> Unit) {
     messages.add(ContextBuilderImpl { Prompt.Context(it.files) }.apply(builderAction).build())
+  }
+
+  override fun functions(builderAction: PromptBuilder.FunctionsBuilder.() -> Unit) {
+    FunctionsBuilderImpl().apply(builderAction)
   }
 
   fun addAll(prompt: Prompt): PromptBuilderImpl {
@@ -124,6 +149,6 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
     if (excludedFiles.isNotEmpty()) {
       throw AiExcludeException(excludedFiles)
     }
-    return PromptImpl(messages)
+    return PromptImpl(messages, functions, functionCallingMode)
   }
 }

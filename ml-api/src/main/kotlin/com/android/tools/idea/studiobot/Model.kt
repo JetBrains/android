@@ -69,11 +69,14 @@ interface Model {
  * @property inputTokenLimit maximum number of tokens allowed in the input prompt for this model.
  * @property outputTokenLimit maximum allowed value for [GenerationConfig.maxOutputTokens] for this
  *   model.
+ * @property supportsFunctionCalling Whether this model supports function calling. If it doesn't,
+ *   then any prompts passed to it should not contain any function declarations.
  */
 data class ModelConfig(
   val supportedBlobTypes: Set<MimeType> = emptySet(),
   val inputTokenLimit: Int,
   val outputTokenLimit: Int,
+  val supportsFunctionCalling: Boolean = false,
 )
 
 /**
@@ -96,19 +99,34 @@ data class GenerationConfig(
   val stopSequences: List<String> = emptyList(),
 )
 
-/**
- * The common data type returned by all models.
- *
- * @param text The text content of the response.
- * @param citations The list of citations identified for the response content. Inspect each
- *   citation's [CitationAction] to see what the necessary action to take is.
- * @param metadata Arbitrary metadata attached to the response. Mostly to be used internally.
- */
-data class Content(
-  val text: String,
-  val citations: List<Citation> = emptyList(),
-  val metadata: Map<String, Any> = emptyMap(),
-)
+/** The common data type returned by all models. */
+sealed interface Content {
+  val text: String
+
+  /**
+   * @param text The text content of the response.
+   * @param citations The list of citations identified for the response content. Inspect each
+   *   citation's [CitationAction] to see what the necessary action to take is.
+   * @param metadata Arbitrary metadata attached to the response. Mostly to be used internally.
+   */
+  data class TextContent(
+    override val text: String,
+    val citations: List<Citation> = emptyList(),
+    val metadata: Map<String, Any> = emptyMap(),
+  ) : Content
+
+  /**
+   * A function call from a model which supports function calling and was provided with at least one
+   * function declaration.
+   *
+   * @param name The name of the function
+   * @param args Arguments provided for that function
+   */
+  data class FunctionCall(val name: String, val args: Map<String, Any?>) : Content {
+    override val text
+      get() = throw IllegalStateException("Should not call .text on a FunctionCall")
+  }
+}
 
 /**
  * A citation identified for a particular response.
