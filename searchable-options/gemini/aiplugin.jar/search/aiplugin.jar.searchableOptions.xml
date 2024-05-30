@@ -33,6 +33,9 @@
     <option name="readme" path="ActionManager" hit="Generates a README in markdown for the selected files." />
     <option name="selected" path="ActionManager" hit="Generates a README in markdown for the selected files." />
     <option name="the" path="ActionManager" hit="Generates a README in markdown for the selected files." />
+    <option name="names" path="ActionManager" hit="Rethink variable names" />
+    <option name="rethink" path="ActionManager" hit="Rethink variable names" />
+    <option name="variable" path="ActionManager" hit="Rethink variable names" />
     <option name="code" path="ActionManager" hit="Simplify Code" />
     <option name="simplify" path="ActionManager" hit="Simplify Code" />
     <option name="commit" path="ActionManager" hit="Suggest Commit Message" />
