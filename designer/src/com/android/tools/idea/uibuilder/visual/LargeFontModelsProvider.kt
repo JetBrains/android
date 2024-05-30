@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val EFFECTIVE_FLAGS =
   ConfigurationListener.CFG_ADAPTIVE_SHAPE or
@@ -53,7 +52,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
 
     if (file.typeOf() != LayoutFileType) {
@@ -61,7 +60,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     }
 
     val virtualFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
 
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
@@ -71,12 +70,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
       val fontConfig = ConfigurationForFile.create(defaultConfig, virtualFile)
       fontConfig.fontScale = scale
       val fontModel =
-        NlModel.Builder(
-            parentDisposable,
-            BuildTargetReference.gradleOnly(facet),
-            virtualFile,
-            fontConfig,
-          )
+        NlModel.Builder(parentDisposable, buildTarget, virtualFile, fontConfig)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       fontModel.setTooltip(fontConfig.toHtmlTooltip())

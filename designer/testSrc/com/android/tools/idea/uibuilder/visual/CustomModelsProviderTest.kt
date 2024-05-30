@@ -61,7 +61,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val modelsProvider =
       CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     val config =
       ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.virtualFile)
 
@@ -95,14 +95,15 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertSize(1, modelsProvider.customConfigSet.customConfigAttributes)
     // The created nlModels contains default one plus all custom configurations,
     // so its size is CustomModelsProvider.customConfigurations.size() + 1.
-    val nlModelsAfterAdded = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModelsAfterAdded = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     assertSize(2, nlModelsAfterAdded)
     assertEquals(defaultConfig, nlModelsAfterAdded[0].configuration)
     assertEquals("Preview", nlModelsAfterAdded[1].modelDisplayName.value)
 
     modelsProvider.removeCustomConfigurationAttributes(nlModelsAfterAdded[1])
     assertSize(0, modelsProvider.customConfigSet.customConfigAttributes)
-    val nlModelsAfterRemoved = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModelsAfterRemoved =
+      modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
     assertSize(1, nlModelsAfterRemoved)
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
   }
@@ -133,7 +134,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     // Create models, first one is default one and second one is custom one, which should associate
     // to en file.
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myBuildTarget)
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(enFile.virtualFile, nlModels[1].virtualFile)
   }
@@ -165,7 +166,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     // Create models, first one is default one and second one is custom one, which should associate
     // to en file.
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myBuildTarget)
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(landFile.virtualFile, nlModels[1].virtualFile)
   }
@@ -183,7 +184,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val modelsProvider =
       CustomModelsProvider("test", CustomConfigurationSet("Custom", emptyList()), listener)
     // The first NlModel use the sourceConfig. Do not test it.
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet).drop(1)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget).drop(1)
 
     verifyAdaptiveShapeReflected(sourceConfig, nlModels, false)
     verifyDeviceReflected(sourceConfig, nlModels, false)

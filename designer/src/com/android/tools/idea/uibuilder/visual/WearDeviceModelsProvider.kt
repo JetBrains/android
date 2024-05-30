@@ -29,7 +29,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import java.util.ArrayList
-import org.jetbrains.android.facet.AndroidFacet
 
 /** Recommended wear device configs. */
 @VisibleForTesting
@@ -54,7 +53,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -62,7 +61,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
 
     val virtualFile = file.virtualFile ?: return emptyList()
 
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
     val wearDevices =
       deviceCaches.getOrElse(configurationManager) {
         val deviceList = ArrayList<Device>()
@@ -89,12 +88,7 @@ object WearDeviceModelsProvider : VisualizationModelsProvider {
         if (device.chinSize == 0) ScreenOrientation.PORTRAIT else ScreenOrientation.LANDSCAPE
       config.deviceState = device.getState(screenOrientation.shortDisplayValue)
       val model =
-        NlModel.Builder(
-            parentDisposable,
-            BuildTargetReference.gradleOnly(facet),
-            virtualFile,
-            config,
-          )
+        NlModel.Builder(parentDisposable, buildTarget, virtualFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       model.setTooltip(config.toHtmlTooltip())

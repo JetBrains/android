@@ -220,9 +220,9 @@ class VisualLintService(val project: Project) : Disposable {
     try {
       val modelsToAnalyze =
         if (Device.isWear(baseModel.configuration.device)) {
-          WearDeviceModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
+          WearDeviceModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.buildTarget)
         } else {
-          WindowSizeModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.facet)
+          WindowSizeModelsProvider.createNlModels(baseModel, baseModel.file, baseModel.buildTarget)
         }
       val latch = CountDownLatch(modelsToAnalyze.size)
       val hasTimedOut = AtomicBoolean(false)

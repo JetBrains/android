@@ -34,6 +34,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceIssueListenerImpl
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
+import com.android.tools.idea.rendering.BuildTargetReference
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
@@ -166,7 +167,9 @@ class VisualizationForm(
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =
-      NlDesignSurface.builder(project, this@VisualizationForm) { surface: NlDesignSurface, model: NlModel ->
+      NlDesignSurface.builder(project, this@VisualizationForm) {
+          surface: NlDesignSurface,
+          model: NlModel ->
           val sceneManager = LayoutlibSceneManager(model, surface, config)
           sceneManager.setListenResourceChange(false)
           sceneManager.setShowDecorations(
@@ -366,7 +369,8 @@ class VisualizationForm(
     if (myFile == null) {
       return
     }
-    val file = PsiManager.getInstance(project).findFile(myFile!!)
+    val targetFile = myFile!!
+    val file = PsiManager.getInstance(project).findFile(targetFile)
     var facet: AndroidFacet? = null
     updateActionToolbar(myActionToolbarPanel)
 
@@ -382,7 +386,12 @@ class VisualizationForm(
             (if (file != null) AndroidFacet.getInstance(file) else null)
               ?: return@supplyAsync emptyList()
           // Hide the content while adding the models.
-          val models = myCurrentModelsProvider.createNlModels(this, file!!, facet!!)
+          val models =
+            myCurrentModelsProvider.createNlModels(
+              this,
+              file!!,
+              BuildTargetReference.from(facet!!, targetFile),
+            )
           if (models.isEmpty()) {
             myWorkBench.showLoading("No Device Found")
             return@supplyAsync null

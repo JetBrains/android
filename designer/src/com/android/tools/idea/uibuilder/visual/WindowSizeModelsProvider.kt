@@ -26,7 +26,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val EFFECTIVE_FLAGS =
   ConfigurationListener.CFG_ADAPTIVE_SHAPE or
@@ -42,7 +41,7 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -50,7 +49,7 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
 
     val virtualFile = file.virtualFile ?: return emptyList()
 
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
     val defaultConfig = configurationManager.getConfiguration(virtualFile)
 
     val models = mutableListOf<NlModel>()
@@ -64,12 +63,7 @@ object WindowSizeModelsProvider : VisualizationModelsProvider {
       val betterFile =
         ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model =
-        NlModel.Builder(
-            parentDisposable,
-            BuildTargetReference.gradleOnly(facet),
-            betterFile,
-            config,
-          )
+        NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       model.setTooltip(config.toHtmlTooltip())

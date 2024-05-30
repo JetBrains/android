@@ -47,7 +47,7 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = ColorBlindModeModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     assertNotEmpty(nlModels)
     val displayNames = ColorBlindMode.values().map { it.displayName }
@@ -64,7 +64,7 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
     val sourceConfig = manager.getConfiguration(file.virtualFile)
 
     val modelsProvider = ColorBlindModeModelsProvider
-    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myBuildTarget)
 
     verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
     verifyDeviceReflected(sourceConfig, nlModels, true)

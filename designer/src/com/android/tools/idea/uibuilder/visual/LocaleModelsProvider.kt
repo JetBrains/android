@@ -28,7 +28,6 @@ import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import org.jetbrains.android.facet.AndroidFacet
 
 private const val EFFECTIVE_FLAGS =
   ConfigurationListener.CFG_ADAPTIVE_SHAPE or
@@ -52,7 +51,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -69,7 +68,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
     //    locale resources. This is same as runtime behaviour.
 
     val currentFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
     // Note that the current file may not be default config. (e.g. the current file is in
     // layout-en-rGB file)
     val currentFileConfig = configurationManager.getConfiguration(currentFile)
@@ -85,12 +84,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
 
     run {
       val firstModel =
-        NlModel.Builder(
-            parentDisposable,
-            BuildTargetReference.gradleOnly(facet),
-            defaultFile,
-            defaultLocaleConfig,
-          )
+        NlModel.Builder(parentDisposable, buildTarget, defaultFile, defaultLocaleConfig)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       firstModel.setTooltip(defaultLocaleConfig.toHtmlTooltip())
@@ -106,7 +100,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
     }
 
     val locales =
-      StudioResourceRepositoryManager.getInstance(facet)
+      StudioResourceRepositoryManager.getInstance(buildTarget.facet)
         .localesInProject
         .sortedWith(Locale.LANGUAGE_CODE_COMPARATOR)
 
@@ -118,12 +112,7 @@ object LocaleModelsProvider : VisualizationModelsProvider {
       config.locale = locale
       val label = Locale.getLocaleLabel(locale, false)
       val model =
-        NlModel.Builder(
-            parentDisposable,
-            BuildTargetReference.gradleOnly(facet),
-            betterFile,
-            config,
-          )
+        NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       model.setTooltip(config.toHtmlTooltip())

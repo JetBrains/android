@@ -28,8 +28,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import java.util.ArrayList
-import org.jetbrains.android.facet.AndroidFacet
 
 /** We predefined some pixel devices for now. */
 @VisibleForTesting
@@ -64,7 +62,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
   override fun createNlModels(
     parentDisposable: Disposable,
     file: PsiFile,
-    facet: AndroidFacet,
+    buildTarget: BuildTargetReference,
   ): List<NlModel> {
     if (file.typeOf() != LayoutFileType) {
       return emptyList()
@@ -72,7 +70,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
 
     val virtualFile = file.virtualFile ?: return emptyList()
 
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(buildTarget.module)
     val pixelDevices =
       deviceCaches.getOrElse(configurationManager) {
         val deviceList = ArrayList<Device>()
@@ -82,9 +80,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
             ?.let { deviceList.add(it) }
         }
         deviceCaches[configurationManager] = deviceList
-        Disposer.register(
-          configurationManager,
-        ) { deviceCaches.remove(configurationManager) }
+        Disposer.register(configurationManager) { deviceCaches.remove(configurationManager) }
         deviceList
       }
 
@@ -99,12 +95,7 @@ object PixelDeviceModelsProvider : VisualizationModelsProvider {
       val betterFile =
         ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
       val model =
-        NlModel.Builder(
-            parentDisposable,
-            BuildTargetReference.gradleOnly(facet),
-            betterFile,
-            config,
-          )
+        NlModel.Builder(parentDisposable, buildTarget, betterFile, config)
           .withComponentRegistrar(NlComponentRegistrar)
           .build()
       model.setTooltip(config.toHtmlTooltip())
