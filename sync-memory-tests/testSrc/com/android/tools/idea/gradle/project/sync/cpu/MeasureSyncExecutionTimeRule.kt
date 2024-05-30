@@ -64,7 +64,7 @@ total: ${total.inWholeSeconds}s
   """.trimIndent()
 }
 
-class MeasureSyncExecutionTimeRule(val syncCount: Int, private val disableAnalyzers: Boolean = false) : ExternalResource() {
+class MeasureSyncExecutionTimeRule(val syncCount: Int, private val enableAnalyzers: Boolean = true) : ExternalResource() {
   private val results = mutableListOf<Durations>()
   private val processedFiles = mutableSetOf<String>()
   private lateinit var syncStartTimestamp : Instant
@@ -139,7 +139,7 @@ class MeasureSyncExecutionTimeRule(val syncCount: Int, private val disableAnalyz
       values.forEach {
         addSamples(CPU_BENCHMARK, Metric.MetricSample(it.timestamp.toEpochMilliseconds(), it.measurement.toLong(DurationUnit.MILLISECONDS)))
       }
-      if (!disableAnalyzers && isMetricAnalyzed) {
+      if (enableAnalyzers && isMetricAnalyzed) {
         setAnalyzers(CPU_BENCHMARK, ANALYZER)
       }
       commit()
