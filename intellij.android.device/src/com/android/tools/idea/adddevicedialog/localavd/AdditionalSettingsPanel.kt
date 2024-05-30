@@ -44,7 +44,6 @@ import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
-import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -53,7 +52,6 @@ import java.awt.Component
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.math.max
-import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
@@ -68,10 +66,8 @@ import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 internal fun AdditionalSettingsPanel(
-  device: VirtualDevice,
-  skins: ImmutableCollection<Skin>,
-  state: AdditionalSettingsPanelState,
-  onDeviceChange: (VirtualDevice) -> Unit,
+  configureDevicePanelState: ConfigureDevicePanelState,
+  additionalSettingsPanelState: AdditionalSettingsPanelState,
   onImportButtonClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -85,20 +81,31 @@ internal fun AdditionalSettingsPanel(
         Text("Device skin", Modifier.padding(end = Padding.SMALL))
 
         Dropdown(
-          device.skin,
-          skins,
-          onSelectedItemChange = { onDeviceChange(device.copy(skin = it)) },
+          configureDevicePanelState.device.skin,
+          configureDevicePanelState.skins,
+          onSelectedItemChange = {
+            configureDevicePanelState.device = configureDevicePanelState.device.copy(skin = it)
+          },
           Modifier.padding(end = Padding.MEDIUM),
         )
 
         OutlinedButton(onImportButtonClick) { Text("Import") }
       }
 
-      CameraGroup(device, onDeviceChange)
-      NetworkGroup(device, onDeviceChange)
-      StartupGroup(device, onDeviceChange)
-      StorageGroup(device, state.storageGroupState, onDeviceChange)
-      EmulatedPerformanceGroup(device, onDeviceChange)
+      CameraGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
+      NetworkGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
+      StartupGroup(configureDevicePanelState.device, configureDevicePanelState::device::set)
+
+      StorageGroup(
+        configureDevicePanelState.device,
+        additionalSettingsPanelState.storageGroupState,
+        configureDevicePanelState::device::set,
+      )
+
+      EmulatedPerformanceGroup(
+        configureDevicePanelState.device,
+        configureDevicePanelState::device::set,
+      )
     }
     VerticalScrollbar(
       rememberScrollbarAdapter(scrollState),

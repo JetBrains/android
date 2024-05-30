@@ -22,10 +22,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.android.tools.idea.adddevicedialog.TableSelectionState
+import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
+import java.nio.file.Path
 import java.util.EnumSet
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import org.jetbrains.jewel.ui.component.TabData
 import org.jetbrains.jewel.ui.component.TabStrip
@@ -33,11 +36,9 @@ import org.jetbrains.jewel.ui.component.Text
 
 @Composable
 internal fun ConfigureDevicePanel(
-  device: VirtualDevice,
+  configureDevicePanelState: ConfigureDevicePanelState,
   images: ImmutableList<SystemImage>,
   systemImageTableSelectionState: TableSelectionState<SystemImage>,
-  skins: ImmutableCollection<Skin>,
-  onDeviceChange: (VirtualDevice) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
@@ -46,11 +47,9 @@ internal fun ConfigureDevicePanel(
     Text("Add a device to device manager")
 
     Tabs(
-      device,
+      configureDevicePanelState,
       images,
       systemImageTableSelectionState,
-      skins,
-      onDeviceChange,
       onDownloadButtonClick,
       onImportButtonClick,
     )
@@ -59,11 +58,9 @@ internal fun ConfigureDevicePanel(
 
 @Composable
 private fun Tabs(
-  device: VirtualDevice,
+  configureDevicePanelState: ConfigureDevicePanelState,
   images: ImmutableList<SystemImage>,
   systemImageTableSelectionState: TableSelectionState<SystemImage>,
-  skins: ImmutableCollection<Skin>,
-  onDeviceChange: (VirtualDevice) -> Unit,
   onDownloadButtonClick: (String) -> Unit,
   onImportButtonClick: () -> Unit,
 ) {
@@ -81,28 +78,47 @@ private fun Tabs(
   // TODO: http://b/335494340
   var devicePanelState by remember { mutableStateOf(DevicePanelState(servicesSet.first())) }
 
-  val additionalSettingsPanelState = remember { AdditionalSettingsPanelState(device) }
+  val additionalSettingsPanelState = remember {
+    AdditionalSettingsPanelState(configureDevicePanelState.device)
+  }
 
   when (selectedTab) {
     Tab.DEVICE ->
       DevicePanel(
-        device,
+        configureDevicePanelState.device,
         devicePanelState,
         servicesSet,
         images,
         systemImageTableSelectionState,
-        onDeviceChange,
+        configureDevicePanelState::device::set,
         onStateChange = { devicePanelState = it },
         onDownloadButtonClick,
       )
     Tab.ADDITIONAL_SETTINGS ->
       AdditionalSettingsPanel(
-        device,
-        skins,
+        configureDevicePanelState,
         additionalSettingsPanelState,
-        onDeviceChange,
         onImportButtonClick,
       )
+  }
+}
+
+internal class ConfigureDevicePanelState
+internal constructor(skins: ImmutableCollection<Skin>, device: VirtualDevice) {
+  internal var skins by mutableStateOf(skins)
+    private set
+
+  internal var device by mutableStateOf(device)
+
+  internal fun importSkin(path: Path) {
+    var skin = skins.find { it.path() == path }
+
+    if (skin == null) {
+      skin = DefaultSkin(path)
+      skins = (skins + skin).sorted().toImmutableList()
+    }
+
+    device = device.copy(skin = skin)
   }
 }
 

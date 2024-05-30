@@ -37,18 +37,17 @@ import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
 import com.google.common.collect.Range
 import java.nio.file.Files
-import java.nio.file.Path
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.junit.AfterClass
+import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.Mockito
 
 @RunWith(JUnit4::class)
 class AdditionalSettingsPanelTest {
@@ -76,13 +75,6 @@ class AdditionalSettingsPanelTest {
     // Arrange
     val fileSystem = createInMemoryFileSystem()
     val home = System.getProperty("user.home")
-
-    val mySdCardFileImg: Path = fileSystem.getPath(home, "mySdCardFile.img")
-
-    Files.createDirectories(mySdCardFileImg.parent)
-    Files.createFile(mySdCardFileImg)
-
-    val onDeviceChange = MockitoKt.mock<(VirtualDevice) -> Unit>()
 
     val device =
       VirtualDevice(
@@ -112,6 +104,8 @@ class AdditionalSettingsPanelTest {
         formFactor = FormFactors.PHONE,
       )
 
+    val state = ConfigureDevicePanelState(emptyList<Skin>().toImmutableList(), device)
+
     rule.setContent {
       IntUiTheme {
         CompositionLocalProvider(
@@ -121,10 +115,8 @@ class AdditionalSettingsPanelTest {
         ) {
           Column {
             AdditionalSettingsPanel(
-              device,
-              emptyList<Skin>().toImmutableList(),
+              state,
               AdditionalSettingsPanelState(device),
-              onDeviceChange,
               onImportButtonClick = {},
             )
           }
@@ -132,18 +124,22 @@ class AdditionalSettingsPanelTest {
       }
     }
 
+    val mySdCardFileImg = fileSystem.getPath(home, "mySdCardFile.img")
+
+    Files.createDirectories(mySdCardFileImg.parent)
+    Files.createFile(mySdCardFileImg)
+
     // Act
     rule.onNodeWithTag("ExistingImageRadioButton").performClick()
     rule.onNodeWithTag("ExistingImageField").performTextReplacement(mySdCardFileImg.toString())
+
+    // Assert
+    assertEquals(device.copy(expandedStorage = ExistingImage(mySdCardFileImg)), state.device)
+
+    // Act
     rule.onNodeWithTag("CustomRadioButton").performClick()
 
     // Assert
-    val inOrder = Mockito.inOrder(onDeviceChange)
-
-    inOrder
-      .verify(onDeviceChange)
-      .invoke(device.copy(expandedStorage = ExistingImage(mySdCardFileImg)))
-
-    inOrder.verify(onDeviceChange).invoke(device)
+    assertEquals(device, state.device)
   }
 }

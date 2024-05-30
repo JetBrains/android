@@ -86,7 +86,8 @@ internal class LocalVirtualDeviceSource(
 
   @Composable
   private fun WizardPageScope.ConfigurationPage(device: DeviceProfile) {
-    val state = remember(device) { LocalAvdConfigurationState(skins, device as VirtualDevice) }
+    val configureDevicePanelState =
+      remember(device) { ConfigureDevicePanelState(skins, device as VirtualDevice) }
 
     val api = device.apiRange.upperEndpoint()
     val images = systemImages.filter { it.androidVersion.apiLevel == api }.toImmutableList()
@@ -97,11 +98,9 @@ internal class LocalVirtualDeviceSource(
     @OptIn(ExperimentalJewelApi::class) val parent = LocalComponent.current
 
     ConfigureDevicePanel(
-      state.device,
+      configureDevicePanelState,
       images,
       systemImageTableSelectionState,
-      state.skins,
-      onDeviceChange = { state.device = it },
       onDownloadButtonClick = { downloadSystemImage(parent, it) },
       onImportButtonClick = {
         // TODO Validate the skin
@@ -114,7 +113,7 @@ internal class LocalVirtualDeviceSource(
           )
 
         if (skin != null) {
-          state.importSkin(skin.toNioPath())
+          configureDevicePanelState.importSkin(skin.toNioPath())
         }
       },
     )
@@ -122,7 +121,8 @@ internal class LocalVirtualDeviceSource(
     nextAction = WizardAction.Disabled
     finishAction = WizardAction {
       // TODO: http://b/342003691
-      VirtualDevices().add(state.device, systemImageTableSelectionState.selection!!)
+      VirtualDevices()
+        .add(configureDevicePanelState.device, systemImageTableSelectionState.selection!!)
 
       close()
     }
