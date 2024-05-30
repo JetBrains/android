@@ -11,17 +11,26 @@ iml_module(
         "Benchmark2000Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
-            "tags": ["perfgate"],
+            "tags": [
+                "perfgate",
+                "perfgate-release",
+            ],
         },
         "Benchmark1000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuTest",
-            "tags": ["perfgate"],
+            "tags": [
+                "perfgate",
+                "perfgate-release",
+            ],
         },
         "Benchmark2000Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark2000CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
-            "tags": ["perfgate"],
+            "tags": [
+                "perfgate",
+                "perfgate-release",
+            ],
         },
         # Presubmit tests
         "SyncBenchmarkVersionTest": {
