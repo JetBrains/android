@@ -442,7 +442,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode) { }
+  public void buildAndLaunchAction(boolean profileableMode, int featureLevel) { }
 
   @Nullable
   public Notification getNotification() {

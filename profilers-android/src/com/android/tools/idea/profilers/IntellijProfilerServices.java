@@ -426,8 +426,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode) {
-    ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode);
+  public void buildAndLaunchAction(boolean profileableMode, int featureLevel) {
+    ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, featureLevel);
   }
 
   /**

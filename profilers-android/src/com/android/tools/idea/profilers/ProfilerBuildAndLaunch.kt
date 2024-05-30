@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.profilers.actions.ProfileAction
 import com.android.tools.idea.profilers.actions.ProfileDebuggableAction
 import com.android.tools.idea.profilers.actions.ProfileProfileableAction
@@ -40,9 +41,11 @@ object ProfilerBuildAndLaunch {
    *                        a profileable or a debuggable profiling action. Otherwise, this parameter is ignored.
    */
   @JvmStatic
-  fun buildAndLaunchAction(project: Project, profileableMode: Boolean) {
+  fun buildAndLaunchAction(project: Project, profileableMode: Boolean, featureLevel: Int) {
     val action = if (project.getProjectSystem().supportsProfilingMode()) {
-      if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
+      // Only devices with API > 28 can support profileable builds.
+      if (featureLevel > AndroidVersion.VersionCodes.P) if (profileableMode) ProfileProfileableAction() else ProfileDebuggableAction()
+      else ProfileDebuggableAction()
     }
     else {
       ProfileAction()
