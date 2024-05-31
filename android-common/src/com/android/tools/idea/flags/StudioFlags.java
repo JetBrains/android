@@ -1762,15 +1762,6 @@ public final class StudioFlags {
                 "Web checks (i.e. domain-side validation) for the App Links Assistant", true);
   // endregion App Links Assistant
 
-  // region GOOGLE_PLAY_SDK_INDEX
-  private static final FlagGroup GOOGLE_PLAY_SDK_INDEX = new FlagGroup(FLAGS, "google.play.sdk.index", "Google Play SDK Index");
-  public static final Flag<Boolean> SHOW_SDK_INDEX_POLICY_ISSUES = new BooleanFlag(
-    GOOGLE_PLAY_SDK_INDEX, "show.sdk.policy.issues", "Show SDK Index policy issues",
-    "Whether or not SDK Index policy issues should be shown",
-    true
-  );
-  // endregion GOOGLE_PLAY_SDK_INDEX
-
   // region NEW_COLLECT_LOGS_DIALOG
   private static final FlagGroup NEW_COLLECT_LOGS_DIALOG = new FlagGroup(FLAGS, "new.collect.logs", "New Collect Logs Dialog");
   // endregion NEW_COLLECT_LOGS_DIALOG
