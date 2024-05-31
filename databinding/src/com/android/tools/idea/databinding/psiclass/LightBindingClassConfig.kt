@@ -160,7 +160,7 @@ data class BindingClassConfig(
   override val scopedViewIds: Map<BindingLayout, Collection<ViewIdData>>
     get() {
       if (DumbService.isDumb(facet.module.project)) {
-        thisLogger().error("scopedViewIds: called while in dumb mode")
+        thisLogger().info("scopedViewIds: called while in dumb mode")
       }
       if (!application.isReadAccessAllowed) {
         thisLogger().error("scopedViewIds: called without read access")
@@ -171,7 +171,7 @@ data class BindingClassConfig(
         val xmlFile = layout.toXmlFile()
         if (xmlFile == null) {
           thisLogger()
-            .error(
+            .info(
               "scopedViewIds: Binding layout should always be backed by an xml file. " +
                 "Dumb mode: ${DumbService.isDumb(facet.module.project)}. " +
                 "Qualified name: $qualifiedName. Layout file: ${layout.file.name}"
@@ -181,7 +181,7 @@ data class BindingClassConfig(
         val xmlData = BindingXmlIndex.getDataForFile(xmlFile)
         if (xmlData == null) {
           thisLogger()
-            .error(
+            .info(
               "scopedViewIds: Every binding layout should have indexed data. " +
                 "Dumb mode: ${DumbService.isDumb(facet.module.project)}. " +
                 "Qualified name: $qualifiedName. Layout file: ${layout.file.name}"
