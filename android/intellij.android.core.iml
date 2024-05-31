@@ -19,22 +19,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="libstudio.android-test-plugin-host-retention-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:libstudio.android-test-plugin-host-retention-proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/232.1.23.0/libstudio.android-test-plugin-host-retention-proto-232.1.23.0.jar">
-              <sha256sum>4b7f508bdaa694e8e4e8d7df88c934e159871fa5228a045f42666f6c59dd5541</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libstudio.android-test-plugin-host-retention-proto/232.1.23.0/libstudio.android-test-plugin-host-retention-proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="jb-r8" type="repository">
         <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:232.1.23.0">
           <verification>
@@ -57,11 +41,9 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" name="aalto-xml" level="project" />
     <orderEntry type="library" name="aapt-proto" level="project" />
-    <orderEntry type="library" name="android-test-plugin-host-device-info-proto" level="project" />
     <orderEntry type="library" name="asm-tools" level="project" />
     <orderEntry type="library" name="commons-compress" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
-    <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="library" name="google-baksmali" level="project" />
     <orderEntry type="library" name="google-dexlib2" level="project" />
@@ -79,29 +61,12 @@
     <orderEntry type="library" name="kxml2" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
-    <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-ir" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-gradle-statistics" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-common" level="project" />
-    <orderEntry type="module-library">
-      <library name="libandroid-core-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:libandroid-core-proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/232.1.23.0/libandroid-core-proto-232.1.23.0.jar">
-              <sha256sum>3f1c9633ab5088526450c72bd456d6a6704a70744b8118638233fd63b1001ed0</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libandroid-core-proto/232.1.23.0/libandroid-core-proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="intellij.android.adb" />

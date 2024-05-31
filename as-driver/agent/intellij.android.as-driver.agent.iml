@@ -11,22 +11,6 @@
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains-annotations" level="project" />
-    <orderEntry type="module-library">
-      <library name="asdriver_proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:asdriver_proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/asdriver_proto/232.1.23.0/asdriver_proto-232.1.23.0.jar">
-              <sha256sum>9488a4981504b1e1e1caf49e784f93dcb20b58275e2f4c4fff78591a02433385</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/asdriver_proto/232.1.23.0/asdriver_proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

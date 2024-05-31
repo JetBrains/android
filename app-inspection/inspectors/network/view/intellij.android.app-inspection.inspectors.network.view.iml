@@ -15,7 +15,6 @@
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-jps-plugin-classpath" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="ktor-client-cio" level="project" />
-    <orderEntry type="library" name="network_inspector_java_proto" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="inheritedJdk" />

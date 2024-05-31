@@ -8,22 +8,6 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="module-library">
-      <library name="build-analysis-results-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:build-analysis-results-proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/build-analysis-results-proto/232.1.23.0/build-analysis-results-proto-232.1.23.0.jar">
-              <sha256sum>717b9d2cb88e261d17a5d80e144fb3b8b79f5ec7a54f8fc16b6c67ea849b09de</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/build-analysis-results-proto/232.1.23.0/build-analysis-results-proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="Gradle" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="gson" level="project" />

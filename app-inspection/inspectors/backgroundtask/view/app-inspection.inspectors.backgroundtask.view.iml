@@ -11,24 +11,6 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="library" name="studio-plugin-com.intellij.java" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
-    <orderEntry type="module-library">
-      <library name="background-inspector-proto">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/tools/base/app-inspection/inspectors/backgroundtask/backgroundtask_inspector_java_proto.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="workmanager-inspector-proto">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../bazel-bin/prebuilts/tools/common/app-inspection/androidx/work/workmanager_inspector_proto.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="app-inspection.inspector.api" />
     <orderEntry type="module" module-name="intellij.android.artwork" />

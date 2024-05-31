@@ -8,38 +8,6 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="module-library">
-      <library name="background-inspector-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:backgroundtask_inspector_java_proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/232.1.23.0/backgroundtask_inspector_java_proto-232.1.23.0.jar">
-              <sha256sum>31a9e3f4330e2f383a940e34e2a3d0ee59197766f42656c39d24e66e49a9b3ab</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/backgroundtask_inspector_java_proto/232.1.23.0/backgroundtask_inspector_java_proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="workmanager-inspector-proto" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:workmanager_inspector_proto:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/232.1.23.0/workmanager_inspector_proto-232.1.23.0.jar">
-              <sha256sum>ffbd4b4c8b7d246032a0d2e802594b18bc56a8cda069c0f0099a7d301dceeabb</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/workmanager_inspector_proto/232.1.23.0/workmanager_inspector_proto-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />

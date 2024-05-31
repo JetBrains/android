@@ -7,22 +7,6 @@
     </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="module-library">
-      <library name="libjava_sites" type="repository">
-        <properties maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_sites:232.1.23.0">
-          <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/232.1.23.0/libjava_sites-232.1.23.0.jar">
-              <sha256sum>13b71bbf5023496373c78235f720324a6f304c95605bdecbec672d73a8bfcd2e</sha256sum>
-            </artifact>
-          </verification>
-        </properties>
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/232.1.23.0/libjava_sites-232.1.23.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
