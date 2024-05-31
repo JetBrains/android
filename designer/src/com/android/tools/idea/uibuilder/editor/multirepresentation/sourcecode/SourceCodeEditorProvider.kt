@@ -33,7 +33,6 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.QuickDefinitionProvider
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileEditor.impl.text.TextEditorState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -42,6 +41,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.xmlb.XmlSerializer
+import kotlinx.coroutines.runBlocking
 import org.jdom.Attribute
 import org.jdom.Element
 import org.jetbrains.annotations.TestOnly
@@ -97,7 +97,10 @@ private constructor(private val providers: Collection<PreviewRepresentationProvi
     val textEditor =
       SlowOperations.allowSlowOperations(
         ThrowableComputable {
-          TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+          runBlocking {
+              PsiAwareTextEditorProvider().createEditorBuilder(project, file, document = null)
+            }
+            .build() as TextEditor
         }
       )
 
