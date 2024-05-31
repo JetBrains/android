@@ -38,7 +38,7 @@ import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
-import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.tools.ide.metrics.benchmark.PerformanceTestUtil
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.util.xml.DomManager
 import org.intellij.lang.annotations.Language
@@ -1513,7 +1513,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val f = copyFileToProject("bigfile.xml")
     myFixture.configureFromExistingVirtualFile(f)
 
-    PlatformTestUtil.newPerformanceTest("android custom attrs highlighting") { myFixture.doHighlighting() }.attempts(
+    PerformanceTestUtil.newPerformanceTest("android custom attrs highlighting") { myFixture.doHighlighting() }.attempts(
       2).start()
   }
 
