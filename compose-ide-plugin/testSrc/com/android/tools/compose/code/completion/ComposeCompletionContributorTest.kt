@@ -82,11 +82,11 @@ class ComposeCompletionContributorTest {
     val expectedLookupItems =
       listOf(
         "FoobarOne(required: Int) (com.example)",
-        "FoobarTwo(required: Int, ...)",
-        "FoobarThree(...) {...}",
+        "FoobarTwo(required: Int, ...) (com.example)",
+        "FoobarThree(...) {...} (com.example)",
         "FoobarFour {...} (children: () -> Unit) (com.example)",
-        "FoobarFive(icon: String) {...}",
-        "FoobarSix(icon: String, ...)",
+        "FoobarFive(icon: String) {...} (com.example)",
+        "FoobarSix(icon: String, ...) (com.example)",
       )
 
     // Given:
@@ -954,11 +954,11 @@ class ComposeCompletionContributorTest {
       if (KotlinPluginModeProvider.isK2Mode()) "@Composable (() -> Unit)" else "() -> Unit"
     val expectedLookupItems =
       listOf(
-        "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...)",
+        "FoobarOne(requiredArg: $parameterWithComposeAnnotation, ...) (com.example)",
         "FoobarTwo(optionalArg: Int = ...) (com.example)",
         "FoobarThree(requiredArg: $parameterWithComposeAnnotation, optionalArg: Int = ...) (com.example) Unit",
         "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
-        "FoobarFive(requiredArg: () -> Unit, ...)",
+        "FoobarFive(requiredArg: () -> Unit, ...) (com.example)",
         "FoobarSix(optionalArg: Int = ...) (com.example)",
       )
 

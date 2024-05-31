@@ -232,10 +232,25 @@ private class ComposableFunctionLookupElement(original: LookupElement) :
     if (parts.totalParameterCount < 2) return
 
     // Rewrite the function signature to avoid showing too many parameters, since @Composable
-    // functions often have a large number.
+    // functions often have a large number. The first fragment contains the portion we want to
+    // rewrite; the remaining fragments are copied verbatim.
+    val existingTailFragments = tailFragments
     clearTail()
-    parts.parameters?.let { appendTailTextItalic(it, /* grayed= */ false) }
+
+    // Write the modified signature.
+    parts.parameters?.let { appendTailText(it, /* grayed= */ false) }
     parts.tail?.let { appendTailText(" $it", /* grayed= */ true) }
+
+    // Copy the remaining fragments that came from the Kotlin plugin.
+    for (fragment in existingTailFragments.drop(1)) {
+      // Technically each fragment may have a color associated with it which we are not persisting.
+      // But the only time that can be set is with LookupElementPresentation.setTailText, which
+      // clears the tail before adding the fragment with color. That means only the first fragment
+      // can have a color, and since we've dropped the first fragment none of the remaining ones
+      // will have a color.
+      if (fragment.isItalic) appendTailTextItalic(fragment.text, fragment.isGrayed)
+      else appendTailText(fragment.text, fragment.isGrayed)
+    }
   }
 }
 
