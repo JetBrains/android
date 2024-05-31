@@ -18,28 +18,37 @@ package com.android.tools.idea.run.tasks
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.InstallOptions
+import com.android.tools.deployer.UIService
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.tasks.Canceller
 import com.android.tools.idea.run.ApkInfo
+import com.android.tools.idea.run.DeploymentService
 import com.android.utils.ILogger
 import com.intellij.mock.MockApplication
+import com.intellij.mock.MockProject
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.IdeUICustomization
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.eq
 import org.mockito.Mock
 import org.mockito.Mockito.any
 import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
@@ -50,12 +59,11 @@ import org.mockito.Spy
 class DeployTaskTest {
   private val rootDisposable: Disposable = Disposer.newDisposable()
   private val application: MockApplication = MockApplication(rootDisposable)
+  private val project: MockProject = MockProject(null, rootDisposable)
 
-  @Mock private lateinit var project: Project
   @Mock private lateinit var logger: ILogger
   @Mock private lateinit var device: IDevice
   @Mock private lateinit var deployer: Deployer
-  @Mock private lateinit var notificationGroupManager: NotificationGroupManager
   @Spy private lateinit var canceller: Canceller
   private val installPathProvider = Computable { "" }
 
@@ -63,8 +71,10 @@ class DeployTaskTest {
   fun setup() {
     ApplicationManager.setApplication(application, rootDisposable)
     application.registerService(IdeUICustomization::class.java)
+    application.registerService(DeploymentService::class.java)
+    application.registerService(NotificationGroupManager::class.java, TestDeployTaskNotificationGroupManager::class.java)
+
     MockitoAnnotations.initMocks(this)
-    application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
     whenever(deployer.install(any(), any(), any())).thenReturn(
       Deployer.Result(false, false, false, App.fromApks("id", emptyList()))
     )
@@ -85,6 +95,17 @@ class DeployTaskTest {
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller )
     verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
+  }
+
+  @Test
+  fun testDeployTaskRunUsesDynamicUIServiceWhichThrowsExceptionOnInit() {
+    val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
+    project.registerService(UIService::class.java, ThrowingUIService::class.java)
+
+    val throwable = assertThrows(RuntimeException::class.java) {
+      deployTask.run(device, EmptyProgressIndicator())
+    }
+    assertEquals(ThrowingUIService.ExpectedOnInitException, throwable.cause)
   }
 
   @Test
@@ -224,4 +245,44 @@ class DeployTaskTest {
     val deployTask = DeployTask(project, listOf(mockApkInfo), null, true, false, installPathProvider)
     deployTask.perform(device, deployer, mockApkInfo, canceller)
   }
+}
+
+private class ThrowingUIService : UIService {
+  object ExpectedOnInitException : Exception()
+
+  init {
+    throw ExpectedOnInitException
+  }
+
+  override fun prompt(result: String?): Boolean = true
+  override fun message(message: String?) {}
+}
+
+private class TestDeployTaskNotificationGroupManager : NotificationGroupManager {
+  val mockNotification = MockitoKt.mock<Notification>()
+  val mockNotificationGroup = MockitoKt.mock<NotificationGroup>()
+
+  init {
+    whenever(
+      mockNotificationGroup.createNotification(
+        MockitoKt.any<String>(),
+        MockitoKt.any<NotificationType>()
+      )
+    )
+      .thenAnswer { mockNotification }
+  }
+
+  override fun getNotificationGroup(groupId: String): NotificationGroup = when (groupId) {
+    "Deploy" -> mockNotificationGroup
+    else -> throw IllegalArgumentException("Unexpected groupId: $groupId")
+  }
+
+  override fun isGroupRegistered(groupId: String): Boolean = when (groupId) {
+    "Deploy" -> true
+    else -> false
+  }
+
+  override fun getRegisteredNotificationGroups() = mutableListOf(mockNotificationGroup)
+
+  override fun isRegisteredNotificationId(notificationId: String) = false
 }
