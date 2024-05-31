@@ -75,50 +75,6 @@ public class ScreenView extends ScreenViewBase {
   };
 
   /**
-   * {@link ImageContentSizePolicy} that obtains the size from the image render result if available.
-   * If not available, it obtains the size from the given delegate.
-   */
-  public static final class ImageContentSizePolicy implements ContentSizePolicy {
-    @NotNull private final ContentSizePolicy mySizePolicyDelegate;
-    private Dimension cachedDimension = null;
-
-    public ImageContentSizePolicy(@NotNull ContentSizePolicy delegate) {
-      mySizePolicyDelegate = delegate;
-    }
-
-    @Override
-    public void measure(@NotNull ScreenView screenView, @NotNull Dimension outDimension) {
-      RenderResult result = screenView.getSceneManager().getRenderResult();
-      Dimension contentSize = result != null ? result.getRootViewDimensions() : null;
-
-      if (contentSize != null) {
-        try {
-          outDimension.setSize(Coordinates.pxToDp(screenView, contentSize.width), Coordinates.pxToDp(screenView, contentSize.height));
-
-          // Save in case a future render fails. This way we can keep a constant size for failed
-          // renders.
-          if (cachedDimension == null) {
-            cachedDimension = new Dimension(outDimension);
-          }
-          else {
-            cachedDimension.setSize(outDimension);
-          }
-          return;
-        }
-        catch (AssertionError ignored) {
-        }
-      }
-
-      if (cachedDimension != null) {
-        outDimension.setSize(cachedDimension);
-        return;
-      }
-
-      mySizePolicyDelegate.measure(screenView, outDimension);
-    }
-  }
-
-  /**
    * Default {@link Layer} provider to be used if no other is supplied.
    */
   private static final Function<ScreenView, ImmutableList<Layer>> DEFAULT_LAYERS_PROVIDER = (screenView) -> {
