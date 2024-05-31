@@ -553,8 +553,7 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
         project,
         searchScope,
         JvmClassName.byInternalName(className.replace(".", "/")),
-        fileName,
-        null
+        fileName
       );
       if (containingFile != null) {
         openEditor(project, containingFile, line - 1, -1);
