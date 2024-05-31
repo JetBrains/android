@@ -236,7 +236,9 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
     message("android.wizard.module.new.java.or.kotlin.library"),
     message("android.wizard.module.new.google.cloud"),
     message("android.wizard.module.new.baselineprofiles.module.app"),
-    message("android.wizard.module.new.benchmark.module.app"))
+    message("android.wizard.module.new.benchmark.module.app"),
+    message("android.wizard.module.new.kotlin.multiplatform.library")
+  )
 
   return moduleTypeProviders.partition { it.name in orderedNames }.run {
     first.sortedBy { orderedNames.indexOf(it.name) } + second.sortedBy { it.name }
