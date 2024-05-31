@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.psi
 import org.jetbrains.kotlin.analysis.api.types.KtErrorType
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginMode
-import org.jetbrains.kotlin.idea.base.plugin.checkKotlinPluginMode
+import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.psi.KtElement
 import org.junit.Before
 import org.junit.Ignore
@@ -61,7 +61,7 @@ class DirectionsClassResolveExtensionTest(
 
   @Before
   fun setUp() {
-    checkKotlinPluginMode(KotlinPluginMode.K2)
+    check(KotlinPluginModeProvider.isK2Mode())
     if (navVersion > SafeArgsFeatureVersions.MINIMUM_VERSION) {
       safeArgsRule.addFakeNavigationDependency(navVersion)
     }
@@ -366,25 +366,25 @@ class DirectionsClassResolveExtensionTest(
       assertThat(getRenderedMemberFunctions(symbol.companionObject!!, RENDERER))
         .containsExactly(
           "fun actionScalar(" +
-            "stringArg: kotlin.String, " +
-            "intArg: kotlin.Int, " +
-            "referenceArg: kotlin.Int, " +
-            "longArg: kotlin.Long, " +
-            "floatArg: kotlin.Float, " +
-            "booleanArg: kotlin.Boolean, " +
-            "inPackageEnumArg: test.safeargs.ArgEnum, " +
-            "outOfPackageEnumArg: other.ArgEnum" +
-            "): androidx.navigation.NavDirections",
+          "stringArg: kotlin.String, " +
+          "intArg: kotlin.Int, " +
+          "referenceArg: kotlin.Int, " +
+          "longArg: kotlin.Long, " +
+          "floatArg: kotlin.Float, " +
+          "booleanArg: kotlin.Boolean, " +
+          "inPackageEnumArg: test.safeargs.ArgEnum, " +
+          "outOfPackageEnumArg: other.ArgEnum" +
+          "): androidx.navigation.NavDirections",
           "fun actionArray(" +
-            "stringArray: kotlin.Array<kotlin.String>, " +
-            "intArray: kotlin.IntArray, " +
-            "referenceArray: kotlin.IntArray, " +
-            "longArray: kotlin.LongArray, " +
-            "floatArray: kotlin.FloatArray, " +
-            "booleanArray: kotlin.BooleanArray, " +
-            "inPackageEnumArray: kotlin.Array<test.safeargs.ArgEnum>, " +
-            "outOfPackageEnumArray: kotlin.Array<other.ArgEnum>" +
-            "): androidx.navigation.NavDirections",
+          "stringArray: kotlin.Array<kotlin.String>, " +
+          "intArray: kotlin.IntArray, " +
+          "referenceArray: kotlin.IntArray, " +
+          "longArray: kotlin.LongArray, " +
+          "floatArray: kotlin.FloatArray, " +
+          "booleanArray: kotlin.BooleanArray, " +
+          "inPackageEnumArray: kotlin.Array<test.safeargs.ArgEnum>, " +
+          "outOfPackageEnumArray: kotlin.Array<other.ArgEnum>" +
+          "): androidx.navigation.NavDirections",
         )
     }
   }
@@ -435,9 +435,9 @@ class DirectionsClassResolveExtensionTest(
       assertThat(symbol.render(RENDERER))
         .isEqualTo(
           "fun actionFragment1ToFragment2(" +
-            "argumentFromAction: kotlin.Int, " +
-            "argumentFromDestination: kotlin.Int" +
-            "): androidx.navigation.NavDirections"
+          "argumentFromAction: kotlin.Int, " +
+          "argumentFromDestination: kotlin.Int" +
+          "): androidx.navigation.NavDirections"
         )
     }
   }
@@ -543,7 +543,8 @@ class DirectionsClassResolveExtensionTest(
       val argumentBody =
         if (navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS) {
           "argumentBefore: kotlin.Int, argumentAfter: kotlin.Int, argumentWithDefault: kotlin.Int = ..."
-        } else {
+        }
+        else {
           "argumentBefore: kotlin.Int, argumentWithDefault: kotlin.Int = ..., argumentAfter: kotlin.Int"
         }
       assertThat(symbol.render(RENDERER))
