@@ -2,9 +2,6 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$/testSrc">
-      <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
-    </content>
     <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
@@ -36,5 +33,18 @@
     <orderEntry type="module" module-name="intellij.platform.util.ex" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs.common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.high-level-api" level="project" />
+    <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.uast.uast-kotlin-base" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.analysis" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs.tests.common" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinc.kotlin-compiler-common" level="project" />
+    <orderEntry type="module" module-name="intellij.xml.psi" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlin-reflect" level="project" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.nav.safeargs.k2" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.project-structure" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
   </component>
 </module>
