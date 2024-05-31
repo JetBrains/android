@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.npw.java
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
+import com.android.tools.idea.npw.multiplatform.ConfigureKotlinMultiplatformLibraryModuleStep
+import com.android.tools.idea.npw.multiplatform.NewKotlinMultiplatformLibraryModuleModel
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle.message
@@ -25,7 +28,10 @@ import org.jetbrains.kotlin.idea.KotlinIcons
 import javax.swing.Icon
 
 class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOfNotNull(
+    JavaModuleTemplateGalleryEntry(),
+    if (StudioFlags.NPW_NEW_KOTLIN_MULTIPLATFORM_MODULE.get()) KotlinMultiplatformLibraryModuleTemplateGalleryEntry() else null,
+  )
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
     override val icon: Icon = KotlinIcons.SMALL_LOGO
@@ -34,5 +40,16 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
     override fun toString() = name
     override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> =
       ConfigureLibraryModuleStep(NewLibraryModuleModel(project, moduleParent, projectSyncInvoker), name)
+  }
+
+  private class KotlinMultiplatformLibraryModuleTemplateGalleryEntry : ModuleGalleryEntry {
+    override val name: String = message("android.wizard.module.new.kotlin.multiplatform.library")
+    override val description: String = message("android.wizard.module.new.kotlin.multiplatform.library.description")
+    override val icon: Icon = KotlinIcons.SMALL_LOGO
+
+    override fun createStep(project: Project, moduleParent: String, projectSyncInvoker: ProjectSyncInvoker): SkippableWizardStep<*> {
+      return ConfigureKotlinMultiplatformLibraryModuleStep(
+        NewKotlinMultiplatformLibraryModuleModel(project, moduleParent, projectSyncInvoker), name)
+    }
   }
 }

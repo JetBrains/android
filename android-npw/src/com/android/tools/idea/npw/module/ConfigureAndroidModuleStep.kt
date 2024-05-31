@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.ide.common.repository.AgpVersion
-import com.android.tools.adtui.validation.Validator
-import com.android.tools.adtui.validation.ValidatorPanel
-import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewAndroidModuleModel
@@ -28,7 +24,6 @@ import com.android.tools.idea.npw.template.ChooseActivityTypeStep
 import com.android.tools.idea.npw.template.components.BytecodeLevelComboProvider
 import com.android.tools.idea.npw.toWizardFormFactor
 import com.android.tools.idea.npw.validator.ProjectNameValidator
-import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.model.ModelWizardStep
