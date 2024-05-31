@@ -47,6 +47,6 @@
     <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.refactorings.move.k2" scope="TEST" />
-    <orderEntry type="library" name="kotlinc.analysis-api" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
   </component>
 </module>
