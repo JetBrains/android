@@ -27,6 +27,7 @@ import com.android.tools.lint.detector.api.LintFix.LintFixGroup
 import com.android.tools.lint.detector.api.LintFix.ShowUrl
 import com.android.tools.lint.detector.api.Location
 import com.android.tools.lint.detector.api.Severity
+import com.android.tools.lint.detector.api.copySafe
 import com.android.utils.SdkUtils
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
@@ -393,7 +394,7 @@ class LintIdeFixPerformer(client: LintClient, private val project: Project) :
  */
 private class LintIdeFixPerformerFix(
   private val project: Project,
-  val incident: Incident,
+  incident: Incident,
   val fix: LintFix,
   name: String? = fix.getDisplayName(),
   familyName: String? = fix.getFamilyName(),
@@ -402,15 +403,9 @@ private class LintIdeFixPerformerFix(
   private val performer = LintIdeFixPerformer(LintIdeSupport.get().createClient(project), project)
   private val edits = LinkedHashMap<PendingEditFile, Pair<SmartPsiFileRange, CharSequence>?>()
 
-  init {
-    // Clear out some incident data not needed in the IDE so it's not unnecessarily hanging on
-    // to larger data structures
-    with(incident) {
-      project = null
-      scope = null
-      clientProperties = null
-    }
+  val incident = incident.copySafe()
 
+  init {
     // Collect edits
     val affectedFiles = performer.registerFixes(incident, listOf(fix))
     val manager = SmartPointerManager.getInstance(project)
