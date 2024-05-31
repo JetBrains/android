@@ -19,7 +19,7 @@ import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.GradleIcons
 import javax.swing.Icon
 
-class DeclarativeFileType : LanguageFileType(DeclarativeLanguage.INSTANCE) {
+class DeclarativeFileType private constructor() : LanguageFileType(DeclarativeLanguage.INSTANCE) {
   override fun getName(): String = "Gradle Declarative Configuration Language"
   override fun getDescription(): String = "Gradle Declarative Build DSL"
   override fun getDefaultExtension(): String = "dcl"
