@@ -33,7 +33,6 @@ import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.ArrayUtil
 import com.intellij.util.PathUtil
-import junit.framework.ComparisonFailure
 import junit.framework.TestCase
 import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.kotlin.android.DirectiveBasedActionUtils
@@ -129,9 +128,6 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureAdtTes
             }
           }
         }
-      }
-      catch (e: ComparisonFailure) {
-        throw e
       }
       catch (e: AssertionError) {
         throw e

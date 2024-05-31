@@ -19,7 +19,7 @@ import static com.android.SdkConstants.DOT_TXT;
 
 import com.android.tools.idea.lang.LangTestDataKt;
 import com.google.common.base.Charsets;
-import com.intellij.rt.execution.junit.FileComparisonFailure;
+import com.intellij.platform.testFramework.core.FileComparisonFailedError;
 import com.intellij.testFramework.ParsingTestCase;
 import java.io.File;
 import kotlin.io.FilesKt;
@@ -42,7 +42,7 @@ public class AidlParserTest extends ParsingTestCase {
   protected void doTest(boolean checkResult, boolean ensureNoErrorElements) {
     try {
       super.doTest(checkResult, ensureNoErrorElements);
-    } catch (FileComparisonFailure e) {
+    } catch (FileComparisonFailedError e) {
       if (UPDATE_EXPECTED_FILES_IN_PLACE) {
         File file = new File(myFullDataPath, getTestName() + DOT_TXT);
         assertTrue(file.getPath(), file.isFile());
