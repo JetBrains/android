@@ -53,6 +53,7 @@ import org.junit.runners.Parameterized
 import org.mockito.Mockito.spy
 import perfetto.protos.PerfettoConfig
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
@@ -90,6 +91,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // (withTraceBoxDisabled) If device is set and device level is less than 28, return AtraceConfiguration
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.N), false)
+    // Simulate ongoing recording so that config is set.
+    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (AtraceConfiguration::class)}
@@ -100,9 +103,22 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // (withTraceBoxDisabled) If device is set and device level is greater than 28, return PerfettoSystemTraceConfiguration
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.R), false)
+    // Simulate ongoing recording so that config is set.
+    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (PerfettoSystemTraceConfiguration::class)}
+  }
+
+  @Test
+  fun testCpuConfigIsNotSetIfTaskIsNotPerformingANewRecording() {
+    // (withTraceBoxDisabled) If device is set and device level is greater than 28, return PerfettoSystemTraceConfiguration
+    val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
+      createFakeDevice(AndroidVersion.VersionCodes.R), false)
+    // Simulate no ongoing recording, should not set the config as a consequence.
+    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(false)
+    // Should not throw an exception.
+    mySystemTraceTaskHandlerMock.setupStage()
   }
 
   @Test
@@ -110,6 +126,8 @@ class SystemTraceTaskHandlerTest(private val myExposureLevel: ExposureLevel) {
     // (withTraceBoxEnabled) If device is set and device level is greater than 22, return PerfettoSystemTraceConfiguration
     val mySystemTraceTaskHandlerMock = mockDeviceInSystemTraceTaskHandler(
       createFakeDevice(AndroidVersion.VersionCodes.M), true)
+    // Simulate ongoing recording so that config is set.
+    MockitoKt.whenever(mySystemTraceTaskHandlerMock.sessionsManager.isSessionAlive).thenReturn(true)
     mySystemTraceTaskHandlerMock.setupStage()
     val cpuProfilerStage = mySystemTraceTaskHandlerMock.stage as CpuProfilerStage
     assertTrue { cpuProfilerStage.profilerConfigModel.profilingConfiguration.instanceOf (PerfettoSystemTraceConfiguration::class)}

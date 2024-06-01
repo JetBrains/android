@@ -30,15 +30,20 @@ abstract class CpuTaskHandler(private val sessionsManager: SessionsManager) : Si
     val studioProfilers = sessionsManager.studioProfilers
     val stage = CpuProfilerStage(studioProfilers, this::stopTask)
     val cpuRecordingConfig = getCpuRecordingConfig()
-    if (cpuRecordingConfig != null) {
-      stage.profilerConfigModel.profilingConfiguration = cpuRecordingConfig
-      studioProfilers.stage = stage
-      super.stage = stage
+    // The session being alive at this point indicates the user is attempting to capture a novel task recording, and thus a non-null config
+    // is expected.
+    if (sessionsManager.isSessionAlive) {
+      if (cpuRecordingConfig != null) {
+        stage.profilerConfigModel.profilingConfiguration = cpuRecordingConfig
+      }
+      else {
+        // The UI to start a task is only enabled if the task configuration is non-null, making this an illegal state to be in.
+        throw IllegalStateException("The task configuration cannot be null.")
+      }
     }
-    else {
-      // The UI to start a task is only enabled if the task configuration is non-null, making this an illegal state to be in.
-      throw IllegalStateException("The task configuration cannot be null.")
-    }
+    // Whether a config is set or not, the stage should be set to handle new, past, and imported recordings.
+    studioProfilers.stage = stage
+    super.stage = stage
   }
 
   override fun startCapture(stage: CpuProfilerStage) {
