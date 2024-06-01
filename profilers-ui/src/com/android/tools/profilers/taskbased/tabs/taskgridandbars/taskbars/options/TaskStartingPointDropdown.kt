@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.taskbased.tabs.taskgridandbars.taskbars.options
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
@@ -25,14 +26,19 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings
 import com.android.tools.profilers.taskbased.common.dropdowns.DropdownOptionText
 import com.android.tools.profilers.taskbased.common.text.EllipsisText
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import org.jetbrains.jewel.ui.component.Dropdown
+import org.jetbrains.jewel.ui.component.Text
+import org.jetbrains.jewel.ui.component.Tooltip
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.ProfilingProcessStartingPoint,
                               setProfilingProcessStartingPoint: (TaskHomeTabModel.ProfilingProcessStartingPoint) -> Unit,
                               isProfilingProcessFromNowEnabled: Boolean,
-                              isProfilingProcessFromProcessStartEnabled: Boolean) {
+                              isProfilingProcessFromProcessStartEnabled: Boolean,
+                              processStartDisabledReason: StartTaskSelectionError?) {
   val isDropdownEnabled = isProfilingProcessFromNowEnabled || isProfilingProcessFromProcessStartEnabled
 
   Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(DROPDOWN_PROMPT_HORIZONTAL_SPACE_DP)) {
@@ -41,12 +47,23 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
       selectableItem(enabled = isProfilingProcessFromNowEnabled,
                      selected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
                      onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) }) {
-        TaskStartingPointOption(TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION, Modifier.testTag("TaskStartingPointOption"))
+        TaskStartingPointFromNowOption()
       }
+      val isProcessStartSelected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START
       selectableItem(enabled = isProfilingProcessFromProcessStartEnabled,
-                     selected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+                     selected = isProcessStartSelected,
                      onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START) }) {
-        TaskStartingPointOption(TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION, Modifier.testTag("TaskStartingPointOption"))
+        // In the case where the process start option is disabled and not selected, a tooltip explaining why is provided.
+        if (isProfilingProcessFromProcessStartEnabled || isProcessStartSelected) {
+          TaskStartingFromProcessStartOption()
+        }
+        else {
+          Tooltip(tooltip = {
+            Text(processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it) } ?: "Option unavailable")
+          }) {
+            TaskStartingFromProcessStartOption()
+          }
+        }
       }
     }) {
       val selectionText = when (profilingProcessStartingPoint) {
@@ -57,6 +74,16 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
       TaskStartingPointOption(selectionText)
     }
   }
+}
+
+@Composable
+private fun TaskStartingPointFromNowOption() {
+  TaskStartingPointOption(TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION, Modifier.testTag("TaskStartingPointOption"))
+}
+
+@Composable
+private fun TaskStartingFromProcessStartOption() {
+  TaskStartingPointOption(TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION, Modifier.testTag("TaskStartingPointOption"))
 }
 
 @Composable

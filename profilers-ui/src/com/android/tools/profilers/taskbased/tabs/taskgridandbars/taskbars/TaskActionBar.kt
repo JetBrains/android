@@ -37,8 +37,11 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_ACTION_BAR_FULL_CONTENT_MIN_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TASK_NOTIFICATION_CONTAINER_PADDING_DP
 import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedUxStrings.getStartTaskErrorMessage
+import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canStartTask
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromProcessStart
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.getStartTaskError
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.isProfileablePreferredButNotPresent
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.isSelectedProcessPreferred
@@ -104,8 +107,15 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
   val canStartTask = canStartTask(selectedTaskType, selectedDevice, selectedProcess, profilingProcessStartingPoint, profilers)
   BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(start = TASK_ACTION_BAR_CONTENT_PADDING_DP)) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.align(Alignment.CenterStart)) {
+      val canStartTaskFromProcessStart = canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers)
+      val processStartDisabledReason =
+        if (canStartTaskFromProcessStart) null else {
+          // Only show start task from process start error message if it's a non-general error.
+          TaskSelectionVerificationUtils.getStartTaskFromProcessStartError(selectedTaskType, selectedDevice, selectedProcess, profilers)
+            .takeIf { it != StartTaskSelectionError.GENERAL_ERROR }
+        }
       TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
-                                isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled)
+                                isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled, processStartDisabledReason)
       if (TaskHomeTabModel.doesTaskHaveRecordingTypes(selectedTaskType)) {
         Spacer(modifier = Modifier.width(TASK_ACTION_BAR_ACTION_HORIZONTAL_SPACE_DP))
         TaskRecordingTypeDropdown(taskRecordingType, taskHomeTabModel::setTaskRecordingType)
