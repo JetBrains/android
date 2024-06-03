@@ -73,6 +73,10 @@ string TrimEnd(string value) {
   return value;
 }
 
+bool StartsWithDividerPrefix(const string& value) {
+  return strncmp(value.c_str(), DIVIDER_PREFIX, 3) == 0;
+}
+
 void ProcessDarkMode(TokenIterator* it, UiSettingsState* state) {
   bool dark_mode = it->has_next() && strcmp(it->next(), "Night mode: yes") == 0;
   state->set_dark_mode(dark_mode);
@@ -83,8 +87,8 @@ void ProcessGestureNavigation(TokenIterator* it, UiSettingsState* state) {
   bool gesture_navigation = false;
   if (it->has_next()) {
     string line = it->next();
-    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
-      it->prev();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev(); // Go back to start of line
     } else {
       gesture_overlay_installed = true;
       gesture_navigation = line == "[x] " GESTURES_OVERLAY;
@@ -99,8 +103,8 @@ void ProcessListPackages(TokenIterator* it, UiSettingsState* state) {
   bool talkback_installed = false;
   while (it->has_next()) {
     string line = it->next();
-    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
-      it->prev();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev(); // Go back to start of line
       break;
     }
     talkback_installed = talkback_installed || (line == talkBackServiceLine);
@@ -136,8 +140,8 @@ void ReadDensity(TokenIterator* it, const char* pattern, int* density) {
   *density = 0;
   if (it->has_next()) {
     string line = it->next();
-    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
-      it->prev();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev(); // Go back to start of line
     } else {
       sscanf(line.c_str(), pattern, density);
     }
@@ -161,8 +165,8 @@ void ProcessDebugLayout(TokenIterator* it, UiSettingsState* state) {
   bool debug_layout = false;
   if (it->has_next()) {
     string line = it->next();
-    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
-      it->prev();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev(); // Go back to start of line
     } else {
       debug_layout = TrimEnd(line) == "true";
     }
@@ -188,8 +192,8 @@ bool ParseForegroundApplicationLine(const string& line, string* foreground_appli
 void ProcessForegroundApplication(TokenIterator* it, CommandContext* context) {
   if (it->has_next()) {
     string line = it->next();
-    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
-      it->prev();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev(); // Go back to start of line
     } else {
       string foreground_application_id;
       if (ParseForegroundApplicationLine(line, &foreground_application_id)) {
@@ -220,8 +224,8 @@ void ProcessAppLanguage(TokenIterator* it, UiSettingsState* state) {
   string application_id;
   if (it->has_next()) {
     string line = it->next();
-    if (line.rfind(DIVIDER_PREFIX, 0) == 0) { // line.startsWith(DIVIDER_PREFIX)
-      it->prev();
+    if (StartsWithDividerPrefix(line)) {
+      it->prev(); // Go back to start of line
       return;
     }
     string locales;
