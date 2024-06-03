@@ -44,11 +44,12 @@ class ProfilerProgramRunnerTest {
     else {assertThat(actual).contains("Gradle")}
     if (isApiLevelSupported) assertThat(actual).doesNotContain("API")
     else assertThat(actual).contains("API")
-    if (isSystemSupported) assertThat(actual).doesNotContain("debuggable")
-    else assertThat(actual).contains("debuggable")
+    if (isSystemSupported) assertThat(actual).doesNotContain("a system that is not debuggable")
+    else assertThat(actual).contains("a system that is not debuggable")
 
-    assertThat(actual).startsWith("<html>Profiling with Low Overhead requires")
-    assertThat(actual).endsWith(".<br>Do you want to Profile with Complete Data instead?</html>")
-    assertThat(actual.indexOf("<br>")).isAtMost(ProfilerProgramRunner.MAX_MESSAGE_LINE_LENGTH + "<html>".length + 1)
+    assertThat(actual).startsWith("<html>“Run as profileable (low overhead)” is not available because it requires")
+    assertThat(actual).endsWith("<br><br>To proceed, either choose a device or emulator that meets the requirements above or run the " +
+                                "app with \"Profiler: Run as debuggable (complete data)\". " +
+                                "<a href=\"https://d.android.com/r/studio-ui/profiler/profileable\">More Info</a></html>")
   }
 }
