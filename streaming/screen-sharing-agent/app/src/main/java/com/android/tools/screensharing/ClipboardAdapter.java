@@ -71,7 +71,7 @@ public class ClipboardAdapter {
         }
       }
       catch (NoSuchMethodException e) {
-        Log.e(ATTRIBUTION_TAG, e.getMessage());
+        Log.e(ATTRIBUTION_TAG, "Unable to find the IClipboard." + e.getMessage() + " method");
         clipboard = null;
       }
     }
@@ -191,7 +191,7 @@ public class ClipboardAdapter {
     if (minParam <= parameterCount && parameterCount <= maxParam) {
       return true;
     }
-    Log.e(ATTRIBUTION_TAG, "Unexpected number of " + method.getName() + " parameters: " + parameterCount);
+    Log.e(ATTRIBUTION_TAG, "Unexpected number of IClipboard." + method.getName() + " parameters: " + parameterCount);
     return false;
   }
 }
