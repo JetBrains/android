@@ -19,6 +19,7 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompile
 import com.android.tools.idea.run.deployment.liveedit.analysis.directApiCompileIr
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.tests.AdtTestProjectDescriptors
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.testFramework.PsiTestUtil
@@ -55,6 +56,7 @@ class ModuleCompileTest {
   @Test
   fun testLibModule() {
     val file = projectRule.fixture.addFileToProject("$libModule1Name/B.kt", "public class B() { internal fun foo() : Int { return 2 } }") as KtFile
+    val psiValidationState = ReadAction.compute<PsiState, Throwable> { getPsiValidationState(file) }
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
@@ -64,7 +66,7 @@ class ModuleCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    var output = compile(listOf(LiveEditCompilerInput(file, getPsiValidationState(file))), compiler)
+    var output = compile(listOf(LiveEditCompilerInput(file, psiValidationState)), compiler)
     var clazz = loadClass(output)
     Assert.assertTrue(clazz.declaredMethods.stream().anyMatch {it.name.contains("foo\$$libModule1Name")})
   }
@@ -73,6 +75,10 @@ class ModuleCompileTest {
   fun testDifferentModules() {
     val file1 = projectRule.fixture.addFileToProject("$libModule1Name/A.kt", "public class A() { internal fun foo() : Int { return 2 } }") as KtFile
     val file2 = projectRule.fixture.addFileToProject("$libModule2Name/B.kt", "public class B() { internal fun bar() : Int { return 2 } }") as KtFile
+    val (file1ValidationState, file2ValidationState) = ReadAction.compute<Pair<PsiState, PsiState>, Throwable> {
+      getPsiValidationState(file1) to getPsiValidationState(file2)
+    }
+
     val cache = MutableIrClassCache()
 
     // Direct API compile assumes all files are in the same module, so we need to invoke it once per file.
@@ -82,8 +88,9 @@ class ModuleCompileTest {
     val compiler = LiveEditCompiler(projectRule.project, cache, object : ApkClassProvider {
       override fun getClass(ktFile: KtFile, className: String) = apk[className]
     })
-    val output = compile(listOf(LiveEditCompilerInput(file1, getPsiValidationState(file1)),
-                                LiveEditCompilerInput(file2, getPsiValidationState(file2))), compiler)
+
+    val output = compile(listOf(LiveEditCompilerInput(file1, file1ValidationState),
+                                LiveEditCompilerInput(file2, file2ValidationState)), compiler)
 
     var clazzA = loadClass(output, "A")
     Assert.assertTrue(clazzA.declaredMethods.stream().anyMatch {it.name.contains("foo\$$libModule1Name")})
