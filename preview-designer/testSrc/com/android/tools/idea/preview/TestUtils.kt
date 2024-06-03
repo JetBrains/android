@@ -58,6 +58,8 @@ val NoopAnimationTracker =
     override fun lockAnimation() {}
 
     override fun unlockAnimation() {}
+
+    override fun triggerSwapStatesAction() {}
   }
 
 /**

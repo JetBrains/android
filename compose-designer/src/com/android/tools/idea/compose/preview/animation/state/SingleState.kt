@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation.state
 
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.actions.EnumStateAction
-import com.android.tools.idea.compose.preview.animation.actions.SwapAction
+import com.android.tools.idea.preview.animation.actions.SwapAction
 
 /**
  * [AnimationState] to control animations like AnimatedVisibility.

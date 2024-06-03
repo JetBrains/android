@@ -18,8 +18,8 @@ package com.android.tools.idea.compose.preview.animation.state
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.compose.preview.animation.actions.ColorStateAction
-import com.android.tools.idea.compose.preview.animation.actions.SwapAction
-import com.android.tools.idea.compose.preview.animation.actions.ToolbarLabel
+import com.android.tools.idea.preview.animation.actions.SwapAction
+import com.android.tools.idea.preview.animation.actions.ToolbarLabel
 import com.intellij.openapi.actionSystem.AnAction
 
 /**

@@ -55,4 +55,6 @@ interface AnimationTracker {
   fun lockAnimation()
 
   fun unlockAnimation()
+
+  fun triggerSwapStatesAction()
 }
