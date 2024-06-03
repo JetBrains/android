@@ -68,14 +68,14 @@ public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTest
   @Parameters(name = "{0}")
   public static Iterable<Object[]> getParameters() {
     return Arrays.asList(new Object[][]{
-      {"build.gradle", true, true},
-      {"build.gradle.kts", true, true},
-      {"settings.gradle", true, true},
-      {"settings.gradle.kts", true, true},
-      {"README.md", false, false},
-      {"src/main/com/example/MyClass.java", false, false},
-      {"gradle/libs.versions.toml", false, true},
-      {".gradle/config.properties", false, false}
+      {"build.gradle", true},
+      {"build.gradle.kts", true},
+      {"settings.gradle", true},
+      {"settings.gradle.kts", true},
+      {"README.md", false},
+      {"src/main/com/example/MyClass.java", false},
+      {"gradle/libs.versions.toml", false},
+      {".gradle/config.properties", false}
     });
   }
 
@@ -83,8 +83,6 @@ public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTest
   public String myFilepath;
   @Parameter(1)
   public boolean myFileNeedsProjectStructureNotifications;
-  @Parameter(2)
-  public boolean myFileNeedsVersionCatalogNotifications;
 
   @Override
   protected void setUp() throws Exception {
