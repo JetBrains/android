@@ -99,7 +99,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon ERROR = load("studio/icons/common/error.svg", -1991257582, 2);
     /** 16x16 */ public static final @NotNull Icon EXPORT = load("studio/icons/common/export.svg", -414706009, 2);
     /** 16x16 */ public static final @NotNull Icon FILTER = load("studio/icons/common/filter.svg", -531506946, 2);
-    /** 17x16 */ public static final @NotNull Icon GRID_VIEW = load("studio/icons/common/grid-view.svg", 1937593400, 2);
+    /** 16x16 */ public static final @NotNull Icon GRID_VIEW = load("studio/icons/common/grid-view.svg", -1245198770, 2);
     /** 16x16 */ public static final @NotNull Icon GROUP = load("studio/icons/common/group.svg", -616944603, 2);
     /** 16x16 */ public static final @NotNull Icon HELP = load("studio/icons/common/help.svg", 1868521137, 2);
     /** 16x16 */ public static final @NotNull Icon IMPORT_DATA = load("studio/icons/common/import-data.svg", 2036891466, 2);
@@ -107,7 +107,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon INFO_INLINE = load("studio/icons/common/info-inline.svg", -2140866011, 2);
     /** 16x16 */ public static final @NotNull Icon INFO = load("studio/icons/common/info.svg", 216054291, 2);
     /** 16x16 */ public static final @NotNull Icon LINK = load("studio/icons/common/link.svg", 636172221, 2);
-    /** 17x16 */ public static final @NotNull Icon LIST_VIEW = load("studio/icons/common/list-view.svg", -1580146156, 2);
+    /** 16x16 */ public static final @NotNull Icon LIST_VIEW = load("studio/icons/common/list-view.svg", 1382368463, 2);
     /** 16x16 */ public static final @NotNull Icon LOCKED_INLINE_SELECTED = load("studio/icons/common/locked-inline-selected.svg", 147020694, 0);
     /** 16x16 */ public static final @NotNull Icon LOCKED_INLINE = load("studio/icons/common/locked-inline.svg", 2129025715, 2);
     /** 16x16 */ public static final @NotNull Icon LOGIN = load("studio/icons/common/login.svg", -152184853, 2);
@@ -286,7 +286,7 @@ public final class StudioIcons {
     public static final class Wear {
       /** 16x16 */ public static final @NotNull Icon BUTTON_1 = load("studio/icons/emulator/wear/button-1.svg", -592773138, 2);
       /** 16x16 */ public static final @NotNull Icon BUTTON_2 = load("studio/icons/emulator/wear/button-2.svg", -1802564626, 2);
-      /** 16x16 */ public static final @NotNull Icon HEALTH_SERVICES = load("studio/icons/emulator/wear/health-services.svg", 386899898, 2);
+      /** 16x16 */ public static final @NotNull Icon HEALTH_SERVICES = load("studio/icons/emulator/wear/health-services.svg", -687400155, 2);
       /** 16x16 */ public static final @NotNull Icon PALM = load("studio/icons/emulator/wear/palm.svg", -1981716285, 2);
       /** 16x16 */ public static final @NotNull Icon TILT = load("studio/icons/emulator/wear/tilt.svg", -296893865, 2);
     }
@@ -759,65 +759,65 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon METHOD_STACK = load("studio/icons/profiler/overlays/method-stack.svg", -2096378117, 0);
       /** 16x16 */ public static final @NotNull Icon PACKAGE_STACK = load("studio/icons/profiler/overlays/package-stack.svg", -1697793989, 0);
       /** 16x16 */ public static final @NotNull Icon THREAD_SUSPENDED_STACK = load("studio/icons/profiler/overlays/thread-suspended-stack.svg", 763519396, 0);
-      /** 20x20 */ public static final @NotNull Icon TRANSPARENT_TILE = load("studio/icons/profiler/overlays/transparent-tile.svg", 873529561, 0);
+      /** 20x20 */ public static final @NotNull Icon TRANSPARENT_TILE = load("studio/icons/profiler/overlays/transparent-tile.svg", -1104472483, 0);
     }
 
     public static final class Sessions {
-      /** 16x16 */ public static final @NotNull Icon ALLOCATIONS = load("studio/icons/profiler/sessions/allocations.svg", -1421296454, 2);
-      /** 16x16 */ public static final @NotNull Icon BOOKMARK = load("studio/icons/profiler/sessions/bookmark.svg", 38767889, 2);
-      /** 16x16 */ public static final @NotNull Icon CPU = load("studio/icons/profiler/sessions/cpu.svg", -29242543, 2);
-      /** 16x16 */ public static final @NotNull Icon HEAP = load("studio/icons/profiler/sessions/heap.svg", -872964210, 2);
-      /** 16x16 */ public static final @NotNull Icon SAVE = load("studio/icons/profiler/sessions/save.svg", -1342773017, 2);
+      /** 16x16 */ public static final @NotNull Icon ALLOCATIONS = load("studio/icons/profiler/sessions/allocations.svg", 1609018431, 2);
+      /** 16x16 */ public static final @NotNull Icon BOOKMARK = load("studio/icons/profiler/sessions/bookmark.svg", -300290156, 2);
+      /** 16x16 */ public static final @NotNull Icon CPU = load("studio/icons/profiler/sessions/cpu.svg", -56567785, 2);
+      /** 16x16 */ public static final @NotNull Icon HEAP = load("studio/icons/profiler/sessions/heap.svg", -1096727049, 2);
+      /** 16x16 */ public static final @NotNull Icon SAVE = load("studio/icons/profiler/sessions/save.svg", 1400290486, 2);
     }
 
     public static final class Sidebar {
-      /** 44x44 */ public static final @NotNull Icon FILE = load("studio/icons/profiler/sidebar/file.svg", 1180658113, 2);
-      /** 44x44 */ public static final @NotNull Icon ISSUE = load("studio/icons/profiler/sidebar/issue.svg", 1941594880, 2);
+      /** 44x44 */ public static final @NotNull Icon FILE = load("studio/icons/profiler/sidebar/file.svg", 801287694, 2);
+      /** 44x44 */ public static final @NotNull Icon ISSUE = load("studio/icons/profiler/sidebar/issue.svg", 1693520271, 2);
     }
 
     public static final class Tasks {
-      /** 16x16 */ public static final @NotNull Icon APP_STARTUP_INSIGHTS = load("studio/icons/profiler/tasks/app-startup-insights.svg", 827438830, 2);
-      /** 16x16 */ public static final @NotNull Icon CALLSTACK_SAMPLE = load("studio/icons/profiler/tasks/callstack-sample.svg", -27599740, 2);
-      /** 16x16 */ public static final @NotNull Icon FIND_MEMORY_LEAKS = load("studio/icons/profiler/tasks/find-memory-leaks.svg", -1837320656, 2);
-      /** 16x16 */ public static final @NotNull Icon HEAP_DUMP = load("studio/icons/profiler/tasks/heap-dump.svg", -1119339339, 2);
-      /** 16x16 */ public static final @NotNull Icon IMPROVE_ENERGY_USE = load("studio/icons/profiler/tasks/improve-energy-use.svg", -795476038, 2);
-      /** 16x16 */ public static final @NotNull Icon JAVA_KOTLIN_ALLOCATIONS = load("studio/icons/profiler/tasks/java-kotlin-allocations.svg", -113798440, 2);
-      /** 16x16 */ public static final @NotNull Icon JAVA_KOTLIN_METHOD_TRACE = load("studio/icons/profiler/tasks/java-kotlin-method-trace.svg", -369870664, 2);
-      /** 16x16 */ public static final @NotNull Icon LIVE_VIEW = load("studio/icons/profiler/tasks/live-view.svg", -2084496536, 2);
-      /** 16x16 */ public static final @NotNull Icon NATIVE_ALLOCATIONS = load("studio/icons/profiler/tasks/native-allocations.svg", -287516081, 2);
-      /** 16x16 */ public static final @NotNull Icon REDUCE_JANK = load("studio/icons/profiler/tasks/reduce-jank.svg", -1850984260, 2);
-      /** 16x16 */ public static final @NotNull Icon SYSTEM_TRACE = load("studio/icons/profiler/tasks/system-trace.svg", -84866799, 2);
-      /** 16x16 */ public static final @NotNull Icon VIEW_POWER_CONSUMPTION = load("studio/icons/profiler/tasks/view-power-consumption.svg", -2067635692, 2);
+      /** 16x16 */ public static final @NotNull Icon APP_STARTUP_INSIGHTS = load("studio/icons/profiler/tasks/app-startup-insights.svg", -122583248, 2);
+      /** 16x16 */ public static final @NotNull Icon CALLSTACK_SAMPLE = load("studio/icons/profiler/tasks/callstack-sample.svg", 1478357546, 2);
+      /** 17x16 */ public static final @NotNull Icon FIND_MEMORY_LEAKS = load("studio/icons/profiler/tasks/find-memory-leaks.svg", 1478649330, 2);
+      /** 16x16 */ public static final @NotNull Icon HEAP_DUMP = load("studio/icons/profiler/tasks/heap-dump.svg", -1225994287, 2);
+      /** 16x16 */ public static final @NotNull Icon IMPROVE_ENERGY_USE = load("studio/icons/profiler/tasks/improve-energy-use.svg", -224793749, 2);
+      /** 16x16 */ public static final @NotNull Icon JAVA_KOTLIN_ALLOCATIONS = load("studio/icons/profiler/tasks/java-kotlin-allocations.svg", -1888418765, 2);
+      /** 16x16 */ public static final @NotNull Icon JAVA_KOTLIN_METHOD_TRACE = load("studio/icons/profiler/tasks/java-kotlin-method-trace.svg", -1540220361, 2);
+      /** 16x16 */ public static final @NotNull Icon LIVE_VIEW = load("studio/icons/profiler/tasks/live-view.svg", -1231689085, 2);
+      /** 16x16 */ public static final @NotNull Icon NATIVE_ALLOCATIONS = load("studio/icons/profiler/tasks/native-allocations.svg", -1355529056, 2);
+      /** 16x16 */ public static final @NotNull Icon REDUCE_JANK = load("studio/icons/profiler/tasks/reduce-jank.svg", -1106758614, 2);
+      /** 16x16 */ public static final @NotNull Icon SYSTEM_TRACE = load("studio/icons/profiler/tasks/system-trace.svg", 55440408, 2);
+      /** 16x16 */ public static final @NotNull Icon VIEW_POWER_CONSUMPTION = load("studio/icons/profiler/tasks/view-power-consumption.svg", 405405677, 2);
     }
 
     public static final class Taskslarge {
-      /** 48x48 */ public static final @NotNull Icon APP_STARTUP_INSIGHTS_LARGE = load("studio/icons/profiler/taskslarge/app-startup-insights-large.svg", -314961368, 2);
-      /** 48x48 */ public static final @NotNull Icon CALLSTACK_SAMPLE_LARGE = load("studio/icons/profiler/taskslarge/callstack-sample-large.svg", -1736738999, 2);
-      /** 48x48 */ public static final @NotNull Icon FIND_MEMORY_LEAKS_LARGE = load("studio/icons/profiler/taskslarge/find-memory-leaks-large.svg", 1772198727, 2);
-      /** 48x48 */ public static final @NotNull Icon HEAP_DUMP_LARGE = load("studio/icons/profiler/taskslarge/heap-dump-large.svg", 1335391474, 2);
-      /** 48x48 */ public static final @NotNull Icon IMPROVE_ENERGY_USE_LARGE = load("studio/icons/profiler/taskslarge/improve-energy-use-large.svg", 2097815381, 2);
-      /** 48x48 */ public static final @NotNull Icon JAVA_KOTLIN_ALLOCATIONS_LARGE = load("studio/icons/profiler/taskslarge/java-kotlin-allocations-large.svg", 11098711, 2);
-      /** 48x48 */ public static final @NotNull Icon JAVA_KOTLIN_METHOD_TRACE_LARGE = load("studio/icons/profiler/taskslarge/java-kotlin-method-trace-large.svg", 1948322862, 2);
-      /** 48x48 */ public static final @NotNull Icon LIVE_VIEW_LARGE = load("studio/icons/profiler/taskslarge/live-view-large.svg", 1844667275, 2);
-      /** 48x48 */ public static final @NotNull Icon NATIVE_ALLOCATIONS_LARGE = load("studio/icons/profiler/taskslarge/native-allocations-large.svg", -463898450, 2);
-      /** 48x48 */ public static final @NotNull Icon REDUCE_JANK_LARGE = load("studio/icons/profiler/taskslarge/reduce-jank-large.svg", -1947980800, 2);
-      /** 48x48 */ public static final @NotNull Icon SYSTEM_TRACE_LARGE = load("studio/icons/profiler/taskslarge/system-trace-large.svg", -37826784, 2);
-      /** 48x48 */ public static final @NotNull Icon VIEW_POWER_CONSUMPTION_LARGE = load("studio/icons/profiler/taskslarge/view-power-consumption-large.svg", 1152169566, 2);
+      /** 48x48 */ public static final @NotNull Icon APP_STARTUP_INSIGHTS_LARGE = load("studio/icons/profiler/taskslarge/app-startup-insights-large.svg", 1372689416, 2);
+      /** 48x48 */ public static final @NotNull Icon CALLSTACK_SAMPLE_LARGE = load("studio/icons/profiler/taskslarge/callstack-sample-large.svg", -783376142, 2);
+      /** 48x48 */ public static final @NotNull Icon FIND_MEMORY_LEAKS_LARGE = load("studio/icons/profiler/taskslarge/find-memory-leaks-large.svg", -1783259871, 2);
+      /** 48x48 */ public static final @NotNull Icon HEAP_DUMP_LARGE = load("studio/icons/profiler/taskslarge/heap-dump-large.svg", -943377706, 2);
+      /** 48x48 */ public static final @NotNull Icon IMPROVE_ENERGY_USE_LARGE = load("studio/icons/profiler/taskslarge/improve-energy-use-large.svg", 1698657768, 2);
+      /** 48x48 */ public static final @NotNull Icon JAVA_KOTLIN_ALLOCATIONS_LARGE = load("studio/icons/profiler/taskslarge/java-kotlin-allocations-large.svg", -1316478638, 2);
+      /** 48x48 */ public static final @NotNull Icon JAVA_KOTLIN_METHOD_TRACE_LARGE = load("studio/icons/profiler/taskslarge/java-kotlin-method-trace-large.svg", 941439714, 2);
+      /** 48x48 */ public static final @NotNull Icon LIVE_VIEW_LARGE = load("studio/icons/profiler/taskslarge/live-view-large.svg", 714854928, 2);
+      /** 48x48 */ public static final @NotNull Icon NATIVE_ALLOCATIONS_LARGE = load("studio/icons/profiler/taskslarge/native-allocations-large.svg", 1841415848, 2);
+      /** 48x48 */ public static final @NotNull Icon REDUCE_JANK_LARGE = load("studio/icons/profiler/taskslarge/reduce-jank-large.svg", -1519279003, 2);
+      /** 48x48 */ public static final @NotNull Icon SYSTEM_TRACE_LARGE = load("studio/icons/profiler/taskslarge/system-trace-large.svg", -1393459818, 2);
+      /** 48x48 */ public static final @NotNull Icon VIEW_POWER_CONSUMPTION_LARGE = load("studio/icons/profiler/taskslarge/view-power-consumption-large.svg", -834006904, 2);
     }
 
     public static final class Toolbar {
-      /** 16x16 */ public static final @NotNull Icon CAPTURE_CLOCK = load("studio/icons/profiler/toolbar/capture-clock.svg", -1922578938, 0);
-      /** 16x16 */ public static final @NotNull Icon CLOCK = load("studio/icons/profiler/toolbar/clock.svg", -256040255, 2);
-      /** 16x16 */ public static final @NotNull Icon COLLAPSE_SESSION = load("studio/icons/profiler/toolbar/collapse-session.svg", 510446354, 2);
-      /** 16x16 */ public static final @NotNull Icon EXPAND_SESSION = load("studio/icons/profiler/toolbar/expand-session.svg", -1042697930, 2);
-      /** 16x16 */ public static final @NotNull Icon FORCE_GARBAGE_COLLECTION = load("studio/icons/profiler/toolbar/force-garbage-collection.svg", 910058914, 2);
-      /** 16x16 */ public static final @NotNull Icon GOTO_LIVE = load("studio/icons/profiler/toolbar/goto-live.svg", -1228632899, 2);
-      /** 16x16 */ public static final @NotNull Icon HEAP_DUMP = load("studio/icons/profiler/toolbar/heap-dump.svg", -1533405425, 2);
-      /** 16x16 */ public static final @NotNull Icon PAUSE_LIVE = load("studio/icons/profiler/toolbar/pause-live.svg", 1996571861, 2);
-      /** 16x16 */ public static final @NotNull Icon RECORD = load("studio/icons/profiler/toolbar/record.svg", 1619472546, 2);
-      /** 16x16 */ public static final @NotNull Icon SELECT_ENTIRE_RANGE = load("studio/icons/profiler/toolbar/select-entire-range.svg", -1459842671, 2);
-      /** 16x16 */ public static final @NotNull Icon STOP_RECORDING = load("studio/icons/profiler/toolbar/stop-recording.svg", 1120500361, 2);
-      /** 16x16 */ public static final @NotNull Icon STOP_SESSION = load("studio/icons/profiler/toolbar/stop-session.svg", 985721039, 2);
+      /** 16x16 */ public static final @NotNull Icon CAPTURE_CLOCK = load("studio/icons/profiler/toolbar/capture-clock.svg", -117381336, 0);
+      /** 16x16 */ public static final @NotNull Icon CLOCK = load("studio/icons/profiler/toolbar/clock.svg", -546527227, 2);
+      /** 16x16 */ public static final @NotNull Icon COLLAPSE_SESSION = load("studio/icons/profiler/toolbar/collapse-session.svg", 1226152923, 2);
+      /** 16x16 */ public static final @NotNull Icon EXPAND_SESSION = load("studio/icons/profiler/toolbar/expand-session.svg", 2076836021, 2);
+      /** 16x16 */ public static final @NotNull Icon FORCE_GARBAGE_COLLECTION = load("studio/icons/profiler/toolbar/force-garbage-collection.svg", 314509337, 2);
+      /** 16x16 */ public static final @NotNull Icon GOTO_LIVE = load("studio/icons/profiler/toolbar/goto-live.svg", -1266417953, 2);
+      /** 16x16 */ public static final @NotNull Icon HEAP_DUMP = load("studio/icons/profiler/toolbar/heap-dump.svg", -576056208, 2);
+      /** 16x16 */ public static final @NotNull Icon PAUSE_LIVE = load("studio/icons/profiler/toolbar/pause-live.svg", -1102512502, 2);
+      /** 16x16 */ public static final @NotNull Icon RECORD = load("studio/icons/profiler/toolbar/record.svg", 1680200813, 2);
+      /** 16x16 */ public static final @NotNull Icon SELECT_ENTIRE_RANGE = load("studio/icons/profiler/toolbar/select-entire-range.svg", 1785830740, 2);
+      /** 16x16 */ public static final @NotNull Icon STOP_RECORDING = load("studio/icons/profiler/toolbar/stop-recording.svg", -1767492129, 2);
+      /** 16x16 */ public static final @NotNull Icon STOP_SESSION = load("studio/icons/profiler/toolbar/stop-session.svg", 175614829, 2);
       /** 16x16 */ public static final @NotNull Icon UPLOAD = load("studio/icons/profiler/toolbar/upload.svg", 703384072, 2);
     }
   }

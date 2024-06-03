@@ -31,6 +31,7 @@ public final class StudioIllustrations {
     /** 64x64 */ public static final @NotNull Icon GLASS = load("studio/illustrations/form-factors/glass.svg", -850199473, 0);
     /** 100x100 */ public static final @NotNull Icon MOBILE_LARGE = load("studio/illustrations/form-factors/mobile-large.svg", -1927997959, 2);
     /** 64x64 */ public static final @NotNull Icon MOBILE = load("studio/illustrations/form-factors/mobile.svg", -13746895, 0);
+    /** 100x100 */ public static final @NotNull Icon THINGS_LARGE = load("studio/illustrations/form-factors/things-large.svg", 722425180, 2);
     /** 100x100 */ public static final @NotNull Icon TV_LARGE = load("studio/illustrations/form-factors/tv-large.svg", -1283003291, 2);
     /** 64x64 */ public static final @NotNull Icon TV = load("studio/illustrations/form-factors/tv.svg", -5970773, 0);
     /** 100x100 */ public static final @NotNull Icon WEAR_LARGE = load("studio/illustrations/form-factors/wear-large.svg", -687529054, 2);
