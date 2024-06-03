@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.model.settings.VersionCatalogMod
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.settings.VersionCatalogsDslElement.calculateDefaultCatalogName;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -52,7 +53,9 @@ public class VersionCatalogDslElement extends GradleDslBlockElement implements G
 
   @Override
   public boolean isInsignificantIfEmpty() {
-    return getName().equals("libs");
+    GradleDslElement grandParent = getParent()!=null ? getParent().getParent() : null;
+    String name = calculateDefaultCatalogName(grandParent);
+    return getName().equals(name);
   }
 
   @Override
