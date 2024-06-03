@@ -33,7 +33,13 @@ abstract class DependenciesHelper {
 
     @JvmStatic
     fun getDefaultCatalogModel(projectModel: ProjectBuildModel): GradleVersionCatalogModel? {
-      return projectModel.versionCatalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
+      return projectModel.versionCatalogsModel.getVersionCatalogModel(getDefaultCatalogName(projectModel))
+    }
+
+    @JvmStatic
+    fun getDefaultCatalogName(projectModel: ProjectBuildModel): String {
+      return projectModel.projectSettingsModel?.dependencyResolutionManagement()?.catalogDefaultName()
+                        ?: VersionCatalogModel.DEFAULT_CATALOG_NAME
     }
 
   }
