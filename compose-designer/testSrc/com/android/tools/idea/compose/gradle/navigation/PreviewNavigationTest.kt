@@ -209,7 +209,7 @@ class PreviewNavigationTest {
             }
               as OpenFileDescriptor
           assertEquals("InlineDeclaration.kt", navigatable.file.name)
-          assertEquals(23, navigatable.calculateLine())
+          assertEquals(22, navigatable.calculateLine())
         }
       }
       .join()
