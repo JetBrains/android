@@ -25,12 +25,11 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.res.CacheableResourceRepository
-import com.android.utils.HashCodes
 import com.android.utils.isBindingExpression
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -50,14 +49,15 @@ import com.intellij.psi.xml.XmlComment
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlText
 import com.intellij.psi.xml.XmlToken
+import com.intellij.util.application
 import com.intellij.util.concurrency.SameThreadExecutor
+import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.intellij.util.messages.MessageBusConnection
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.facet.ResourceFolderManager.Companion.getInstance
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
 
 /**
@@ -76,76 +76,71 @@ import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
  *
  * Also note that
  * * Resource editing events are not delivered synchronously
- * * No locks are held when the listener are notified
+ * * No locks are held when the listeners are notified
  * * All events are delivered on the event dispatch (UI) thread
  * * Add listener or remove listener can be done from any thread
  */
-class ResourceNotificationManager
-/**
- * Do not instantiate directly; this is a Service and its lifecycle is managed by the IDE; use
- * [.getInstance] instead.
- */
-(private val myProject: Project) {
-  private val myObserverLock = Any()
+@Service(Service.Level.PROJECT)
+class ResourceNotificationManager private constructor(private val project: Project) {
+
+  private val observerLock = Any()
+
   /**
    * Module observers: one per observed module in the project, with potentially multiple listeners.
    */
-  @GuardedBy("myObserverLock")
-  private val myModuleToObserverMap: MutableMap<Module, ModuleEventObserver> = HashMap()
+  @GuardedBy("observerLock")
+  private val moduleToObserverMap: MutableMap<Module, ModuleEventObserver> = mutableMapOf()
 
   /** File observers: one per observed file, with potentially multiple listeners. */
-  @GuardedBy("myObserverLock")
-  private val myFileToObserverMap: MutableMap<VirtualFile, FileEventObserver> = HashMap()
+  @GuardedBy("observerLock")
+  private val fileToObserverMap: MutableMap<VirtualFile, FileEventObserver> = mutableMapOf()
 
   /**
    * Configuration observers: one per observed configuration, with potentially multiple listeners.
    */
-  @GuardedBy("myObserverLock")
-  private val myConfigurationToObserverMap: MutableMap<Configuration, ConfigurationEventObserver> =
-    HashMap()
+  @GuardedBy("observerLock")
+  private val configurationToObserverMap: MutableMap<Configuration, ConfigurationEventObserver> =
+    mutableMapOf()
 
   /** Project wide observer: a single one is sufficient. */
-  @GuardedBy("myObserverLock") private var myProjectPsiTreeObserver: ProjectPsiTreeObserver? = null
+  @GuardedBy("observerLock") private var projectPsiTreeObserver: ProjectPsiTreeObserver? = null
 
-  private val myProjectBuildObserver = ProjectBuildObserver()
+  private val projectBuildObserver = ProjectBuildObserver()
 
   /** Whether we've already been notified about a change and we'll be firing it shortly. */
-  private val myPendingNotify = AtomicBoolean()
+  private val pendingNotify = AtomicBoolean()
 
-  private var myIgnoreChildrenChanged = false
+  private var ignoreChildrenChanged = false
 
   /**
    * Counter for events other than resource repository, configuration or file events. For example,
    * this counts project builds.
    */
-  private var myModificationCount: Long = 0
+  private var modificationCount: Long = 0
 
   /** Set of events we've observed since the last notification. */
-  private var myEvents: EnumSet<Reason> = EnumSet.noneOf(Reason::class.java)
+  private var events: EnumSet<Reason> = EnumSet.noneOf(Reason::class.java)
 
   fun getCurrentVersion(
     facet: AndroidFacet,
     file: PsiFile?,
     configuration: Configuration?,
   ): ResourceVersion {
-    val repository: CacheableResourceRepository =
-      StudioResourceRepositoryManager.getAppResources(facet)
-    if (file != null) {
-      val fileStamp = file.modificationStamp
-      return if (configuration != null) {
-        ResourceVersion(
-          repository.modificationCount,
-          fileStamp,
-          configuration.modificationCount,
-          configuration.settings.stateVersion.toLong(),
-          myModificationCount,
-        )
-      } else {
-        ResourceVersion(repository.modificationCount, fileStamp, 0L, 0L, myModificationCount)
-      }
-    } else {
-      return ResourceVersion(repository.modificationCount, 0L, 0L, 0L, myModificationCount)
-    }
+    val repository = StudioResourceRepositoryManager.getAppResources(facet)
+    if (file == null)
+      return ResourceVersion(repository.modificationCount, 0L, 0L, 0L, modificationCount)
+
+    val fileStamp = file.modificationStamp
+    if (configuration == null)
+      return ResourceVersion(repository.modificationCount, fileStamp, 0L, 0L, modificationCount)
+
+    return ResourceVersion(
+      repository.modificationCount,
+      fileStamp,
+      configuration.modificationCount,
+      configuration.settings.stateVersion.toLong(),
+      modificationCount,
+    )
   }
 
   /**
@@ -167,43 +162,37 @@ class ResourceNotificationManager
     configuration: Configuration?,
   ): ResourceVersion {
     val module = facet.module
-    synchronized(myObserverLock) {
-      var moduleEventObserver = myModuleToObserverMap[module]
-      if (moduleEventObserver == null) {
-        if (myModuleToObserverMap.isEmpty()) {
-          if (myProjectPsiTreeObserver == null) {
-            myProjectPsiTreeObserver = ProjectPsiTreeObserver()
+    synchronized(observerLock) {
+      val moduleEventObserver =
+        moduleToObserverMap.computeIfAbsent(module) {
+          if (moduleToObserverMap.isEmpty()) {
+            if (projectPsiTreeObserver == null) projectPsiTreeObserver = ProjectPsiTreeObserver()
+            projectBuildObserver.startListening()
           }
-          myProjectBuildObserver.startListening()
+          ModuleEventObserver(facet)
         }
-        moduleEventObserver = ModuleEventObserver(facet)
-        myModuleToObserverMap[module] = moduleEventObserver
-      }
       moduleEventObserver.addListener(listener)
+
       if (file != null) {
-        var fileEventObserver = myFileToObserverMap[file]
-        if (fileEventObserver == null) {
-          fileEventObserver = FileEventObserver(module)
-          myFileToObserverMap[file] = fileEventObserver
-        }
+        val fileEventObserver =
+          fileToObserverMap.computeIfAbsent(file) { FileEventObserver(module) }
         fileEventObserver.addListener(listener)
 
         if (configuration != null) {
-          var configurationEventObserver = myConfigurationToObserverMap[configuration]
-          if (configurationEventObserver == null) {
-            configurationEventObserver = ConfigurationEventObserver(configuration)
-            myConfigurationToObserverMap[configuration] = configurationEventObserver
-          }
+          val configurationEventObserver =
+            configurationToObserverMap.computeIfAbsent(configuration) {
+              ConfigurationEventObserver(configuration)
+            }
           configurationEventObserver.addListener(listener)
         }
       } else {
-        assert(configuration == null) { configuration!! }
+        require(configuration == null) { configuration?.toString() ?: "" }
       }
     }
 
     return getCurrentVersion(
       facet,
-      if (file != null) AndroidPsiUtils.getPsiFileSafely(myProject, file) else null,
+      file?.let { AndroidPsiUtils.getPsiFileSafely(project, it) },
       configuration,
     )
   }
@@ -222,36 +211,37 @@ class ResourceNotificationManager
     file: VirtualFile?,
     configuration: Configuration?,
   ) {
-    synchronized(myObserverLock) {
+    synchronized(observerLock) {
       if (file != null) {
         if (configuration != null) {
-          val configurationEventObserver = myConfigurationToObserverMap[configuration]
+          val configurationEventObserver = configurationToObserverMap[configuration]
           if (configurationEventObserver != null) {
             configurationEventObserver.removeListener(listener)
             if (!configurationEventObserver.hasListeners()) {
-              myConfigurationToObserverMap.remove(configuration)
+              configurationToObserverMap.remove(configuration)
             }
           }
         }
-        val fileEventObserver = myFileToObserverMap[file]
+
+        val fileEventObserver = fileToObserverMap[file]
         if (fileEventObserver != null) {
           fileEventObserver.removeListener(listener)
           if (!fileEventObserver.hasListeners()) {
-            myFileToObserverMap.remove(file)
+            fileToObserverMap.remove(file)
           }
         }
       } else {
-        assert(configuration == null) { configuration!! }
+        require(configuration == null) { configuration?.toString() ?: "" }
       }
-      val module = facet.module
-      val moduleEventObserver = myModuleToObserverMap[module]
+
+      val moduleEventObserver = moduleToObserverMap[facet.module]
       if (moduleEventObserver != null) {
         moduleEventObserver.removeListener(listener)
         if (!moduleEventObserver.hasListeners()) {
           Disposer.dispose(moduleEventObserver)
-          if (myModuleToObserverMap.isEmpty() && myProjectPsiTreeObserver != null) {
-            myProjectBuildObserver.stopListening()
-            myProjectPsiTreeObserver = null
+          if (moduleToObserverMap.isEmpty() && projectPsiTreeObserver != null) {
+            projectBuildObserver.stopListening()
+            projectPsiTreeObserver = null
           }
         }
       }
@@ -265,26 +255,18 @@ class ResourceNotificationManager
      *
      * If no listener has been added to the [ResourceNotificationManager], this method returns null.
      */
-    get() {
-      synchronized(myObserverLock) {
-        return myProjectPsiTreeObserver
-      }
-    }
+    get() = synchronized(observerLock) { projectPsiTreeObserver }
 
   /**
    * Something happened. Either schedule a notification or if one is already pending, do nothing.
    */
   private fun notice(reason: Reason, source: VirtualFile?) {
-    myEvents.add(reason)
-    if (!myPendingNotify.compareAndSet(false, true)) {
-      return
-    }
+    events.add(reason)
+    if (!pendingNotify.compareAndSet(false, true)) return
 
-    val application = ApplicationManager.getApplication()
     application.invokeLater {
-      if (!myPendingNotify.compareAndSet(true, false)) {
-        return@invokeLater
-      }
+      if (!pendingNotify.compareAndSet(true, false)) return@invokeLater
+
       if (source == null) {
         // Ensure that the notification happens after all pending Swing Runnables
         // have been processed, including any created *after* the initial notice()
@@ -305,15 +287,12 @@ class ResourceNotificationManager
 
   private fun scheduleFinalNotificationAfterRepositoriesHaveBeenUpdated(source: VirtualFile) {
     // The following code calls scheduleFinalNotification exactly once after the
-    // dispatchToRepositories
-    // call returns and all callbacks passed to runAfterPendingUpdatesFinish are called. To avoid
-    // calling scheduleFinalNotification prematurely, the initial value of count is set to 1.
-    // This guarantees that it stays positive until the dispatchToRepositories method returns.
+    // dispatchToRepositories call returns and all callbacks passed to runAfterPendingUpdatesFinish
+    // are called. To avoid calling scheduleFinalNotification prematurely, the initial value of
+    // count is set to 1. This guarantees that it stays positive until the dispatchToRepositories
+    // method returns.
     val count = AtomicInteger(1)
-    val resourceFolderRegistry = ResourceFolderRegistry.getInstance(myProject)
-    resourceFolderRegistry.dispatchToRepositories(source) {
-      repository: ResourceFolderRepository,
-      file: VirtualFile? ->
+    ResourceFolderRegistry.getInstance(project).dispatchToRepositories(source) { repository, _ ->
       count.incrementAndGet()
       repository.invokeAfterPendingUpdatesFinish(SameThreadExecutor.INSTANCE) {
         if (count.decrementAndGet() == 0) {
@@ -327,141 +306,123 @@ class ResourceNotificationManager
   }
 
   private fun scheduleFinalNotification() {
-    ApplicationManager.getApplication().invokeLater {
-      val reason = ImmutableSet.copyOf(myEvents)
-      myEvents = EnumSet.noneOf(Reason::class.java)
+    application.invokeLater {
+      val reason = ImmutableSet.copyOf(events)
+      events = EnumSet.noneOf(Reason::class.java)
       notifyListeners(reason)
-      myEvents.clear()
+      events.clear()
     }
   }
 
+  @RequiresEdt
   private fun notifyListeners(reason: ImmutableSet<Reason>) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    application.assertIsDispatchThread()
 
-    var observers: List<ModuleEventObserver>
-    synchronized(myObserverLock) { observers = ArrayList(myModuleToObserverMap.values) }
-    for (moduleEventObserver in observers) {
-      // Not every module may have pending changes; each one will check.
-      moduleEventObserver.notifyListeners(reason)
-    }
+    val observers = synchronized(observerLock) { ArrayList(moduleToObserverMap.values) }
+
+    // Not every module may have pending changes; each one will check.
+    for (observer in observers) observer.notifyListeners(reason)
   }
 
   /**
    * A [ModuleEventObserver] registers listeners for various module-specific events (such as
-   * resource folder manager changes) and then notifies [.notice] when it sees an event.
+   * resource folder manager changes) and then notifies [notice] when it sees an event.
    */
-  private inner class ModuleEventObserver(private val myFacet: AndroidFacet) :
+  private inner class ModuleEventObserver(private val facet: AndroidFacet) :
     ModificationTracker, ResourceFolderListener, Disposable {
-    private var myGeneration: Long
-    private val myListenersLock = Any()
-    private var myConnection: MessageBusConnection? = null
+    private var generation = appResourcesModificationCount
+    private val listenersLock = Any()
+    private var connection: MessageBusConnection? = null
 
-    @GuardedBy("myListenersLock")
-    private val myListeners: MutableList<ResourceChangeListener> = ArrayList(4)
+    @GuardedBy("listenersLock")
+    private val listeners: MutableList<ResourceChangeListener> = ArrayList(4)
 
     init {
-      myGeneration = appResourcesModificationCount
       Disposer.register(facet, this)
     }
 
-    override fun getModificationCount(): Long {
-      return myGeneration
-    }
+    override fun getModificationCount() = generation
 
     fun addListener(listener: ResourceChangeListener) {
-      synchronized(myListenersLock) {
-        if (myListeners.isEmpty()) {
-          registerListeners()
-        }
-        myListeners.add(listener)
+      synchronized(listenersLock) {
+        if (listeners.isEmpty()) registerListeners()
+        listeners.add(listener)
       }
     }
 
     fun removeListener(listener: ResourceChangeListener) {
-      synchronized(myListenersLock) {
-        myListeners.remove(listener)
-        if (myListeners.isEmpty()) {
-          unregisterListeners()
-        }
+      synchronized(listenersLock) {
+        listeners.remove(listener)
+        if (listeners.isEmpty()) unregisterListeners()
       }
     }
 
     private fun registerListeners() {
-      if (AndroidModel.isRequired(myFacet)) {
+      if (AndroidModel.isRequired(facet)) {
         // Ensure that project resources have been initialized first, since
         // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts to re-render).
-        StudioResourceRepositoryManager.getProjectResources(myFacet)
+        StudioResourceRepositoryManager.getProjectResources(facet)
 
-        assert(myConnection == null)
-        myConnection = myFacet.module.project.messageBus.connect(myFacet)
-        myConnection!!.subscribe(ResourceFolderManager.TOPIC, this)
-        getInstance(myFacet) // Make sure ResourceFolderManager is initialized.
+        require(connection == null)
+        connection =
+          requireNotNull(facet.module.project.messageBus.connect(facet)).apply {
+            subscribe(ResourceFolderManager.TOPIC, this@ModuleEventObserver)
+          }
+        ResourceFolderManager.getInstance(facet) // Make sure ResourceFolderManager is initialized.
       }
     }
 
     private fun unregisterListeners() {
-      if (myConnection != null) {
-        myConnection!!.disconnect()
-      }
+      connection?.disconnect()
     }
 
+    @RequiresEdt
     fun notifyListeners(reason: ImmutableSet<Reason>) {
-      if (myFacet.isDisposed) {
-        return
-      }
+      if (facet.isDisposed) return
+
       val generation = appResourcesModificationCount
-      if (reason.size == 1 && reason.contains(Reason.RESOURCE_EDIT) && generation == myGeneration) {
+      if (reason.singleOrNull() == Reason.RESOURCE_EDIT && generation == this.generation) {
         // Notified of an edit in some file that could potentially affect the resources, but
         // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
         // such as a variant change, then notify regardless.)
         return
       }
 
-      myGeneration = generation
-      ApplicationManager.getApplication().assertIsDispatchThread()
-      var listeners: List<ResourceChangeListener>
-      synchronized(myListenersLock) { listeners = ArrayList(myListeners) }
-      for (listener in listeners) {
-        listener.resourcesChanged(reason)
-      }
+      this.generation = generation
+      val listeners = synchronized(listenersLock) { ArrayList(this.listeners) }
+      for (listener in listeners) listener.resourcesChanged(reason)
     }
 
-    private val appResourcesModificationCount: Long
-      get() {
-        val appResources: CacheableResourceRepository? =
-          StudioResourceRepositoryManager.getInstance(myFacet).cachedAppResources
-        return appResources?.modificationCount ?: 0
-      }
+    private val appResourcesModificationCount
+      get() =
+        StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount
+          ?: 0L
 
-    fun hasListeners(): Boolean {
-      synchronized(myListenersLock) {
-        return !myListeners.isEmpty()
-      }
-    }
+    fun hasListeners() = synchronized(listenersLock) { listeners.isNotEmpty() }
 
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
     override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
-      if (facet.module === myFacet.module) {
-        myModificationCount++
+      if (facet.module === this.facet.module) {
+        this@ResourceNotificationManager.modificationCount++
         notice(Reason.GRADLE_SYNC, null)
       }
     }
 
     override fun dispose() {
-      synchronized(myObserverLock) { myModuleToObserverMap.remove(myFacet.module) }
+      synchronized(observerLock) { moduleToObserverMap.remove(facet.module) }
     }
   }
 
   private inner class ProjectBuildObserver : ProjectSystemBuildManager.BuildListener {
-    private var myAlreadyAddedBuildListener = false
+    private var alreadyAddedBuildListener = false
     private var myIgnoreBuildEvents = false
 
     fun startListening() {
-      if (!myAlreadyAddedBuildListener) { // See comment in stopListening.
-        myAlreadyAddedBuildListener = true
-        myProject.getProjectSystem().getBuildManager().addBuildListener(myProject, this)
+      if (!alreadyAddedBuildListener) { // See comment in stopListening.
+        alreadyAddedBuildListener = true
+        project.getProjectSystem().getBuildManager().addBuildListener(project, this)
       }
       myIgnoreBuildEvents = false
     }
@@ -482,7 +443,7 @@ class ResourceNotificationManager
 
     override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
       if (!myIgnoreBuildEvents) {
-        myModificationCount++
+        this@ResourceNotificationManager.modificationCount++
         notice(Reason.PROJECT_BUILD, null)
       }
     }
@@ -498,125 +459,104 @@ class ResourceNotificationManager
     override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
 
     override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
-      myIgnoreChildrenChanged = false
+      ignoreChildrenChanged = false
     }
 
     override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
 
     override fun childAdded(event: PsiTreeChangeEvent) {
-      myIgnoreChildrenChanged = true
+      ignoreChildrenChanged = true
 
-      if (isIgnorable(event)) {
+      if (isIgnorable(event)) return
+
+      val file = getVirtualFile(event)
+      if (!isRelevantFile(file)) {
+        notice(Reason.RESOURCE_EDIT, file)
         return
       }
 
-      val file = getVirtualFile(event)
-      if (file != null && isRelevantFile(file)) {
-        val child = event.child
-        val parent = event.parent
+      val child = event.child
+      val parent = event.parent
 
-        if (child is XmlAttribute && parent is XmlTag) {
-          // Typing in a new attribute. Don't need to do any rendering until there is an actual
-          // value.
-          if (child.valueElement == null) {
+      if (child is XmlAttribute && parent is XmlTag) {
+        // Typing in a new attribute. Don't need to do any rendering until there is an actual value.
+        if (child.valueElement == null) return
+      } else if (parent is XmlAttribute && child is XmlAttributeValue) {
+        if (child.value.isEmpty())
+          return // Just added a new blank attribute; nothing to render yet.
+      } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild == null) {
+        // Just added attribute value
+        val text = child.getText()
+        // Check if this is an attribute that takes a resource.
+        if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(text)) {
+          if (text == SdkConstants.PREFIX_RESOURCE_REF || text == SdkConstants.ANDROID_PREFIX) {
+            // Using code completion to insert resource reference; not yet done.
             return
           }
-        } else if (parent is XmlAttribute && child is XmlAttributeValue) {
-          if (child.value.isEmpty()) {
-            // Just added a new blank attribute; nothing to render yet.
+          val url = ResourceUrl.parse(text)
+          if (url != null && url.name.isEmpty()) {
+            // Using code completion to insert resource reference; not yet done.
             return
-          }
-        } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild == null) {
-          // Just added attribute value
-          val text = child.getText()
-          // Check if this is an attribute that takes a resource.
-          if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(text)) {
-            if (text == SdkConstants.PREFIX_RESOURCE_REF || text == SdkConstants.ANDROID_PREFIX) {
-              // Using code completion to insert resource reference; not yet done.
-              return
-            }
-            val url = ResourceUrl.parse(text)
-            if (url != null && url.name.isEmpty()) {
-              // Using code completion to insert resource reference; not yet done.
-              return
-            }
           }
         }
-        notice(Reason.EDIT, file)
-      } else {
-        notice(Reason.RESOURCE_EDIT, file)
       }
+      notice(Reason.EDIT, file)
     }
 
     override fun childRemoved(event: PsiTreeChangeEvent) {
-      myIgnoreChildrenChanged = true
+      ignoreChildrenChanged = true
 
-      if (isIgnorable(event)) {
+      if (isIgnorable(event)) return
+
+      val file = getVirtualFile(event)
+      if (!isRelevantFile(file)) {
+        notice(Reason.RESOURCE_EDIT, file)
         return
       }
 
-      val file = getVirtualFile(event)
-      if (file != null && isRelevantFile(file)) {
-        val child = event.child
-        val parent = event.parent
-        if (parent is XmlAttribute && child is XmlToken) {
-          // Typing in attribute name. Don't need to do any rendering until there is an actual
-          // value.
-          val valueElement = parent.valueElement
-          if (valueElement == null || valueElement.value.isEmpty()) {
-            return
-          }
+      val child = event.child
+      val parent = event.parent
+      if (parent is XmlAttribute && child is XmlToken) {
+        // Typing in attribute name. Don't need to do any rendering until there is an actual
+        // value.
+        val valueElement = parent.valueElement
+        if (valueElement == null || valueElement.value.isEmpty()) {
+          return
         }
-
-        notice(Reason.EDIT, file)
-      } else {
-        notice(Reason.RESOURCE_EDIT, file)
       }
+
+      notice(Reason.EDIT, file)
     }
 
     override fun childReplaced(event: PsiTreeChangeEvent) {
-      myIgnoreChildrenChanged = true
+      ignoreChildrenChanged = true
 
-      if (isIgnorable(event)) {
+      if (isIgnorable(event)) return
+
+      val file = getVirtualFile(event)
+      if (!isRelevantFile(file)) {
+        notice(Reason.RESOURCE_EDIT, file)
         return
       }
 
-      val file = getVirtualFile(event)
-      if (file != null && isRelevantFile(file)) {
-        val child = event.child
-        val parent = event.parent
-        if (parent is XmlAttribute && child is XmlToken) {
-          // Typing in attribute name. Don't need to do any rendering until there is an actual
-          // value.
-          val valueElement = parent.valueElement
-          if (valueElement == null || valueElement.value.isEmpty()) {
-            return
-          }
-        } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild != null) {
-          val newText = child.getText()
-          val prevText = event.oldChild.text
-          // See if user is working on an incomplete URL, and is still not complete, e.g. typing in
-          // @string/foo manually.
-          if (
-            newText.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(newText)
-          ) {
-            var prevUrl = ResourceUrl.parse(prevText)
-            var newUrl = ResourceUrl.parse(newText)
-            if (prevUrl != null && prevUrl.name.isEmpty()) {
-              prevUrl = null
-            }
-            if (newUrl != null && newUrl.name.isEmpty()) {
-              newUrl = null
-            }
-            if (prevUrl == null && newUrl == null) {
-              return
-            }
-          }
+      val child = event.child
+      val parent = event.parent
+      if (parent is XmlAttribute && child is XmlToken) {
+        // Typing in attribute name. Don't need to do any rendering until there is an actual value.
+        val valueElement = parent.valueElement
+        if (valueElement == null || valueElement.value.isEmpty()) return
+      } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild != null) {
+        val newText = child.getText()
+        val prevText = event.oldChild.text
+        // See if user is working on an incomplete URL, and is still not complete, e.g. typing in
+        // @string/foo manually.
+        if (newText.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(newText)) {
+          val prevUrl = ResourceUrl.parse(prevText)
+          val newUrl = ResourceUrl.parse(newText)
+          if (prevUrl?.name.isNullOrEmpty() && newUrl?.name.isNullOrEmpty()) return
         }
-        notice(Reason.EDIT, file)
-      } else {
-        notice(Reason.RESOURCE_EDIT, file)
       }
+      notice(Reason.EDIT, file)
     }
 
     override fun childMoved(event: PsiTreeChangeEvent) {
@@ -624,40 +564,29 @@ class ResourceNotificationManager
     }
 
     override fun childrenChanged(event: PsiTreeChangeEvent) {
-      if (myIgnoreChildrenChanged) {
-        return
-      }
+      if (ignoreChildrenChanged) return
 
       check(event)
     }
 
     override fun propertyChanged(event: PsiTreeChangeEvent) {
-      // When renaming a PsiFile, if the file extension stays the same (i.e the file type
-      // stays the same) the generated PsiTreeChangeEvent will trigger "propertyChanged()" (this
-      // method) with
-      // the changed file set as the event's element.
-      // On the other hand, if the file extension is changed, a new object is created and the event
-      // will
-      // trigger "childReplaced()" instead, the parent being the file's directory and the renamed
-      // file being the new child.
-      if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName) {
-        val child = event.element
-        val file = if (child is PsiFile) child.virtualFile else null
-        notice(Reason.RESOURCE_EDIT, file)
-      }
+      // When renaming a PsiFile, if the file extension stays the same (i.e the file type stays the
+      // same) the generated PsiTreeChangeEvent will trigger "propertyChanged()" (this method) with
+      // the changed file set as the event's element. On the other hand, if the file extension is
+      // changed, a new object is created and the event will trigger "childReplaced()" instead, the
+      // parent being the file's directory and the renamed file being the new child.
+      if (PsiTreeChangeEvent.PROP_FILE_NAME != event.propertyName) return
+
+      val file = (event.element as? PsiFile)?.virtualFile
+      notice(Reason.RESOURCE_EDIT, file)
     }
 
-    private fun getVirtualFile(event: PsiTreeChangeEvent): VirtualFile? {
-      val psiFile = event.file
-      return psiFile?.virtualFile
-    }
+    private fun getVirtualFile(event: PsiTreeChangeEvent) = event.file?.virtualFile
 
-    /** Checks if the file is present in [.myFileToObserverMap]. */
-    private fun isRelevantFile(virtualFile: VirtualFile): Boolean {
-      synchronized(myObserverLock) {
-        return myFileToObserverMap.containsKey(virtualFile)
-      }
-    }
+    /** Checks if the file is present in [fileToObserverMap]. */
+    private fun isRelevantFile(virtualFile: VirtualFile?) =
+      virtualFile != null &&
+        synchronized(observerLock) { fileToObserverMap.containsKey(virtualFile) }
 
     private fun isIgnorable(event: PsiTreeChangeEvent): Boolean {
       // We can ignore edits in whitespace, XML error nodes, and modification in comments.
@@ -669,9 +598,7 @@ class ResourceNotificationManager
       // so we will NOT ignore the event.
       val child = event.child
       val parent = event.parent
-      if (child is PsiErrorElement || parent is XmlComment) {
-        return true
-      }
+      if (child is PsiErrorElement || parent is XmlComment) return true
 
       if (
         (child is PsiWhiteSpace || child is XmlText || parent is XmlText) &&
@@ -683,18 +610,15 @@ class ResourceNotificationManager
 
       val file = event.file
       // Spurious events from the IDE doing internal things, such as the formatter using a light
-      // virtual
-      // filesystem to process text formatting chunks etc.
+      // virtual filesystem to process text formatting chunks etc.
       return file != null && (file.parent == null || !file.viewProvider.isPhysical)
     }
 
     private fun check(event: PsiTreeChangeEvent) {
-      if (isIgnorable(event)) {
-        return
-      }
+      if (isIgnorable(event)) return
 
       val file = getVirtualFile(event)
-      if (file != null && isRelevantFile(file)) {
+      if (isRelevantFile(file)) {
         notice(Reason.EDIT, file)
       } else {
         notice(Reason.RESOURCE_EDIT, file)
@@ -702,89 +626,74 @@ class ResourceNotificationManager
     }
   }
 
-  private inner class FileEventObserver(private val myModule: Module) : BulkFileListener {
-    private val myListeners: MutableList<ResourceChangeListener> = ArrayList(2)
-    private var myMessageBusConnection: MessageBusConnection? = null
+  private inner class FileEventObserver(private val module: Module) : BulkFileListener {
+    private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
+    private var messageBusConnection: MessageBusConnection? = null
 
     fun addListener(listener: ResourceChangeListener) {
-      if (myListeners.isEmpty()) {
-        registerListeners()
-      }
-      myListeners.add(listener)
+      if (listeners.isEmpty()) registerListeners()
+      listeners.add(listener)
     }
 
     fun removeListener(listener: ResourceChangeListener) {
-      myListeners.remove(listener)
-
-      if (myListeners.isEmpty()) {
-        unregisterListeners()
-      }
+      listeners.remove(listener)
+      if (listeners.isEmpty()) unregisterListeners()
     }
 
     private fun registerListeners() {
-      myMessageBusConnection = ApplicationManager.getApplication().messageBus.connect(myModule)
-      myMessageBusConnection!!.subscribe(VirtualFileManager.VFS_CHANGES, this)
+      messageBusConnection =
+        requireNotNull(application.messageBus.connect(module)).apply {
+          subscribe(VirtualFileManager.VFS_CHANGES, this@FileEventObserver)
+        }
     }
 
     private fun unregisterListeners() {
-      myMessageBusConnection!!.disconnect()
+      requireNotNull(messageBusConnection).disconnect()
     }
 
-    override fun after(events: List<VFileEvent?>) {
+    override fun after(events: List<VFileEvent>) {
       events
-        .stream()
-        .filter { event: VFileEvent? ->
-          val file = event!!.file ?: return@filter false
-          val parent = file.parent ?: return@filter false
+        .firstOrNull { event ->
+          val parent = event.file?.parent ?: return@firstOrNull false
 
           val resType = ResourceFolderType.getFolderType(parent.name)
           ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
         }
-        .findAny()
-        .ifPresent { event: VFileEvent? -> notice(Reason.IMAGE_RESOURCE_CHANGED, event!!.file) }
+        ?.let { notice(Reason.IMAGE_RESOURCE_CHANGED, it.file) }
     }
 
-    fun hasListeners(): Boolean {
-      return !myListeners.isEmpty()
-    }
+    fun hasListeners() = listeners.isNotEmpty()
   }
 
-  private inner class ConfigurationEventObserver(private val myConfiguration: Configuration) :
+  private inner class ConfigurationEventObserver(private val configuration: Configuration) :
     ConfigurationListener {
-    private val myListeners: MutableList<ResourceChangeListener> = ArrayList(2)
+    private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
 
     fun addListener(listener: ResourceChangeListener) {
-      if (myListeners.isEmpty()) {
-        registerListeners()
-      }
-      myListeners.add(listener)
+      if (listeners.isEmpty()) registerListeners()
+      listeners.add(listener)
     }
 
     fun removeListener(listener: ResourceChangeListener) {
-      myListeners.remove(listener)
-
-      if (myListeners.isEmpty()) {
-        unregisterListeners()
-      }
+      listeners.remove(listener)
+      if (listeners.isEmpty()) unregisterListeners()
     }
 
-    fun hasListeners(): Boolean {
-      return !myListeners.isEmpty()
-    }
+    fun hasListeners() = listeners.isNotEmpty()
 
     private fun registerListeners() {
-      myConfiguration.addListener(this)
+      configuration.addListener(this)
     }
 
     private fun unregisterListeners() {
-      myConfiguration.removeListener(this)
+      configuration.removeListener(this)
     }
 
     // ---- Implements ConfigurationListener ----
     override fun changed(flags: Int): Boolean {
-      if ((flags and ConfigurationListener.MASK_RENDERING) != 0) {
+      if ((flags and ConfigurationListener.MASK_RENDERING) != 0)
         notice(Reason.CONFIGURATION_CHANGED, null)
-      }
+
       return true
     }
   }
@@ -793,7 +702,7 @@ class ResourceNotificationManager
    * Interface that should be implemented by clients interested in resource edits and events that
    * affect resources.
    */
-  interface ResourceChangeListener {
+  fun interface ResourceChangeListener {
     /**
      * One or more resources have changed.
      *
@@ -806,51 +715,13 @@ class ResourceNotificationManager
    * A version timestamp of the resources. This snapshot version is immutable, so you can hold on to
    * it and compare it with your most recent version.
    */
-  class ResourceVersion(
-    private val myResourceGeneration: Long,
-    private val myFileGeneration: Long,
-    private val myConfigurationGeneration: Long,
-    private val myProjectConfigurationGeneration: Long,
-    private val myOtherGeneration: Long,
-  ) {
-    override fun equals(o: Any?): Boolean {
-      if (this === o) return true
-      if (o == null || javaClass != o.javaClass) return false
-
-      val version = o as ResourceVersion
-
-      return myResourceGeneration == version.myResourceGeneration &&
-        myFileGeneration == version.myFileGeneration &&
-        myConfigurationGeneration == version.myConfigurationGeneration &&
-        myProjectConfigurationGeneration == version.myProjectConfigurationGeneration &&
-        myOtherGeneration == version.myOtherGeneration
-    }
-
-    override fun hashCode(): Int {
-      return HashCodes.mix(
-        java.lang.Long.hashCode(myResourceGeneration),
-        java.lang.Long.hashCode(myFileGeneration),
-        java.lang.Long.hashCode(myConfigurationGeneration),
-        java.lang.Long.hashCode(myProjectConfigurationGeneration),
-        java.lang.Long.hashCode(myOtherGeneration),
-      )
-    }
-
-    override fun toString(): String {
-      return "ResourceVersion{" +
-        "resource=" +
-        myResourceGeneration +
-        ", file=" +
-        myFileGeneration +
-        ", configuration=" +
-        myConfigurationGeneration +
-        ", projectConfiguration=" +
-        myProjectConfigurationGeneration +
-        ", other=" +
-        myOtherGeneration +
-        '}'
-    }
-  }
+  data class ResourceVersion(
+    private val resourceGeneration: Long,
+    private val fileGeneration: Long,
+    private val configurationGeneration: Long,
+    private val projectConfigurationGeneration: Long,
+    private val otherGeneration: Long,
+  )
 
   /** The reason the resources have changed. */
   enum class Reason {
@@ -890,14 +761,6 @@ class ResourceNotificationManager
   }
 
   companion object {
-    /**
-     * Returns the [ResourceNotificationManager] for the given project.
-     *
-     * @param project the project to return the notification manager for
-     * @return a notification manager
-     */
-    fun getInstance(project: Project): ResourceNotificationManager {
-      return project.getService(ResourceNotificationManager::class.java)
-    }
+    @JvmStatic fun getInstance(project: Project) = project.service<ResourceNotificationManager>()
   }
 }
