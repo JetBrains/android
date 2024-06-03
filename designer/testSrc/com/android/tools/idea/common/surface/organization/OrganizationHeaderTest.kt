@@ -50,7 +50,9 @@ class OrganizationHeaderTest {
   fun nameIsDisplayed() {
     val group = OrganizationGroup("method", "Organization Display Name")
     composeTestRule.setContent { JewelTestTheme(darkMode = false) { OrganizationHeader(group) } }
-    composeTestRule.onNodeWithTag("displayName").assertTextContains("Organization Display Name")
+    composeTestRule
+      .onNodeWithTag("displayName", true)
+      .assertTextContains("Organization Display Name")
   }
 
   @Test

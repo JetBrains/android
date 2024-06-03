@@ -17,6 +17,7 @@ package com.android.tools.idea.common.surface.organization
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.android.tools.adtui.common.AdtUiUtils
 import com.intellij.icons.ExpUiIcons
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.util.ui.UIUtil
 import javax.swing.JComponent
 import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
@@ -52,22 +54,28 @@ private val iconClass = ExpUiIcons::General::class.java
 fun OrganizationHeader(group: OrganizationGroup) {
   val opened = group.isOpened.collectAsState()
   val displayName = group.displayName.collectAsState()
-  Row(verticalAlignment = Alignment.CenterVertically) {
-    IconButton(
-      modifier = Modifier.testTag("openButton"),
-      onClick = { group.setOpened(!opened.value) },
-    ) {
+
+  IconButton(
+    modifier =
+      Modifier.testTag("openButton")
+        .height(ActionToolbarImpl.DEFAULT_MINIMUM_BUTTON_SIZE.height.dp),
+    onClick = { group.setOpened(!opened.value) },
+  ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
       if (opened.value) Icon(iconOpened, descriptionOpened, iconClass)
       else Icon(iconClosed, descriptionClosed, iconClass)
+
+      Spacer(Modifier.width(toolbarSpacing))
+
+      Text(
+        displayName.value,
+        modifier = Modifier.testTag("displayName"),
+        color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
+        fontSize = TextUnit(fontSize, TextUnitType.Sp),
+        fontWeight = FontWeight.Bold,
+      )
+      Spacer(Modifier.width(toolbarSpacing))
     }
-    Spacer(Modifier.width(toolbarSpacing))
-    Text(
-      displayName.value,
-      modifier = Modifier.testTag("displayName"),
-      color = AdtUiUtils.HEADER_COLOR.toComposeColor(),
-      fontSize = TextUnit(fontSize, TextUnitType.Sp),
-      fontWeight = FontWeight.Bold,
-    )
   }
 }
 
