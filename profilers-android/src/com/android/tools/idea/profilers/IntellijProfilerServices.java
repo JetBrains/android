@@ -43,6 +43,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorService;
 import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel.TaskRecordingType;
+import com.android.tools.profilers.taskbased.home.selections.deviceprocesses.ProcessListModel;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -444,8 +445,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   }
 
   @Override
-  public void buildAndLaunchAction(boolean profileableMode, int featureLevel) {
-    ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, featureLevel);
+  public void buildAndLaunchAction(boolean profileableMode, ProcessListModel.@NotNull ProfilerDeviceSelection device) {
+    ProfilerBuildAndLaunch.buildAndLaunchAction(myProject, profileableMode, device);
   }
 
   /**

@@ -219,21 +219,22 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
     val deviceName = deviceSelection.name
     val featureLevel = deviceSelection.featureLevel
     val icon = deviceSelection.icon
+    val isDebuggable = deviceSelection.isDebuggable
 
     if (deviceSelection.isRunning) {
       val device = deviceList.value.find { it.serial == deviceSelection.serial }
 
       if (device == null) {
         // Running device, but corresponding device from the pipeline not fetched yet.
-        doDeviceSelection(deviceName, featureLevel, true, Common.Device.getDefaultInstance(), icon)
+        doDeviceSelection(deviceName, featureLevel, true, isDebuggable, Common.Device.getDefaultInstance(), icon)
       } else {
         // Running device with corresponding device from the pipeline found.
-        doDeviceSelection(deviceName, featureLevel, true, device, icon)
+        doDeviceSelection(deviceName, featureLevel, true, isDebuggable, device, icon)
       }
     }
     else {
       // Offline devices have no mapped Common.Device, so use a default instance. Display device name to the user.
-      doDeviceSelection(deviceName, featureLevel, false, Common.Device.getDefaultInstance(), icon)
+      doDeviceSelection(deviceName, featureLevel, false, isDebuggable, Common.Device.getDefaultInstance(), icon)
     }
   }
 
@@ -241,15 +242,17 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
    * Performs selection of Common.Device selected from standalone profiler device dropdown.
    */
   fun onDeviceSelection(newDevice: Common.Device) {
-    doDeviceSelection(newDevice.model, newDevice.featureLevel, true, newDevice, null)
+    doDeviceSelection(newDevice.model, newDevice.featureLevel, true, newDevice.buildType.contains("debug", ignoreCase = true), newDevice,
+                      null)
   }
 
   private fun doDeviceSelection(name: String,
                                 featureLevel: Int,
                                 isRunning: Boolean,
+                                isDebuggable: Boolean,
                                 device: Common.Device,
                                 icon: Icon?) {
-    _selectedDevice.value = ProfilerDeviceSelection(name, featureLevel, isRunning, device, icon)
+    _selectedDevice.value = ProfilerDeviceSelection(name, featureLevel, isRunning, isDebuggable, device, icon)
     setSelectedDevicesCount(1)
     onDeviceChange()
   }
@@ -305,6 +308,7 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
     val featureLevel: Int,
     val isRunning: Boolean,
     // The 'serial' field is only set to a non-empty string if isRunning is true, otherwise it will be an empty string.
+    val isDebuggable: Boolean,
     val serial: String,
     // The icon can be null if there is no icon found. Default is set to null for tests that do not require/test the icon.
     val icon: Icon? = null
@@ -315,6 +319,7 @@ class ProcessListModel(val profilers: StudioProfilers, private val updateProfili
     val featureLevel: Int,
     // It is possible for the device to be running but not be discovered by the transport pipeline yet.
     val isRunning: Boolean,
+    val isDebuggable: Boolean,
     // The 'device' field is only set to a non default value when isRunning is true and the corresponding device in the transport pipeline
     // is found.
     val device: Common.Device,
