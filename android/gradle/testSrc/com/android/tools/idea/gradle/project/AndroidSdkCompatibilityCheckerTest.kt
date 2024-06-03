@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.findModelessDialog
@@ -368,7 +369,7 @@ class AndroidSdkCompatibilityCheckerTest {
       appModuleBuilder(compileSdk = "android-TiramisuPrivacySandbox")
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
-    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag)
+    checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag, AndroidVersion(34))
     waitForCondition(timeout, TimeUnit.SECONDS) { findDialog() != null }
     val dialog = findDialog()!!
 
