@@ -70,8 +70,12 @@ public class ProjectSyncStatusNotificationProviderTest extends HeavyPlatformTest
     return Arrays.asList(new Object[][]{
       {"build.gradle", true},
       {"build.gradle.kts", true},
+      {"build.gradle.dcl", true},
+      {"build.gradle.something", false},
       {"settings.gradle", true},
       {"settings.gradle.kts", true},
+      {"settings.gradle.dcl", true},
+      {"settings.gradle.something", false},
       {"README.md", false},
       {"src/main/com/example/MyClass.java", false},
       {"gradle/libs.versions.toml", false},

@@ -15,12 +15,15 @@
  */
 package com.android.tools.idea.gradle.notification;
 
-import static com.android.utils.BuildScriptUtil.isDefaultGradleBuildFile;
-import static com.android.utils.BuildScriptUtil.isGradleSettingsFile;
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_DECLARATIVE;
+import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_DECLARATIVE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_STALE_CHANGES;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_USER_TRY_AGAIN;
 import static com.intellij.openapi.module.ModuleUtilCore.findModuleForFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.annotations.concurrency.AnyThread;
@@ -52,10 +55,10 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotificationProvider;
-import com.intellij.util.ThreeState;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.io.File;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import javax.swing.JComponent;
@@ -139,8 +142,7 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
                                                                     @NotNull VirtualFile file,
                                                                     @Nullable GradleSyncNeededReason gradleSyncReason) {
           if (ProjectStructureNotificationPanel.userAllowsShow()) {
-            File ioFile = virtualToIoFile(file);
-            if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile)) {
+            if (!isDefaultGradleBuildFile(file) && !isGradleSettingsFile(file)) {
               return null;
             }
 
@@ -287,5 +289,18 @@ public class ProjectSyncStatusNotificationProvider implements DumbAware, EditorN
       long lastHidden = Long.parseLong(lastHiddenValue);
       return (now - lastHidden) > RESHOW_TIMEOUT_MS;
     }
+  }
+
+  private static final Set<String> DEFAULT_GRADLE_BUILD_FILE_NAMES =
+    Set.of(FN_BUILD_GRADLE, FN_BUILD_GRADLE_KTS, FN_BUILD_GRADLE_DECLARATIVE);
+  private static final Set<String> GRADLE_SETTINGS_FILE_NAMES =
+    Set.of(FN_SETTINGS_GRADLE, FN_SETTINGS_GRADLE_KTS, FN_SETTINGS_GRADLE_DECLARATIVE);
+
+  private static boolean isDefaultGradleBuildFile(VirtualFile file) {
+    return DEFAULT_GRADLE_BUILD_FILE_NAMES.contains(file.getName());
+  }
+
+  private static boolean isGradleSettingsFile(VirtualFile file) {
+    return GRADLE_SETTINGS_FILE_NAMES.contains(file.getName());
   }
 }
