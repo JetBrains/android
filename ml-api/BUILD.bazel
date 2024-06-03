@@ -7,7 +7,6 @@ iml_module(
     iml_files = ["intellij.android.ml-api.iml"],
     resources = ["src/resources"],
     test_class = "com.android.tools.idea.studiobot.MlApiTestSuite",
-    test_srcs = ["test"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -20,5 +19,29 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.ml-api-tests",
+    iml_files = ["intellij.android.ml-api-tests.iml"],
+    test_class = "com.android.tools.idea.studiobot.MlApiTestSuite",
+    test_friends = ["//tools/adt/idea/ml-api:intellij.android.ml-api"],
+    test_resources = ["src/testSrc/resources"],
+    test_srcs = ["src/testSrc/kotlin"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java[test]",
+        "@intellij//:org.jetbrains.kotlin[test]",
+        "@intellij//:test-framework[test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
+        "//tools/adt/idea/ml-api:intellij.android.ml-api[module, test]",
     ],
 )
