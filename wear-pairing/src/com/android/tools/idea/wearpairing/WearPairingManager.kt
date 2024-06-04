@@ -237,11 +237,6 @@ class WearPairingManager(
   fun getPairsForDevice(deviceID: String): List<PhoneWearPair> =
     pairedDevicesList.filter { it.phone.deviceID == deviceID || it.wear.deviceID == deviceID }
 
-  fun isPaired(deviceID: String): Boolean =
-    pairedDevicesList.firstOrNull {
-      it.phone.deviceID == deviceID || it.wear.deviceID == deviceID
-    } != null
-
   suspend fun createPairedDeviceBridge(
     phone: PairingDevice,
     phoneDevice: IDevice,
@@ -359,16 +354,6 @@ class WearPairingManager(
     updateDevicesChannel.trySend(Unit)
   }
 
-  suspend fun checkCloudSyncIsEnabled(phone: PairingDevice): Boolean {
-    getConnectedDevices()[phone.deviceID]?.also {
-      val localIdPattern = "Cloud Sync setting: true"
-      val output =
-        it.runShellCommand("dumpsys activity service WearableService | grep '$localIdPattern'")
-      return output.isNotEmpty()
-    }
-    return false
-  }
-
   override fun deviceConnected(device: IDevice) {
     updateDevicesChannel.trySend(Unit)
   }
@@ -437,11 +422,6 @@ class WearPairingManager(
       }
     }
   }
-
-  suspend fun PairingDevice.supportsMultipleWatchConnections(): Boolean =
-    getConnectedDevices()[deviceID]?.hasPairingFeature(
-      PairingFeature.MULTI_WATCH_SINGLE_PHONE_PAIRING
-    ) == true
 
   internal fun launchDevice(
     project: Project?,
@@ -643,21 +623,6 @@ private fun updateSelectedDevice(
   device.value =
     deviceList.firstOrNull { currentDevice.deviceID == it.deviceID }
       ?: currentDevice.disconnectedCopy()
-}
-
-/**
- * Asynchronous version of [WearPairingManager.removeAllPairedDevices] aimed to be used in
- * asynchronous contexts from Java. Prefer the use of the coroutine version when possible.
- */
-fun WearPairingManager.removeAllPairedDevicesAsync(
-  deviceID: String,
-  restartWearGmsCore: Boolean = true,
-) {
-  @Suppress(
-    "OPT_IN_USAGE"
-  ) // We want the action to be launched in the background and survive the scope of the
-  // WearPairingManager.
-  GlobalScope.launch(Dispatchers.IO) { removeAllPairedDevices(deviceID, restartWearGmsCore) }
 }
 
 /**
