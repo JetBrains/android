@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.preview.gallery
 
-import com.android.tools.preview.PreviewElement
-
-/** [TitledKey] for [GalleryTabs] or [GalleryView]. */
-data class PreviewElementKey(val element: PreviewElement<*>) : TitledKey {
-  override val title: String = element.displaySettings.name
+/** A key for each element in [GalleryView]. */
+interface TitledKey {
+  /** A title of the element in [GalleryView]. */
+  val title: String
 }

@@ -1246,6 +1246,12 @@ public final class StudioFlags {
     PREVIEW_COMMON, "essentials.mode", "Enable Preview Essentials Mode",
     "If enabled, Preview Essentials Mode will be enabled.",
     ChannelDefault.enabledUpTo(CANARY));
+
+  public static final Flag<Boolean> GALLERY_PREVIEW = new BooleanFlag(
+    PREVIEW_COMMON, "preview.gallery.dropdown", "Enable new Gallery view with dropdown",
+    "If enabled, Gallery view will only have dropdown selector instead of tabs.",
+    true);
+
   //endregion
 
   //region Compose

@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.gallery
 
 import com.android.tools.idea.concurrency.FlowableCollection
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.flow.PreviewFlowManager
 import com.android.tools.idea.preview.groups.PreviewGroup
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
@@ -32,16 +33,37 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import javax.swing.JPanel
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 
-class GalleryModeTest {
+@RunWith(Parameterized::class)
+class GalleryModeTest(private val newGalleryPreview: Boolean) {
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "Gallery V2 {0}")
+    fun parameters() = listOf(arrayOf<Any>(true), arrayOf<Any>(false))
+  }
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private val previewModeManager = CommonPreviewModeManager()
+
+  @Before
+  fun setUp() {
+    StudioFlags.GALLERY_PREVIEW.override(newGalleryPreview)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.GALLERY_PREVIEW.clearOverride()
+  }
 
   @Test
   fun firstSelectedComponent() {
@@ -124,7 +146,9 @@ class GalleryModeTest {
     previewFlowManager: () -> PreviewFlowManager<PreviewElement<*>>
   ): Pair<GalleryMode, () -> Unit> {
     val gallery = GalleryMode(JPanel())
-    val tabsToolbar = findGalleryTabs(gallery.component)
+    val tabsToolbar =
+      if (newGalleryPreview) findGalleryView(gallery.component)
+      else findGalleryTabs(gallery.component)
     val refresh = {
       val context =
         MapDataContext().also {
