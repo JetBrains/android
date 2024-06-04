@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.studiobot.AiExcludeException
 import com.android.tools.idea.studiobot.AiExcludeService
+import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.impl.PromptImpl
@@ -403,5 +404,50 @@ class PromptBuilderTest : BasePlatformTestCase() {
       )
 
     assertThat(prompt.functionCallingMode).isEqualTo(Prompt.FunctionCallingMode.ANY)
+  }
+
+  @Test
+  fun buildPrompt_withFunctionCallAndResponse() {
+    val prompt =
+      buildPrompt(project) {
+        userMessage { text("Tell me if my code is good", emptyList()) }
+        functionCall(Content.FunctionCall(name = "getCode", args = mapOf("source" to "EDITOR")))
+        functionResponse(
+          name = "getCode",
+          response =
+            """
+            var x = 0
+            for (i in 1..100000) {
+              x++
+            }
+            println(x)
+          """
+              .trimIndent(),
+        )
+      }
+
+    assertThat(prompt.messages)
+      .isEqualTo(
+        listOf(
+          Prompt.UserMessage(
+            chunks = listOf(Prompt.Message.TextChunk("Tell me if my code is good", emptyList()))
+          ),
+          Prompt.FunctionCallMessage(
+            Content.FunctionCall(name = "getCode", args = mapOf("source" to "EDITOR"))
+          ),
+          Prompt.FunctionResponseMessage(
+            name = "getCode",
+            response =
+              """
+            var x = 0
+            for (i in 1..100000) {
+              x++
+            }
+            println(x)
+          """
+                .trimIndent(),
+          ),
+        )
+      )
   }
 }
