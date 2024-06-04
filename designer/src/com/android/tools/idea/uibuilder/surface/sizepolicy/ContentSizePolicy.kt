@@ -45,9 +45,8 @@ interface ContentSizePolicy {
   /** Returns if the given [RenderResult] is for an error in Layoutlib. */
   private fun isErrorResult(result: RenderResult): Boolean {
     // If the RenderResult does not have an image, then we probably have an error. If we do,
-    // Layoutlib will
-    // sometimes return images of 1x1 when exceptions happen. Try to determine if that's the case
-    // here.
+    // Layoutlib will sometimes return images of 1x1 when exceptions happen. Try to determine
+    // if that's the case here.
     val image = result.renderedImage
     return result.logger.hasErrors() && (!image.isValid || image.width * image.height < 2)
   }
