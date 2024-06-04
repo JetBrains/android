@@ -16,6 +16,7 @@
 package com.android.tools.idea.studiobot.prompts.impl
 
 import com.android.tools.idea.studiobot.AiExcludeException
+import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.MalformedPromptException
@@ -118,6 +119,14 @@ class PromptBuilderImpl(private val project: Project) : PromptBuilder {
 
   override fun functions(builderAction: PromptBuilder.FunctionsBuilder.() -> Unit) {
     FunctionsBuilderImpl().apply(builderAction)
+  }
+
+  override fun functionCall(call: Content.FunctionCall) {
+    messages.add(Prompt.FunctionCallMessage(call))
+  }
+
+  override fun functionResponse(name: String, response: String) {
+    messages.add(Prompt.FunctionResponseMessage(name, response))
   }
 
   fun addAll(prompt: Prompt): PromptBuilderImpl {
