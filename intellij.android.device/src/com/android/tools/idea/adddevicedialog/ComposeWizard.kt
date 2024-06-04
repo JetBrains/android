@@ -172,8 +172,8 @@ abstract class WizardPageScope {
     getOrCreateState(T::class.java, defaultState)
 }
 
-internal val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }
-internal val LocalProject = staticCompositionLocalOf<Project?> { throw AssertionError() }
+val LocalFileSystem = staticCompositionLocalOf<FileSystem> { FileSystems.getDefault() }
+val LocalProject = staticCompositionLocalOf<Project?> { throw AssertionError() }
 
 private val DEFAULT_PREFERRED_SIZE: Dimension = JBUI.size(900, 650)
 private val DEFAULT_MIN_SIZE: Dimension = JBUI.size(600, 350)
