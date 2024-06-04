@@ -51,12 +51,6 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
-/** A key for each tab in [GalleryTabs]. */
-interface TitledKey {
-  /** A title of the tab in [GalleryTabs]. */
-  val title: String
-}
-
 /**
  * Shows a tab for each [Key]. [GalleryTabs] always track the list of currently available tabs using
  * [keysProvider] and currently selected tab using [selectedProvider]. [tabChangeListener] is called
@@ -66,12 +60,15 @@ interface TitledKey {
  * @param tabChangeListener is called when new [Key] is selected. [GalleryTabs] insures
  *   [tabChangeListener] is not called twice if same [Key] set twice.
  */
+@Deprecated("b/344884593")
 internal class GalleryTabs<Key : TitledKey>(
   private val root: JComponent,
   private val selectedProvider: (DataContext) -> Key?,
   private val keysProvider: (DataContext) -> Set<Key>,
   private val tabChangeListener: (DataContext, Key?) -> Unit,
-) : JPanel(BorderLayout()) {
+) : JPanel(BorderLayout()), Gallery<Key> {
+
+  override val component: JComponent = this
 
   companion object {
     private const val MAX_TITLE_LENGTH = 50
@@ -189,7 +186,7 @@ internal class GalleryTabs<Key : TitledKey>(
     }
   }
 
-  var selectedKey: Key? = null
+  override var selectedKey: Key? = null
     private set
 
   /**

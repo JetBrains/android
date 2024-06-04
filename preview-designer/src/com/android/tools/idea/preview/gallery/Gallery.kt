@@ -15,9 +15,14 @@
  */
 package com.android.tools.idea.preview.gallery
 
-import com.android.tools.preview.PreviewElement
+import javax.swing.JComponent
 
-/** [TitledKey] for [GalleryTabs] or [GalleryView]. */
-data class PreviewElementKey(val element: PreviewElement<*>) : TitledKey {
-  override val title: String = element.displaySettings.name
+@Deprecated("b/344884593")
+/**
+ * Unifies access to [GalleryView] and [GalleryTabs]. [Gallery] will not be needed once
+ * [GalleryTabs] is removed.
+ */
+interface Gallery<Key> {
+  val selectedKey: Key?
+  val component: JComponent
 }
