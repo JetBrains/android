@@ -26,10 +26,9 @@ import com.android.ide.common.resources.ResourceRepositoryFixture;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.TestResourceRepository;
-import com.android.resources.AarTestUtils;
 import com.android.resources.ResourceType;
 import com.android.resources.aar.AarSourceResourceRepository;
-import com.android.test.testutils.TestUtils;
+import com.android.tools.idea.aar.AarTestUtils;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.res.MultiResourceRepository;
 import com.android.tools.res.ids.ResourceClassGenerator;
@@ -224,7 +223,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
         "    </declare-styleable>" +
         "</resources>\n"});
     LocalResourceRepository<String> resourcesA = new LocalResourceRepositoryDelegate("A", repositoryA);
-    Path aarPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/my_aar_lib/res");
+    Path aarPath = AarTestUtils.resolveAarTestData("my_aar_lib/res");
     AarSourceResourceRepository libraryRepository = AarSourceResourceRepository.create(aarPath, LIBRARY_NAME);
     MultiResourceRepository<String> combinedResources = new TestMultiResourceRepository(ImmutableList.of(resourcesA), ImmutableList.of(libraryRepository));
 
