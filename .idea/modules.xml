@@ -163,6 +163,7 @@
       <module fileurl="file://$PROJECT_DIR$/app-quality-insights/ui/intellij.android.app-quality-insights.ui.tests.iml" filepath="$PROJECT_DIR$/app-quality-insights/ui/intellij.android.app-quality-insights.ui.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/artwork/intellij.android.artwork.iml" filepath="$PROJECT_DIR$/artwork/intellij.android.artwork.iml" />
       <module fileurl="file://$PROJECT_DIR$/artwork-compose/intellij.android.artwork-compose.iml" filepath="$PROJECT_DIR$/artwork-compose/intellij.android.artwork-compose.iml" />
+      <module fileurl="file://$PROJECT_DIR$/avd/intellij.android.avd.iml" filepath="$PROJECT_DIR$/avd/intellij.android.avd.iml" />
       <module fileurl="file://$PROJECT_DIR$/intellij.android.avdmanager.tests/intellij.android.avdmanager.tests.iml" filepath="$PROJECT_DIR$/intellij.android.avdmanager.tests/intellij.android.avdmanager.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/bleak/intellij.android.bleak.iml" filepath="$PROJECT_DIR$/bleak/intellij.android.bleak.iml" />
       <module fileurl="file://$PROJECT_DIR$/bleak-config/intellij.android.bleak-config.iml" filepath="$PROJECT_DIR$/bleak-config/intellij.android.bleak-config.iml" />

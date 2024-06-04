@@ -60,7 +60,7 @@ import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.util.thenIf
 
-internal data class TableColumn<T>(
+data class TableColumn<T>(
   val name: String,
   val width: TableColumnWidth,
   val comparator: Comparator<T>? = null,
@@ -80,7 +80,7 @@ sealed interface TableColumnWidth {
   }
 }
 
-internal fun <T> TableTextColumn(
+fun <T> TableTextColumn(
   name: String,
   width: TableColumnWidth = TableColumnWidth.Weighted(1f),
   attribute: (T) -> String,
@@ -92,7 +92,7 @@ internal fun <T> TableTextColumn(
     Text(attribute(it), overflow = overflow, maxLines = maxLines)
   }
 
-internal enum class SortOrder {
+enum class SortOrder {
   ASCENDING,
   DESCENDING;
 
@@ -114,12 +114,12 @@ internal fun SortOrder.Icon() =
   }
 
 @Stable
-internal class TableSelectionState<T>(selectedValue: T? = null) {
+class TableSelectionState<T>(selectedValue: T? = null) {
   var selection by mutableStateOf(selectedValue)
 }
 
 @Stable
-internal class TableSortState<T> {
+class TableSortState<T> {
   var sortColumn: TableColumn<T>? by mutableStateOf(null)
   var sortOrder: SortOrder by mutableStateOf(SortOrder.ASCENDING)
 
@@ -196,7 +196,7 @@ internal fun <T> TableRow(
 }
 
 @Composable
-internal fun <T> Table(
+fun <T> Table(
   columns: List<TableColumn<T>>,
   rows: List<T>,
   rowId: (T) -> Any,
