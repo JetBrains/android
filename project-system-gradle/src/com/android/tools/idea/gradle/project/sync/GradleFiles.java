@@ -31,7 +31,6 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.FileRelevanceKt;
-import com.android.tools.idea.util.CommonAndroidUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.impl.ProjectUtilKt;
@@ -147,8 +146,6 @@ public class GradleFiles implements Disposable.Default {
     if (file == null) {
       return;
     }
-
-    if (!CommonAndroidUtil.getInstance().isAndroidProject(myProject)) return;
 
     Callable<GradleFileState> fileStateCallable = () -> {
       if (!file.isValid()) return new GradleFileState(false, false);

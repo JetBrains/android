@@ -154,8 +154,6 @@
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinRefManipulator"/>
     <lang.elementManipulator forClass="org.jetbrains.kotlin.psi.KtDotQualifiedExpression"
                              implementationClass="com.android.tools.idea.gradle.navigation.KotlinExpressionRefManipulator"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleFiles"/>
-    <postStartupActivity implementation="com.android.tools.idea.gradle.project.sync.GradleFiles$UpdateHashesStartupActivity"/>
     <!--
       These two activities, along with NativeStartupActivity in android-ndk, have an ordering requirement.  In production,
       that ordering requirement is satisfied by the services within the activities, providing DeferredCompletables which
