@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.asdriver;
+package com.android.tools.asdriver
 
-import org.junit.Test;
+import com.intellij.ide.ApplicationInitializedListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-// JarTestSuiteRunner fails when a module with test sources has no tests.
-public class PlaceholderTest {
+@Suppress("UnstableApiUsage")
+class AndroidStudioDriverInitializer : ApplicationInitializedListener {
 
-  @Test
-  public void empty() {
+  override suspend fun execute(asyncScope: CoroutineScope) {
+    asyncScope.launch {
+      AndroidStudioService.start()
+    }
   }
 }

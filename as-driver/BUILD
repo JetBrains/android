@@ -2,20 +2,7 @@ load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
-
-java_binary(
-    name = "as_driver",
-    srcs = glob(["agent/testSrc/com/android/tools/asdriver/agent/*.java"]),
-    deploy_manifest_lines = [
-        "Premain-Class: com.android.tools.asdriver.agent.Agent",
-        "Boot-Class-Path: as_driver.jar",
-    ],
-    main_class = "com.android.tools.asdriver.agent.Agent",
-    resources = [
-        "as_driver_inject_deploy.jar",
-    ],
-    visibility = ["//visibility:public"],
-)
+load("//tools/base/intellij-bazel:intellij.bzl", "intellij_plugin")
 
 java_binary(
     name = "deploy_env",
@@ -25,49 +12,31 @@ java_binary(
     ],
 )
 
-java_binary(
-    name = "as_driver_inject",
-    testonly = True,
-    srcs = glob(["agent/testSrc/com/android/tools/asdriver/inject/*.java"]),
-    deploy_env = [
-        ":deploy_env",
-    ],
-    main_class = "NoMain",
-    deps = [
-        "wrapper_class_file",
-        "//tools/adt/idea/as-driver/proto:asdriver_proto",
-        # "@maven//:io.grpc.grpc-all",
-        "//tools/adt/idea/.idea/libraries:studio-grpc",
-        "//tools/adt/idea/.idea/libraries:studio-proto",
-        "@intellij//:intellij-sdk",
-        "//tools/adt/idea/bleak:intellij.android.bleak",
-        "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
-        "//tools/adt/idea/bleak-config:intellij.android.bleak-config_testlib",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
-    ],
-)
-
 kotlin_library(
     name = "wrapper_class_file",
-    srcs = glob(["agent/testSrc/com/android/tools/asdriver/inject/*.kt"]),
+    srcs = glob(["plugin/src/com/android/tools/asdriver/plugin/*.kt"]),
 )
 
-# managed by go/iml_to_build
-iml_module(
-    name = "as-driver.agent",
-    iml_files = ["agent/as-driver.agent.iml"],
-    test_srcs = ["agent/testSrc"],
-    visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    deps = [
+intellij_plugin(
+    name = "asdriver.plugin",
+    directory = "asdriver.plugin",
+    libs = [
+        "wrapper_class_file",
+        "//tools/adt/idea/bleak:intellij.android.bleak",
+        "//tools/adt/idea/bleak-config:intellij.android.bleak-config",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "@intellij//:intellij-sdk",
-        "@intellij//:com.intellij.java",
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
-        "//tools/adt/idea/bleak:intellij.android.bleak[module]",
-        "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module]",
-        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
+    ],
+    modules = {"asdriver-plugin.jar": [":as-driver.plugin"]},
+    platforms = [
+        "studio-sdk",
+    ],
+    plugin_id = "com.android.tools.asdriver",
+    deps = [
+        "@intellij//:com.intellij.java",
+        "@intellij//:com.jetbrains.performancePlugin",
     ],
 )
 
@@ -75,8 +44,9 @@ iml_module(
 iml_module(
     name = "as-driver.utils",
     data = [
+        "//prebuilts/studio/intellij-sdk:performanceTesting.zip",
         "//prebuilts/studio/sdk:platforms/android-33",
-        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/adt/idea/as-driver:asdriver.plugin",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/vendor/google/testing/display:ffmpeg_files",
         "//tools/vendor/google/testing/display:xvfb",
@@ -126,4 +96,25 @@ iml_studio_test(
     name = "ThreadingCheckerTest",
     module = ":as-driver.integration",
     test_class = "com.android.tools.asdriver.tests.integration.ThreadingCheckerTest",
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "as-driver.plugin",
+    srcs = ["plugin/src"],
+    iml_files = ["plugin/as-driver.plugin.iml"],
+    resources = ["plugin/resources"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//tools/adt/idea/.idea/libraries:studio-proto",
+        "@intellij//:intellij-sdk",
+        "@intellij//:com.intellij.java",
+        "//tools/adt/idea/as-driver:asdriver_proto",
+        "//tools/adt/idea/.idea/libraries:studio-grpc",
+        "//tools/adt/idea/bleak:intellij.android.bleak[module]",
+        "//tools/adt/idea/bleak-config:intellij.android.bleak-config[module]",
+        "@intellij//:com.jetbrains.performancePlugin",
+        "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose[module]",
+    ],
 )

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.asdriver.inject;
+package com.android.tools.asdriver;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.util.ui.UIUtil;
