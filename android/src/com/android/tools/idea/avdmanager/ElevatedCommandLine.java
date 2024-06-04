@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
-
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
@@ -32,7 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
+import org.apache.commons.io.output.NullOutputStream;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,7 +44,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
   private static final int INFINITE = -1;
   private String myTempFilePrefix;
 
-  public ElevatedCommandLine(@NotNull String... command) {
+  public ElevatedCommandLine(String @NotNull ... command) {
     super(command);
     myTempFilePrefix = "temp";
   }
@@ -57,13 +55,12 @@ public class ElevatedCommandLine extends GeneralCommandLine {
   }
 
   @Override
-  @NotNull
-  protected Process startProcess(@NotNull List<String> commands) throws IOException {
+  protected @NotNull Process createProcess(@NotNull ProcessBuilder processBuilder) throws IOException {
     if (SystemInfo.isWindows) {
       return executeAsShellCommand();
     }
     else {
-      return super.startProcess(commands);
+      return super.createProcess(processBuilder);
     }
   }
 
@@ -127,7 +124,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
 
     @Override
     public OutputStream getOutputStream() {
-      return NULL_OUTPUT_STREAM;
+      return NullOutputStream.INSTANCE;
     }
 
     @Override
