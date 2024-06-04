@@ -60,6 +60,10 @@ interface PsArtifactDependencySpec : Comparable<PsArtifactDependencySpec> {
                           override val name: String,
                           override val version: String?) : PsArtifactDependencySpec {
 
+    // Note: the use of RichVersion.parse() here is the lesser of two bad choices.  PsArtifactDependencySpec objects are used both in
+    // declared dependencies (where the version field is implicitly a RichVersion) and resolved dependencies (where the version field
+    // is implicitly a Version.  These two things aren't directly comparable; we preserve existing behaviour by taking the lower bound
+    // of the RichVersion, which for most Versions (not using punctuation in the version string) will be the identity.
     override fun compareTo(other: PsArtifactDependencySpec): Int =
       compareValuesBy(this, other, { it.group }, { it.name }, { RichVersion.parse(it.version.orEmpty()).lowerBound })
 
