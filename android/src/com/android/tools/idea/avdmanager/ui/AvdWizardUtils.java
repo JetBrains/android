@@ -103,6 +103,7 @@ public class AvdWizardUtils {
 
   public static final String CPU_CORES_KEY = AvdManager.AVD_INI_CPU_CORES;
 
+  public static final String EMULATOR_BINARY_KEY = "emulatorBinary";
   public static final String COMMAND_LINE_OPTIONS_KEY = "commandLineOptions";
 
   // Device definition keys
