@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.adddevicedialog.localavd
 
+import com.android.repository.api.LocalPackage
 import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoPackage
+import com.android.repository.impl.meta.Archive
+import com.android.repository.impl.meta.Archive.CompleteType
 import com.android.repository.impl.meta.TypeDetails
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SystemImageTags
@@ -35,14 +38,43 @@ import org.junit.runners.JUnit4
 @RunWith(JUnit4::class)
 class SystemImageTest {
   @Test
+  fun testToStringIsRemote() {
+    // Arrange
+    val image = SystemImage.from(mockGooglePlayIntelX86AtomSystemImage())
+
+    // Act
+    val string = image.toString()
+
+    // Assert
+    assertEquals("Google Play Intel x86 Atom System Image (1.1 GB)", string)
+  }
+
+  @Test
+  fun testToString() {
+    // Arrange
+    val details = MockitoKt.mock<SysImgDetailsType>()
+    MockitoKt.whenever(details.androidVersion).thenReturn(AndroidVersion(34, null, 7, true))
+
+    val repoPackage = MockitoKt.mock<LocalPackage>()
+    MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
+    MockitoKt.whenever(repoPackage.path)
+      .thenReturn("system-images;android-34;google_apis_playstore;x86_64")
+    MockitoKt.whenever(repoPackage.displayName)
+      .thenReturn("Google Play Intel x86_64 Atom System Image")
+
+    val image = SystemImage.from(repoPackage)
+
+    // Act
+    val string = image.toString()
+
+    // Assert
+    assertEquals("Google Play Intel x86_64 Atom System Image", string)
+  }
+
+  @Test
   fun systemImageTagsContainsGooglePlay() {
     // Arrange
-    val repoPackage =
-      mockRepoPackage(
-        mockSysImgDetailsType(AndroidVersion(29), SystemImageTags.PLAY_STORE_TAG),
-        "system-images;android-29;google_apis_playstore;x86",
-        "Google Play Intel x86 Atom System Image",
-      )
+    val repoPackage = mockGooglePlayIntelX86AtomSystemImage()
 
     // Act
     val services = SystemImage.from(repoPackage).services
@@ -56,6 +88,7 @@ class SystemImageTest {
     // Arrange
     val repoPackage =
       mockRepoPackage(
+        1_012_590_435,
         mockSysImgDetailsType(AndroidVersion(32), SystemImageTags.AUTOMOTIVE_PLAY_STORE_TAG),
         "system-images;android-32;android-automotive-playstore;x86_64",
         "Automotive with Play Store Intel x86_64 Atom System Image",
@@ -77,6 +110,7 @@ class SystemImageTest {
 
     val repoPackage =
       mockRepoPackage(
+        827_418_923,
         details,
         "system-images;android-30;android-wear;arm64-v8a",
         "Wear OS 3 ARM 64 v8a System Image",
@@ -94,6 +128,7 @@ class SystemImageTest {
     // Arrange
     val repoPackage =
       mockRepoPackage(
+        499_428_151,
         mockSysImgDetailsType(AndroidVersion(23), SystemImageTags.GOOGLE_APIS_TAG),
         "system-images;android-23;google_apis;x86",
         "Google APIs Intel x86 Atom System Image",
@@ -111,6 +146,7 @@ class SystemImageTest {
     // Arrange
     val repoPackage =
       mockRepoPackage(
+        772_250_386,
         mockSysImgDetailsType(AndroidVersion(31), SystemImageTags.ANDROID_TV_TAG),
         "system-images;android-31;android-tv;x86",
         "Android TV Intel x86 Atom System Image",
@@ -131,7 +167,8 @@ class SystemImageTest {
     MockitoKt.whenever(details.tag).thenReturn(SystemImageTags.GOOGLE_APIS_TAG as IdDisplayType)
     MockitoKt.whenever(details.abis).thenReturn(listOf("armeabi"))
 
-    val repoPackage = mockRepoPackage(details, "add-ons;addon-google_apis-google-15", "Google APIs")
+    val repoPackage =
+      mockRepoPackage(106_624_396, details, "add-ons;addon-google_apis-google-15", "Google APIs")
 
     // Act
     val abis = SystemImage.from(repoPackage).abis
@@ -141,8 +178,28 @@ class SystemImageTest {
   }
 
   private companion object {
-    private fun mockRepoPackage(details: TypeDetails, path: String, name: String): RepoPackage {
+    private fun mockGooglePlayIntelX86AtomSystemImage() =
+      mockRepoPackage(
+        1_153_916_727,
+        mockSysImgDetailsType(AndroidVersion(29), SystemImageTags.PLAY_STORE_TAG),
+        "system-images;android-29;google_apis_playstore;x86",
+        "Google Play Intel x86 Atom System Image",
+      )
+
+    private fun mockRepoPackage(
+      size: Long,
+      details: TypeDetails,
+      path: String,
+      name: String,
+    ): RepoPackage {
+      val complete = MockitoKt.mock<CompleteType>()
+      MockitoKt.whenever(complete.size).thenReturn(size)
+
+      val archive = MockitoKt.mock<Archive>()
+      MockitoKt.whenever(archive.complete).thenReturn(complete)
+
       val repoPackage = MockitoKt.mock<RemotePackage>()
+      MockitoKt.whenever(repoPackage.archive).thenReturn(archive)
       MockitoKt.whenever(repoPackage.typeDetails).thenReturn(details)
       MockitoKt.whenever(repoPackage.path).thenReturn(path)
       MockitoKt.whenever(repoPackage.displayName).thenReturn(name)
