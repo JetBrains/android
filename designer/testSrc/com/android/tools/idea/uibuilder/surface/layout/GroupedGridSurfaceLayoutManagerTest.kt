@@ -712,7 +712,7 @@ class GroupedGridSurfaceLayoutManagerTest {
   }
 
   @Test
-  fun testScaleDoNotChangePreviewSizes() {
+  fun testManagerKeepsProportionsWhenScaleChange() {
     StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
 
     val framePadding = 50
@@ -722,31 +722,92 @@ class GroupedGridSurfaceLayoutManagerTest {
         listOf(PositionableGroup(contents.toList()))
       }
 
-    val contentProvider: (scale: Double) -> List<PositionableContent> = {
-      listOf(
-        TestPositionableContent(0, 0, 100, 100, scale = it),
-        TestPositionableContent(0, 0, 100, 100, scale = it),
-        TestPositionableContent(0, 0, 100, 100, scale = it),
-        TestPositionableContent(0, 0, 100, 100, scale = it),
-      )
-    }
+    val content = createContent(1.0)
 
-    val contents1 = contentProvider(1.0)
-    val contents2 = contentProvider(2.0)
-    val contents3 = contentProvider(3.0)
+    // Width change never changes because it will cause re-layout whenever we shrink the window.
+    val width = 400
 
-    val width = 1000
-    val height = 1000
+    // the change of the height shouldn't affect the layout in any ways
+    var height = 700
 
     run {
-      // When scale are different, the sizes should not change.
-      val scaledSize1 = manager.getRequiredSize(contents1, width, height, null)
-      val scaledSize2 = manager.getRequiredSize(contents2, width, height, null)
-      val scaledSize3 = manager.getRequiredSize(contents3, width, height, null)
-      assertEquals(scaledSize1, scaledSize2)
-      assertEquals(scaledSize1, scaledSize3)
+      // We re-layout when loading the layout for the first time
+      val sizeAfterInit = manager.getRequiredSize(content, width, height, null)
+
+      val changeScale1 = 2.0
+
+      // We simulate the change of the height of the layout
+      height += 200
+      content.forEach { it.scale = changeScale1 }
+
+      val sizeAfterFirstScaleChange = manager.getRequiredSize(content, width, height, null)
+
+      val proportionAfterInit = sizeAfterInit.width / sizeAfterInit.height
+      val proportionAfterFirstScaleChange =
+        sizeAfterFirstScaleChange.width / sizeAfterFirstScaleChange.height
+
+      assertEquals(proportionAfterInit, proportionAfterFirstScaleChange)
+
+      val changeScale2 = 5.0
+      content.forEach { it.scale = changeScale2 }
+      val sizeAfterSecondScaleChange = manager.getRequiredSize(content, width, height, null)
+      val proportionAfterSecondScaleChange =
+        sizeAfterSecondScaleChange.width / sizeAfterSecondScaleChange.height
+
+      assertEquals(proportionAfterFirstScaleChange, proportionAfterSecondScaleChange)
+      assertEquals(proportionAfterInit, proportionAfterSecondScaleChange)
     }
 
     StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
   }
+
+  @Test
+  fun testManagerDoesNotKeepProportionsWhenWidthChange() {
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.override(true)
+
+    val framePadding = 50
+    val manager =
+      GroupedGridSurfaceLayoutManager(GroupPadding(0, 0) { (it * framePadding).toInt() }) { contents
+        ->
+        listOf(PositionableGroup(contents.toList()))
+      }
+
+    val content = createContent(1.0)
+
+    // Width change should cause re-layout whenever we shrink the window.
+    var width = 500
+
+    // the change of the height shouldn't affect the layout in any ways
+    var height = 700
+
+    run {
+      // We re-layout when loading the layout for the first time
+      val sizeAfterInit = manager.getRequiredSize(content, width, height, null)
+
+      // We simulate the change of the height of the layout
+      height += 200
+      val sizeAfterHeightChange = manager.getRequiredSize(content, width, height, null)
+      val proportionAfterInit = sizeAfterInit.width / sizeAfterInit.height
+      val proportionAfterHeightChange = sizeAfterHeightChange.width / sizeAfterHeightChange.height
+
+      assertEquals(proportionAfterInit, proportionAfterHeightChange)
+
+      // We simulate the change of the height of the layout
+      width -= 200
+      val sizeAfterWidthChange = manager.getRequiredSize(content, width, height, null)
+      val proportionAfterWidthChange = sizeAfterWidthChange.width / sizeAfterWidthChange.height
+
+      assertNotEquals(proportionAfterHeightChange, proportionAfterWidthChange)
+    }
+
+    StudioFlags.SCROLLABLE_ZOOM_ON_GRID.clearOverride()
+  }
+
+  private fun createContent(initialScale: Double) =
+    mutableListOf(
+      TestPositionableContent(0, 0, 100, 100, scale = initialScale),
+      TestPositionableContent(0, 0, 100, 100, scale = initialScale),
+      TestPositionableContent(0, 0, 100, 100, scale = initialScale),
+      TestPositionableContent(0, 0, 100, 100, scale = initialScale),
+    )
 }
