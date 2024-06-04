@@ -16,6 +16,8 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.adtui.status.IdeStatus
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
+import com.android.tools.idea.editors.liveedit.LiveEditService
 import com.android.tools.idea.editors.liveedit.ui.REFRESH_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
@@ -208,11 +210,19 @@ open class LiveEditStatus(
     LiveEditStatus(
       AllIcons.General.InspectionsOK,
       message("le.status.up_to_date.title"),
-      message("le.status.up_to_date.description"),
+      message("le.status.up_to_date.description_auto"),
       DEFAULT,
       descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
       shouldSimplify = true
-    )
+    ) {
+      override val description
+        get() = if (LiveEditApplicationConfiguration.getInstance().leTriggerMode ==
+                    LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC) {
+          message("le.status.up_to_date.description_auto")
+        } else {
+          message("le.status.up_to_date.description_manual")
+        }
+    }
 
   object SyncNeeded :
     LiveEditStatus(
