@@ -89,6 +89,16 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
         else -> throw(IllegalStateException("version ends with neither -jre nor -android: $version"))
       }?.let { Version.parse(it) }?.takeIf { it > parsedVersion }
     }
+    fun findUpdatedNativeMtVersionForKotlinxCoroutines(update: AvailableLibraryUpdate, version: String): Version? {
+      val versions = update.versions
+      if (versions.isEmpty()) return null
+      val parsedVersion = Version.parse(version)
+      return when {
+        version.contains("-native-mt-2") -> versions.firstOrNull { it.contains("-native-mt-2") }
+        version.contains("-native-mt") -> versions.firstOrNull { it.contains("-native-mt") && !it.contains("-native-mt-2") }
+        else -> throw(IllegalStateException("version is not a -native-mt version: $version"))
+      }?.let { Version.parse(it) }?.takeIf { it > parsedVersion }
+    }
     lock.withLock {
       val version = spec.version.takeUnless { it.isNullOrEmpty() } ?: return null
       val key = spec.toLibraryKey()
@@ -96,8 +106,16 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
       if (key.group == "com.google.guava" && (version.endsWith("-jre") || version.endsWith("-android"))) {
         return findUpdatedVersionForGuava(update, version)
       }
+      var stableOrPreviewVersion = update.stableOrPreviewVersion
+      if (key.group == "org.jetbrains.kotlinx" && key.name.contains("kotlinx-coroutines")) {
+        if (version.contains("-native-mt")) {
+          return findUpdatedNativeMtVersionForKotlinxCoroutines(update, version)
+        }
+        else {
+          stableOrPreviewVersion = update.versions.firstOrNull { !it.contains("-native-mt") }
+        }
+      }
       val parsedVersion = Version.parse(version)
-      val stableOrPreviewVersion = update.stableOrPreviewVersion
       val infimum = parsedVersion.previewInfimum
       val supremum = parsedVersion.previewSupremum
       val suggestPreview = when {
