@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -288,7 +289,8 @@ public final class BuildModelContext {
 
   private Optional<GradleVersionCatalogFile> checkVersionCatalog(String filePath, String name) {
     @SystemIndependent String fromPath = toSystemIndependentName(filePath);
-    @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
+    // based on getBaseDir - same as GradleModelSource
+    @SystemIndependent String rootPath = getBaseDirPath(getProject()).getPath();
     @SystemIndependent String path = String.join("/", rootPath, fromPath);
     VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
     if (versionCatalogFile == null) return Optional.empty();
