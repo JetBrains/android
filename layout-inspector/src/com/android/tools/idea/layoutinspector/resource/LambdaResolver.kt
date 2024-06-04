@@ -403,7 +403,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       if (this != null) {
         // K2 plugin - use Analysis API in existing analysis session.
         return call
-          .resolveCall()
+          .resolveCallOld()
           ?.singleFunctionCallOrNull()
           ?.argumentMapping
           ?.get(argument.getArgumentExpression())

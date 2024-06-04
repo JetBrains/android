@@ -96,7 +96,7 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
         allowAnalysisOnEdt {
           analyze(callElement) {
             val functionSymbol =
-              callElement.resolveCall()?.singleFunctionCallOrNull()?.symbol ?: return@analyze null
+              callElement.resolveCallOld()?.singleFunctionCallOrNull()?.symbol ?: return@analyze null
             containingPackage(functionSymbol)
           }
         }

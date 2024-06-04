@@ -35,7 +35,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
     override fun KtCallExpression.classifyFindViewCall(
         cast: KtBinaryExpressionWithTypeRHS
     ): FindViewCallInfo? = analyze(this) {
-        val calleeSymbol = resolveCall()?.successfulFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return null
+        val calleeSymbol = resolveCallOld()?.successfulFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return null
         if (calleeSymbol.name.asString() !in APPLICABLE_FUNCTION_NAMES) return null
 
         // The function must take a single type parameter (T)...

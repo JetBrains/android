@@ -142,7 +142,7 @@ internal class SpringPropertiesProviderK2(private val callElement: KtCallElement
     allowAnalysisOnEdt {
       analyze(callElement) {
         val resolvedFunctionCall =
-          callElement.resolveCall()?.singleFunctionCallOrNull() ?: return@analyze emptyList()
+          callElement.resolveCallOld()?.singleFunctionCallOrNull() ?: return@analyze emptyList()
         val callableSymbol = resolvedFunctionCall.symbol
         callableSymbol.valueParameters.map { parameter ->
           val argument = getArgumentForParameter(resolvedFunctionCall, parameter)

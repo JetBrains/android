@@ -99,7 +99,7 @@ internal fun KtElement.callReturnTypeFqName() =
     allowAnalysisOnEdt {
       analyze(this) {
         val callReturnType =
-          this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
+          this@callReturnTypeFqName.resolveCallOld()?.singleFunctionCallOrNull()?.symbol?.returnType
         callReturnType?.let { asFqName(it) }
       }
     }
