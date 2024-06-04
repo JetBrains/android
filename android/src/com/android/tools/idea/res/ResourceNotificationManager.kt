@@ -105,12 +105,10 @@ class ResourceNotificationManager private constructor(private val project: Proje
   /** Project wide observer: a single one is sufficient. */
   @GuardedBy("observerLock") private var projectPsiTreeObserver: ProjectPsiTreeObserver? = null
 
-  private val projectBuildObserver = ProjectBuildObserver()
+  private val projectBuildObserver = createProjectBuildObserver()
 
   /** Whether we've already been notified about a change and we'll be firing it shortly. */
   private val pendingNotify = AtomicBoolean()
-
-  private var ignoreChildrenChanged = false
 
   /**
    * Counter for events other than resource repository, configuration or file events. For example,
@@ -166,22 +164,23 @@ class ResourceNotificationManager private constructor(private val project: Proje
       val moduleEventObserver =
         moduleToObserverMap.computeIfAbsent(module) {
           if (moduleToObserverMap.isEmpty()) {
-            if (projectPsiTreeObserver == null) projectPsiTreeObserver = ProjectPsiTreeObserver()
+            if (projectPsiTreeObserver == null)
+              projectPsiTreeObserver = createProjectPsiTreeObserver()
             projectBuildObserver.startListening()
           }
-          ModuleEventObserver(facet)
+          createModuleEventObserver(facet)
         }
       moduleEventObserver.addListener(listener)
 
       if (file != null) {
         val fileEventObserver =
-          fileToObserverMap.computeIfAbsent(file) { FileEventObserver(module) }
+          fileToObserverMap.computeIfAbsent(file) { createFileEventObserver(module) }
         fileEventObserver.addListener(listener)
 
         if (configuration != null) {
           val configurationEventObserver =
             configurationToObserverMap.computeIfAbsent(configuration) {
-              ConfigurationEventObserver(configuration)
+              createConfigurationEventObserver(configuration)
             }
           configurationEventObserver.addListener(listener)
         }
@@ -324,12 +323,22 @@ class ResourceNotificationManager private constructor(private val project: Proje
     for (observer in observers) observer.notifyListeners(reason)
   }
 
+  private fun createModuleEventObserver(facet: AndroidFacet) =
+    ModuleEventObserver(facet, ::incrementModificationCount, ::notice).also { observer ->
+      Disposer.register(observer) {
+        synchronized(observerLock) { moduleToObserverMap.remove(facet.module) }
+      }
+    }
+
   /**
    * A [ModuleEventObserver] registers listeners for various module-specific events (such as
    * resource folder manager changes) and then notifies [notice] when it sees an event.
    */
-  private inner class ModuleEventObserver(private val facet: AndroidFacet) :
-    ModificationTracker, ResourceFolderListener, Disposable {
+  private class ModuleEventObserver(
+    private val facet: AndroidFacet,
+    private val incrementModificationCount: () -> Unit,
+    private val notice: (Reason, VirtualFile?) -> Unit,
+  ) : ModificationTracker, ResourceFolderListener, Disposable.Default {
     private var generation = appResourcesModificationCount
     private val listenersLock = Any()
     private var connection: MessageBusConnection? = null
@@ -405,26 +414,29 @@ class ResourceNotificationManager private constructor(private val project: Proje
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
     override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
       if (facet.module === this.facet.module) {
-        this@ResourceNotificationManager.modificationCount++
+        incrementModificationCount()
         notice(Reason.GRADLE_SYNC, null)
       }
     }
-
-    override fun dispose() {
-      synchronized(observerLock) { moduleToObserverMap.remove(facet.module) }
-    }
   }
 
-  private inner class ProjectBuildObserver : ProjectSystemBuildManager.BuildListener {
+  private fun createProjectBuildObserver() =
+    ProjectBuildObserver(project, ::incrementModificationCount, ::notice)
+
+  private class ProjectBuildObserver(
+    private val project: Project,
+    private val incrementModificationCount: () -> Unit,
+    private val notice: (Reason, VirtualFile?) -> Unit,
+  ) : ProjectSystemBuildManager.BuildListener {
     private var alreadyAddedBuildListener = false
-    private var myIgnoreBuildEvents = false
+    private var ignoreBuildEvents = false
 
     fun startListening() {
       if (!alreadyAddedBuildListener) { // See comment in stopListening.
         alreadyAddedBuildListener = true
         project.getProjectSystem().getBuildManager().addBuildListener(project, this)
       }
-      myIgnoreBuildEvents = false
+      ignoreBuildEvents = false
     }
 
     fun stopListening() {
@@ -434,7 +446,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
       // them once -- and we also ignore any build events that appear when we're
       // not intending to be actively listening
       // ProjectBuilder.getInstance(myProject).removeAfterProjectBuildTask(this);
-      myIgnoreBuildEvents = true
+      ignoreBuildEvents = true
     }
 
     override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {}
@@ -442,14 +454,21 @@ class ResourceNotificationManager private constructor(private val project: Proje
     override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {}
 
     override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-      if (!myIgnoreBuildEvents) {
-        this@ResourceNotificationManager.modificationCount++
+      if (!ignoreBuildEvents) {
+        incrementModificationCount()
         notice(Reason.PROJECT_BUILD, null)
       }
     }
   }
 
-  private inner class ProjectPsiTreeObserver : PsiTreeChangeListener {
+  private fun createProjectPsiTreeObserver() = ProjectPsiTreeObserver(::notice, ::isRelevantFile)
+
+  private class ProjectPsiTreeObserver(
+    private val notice: (Reason, VirtualFile?) -> Unit,
+    private val isRelevantFile: (VirtualFile?) -> Boolean,
+  ) : PsiTreeChangeListener {
+    private var ignoreChildrenChanged = false
+
     override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
 
     override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
@@ -583,11 +602,6 @@ class ResourceNotificationManager private constructor(private val project: Proje
 
     private fun getVirtualFile(event: PsiTreeChangeEvent) = event.file?.virtualFile
 
-    /** Checks if the file is present in [fileToObserverMap]. */
-    private fun isRelevantFile(virtualFile: VirtualFile?) =
-      virtualFile != null &&
-        synchronized(observerLock) { fileToObserverMap.containsKey(virtualFile) }
-
     private fun isIgnorable(event: PsiTreeChangeEvent): Boolean {
       // We can ignore edits in whitespace, XML error nodes, and modification in comments.
       // (Note that editing text in an attribute value, including whitespace characters,
@@ -626,7 +640,12 @@ class ResourceNotificationManager private constructor(private val project: Proje
     }
   }
 
-  private inner class FileEventObserver(private val module: Module) : BulkFileListener {
+  private fun createFileEventObserver(module: Module) = FileEventObserver(module, ::notice)
+
+  private class FileEventObserver(
+    private val module: Module,
+    private val notice: (Reason, VirtualFile?) -> Unit,
+  ) : BulkFileListener {
     private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
     private var messageBusConnection: MessageBusConnection? = null
 
@@ -665,8 +684,13 @@ class ResourceNotificationManager private constructor(private val project: Proje
     fun hasListeners() = listeners.isNotEmpty()
   }
 
-  private inner class ConfigurationEventObserver(private val configuration: Configuration) :
-    ConfigurationListener {
+  private fun createConfigurationEventObserver(configuration: Configuration) =
+    ConfigurationEventObserver(configuration, ::notice)
+
+  private class ConfigurationEventObserver(
+    private val configuration: Configuration,
+    private val notice: (Reason, VirtualFile?) -> Unit,
+  ) : ConfigurationListener {
     private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
 
     fun addListener(listener: ResourceChangeListener) {
@@ -697,6 +721,14 @@ class ResourceNotificationManager private constructor(private val project: Proje
       return true
     }
   }
+
+  private fun incrementModificationCount() {
+    modificationCount++
+  }
+
+  /** Checks if the file is present in [fileToObserverMap]. */
+  private fun isRelevantFile(virtualFile: VirtualFile?) =
+    virtualFile != null && synchronized(observerLock) { fileToObserverMap.containsKey(virtualFile) }
 
   /**
    * Interface that should be implemented by clients interested in resource edits and events that
