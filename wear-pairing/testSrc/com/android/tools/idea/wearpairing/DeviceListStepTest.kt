@@ -22,6 +22,7 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.observable.TestInvokeStrategy
 import com.android.tools.idea.wearpairing.ConnectionState.DISCONNECTED
@@ -270,7 +271,7 @@ class DeviceListStepTest : LightPlatform4TestCase() {
   fun showTooltipIfDeviceNotAllowed() {
     val fakeUi = createDeviceListStepUi()
     val iDevice = Mockito.mock(IDevice::class.java)
-    runBlocking {
+    runBlocking(workerThread) {
       WearPairingManager.getInstance()
         .createPairedDeviceBridge(phoneDevice, iDevice, wearDevice, iDevice, connect = false)
     }

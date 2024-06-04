@@ -41,6 +41,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.util.concurrency.NonUrgentExecutor
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.net.NetUtils
 import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
@@ -123,7 +124,7 @@ class WearPairingManager(
 
   @WorkerThread
   private fun loadSettings() {
-    ApplicationManager.getApplication().assertIsNonDispatchThread()
+    ThreadingAssertions.assertBackgroundThread()
 
     WearPairingSettings.getInstance().apply {
       loadSettings(pairedDevicesState, pairedDeviceConnectionsState)
@@ -237,6 +238,7 @@ class WearPairingManager(
   fun getPairsForDevice(deviceID: String): List<PhoneWearPair> =
     pairedDevicesList.filter { it.phone.deviceID == deviceID || it.wear.deviceID == deviceID }
 
+  @WorkerThread
   suspend fun createPairedDeviceBridge(
     phone: PairingDevice,
     phoneDevice: IDevice,
@@ -244,6 +246,7 @@ class WearPairingManager(
     wearDevice: IDevice,
     connect: Boolean = true,
   ): PhoneWearPair {
+    ThreadingAssertions.assertBackgroundThread()
     LOG.warn("Starting device bridge {connect = $connect}")
     removeAllPairedDevices(wear.deviceID, restartWearGmsCore = false)
 
@@ -291,17 +294,21 @@ class WearPairingManager(
     return state
   }
 
+  @WorkerThread
   suspend fun removeAllPairedDevices(deviceID: String, restartWearGmsCore: Boolean = true) {
+    ThreadingAssertions.assertBackgroundThread()
     getPairsForDevice(deviceID).forEach {
       removePairedDevices(it, restartWearGmsCore = restartWearGmsCore)
     }
   }
 
+  @WorkerThread
   suspend fun removePairedDevices(
     phoneId: String,
     wearId: String,
     restartWearGmsCore: Boolean = true,
   ) {
+    ThreadingAssertions.assertBackgroundThread()
     val phoneWearPair =
       mutex.withLock {
         pairedDevicesList.find { it.phone.deviceID == phoneId && it.wear.deviceID == wearId }
@@ -310,10 +317,12 @@ class WearPairingManager(
     removePairedDevices(phoneWearPair, restartWearGmsCore)
   }
 
+  @WorkerThread
   suspend fun removePairedDevices(
     phoneWearPair: PhoneWearPair,
     restartWearGmsCore: Boolean = true,
   ) {
+    ThreadingAssertions.assertBackgroundThread()
     try {
       mutex.withLock {
         pairedDevicesList.removeAll {
@@ -367,11 +376,13 @@ class WearPairingManager(
   }
 
   @Slow
+  @WorkerThread
   internal fun findDevice(deviceID: String): PairingDevice? = getAvailableDevices().second[deviceID]
 
   @Slow
+  @WorkerThread
   private fun getAvailableDevices(): Pair<Map<String, IDevice>, HashMap<String, PairingDevice>> {
-    @Suppress("UnstableApiUsage") ApplicationManager.getApplication().assertIsNonDispatchThread()
+    ThreadingAssertions.assertBackgroundThread()
 
     val deviceTable = hashMapOf<String, PairingDevice>()
 
@@ -398,7 +409,9 @@ class WearPairingManager(
   }
 
   @Slow
+  @WorkerThread
   private suspend fun updateListAndForwardState() {
+    ThreadingAssertions.assertBackgroundThread()
     val (connectedDevices, deviceTable) = getAvailableDevices()
 
     // Don't loop directly on the list, because its values may be updated (ie added/removed)
@@ -423,11 +436,13 @@ class WearPairingManager(
     }
   }
 
+  @WorkerThread
   internal fun launchDevice(
     project: Project?,
     deviceId: String,
     avdInfo: AvdInfo,
   ): ListenableFuture<IDevice> {
+    ThreadingAssertions.assertBackgroundThread()
     connectedDevicesProvider()
       .find { it.getDeviceID() == deviceId }
       ?.apply {
@@ -447,7 +462,10 @@ class WearPairingManager(
     return AndroidDebugBridge.getBridge() // Return current instance
   }
 
+  @WorkerThread
   private fun getConnectedDevices(): Map<String, IDevice> {
+    ThreadingAssertions.assertBackgroundThread()
+
     return connectedDevicesProvider()
       .filter {
         it.isEmulator || it.arePropertiesSet()
@@ -465,8 +483,15 @@ class WearPairingManager(
     try {
       if (onlinePhone != null && onlineWear != null) { // Are both devices online?
         if (phoneWearPair.pairingStatus == PairingState.OFFLINE) {
-          // Both devices are online, and before one (or both) were offline. Time to bridge.
-          createPairedDeviceBridge(phoneWearPair.phone, onlinePhone, phoneWearPair.wear, onlineWear)
+          withContext(Dispatchers.IO) {
+            // Both devices are online, and before one (or both) were offline. Time to bridge.
+            createPairedDeviceBridge(
+              phoneWearPair.phone,
+              onlinePhone,
+              phoneWearPair.wear,
+              onlineWear,
+            )
+          }
           notificationsManager.showReconnectMessageBalloon(phoneWearPair, wizardAction)
         } else {
           // Check if pairing was removed from the companion app and if pairing is still OK.
@@ -486,10 +511,13 @@ class WearPairingManager(
     }
   }
 
+  @WorkerThread
   private suspend fun addDisconnectedPairedDeviceIfMissing(
     device: PairingDevice,
     deviceTable: HashMap<String, PairingDevice>,
   ) {
+    ThreadingAssertions.assertBackgroundThread()
+
     val deviceID = device.deviceID
     if (!deviceTable.contains(deviceID)) {
       if (device.isEmulator) {
@@ -593,16 +621,16 @@ private fun normalizeAvdId(avdId: String) =
     avdId
   }
 
+@WorkerThread
 private fun IDevice.getDeviceID(): String {
+  ThreadingAssertions.assertBackgroundThread()
   return when {
     // normalizeAvdId is applied to the returned path from the AVD data to remove any .. in the
-    // path.
-    // They were added in https://r.android.com/2441481 and, since we use the path as an ID, the ..
-    // does
-    // not match the path information we have in Studio.
+    // path. They were added in
+    // https://r.android.com/2441481 and, since we use the path as an ID, the .. does not match the
+    // path information we have in Studio.
     // We intentionally use normalize since it does not access disk and will just normalize the path
-    // removing
-    // the ..
+    // removing the ..
     isEmulator && avdData?.isDone == true -> avdData.get()?.path?.let { normalizeAvdId(it) } ?: name
     isEmulator -> EmulatorConsole.getConsole(this)?.avdPath?.let { normalizeAvdId(it) } ?: name
     getProperty(PROP_FIREBASE_TEST_LAB_SESSION) != null ->
