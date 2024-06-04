@@ -11,7 +11,6 @@
 </extensionPoints>
 
 <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
-  <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslTransformerFactory"/>
   <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.GradleDefaultBlockModels"/>
   <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.crashlytics.FirebaseCrashlyticsBlockModelProvider"/>
   <blockModelProvider implementation="com.android.tools.idea.gradle.dsl.model.crashlytics.CrashlyticsBlockModelProvider"/>

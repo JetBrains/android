@@ -17,7 +17,4 @@
   <extensions defaultExtensionNs="com.intellij">
     <editorNotificationProvider implementation="com.android.tools.idea.apk.debugging.editor.SmaliFileNotificationProvider"/>
   </extensions>
-  <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">
-    <transformerFactory implementation="com.android.tools.idea.gradle.dsl.parser.toml.TomlDslTransformerFactory"/>
-  </extensions>
 </idea-plugin>
