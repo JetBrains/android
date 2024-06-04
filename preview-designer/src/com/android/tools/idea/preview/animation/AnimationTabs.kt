@@ -41,7 +41,6 @@ import javax.swing.border.MatteBorder
 
 /** Tabs panel with enabled navigation. */
 class AnimationTabs(project: Project, disposable: Disposable) : JBTabsImpl(project, disposable) {
-
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
     ActionToolbarUtil.makeToolbarNavigable(moreToolbar!!)
