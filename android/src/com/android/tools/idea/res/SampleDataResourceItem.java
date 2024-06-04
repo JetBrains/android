@@ -36,6 +36,7 @@ import com.google.common.base.Joiner;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiBinaryFile;
@@ -234,8 +235,10 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
 
   @NotNull
   private static String getTextFromPsiElementPointer(SmartPsiElementPointer<PsiElement> pointer) {
-    PsiElement rootJsonElement = pointer.getElement();
-    return rootJsonElement != null ? rootJsonElement.getText() : "";
+    return ReadAction.compute(() -> {
+      PsiElement rootJsonElement = pointer.getElement();
+      return rootJsonElement != null ? rootJsonElement.getText() : "";
+    });
   }
 
   /**
