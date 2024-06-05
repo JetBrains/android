@@ -18,7 +18,7 @@ package com.android.tools.compose.aa.code
 import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
-import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 
@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
  * its final argument.
  */
 internal fun KtAnalysisSession.getComposableFunctionRenderParts(
-  functionSymbol: KtFunctionLikeSymbol
+  functionSymbol: KaFunctionLikeSymbol
 ): ComposableFunctionRenderParts {
   val allParameters = functionSymbol.valueParameters
   val requiredParameters = allParameters.filter { isRequired(it) }
