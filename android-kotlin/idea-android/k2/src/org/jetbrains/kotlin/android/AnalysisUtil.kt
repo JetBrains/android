@@ -18,7 +18,7 @@ package org.jetbrains.kotlin.android
 
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.components.buildClassType
-import org.jetbrains.kotlin.analysis.api.symbols.KtClassLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassLikeSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtErrorType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.name.ClassId
@@ -26,11 +26,11 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 
 
 fun KtAnalysisSession.isSubclassOf(subClass: KtClassOrObject, superClassId: ClassId, strict: Boolean = false): Boolean {
-    val classSymbol = subClass.getSymbol() as? KtClassLikeSymbol ?: return false
+    val classSymbol = subClass.getSymbol() as? KaClassLikeSymbol ?: return false
     return isSubclassOf(classSymbol, superClassId, strict)
 }
 
-fun KtAnalysisSession.isSubclassOf(classSymbol: KtClassLikeSymbol, superClassId: ClassId, strict: Boolean = false): Boolean =
+fun KtAnalysisSession.isSubclassOf(classSymbol: KaClassLikeSymbol, superClassId: ClassId, strict: Boolean = false): Boolean =
     isSubclassOf(buildClassType(classSymbol), superClassId, strict)
 
 fun KtAnalysisSession.isSubclassOf(classType: KtType, superClassId: ClassId, strict: Boolean = false): Boolean {
