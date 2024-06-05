@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.selector
 
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.intellij.execution.DefaultExecutionTarget
 import com.intellij.execution.ExecutionTarget
@@ -22,7 +23,6 @@ import com.intellij.execution.ExecutionTargetProvider
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.util.AndroidUtils
 
 class DeviceAndSnapshotExecutionTargetProvider
 internal constructor(
@@ -36,7 +36,9 @@ internal constructor(
     // TODO: Should we be using the configuration parameter here? The original code didn't; the
     // DevicesSelectedService implicitly uses the currently selected run configuration, which is
     // presumably the same.
-    if (!CommonAndroidUtil.getInstance().isAndroidProject(project)) return listOf(DefaultExecutionTarget.INSTANCE)
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(project) && configuration !is AndroidTestRunConfiguration) {
+      return listOf(DefaultExecutionTarget.INSTANCE)
+    }
 
     return listOf(
       DeviceAndSnapshotComboBoxExecutionTarget(
