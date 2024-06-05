@@ -20,7 +20,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import org.junit.Rule
 import org.junit.Test
 
@@ -37,7 +37,7 @@ class SampleComposeComponentTest {
 
   @Test
   fun sampleComposeComponentTest() {
-    composeTestRule.setContent { JewelTestTheme { SampleComposeComponent() } }
+    composeTestRule.setContent { StudioTestTheme { SampleComposeComponent() } }
 
     // Make sure that the "Displayed Text" text is not in the component tree yet.
     composeTestRule.onNodeWithText("Displayed Text").assertDoesNotExist()

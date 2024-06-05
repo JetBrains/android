@@ -16,11 +16,11 @@
 package com.android.tools.profilers
 
 import androidx.compose.ui.awt.ComposePanel
+import com.android.tools.adtui.compose.StudioTheme
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import com.android.tools.profilers.taskbased.tabs.task.interim.RecordingScreen
+import com.android.tools.profilers.taskbased.task.interim.RecordingScreenModel
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.jewel.bridge.theme.SwingBridgeTheme
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import java.awt.BorderLayout
@@ -45,7 +45,7 @@ class InterimStageView<T>(profilersView: StudioProfilersView, stage: T) : StageV
     enableNewSwingCompositing()
     val composePanel = ComposePanel()
     composePanel.setContent {
-      SwingBridgeTheme {
+      StudioTheme {
         RecordingScreen(recordingScreenModel)
       }
     }

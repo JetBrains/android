@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.android.tools.adtui.compose.StudioComposePanel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.intellij.openapi.application.ModalityState
@@ -37,7 +38,6 @@ import java.nio.file.FileSystems
 import javax.swing.Action
 import javax.swing.JComponent
 import kotlinx.coroutines.launch
-import org.jetbrains.jewel.bridge.JewelComposePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 
@@ -115,7 +115,7 @@ internal class ComposeWizard(
 
   override fun createCenterPanel(): JComponent {
     @OptIn(ExperimentalJewelApi::class) (enableNewSwingCompositing())
-    val component = JewelComposePanel {
+    val component = StudioComposePanel {
       CompositionLocalProvider(LocalProject provides project) {
         prevButton.action =
           if (pageStack.size > 1) WizardAction { pageStack.removeLast() } else WizardAction.Disabled
