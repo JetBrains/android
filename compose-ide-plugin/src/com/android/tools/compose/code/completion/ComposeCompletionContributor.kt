@@ -45,7 +45,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.asSafely
 import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -93,7 +93,7 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
   type.isFunctionType && argumentValueType.arguments.size == 1
 
 /** true iff [valueParameterSymbol]'s type arguments contains only the return type (can be Unit). */
-private fun KtAnalysisSession.isLambdaWithNoParameters(
+private fun KaSession.isLambdaWithNoParameters(
   valueParameterSymbol: KtValueParameterSymbol
 ) = with(valueParameterSymbol) { (returnType as? KtFunctionalType)?.ownTypeArguments?.size == 1 }
 
@@ -102,7 +102,7 @@ private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
   !hasDefaultValue() && isLambdaWithNoParameters() && varargElementType == null
 
 /** true iff the last parameter is required, and a lambda type with no parameters. */
-private fun KtAnalysisSession.isRequiredLambdaWithNoParameters(
+private fun KaSession.isRequiredLambdaWithNoParameters(
   valueParameterSymbol: KtValueParameterSymbol
 ) = with(valueParameterSymbol) { !hasDefaultValue && isLambdaWithNoParameters(this) && !isVararg }
 

@@ -17,7 +17,7 @@ package org.jetbrains.kotlin.android.quickfix
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.SupertypeNotInitialized
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.analysis.api.types.KtType
@@ -45,7 +45,7 @@ class K2AndroidViewConstructorFix(
 
     companion object {
         // Called from a background thread in an open analysis session.
-        private fun KtAnalysisSession.createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
+        private fun KaSession.createForDiagnostic(diagnostic: SupertypeNotInitialized): K2AndroidViewConstructorFix? {
             val superTypeReference = diagnostic.psi
             val superTypeEntry = superTypeReference.getNonStrictParentOfType<KtSuperTypeEntry>() ?: return null
             val ktClass = superTypeEntry.containingClass() ?: return null
@@ -85,8 +85,8 @@ class K2AndroidViewConstructorFix(
 
         }
 
-        private fun KtAnalysisSession.classId(type: KtType): ClassId? = type.expandedClassSymbol?.classId
-        private fun KtAnalysisSession.isAndroidView(type: KtType): Boolean =
+        private fun KaSession.classId(type: KtType): ClassId? = type.expandedClassSymbol?.classId
+        private fun KaSession.isAndroidView(type: KtType): Boolean =
             classId(type) == KotlinAndroidViewConstructorUtils.REQUIRED_SUPERTYPE
     }
 }

@@ -16,7 +16,7 @@
 package com.android.tools.compose.aa.code
 
 import com.android.tools.compose.code.ComposableFunctionRenderParts
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
  * ensure that a lambda can be added in cases where the Composable function requires a function as
  * its final argument.
  */
-internal fun KtAnalysisSession.getComposableFunctionRenderParts(
+internal fun KaSession.getComposableFunctionRenderParts(
   functionSymbol: KaFunctionLikeSymbol
 ): ComposableFunctionRenderParts {
   val allParameters = functionSymbol.valueParameters
@@ -52,7 +52,7 @@ internal fun KtAnalysisSession.getComposableFunctionRenderParts(
   return ComposableFunctionRenderParts(parameters, tail)
 }
 
-private fun KtAnalysisSession.renderValueParameters(
+private fun KaSession.renderValueParameters(
   valueParamsInParen: List<KtValueParameterSymbol>,
   closingString: String
 ) = buildString {
@@ -64,7 +64,7 @@ private fun KtAnalysisSession.renderValueParameters(
   append(")")
 }
 
-private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
+private fun KaSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
   if (valueParamSymbol.hasDefaultValue) return false
 
   // TODO(274145999): When we check it with a real AS instance, determine if we can drop this hacky
@@ -77,7 +77,7 @@ private fun KtAnalysisSession.isRequired(valueParamSymbol: KtValueParameterSymbo
   return valueParamSymbol.psi?.text?.endsWith("/* = compiled code */") != true
 }
 
-internal fun KtAnalysisSession.isRequiredTrailingLambda(
+internal fun KaSession.isRequiredTrailingLambda(
   valueParamSymbol: KtValueParameterSymbol
 ): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a

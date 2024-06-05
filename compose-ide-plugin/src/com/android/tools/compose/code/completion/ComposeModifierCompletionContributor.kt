@@ -40,7 +40,7 @@ import com.intellij.psi.util.childrenOfType
 import com.intellij.psi.util.contextOfType
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaSymbolWithVisibility
@@ -289,7 +289,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       .lastChild as KtSimpleNameExpression
   }
 
-  private fun KtAnalysisSession.findReceiverSymbol(element: KtElement): KaClassOrObjectSymbol? {
+  private fun KaSession.findReceiverSymbol(element: KtElement): KaClassOrObjectSymbol? {
     val namedReferenceExpression =
       when (element) {
         is KtNameReferenceExpression -> element

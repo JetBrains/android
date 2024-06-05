@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KtJavaFieldSymbol
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -42,7 +42,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
         /**
          * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
          */
-        private fun KtAnalysisSession.getAndroidResourceType(field: KtJavaFieldSymbol): ResourceType? {
+        private fun KaSession.getAndroidResourceType(field: KtJavaFieldSymbol): ResourceType? {
             if (getResourceReferenceType(field) == ResourceReferenceType.NONE) {
                 return null
             }
@@ -54,7 +54,7 @@ class K2AndroidKotlinResourceExternalAnnotator : AndroidKotlinResourceExternalAn
         /**
          * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
          */
-        private fun KtAnalysisSession.getResourceReferenceType(field: KtJavaFieldSymbol): ResourceReferenceType {
+        private fun KaSession.getResourceReferenceType(field: KtJavaFieldSymbol): ResourceReferenceType {
             val containingClassId = field.callableId?.classId ?: return ResourceReferenceType.NONE
             val rClassName = containingClassId.parentClassId?.shortClassName ?: return ResourceReferenceType.NONE
 

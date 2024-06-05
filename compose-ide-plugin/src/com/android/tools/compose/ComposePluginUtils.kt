@@ -21,7 +21,7 @@ import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
@@ -109,7 +109,7 @@ internal fun KtElement.callReturnTypeFqName() =
 
 // TODO(274630452): When the upstream APIs are available, implement it based on `fullyExpandedType`
 // and `KtTypeRenderer`.
-internal fun KtAnalysisSession.asFqName(type: KtType) =
+internal fun KaSession.asFqName(type: KtType) =
   type.expandedClassSymbol?.classId?.asSingleFqName()
 
 internal fun KtFunction.hasComposableAnnotation() =
@@ -119,7 +119,7 @@ internal fun KtFunction.hasComposableAnnotation() =
     descriptor?.hasComposableAnnotation() == true
   }
 
-internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
+internal fun KaSession.isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
   fun hasComposableAnnotation(annotated: KtAnnotated?) =
     annotated != null && annotated.hasAnnotation(ComposeClassIds.Composable)
 

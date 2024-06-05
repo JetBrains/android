@@ -24,7 +24,7 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafElement
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
@@ -64,11 +64,11 @@ private val COMPOSABLE_ANNOTATION_FQNAME = FqName(COMPOSABLE_ANNOTATION)
 /**
  * Runs the block in an analysis session, if the K2 plugin is in use, or under a null session if K1.
  */
-private inline fun <T> analyzeIfK2(startElement: KtElement, block: KtAnalysisSession?.() -> T) =
+private inline fun <T> analyzeIfK2(startElement: KtElement, block: KaSession?.() -> T) =
   if (KotlinPluginModeProvider.isK2Mode()) {
     analyze(startElement) { block() }
   } else {
-    (null as KtAnalysisSession?).block()
+    (null as KaSession?).block()
   }
 
 /** Service to find the [SourceLocation] of a lambda found in Compose. */
@@ -132,7 +132,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    *
    * @return a map from a lambda or callable reference to the nesting level from a top element.
    */
-  private fun KtAnalysisSession?.findPossibleLambdas(
+  private fun KaSession?.findPossibleLambdas(
     ktFile: KtFile,
     doc: Document,
     functionName: String,
@@ -236,7 +236,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
    * Select the most likely lambda from the [lambdas] found from line numbers, by using the
    * synthetic name [lambdaName].
    */
-  private fun KtAnalysisSession?.selectLambdaFromSynthesizedName(
+  private fun KaSession?.selectLambdaFromSynthesizedName(
     lambdas: Map<KtExpression, Int>,
     lambdaName: String
   ): KtExpression? {
@@ -332,7 +332,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
      * - class, method, or variable.
      */
     fun forEachLambda(
-      analysisSession: KtAnalysisSession?,
+      analysisSession: KaSession?,
       startElement: KtElement,
       excludeTopElements: Boolean = false,
       callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit
@@ -395,7 +395,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       foundComposableSibling = foundComposableSiblingBefore
     }
 
-    private fun KtAnalysisSession?.hasComposableAnnotation(
+    private fun KaSession?.hasComposableAnnotation(
       expression: KtLambdaExpression
     ): Boolean {
       val argument = expression.parent as? KtValueArgument ?: return false
@@ -420,7 +420,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
 
   private data class VisitorData(
     /** K2 Analysis API session (null for K1 plugin). */
-    val analysisSession: KtAnalysisSession?,
+    val analysisSession: KaSession?,
     val excludeTopElements: Boolean,
     val callable: (KtExpression, Int, Boolean, () -> Unit) -> Unit
   )

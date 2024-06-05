@@ -21,7 +21,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.descendants
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
@@ -128,7 +128,7 @@ private fun KotlinType.isStateType(stateTypeFqName: String) =
   (fqName?.asString() == stateTypeFqName ||
     supertypes().any { it.fqName?.asString() == stateTypeFqName })
 
-private fun KtAnalysisSession.isStateType(type: KtType, stateClassId: ClassId): Boolean =
+private fun KaSession.isStateType(type: KtType, stateClassId: ClassId): Boolean =
   type is KtNonErrorClassType &&
     (type.classId == stateClassId ||
       type.getAllSuperTypes().any { it is KtNonErrorClassType && it.classId == stateClassId })

@@ -22,7 +22,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.extractMethod.newImpl.ExtractMethodHelper.addSiblingAfter
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KtTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
@@ -85,7 +85,7 @@ class ComposeCreateComposableFunctionQuickFix(
       listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
     }
 
-    context(KtAnalysisSession)
+    context(KaSession)
     private fun createComposableFunctionQuickFixIfApplicable(
       diagnostic: KaFirDiagnostic.UnresolvedReference
     ): ComposeCreateComposableFunctionQuickFix? {
@@ -114,7 +114,7 @@ class ComposeCreateComposableFunctionQuickFix(
      *
      * See b/267429486.
      */
-    private fun KtAnalysisSession.buildNewComposableFunction(
+    private fun KaSession.buildNewComposableFunction(
       unresolvedCall: KtCallExpression,
       unresolvedName: String,
       container: KtElement,
@@ -150,7 +150,7 @@ class ComposeCreateComposableFunctionQuickFix(
      * For the purpose of creating Composable functions, optimistically guesses that [expression] is
      * of type `Unit`.
      */
-    private fun KtAnalysisSession.guessReturnType(expression: KtExpression): KtType {
+    private fun KaSession.guessReturnType(expression: KtExpression): KtType {
       return (expression.getKtType() as? KtFunctionalType)?.returnType ?: builtinTypes.UNIT
     }
   }

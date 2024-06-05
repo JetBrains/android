@@ -15,7 +15,7 @@
  */
 package org.jetbrains.kotlin.android.inspection
 
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
@@ -63,7 +63,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
     }
 
     companion object {
-        private tailrec fun KtAnalysisSession.unwrapToTypeParameterSymbol(type: KtType): KaTypeParameterSymbol? =
+        private tailrec fun KaSession.unwrapToTypeParameterSymbol(type: KtType): KaTypeParameterSymbol? =
             when (val expanded = type.fullyExpandedType) {
                 is KtTypeParameterType -> expanded.symbol
                 is KtFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)

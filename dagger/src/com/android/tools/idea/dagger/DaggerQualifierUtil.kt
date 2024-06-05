@@ -25,7 +25,7 @@ import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotationValue
 import org.jetbrains.kotlin.analysis.api.annotations.KtArrayAnnotationValue
@@ -277,7 +277,7 @@ private fun KtAnnotationEntry.getDescriptor() =
 private val AnnotationDescriptor.isQualifier: Boolean
   get() = annotationClass?.annotations?.hasAnnotation(DaggerClasses.Qualifier.fqName) == true
 
-private fun KtAnalysisSession.isQualifier(annotationClassId: ClassId?): Boolean =
+private fun KaSession.isQualifier(annotationClassId: ClassId?): Boolean =
   annotationClassId
     ?.let { getClassOrObjectSymbolByClassId(it) }
     ?.hasAnnotation(DaggerClasses.Qualifier.classId) == true

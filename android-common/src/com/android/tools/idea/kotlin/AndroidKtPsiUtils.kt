@@ -22,7 +22,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
@@ -76,9 +76,9 @@ import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 /** Checks if the given offset is within [KtClass.getBody] of this [KtClass]. */
 fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?.contains(offset) ?: false
 
-// TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this function.
+// TODO(b/269691940): Require callers to provide their own [KaSession], and remove this function.
 @OptIn(KaAllowAnalysisOnEdt::class)
-inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
+inline fun <T> KaSession?.applyOrAnalyze(element: KtElement, block: KaSession.() -> T): T =
   if (this != null) {
     block()
   } else {
@@ -90,7 +90,7 @@ inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAn
   }
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
-fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtProperty.hasBackingField(analysisSession: KaSession? = null): Boolean {
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       val symbol = getVariableSymbol() as? KtPropertySymbol ?: return false
@@ -106,7 +106,7 @@ fun KtProperty.hasBackingField(analysisSession: KtAnalysisSession? = null): Bool
  * Computes the qualified name of this [KtAnnotationEntry].
  * Prefer to use [fqNameMatches], which checks the short name first and thus has better performance.
  */
-fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
+fun KtAnnotationEntry.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       resolveCall()?.singleConstructorCallOrNull()?.symbol?.containingClassId?.asFqNameString()
@@ -121,7 +121,7 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = nul
  * Careful: this does *not* currently take into account Kotlin type aliases (https://kotlinlang.org/docs/reference/type-aliases.html).
  *   Fortunately, type aliases are extremely uncommon for simple annotation types.
  */
-fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KaSession? = null): Boolean {
   // For inspiration, see IDELightClassGenerationSupport.KtUltraLightSupportImpl.findAnnotation in the Kotlin plugin.
   val shortName = shortName?.asString() ?: return false
   return fqName.endsWith(shortName) && fqName == getQualifiedName(analysisSession)
@@ -130,7 +130,7 @@ fun KtAnnotationEntry.fqNameMatches(fqName: String, analysisSession: KtAnalysisS
 /**
  * Utility method to use [KtAnnotationEntry.fqNameMatches] with a set of names.
  */
-fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KtAnalysisSession? = null): Boolean {
+fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KaSession? = null): Boolean {
   val shortName = shortName?.asString() ?: return false
   val fqNamesFiltered = fqNames.filter { it.endsWith(shortName) }
   if (fqNamesFiltered.isEmpty()) return false
@@ -146,7 +146,7 @@ fun KtAnnotationEntry.fqNameMatches(fqNames: Set<String>, analysisSession: KtAna
  * K2 version of [fqNameMatches]; determine if [ktAnnotationEntry] has one of a
  * set of fully qualified names [fqName].
  */
-fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String): Boolean {
+fun KaSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName: String): Boolean {
   val shortName = ktAnnotationEntry.shortName?.asString() ?: return false
   if (!fqName.endsWith(shortName)) return false
 
@@ -158,7 +158,7 @@ fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName
 }
 
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
-fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
+fun KtClass.getQualifiedName(analysisSession: KaSession? = null): String? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       val symbol = getClassOrObjectSymbol()
@@ -187,7 +187,7 @@ fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String
  * the Java facade class generated instead.
  *
  */
-fun KtNamedFunction.getClassName(analysisSession: KtAnalysisSession? = null): String? =
+fun KtNamedFunction.getClassName(analysisSession: KaSession? = null): String? =
   if (isTopLevel) {
     ((parent as? KtFile)?.findFacadeClass())?.qualifiedName
   } else {
@@ -206,7 +206,7 @@ fun KtAnnotationEntry.findArgumentExpression(annotationAttributeName: String): K
 fun KtAnnotationEntry.findValueArgument(annotationAttributeName: String): KtValueArgument? =
   valueArguments.firstOrNull { it.getArgumentName()?.asName?.asString() == annotationAttributeName } as? KtValueArgument
 
-inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysisSession? = null): T? =
+inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KaSession? = null): T? =
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
@@ -224,7 +224,7 @@ inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysis
  *
  * Based on InterpolatedStringInjectorProcessor in the Kotlin plugin.
  */
-fun KtExpression.tryEvaluateConstant(analysisSession: KtAnalysisSession? = null): String? =
+fun KtExpression.tryEvaluateConstant(analysisSession: KaSession? = null): String? =
   evaluateConstant<String>(analysisSession)
 
 /**
@@ -232,7 +232,7 @@ fun KtExpression.tryEvaluateConstant(analysisSession: KtAnalysisSession? = null)
  *
  * Similar to [tryEvaluateConstant] with the different that for non-string constants, they will be converted to string.
  */
-fun KtExpression.tryEvaluateConstantAsText(analysisSession: KtAnalysisSession? = null): String? =
+fun KtExpression.tryEvaluateConstantAsText(analysisSession: KaSession? = null): String? =
   evaluateConstant<Any>(analysisSession)?.toString()
 
 /**
@@ -290,7 +290,7 @@ private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
 } ?: findAnnotationEntryByClassId(classId)
 
 @OptIn(KaAllowAnalysisOnEdt::class)
-private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSession.(KaDeclarationSymbol) -> T?): T? =
+private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KaSession.(KaDeclarationSymbol) -> T?): T? =
   allowAnalysisOnEdt {
     @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
     allowAnalysisFromWriteAction {

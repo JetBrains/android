@@ -28,7 +28,7 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentOfTypes
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -111,7 +111,7 @@ fun PsiElement.isComposableAnnotation(): Boolean {
 }
 
 /** K2 version of [isComposableAnnotation]. */
-fun KtAnalysisSession.isComposableAnnotation(element: PsiElement): Boolean {
+fun KaSession.isComposableAnnotation(element: PsiElement): Boolean {
   if (element !is KtAnnotationEntry) return false
 
   return fqNameMatches(element, COMPOSABLE_ANNOTATION_FQ_NAME)
