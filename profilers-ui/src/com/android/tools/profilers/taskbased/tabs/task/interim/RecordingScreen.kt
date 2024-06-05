@@ -16,6 +16,7 @@
 package com.android.tools.profilers.taskbased.tabs.task.interim
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
@@ -48,17 +51,30 @@ fun RecordingScreen(recordingScreenModel: RecordingScreenModel<*>) {
     Column {
       Row(modifier = Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(5.dp),
           verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-          painter = StudioIconsCompose.Profiler.Toolbar.StopRecording().getPainter().value,
-          contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS,
-          modifier = Modifier.size(20.dp)
-        )
+        if (!isStopButtonClicked) {
+          Icon(
+            painter = StudioIconsCompose.Profiler.Toolbar.StopRecording().getPainter().value,
+            contentDescription = TaskBasedUxStrings.RECORDING_IN_PROGRESS,
+            modifier = Modifier.size(20.dp)
+          )
+        }
         val ongoingTaskName = recordingScreenModel.taskName.lowercase()
-        Text(if (isUserStoppable) TaskBasedUxStrings.RECORDING_IN_PROGRESS else "Saving a $ongoingTaskName...",
-             fontSize = TextUnit(18f, TextUnitType.Sp), modifier = Modifier.testTag("RecordingScreenMessage"))
+        Text(
+          text = if (isStopButtonClicked) TaskBasedUxStrings.STOPPING_IN_PROGRESS
+          else if (isUserStoppable) TaskBasedUxStrings.RECORDING_IN_PROGRESS
+          else "Saving a $ongoingTaskName...",
+          fontSize = TextUnit(18f, TextUnitType.Sp), fontWeight = FontWeight.SemiBold,
+          modifier = Modifier.testTag("RecordingScreenMessage"))
       }
     }
-    Text(recordingScreenModel.formatElapsedTime(elapsedNs), modifier = Modifier.padding(bottom = 24.dp))
+    Box(modifier = Modifier.padding(bottom = 24.dp)) {
+      if (isStopButtonClicked) {
+        Text(TaskBasedUxStrings.STOPPING_TIME_WARNING, fontStyle = FontStyle.Italic)
+      }
+      else {
+        Text(recordingScreenModel.formatElapsedTime(elapsedNs))
+      }
+    }
     if (isUserStoppable) {
       DefaultButton(onClick = { recordingScreenModel.onStopRecordingButtonClick() },
                     enabled = canRecordingStop && !isStopButtonClicked,
