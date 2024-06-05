@@ -39,8 +39,8 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.JTextField
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -62,24 +62,26 @@ class WearHealthServicesContentPanelTest {
   private val testDataPath: Path
     get() = TestUtils.resolveWorkspacePathUnchecked("tools/adt/idea/wear-whs/testData")
 
-  private val deviceManager by lazy { FakeDeviceManager() }
-  private val stateManager by lazy {
-    WearHealthServicesStateManagerImpl(
-      deviceManager,
-      pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
-    )
-  }
-  private val whsPanel by lazy {
-    val uiScope: CoroutineScope =
-      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
-    val workerScope: CoroutineScope =
-      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
-    createWearHealthServicesPanel(stateManager, uiScope, workerScope)
-  }
+  private lateinit var deviceManager: FakeDeviceManager
+  private lateinit var stateManager: WearHealthServicesStateManagerImpl
+  private lateinit var whsPanel: JPanel
 
   @Before
   fun setUp() {
-    Disposer.register(projectRule.testRootDisposable, stateManager)
+    val testUiScope =
+      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.uiThread)
+    val testWorkerScope =
+      AndroidCoroutineScope(projectRule.testRootDisposable, AndroidDispatchers.workerThread)
+    deviceManager = FakeDeviceManager()
+
+    stateManager =
+      WearHealthServicesStateManagerImpl(
+          deviceManager,
+          pollingIntervalMillis = TEST_POLLING_INTERVAL_MILLISECONDS,
+          workerScope = testWorkerScope,
+        )
+        .also { Disposer.register(projectRule.testRootDisposable, it) }
+    whsPanel = createWearHealthServicesPanel(stateManager, testUiScope, testWorkerScope)
   }
 
   @Test
@@ -268,6 +270,7 @@ class WearHealthServicesContentPanelTest {
     fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") }
 
     deviceManager.activeExercise = true
+    stateManager.ongoingExercise.waitForValue(true)
     val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
     textField.text = "50"
 
