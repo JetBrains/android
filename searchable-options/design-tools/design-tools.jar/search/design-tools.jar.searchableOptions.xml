@@ -230,9 +230,9 @@
     <option name="code" hit="Code" />
     <option name="default" hit="Default" />
     <option name="design" hit="Design" />
-    <option name="editor" hit="Editor View Mode" />
-    <option name="mode" hit="Editor View Mode" />
-    <option name="view" hit="Editor View Mode" />
+    <option name="editor" hit="Editor View Mode:" />
+    <option name="mode" hit="Editor View Mode:" />
+    <option name="view" hit="Editor View Mode:" />
     <option name="enable" hit="Enable live updates" />
     <option name="live" hit="Enable live updates" />
     <option name="updates" hit="Enable live updates" />
@@ -245,7 +245,7 @@
     <option name="settings" hit="Preview Settings" />
     <option name="resource" hit="Resource Usage:" />
     <option name="usage" hit="Resource Usage:" />
-    <option name="resources" hit="Resources:" />
+    <option name="resource" hit="Resource:" />
     <option name="annotation" hit="Show split mode if file contains preview annotation" />
     <option name="contains" hit="Show split mode if file contains preview annotation" />
     <option name="file" hit="Show split mode if file contains preview annotation" />
