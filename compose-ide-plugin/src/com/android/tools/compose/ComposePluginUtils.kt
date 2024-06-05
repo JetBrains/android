@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtLocalVariableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
@@ -119,7 +119,7 @@ internal fun KtFunction.hasComposableAnnotation() =
     descriptor?.hasComposableAnnotation() == true
   }
 
-internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KtCallableSymbol): Boolean {
+internal fun KtAnalysisSession.isComposableInvocation(callableSymbol: KaCallableSymbol): Boolean {
   fun hasComposableAnnotation(annotated: KtAnnotated?) =
     annotated != null && annotated.hasAnnotation(ComposeClassIds.Composable)
 
