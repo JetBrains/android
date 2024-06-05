@@ -379,6 +379,7 @@ public class LiveEditProjectMonitor implements Disposable {
       }
       deviceWatcher.setApplicationId(applicationId);
 
+      psiSnapshots.clear();
       updatePsiSnapshots(openFiles);
       irClassCache.clear();
     }).get();
