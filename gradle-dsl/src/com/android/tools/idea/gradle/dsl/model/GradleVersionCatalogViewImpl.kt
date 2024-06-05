@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.model
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_FILE
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
@@ -77,6 +79,8 @@ private fun normalisePath(path: String, project: Project?): VirtualFile? {
 
 class SimplifiedVersionCatalogViewImpl(val project: Project) : GradleVersionCatalogView {
   override fun getCatalogToFileMap(): Map<String, VirtualFile> {
-    return normalisePath("gradle/libs.versions.toml", project)?.let { mapOf("libs" to it) } ?: mapOf()
+    return normalisePath(DEFAULT_CATALOG_FILE, project)?.let {
+      mapOf(DEFAULT_CATALOG_NAME to it)
+    } ?: mapOf()
   }
 }

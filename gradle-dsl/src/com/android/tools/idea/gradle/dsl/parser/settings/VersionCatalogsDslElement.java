@@ -65,7 +65,7 @@ public class VersionCatalogsDslElement extends GradleDslElementMap implements Gr
         return literal.getValue(String.class);
       }
     }
-    return "libs";
+    return VersionCatalogModel.DEFAULT_CATALOG_NAME;
   }
 
   public @NotNull List<VersionCatalogModel> get(DependencyResolutionManagementModel parent) {
