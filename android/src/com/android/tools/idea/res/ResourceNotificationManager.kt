@@ -162,6 +162,10 @@ class ResourceNotificationManager private constructor(private val project: Proje
     file: VirtualFile?,
     configuration: Configuration?,
   ): ResourceVersion {
+    require(configuration == null || file != null) {
+      "If configuration is specified, file must be as well. $configuration $file"
+    }
+
     val module = facet.module
     synchronized(observerLock) {
       val moduleEventObserver =
@@ -179,16 +183,14 @@ class ResourceNotificationManager private constructor(private val project: Proje
         val fileEventObserver =
           fileToObserverMap.computeIfAbsent(file) { FileEventObserver(module, ::notice) }
         fileEventObserver.addListener(listener)
+      }
 
-        if (configuration != null) {
-          val configurationEventObserver =
-            configurationToObserverMap.computeIfAbsent(configuration) {
-              ConfigurationEventObserver(configuration, ::notice)
-            }
-          configurationEventObserver.addListener(listener)
-        }
-      } else {
-        require(configuration == null) { configuration?.toString() ?: "" }
+      if (configuration != null) {
+        val configurationEventObserver =
+          configurationToObserverMap.computeIfAbsent(configuration) {
+            ConfigurationEventObserver(configuration, ::notice)
+          }
+        configurationEventObserver.addListener(listener)
       }
     }
 
@@ -213,18 +215,22 @@ class ResourceNotificationManager private constructor(private val project: Proje
     file: VirtualFile?,
     configuration: Configuration?,
   ) {
+    require(configuration == null || file != null) {
+      "If configuration is specified, file must be as well. $configuration $file"
+    }
+
     synchronized(observerLock) {
-      if (file != null) {
-        if (configuration != null) {
-          val configurationEventObserver = configurationToObserverMap[configuration]
-          if (configurationEventObserver != null) {
-            configurationEventObserver.removeListener(listener)
-            if (!configurationEventObserver.hasListeners()) {
-              configurationToObserverMap.remove(configuration)
-            }
+      if (configuration != null) {
+        val configurationEventObserver = configurationToObserverMap[configuration]
+        if (configurationEventObserver != null) {
+          configurationEventObserver.removeListener(listener)
+          if (!configurationEventObserver.hasListeners()) {
+            configurationToObserverMap.remove(configuration)
           }
         }
+      }
 
+      if (file != null) {
         val fileEventObserver = fileToObserverMap[file]
         if (fileEventObserver != null) {
           fileEventObserver.removeListener(listener)
@@ -232,8 +238,6 @@ class ResourceNotificationManager private constructor(private val project: Proje
             fileToObserverMap.remove(file)
           }
         }
-      } else {
-        require(configuration == null) { configuration?.toString() ?: "" }
       }
 
       val moduleEventObserver = moduleToObserverMap[facet.module]
