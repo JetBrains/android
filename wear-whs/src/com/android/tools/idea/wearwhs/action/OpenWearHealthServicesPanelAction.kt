@@ -66,10 +66,12 @@ class OpenWearHealthServicesPanelAction :
   private fun showWearHealthServicesToolPopup(action: AnAction, event: AnActionEvent) {
     val emulatorView = EMULATOR_VIEW_KEY.getData(event.dataContext) ?: return
     val project = event.project ?: return
+    val workerScope: CoroutineScope =
+      AndroidCoroutineScope(emulatorView, AndroidDispatchers.workerThread)
     val stateManager =
       emulatorView.getOrPutUserData(WHS_STATE_KEY) {
         val deviceManager = ContentProviderDeviceManager({ AdbLibService.getSession(project) })
-        WearHealthServicesStateManagerImpl(deviceManager).also {
+        WearHealthServicesStateManagerImpl(deviceManager, workerScope = workerScope).also {
           emulatorView.putUserData(WHS_STATE_KEY, it)
           Disposer.register(emulatorView, it)
           it.serialNumber = emulatorView.deviceSerialNumber
@@ -77,8 +79,6 @@ class OpenWearHealthServicesPanelAction :
       }
 
     val uiScope: CoroutineScope = AndroidCoroutineScope(emulatorView, AndroidDispatchers.uiThread)
-    val workerScope: CoroutineScope =
-      AndroidCoroutineScope(emulatorView, AndroidDispatchers.workerThread)
     val panel = createWearHealthServicesPanel(stateManager, uiScope, workerScope)
     val balloon =
       JBPopupFactory.getInstance()
