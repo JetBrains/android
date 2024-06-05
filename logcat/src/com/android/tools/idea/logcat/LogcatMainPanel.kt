@@ -200,6 +200,12 @@ class LogcatMainPanelFactory {
       override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {}
     }
 
+    class GameToolsAndroidProjectDetector : AndroidProjectDetector {
+      // Treat Game Tools projects as if they are not Android projects, because
+      // Game Tools does not use a real project, but uses the default project.
+      override fun isAndroidProject(project: Project): Boolean = false
+    }
+
     fun create(project: Project): JComponent {
       if (!IdeInfo.isGameTool()) {
         throw IllegalAccessException(
@@ -213,7 +219,7 @@ class LogcatMainPanelFactory {
         logcatColors = LogcatColors(),
         state = null,
         AndroidLogcatSettings.getInstance(),
-        AndroidProjectDetectorImpl(),
+        GameToolsAndroidProjectDetector(),
         hyperlinkDetector = NoopHyperlinkDetector(),
         foldingDetector = null,
       )
