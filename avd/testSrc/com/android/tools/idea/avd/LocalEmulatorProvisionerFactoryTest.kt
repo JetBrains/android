@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.avdmanager
+package com.android.tools.idea.avd
 
 import com.android.adblib.testing.FakeAdbSession
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
