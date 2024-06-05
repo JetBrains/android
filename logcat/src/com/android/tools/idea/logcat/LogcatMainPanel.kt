@@ -46,7 +46,7 @@ import com.android.tools.idea.logcat.actions.LogcatToggleUseSoftWrapsToolbarActi
 import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
-import com.android.tools.idea.logcat.actions.RestartLogcatAction
+import com.android.tools.idea.logcat.actions.RestartOrReloadLogcatAction
 import com.android.tools.idea.logcat.actions.SaveLogcatAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
@@ -750,7 +750,7 @@ constructor(
     return DefaultActionGroup().apply {
       add(ClearLogcatAction())
       add(PauseLogcatAction())
-      add(RestartLogcatAction())
+      add(RestartOrReloadLogcatAction())
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))

@@ -30,14 +30,19 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
+import java.nio.file.Path
+import kotlin.io.path.exists
 
-/** An action that restarts Logcat on the connected device. */
-internal class RestartLogcatAction :
+/** An action that restarts or reloads Logcat on the connected device or file. */
+internal class RestartOrReloadLogcatAction :
   DumbAwareAction(
     LogcatBundle.message("logcat.restart.action.text"),
     null,
@@ -46,13 +51,36 @@ internal class RestartLogcatAction :
 
   override fun update(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return
-    e.presentation.isEnabled = logcatPresenter.getConnectedDevice() != null
+    val item = logcatPresenter.getSelectedItem()
+    when {
+      item is DeviceItem -> e.presentForDevice(logcatPresenter.getConnectedDevice() != null)
+      item is FileItem && !isAutoLoadFileEnabled() -> e.presentForFile(item.path)
+      else -> e.presentation.isEnabled = false
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
     val logcatPresenter = e.getLogcatPresenter() ?: return
-    logcatPresenter.restartLogcat()
+    val item = logcatPresenter.getSelectedItem() ?: return
+    when (item) {
+      is DeviceItem -> logcatPresenter.restartLogcat()
+      is FileItem -> logcatPresenter.reloadFile()
+    }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 }
+
+private fun AnActionEvent.presentForDevice(isConnected: Boolean) {
+  presentation.isEnabled = isConnected
+  presentation.text = LogcatBundle.message("logcat.restart.action.text")
+  presentation.icon = AllIcons.Actions.Restart
+}
+
+private fun AnActionEvent.presentForFile(path: Path) {
+  presentation.isEnabled = path.exists()
+  presentation.text = LogcatBundle.message("logcat.reload.action.text")
+  presentation.icon = AllIcons.Actions.Refresh
+}
+
+private fun isAutoLoadFileEnabled() = StudioFlags.LOGCAT_FILE_RELOAD_DELAY_MS.get() > 0
