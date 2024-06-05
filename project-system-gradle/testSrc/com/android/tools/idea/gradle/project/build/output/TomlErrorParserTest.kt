@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.Projects
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.base.Charsets
 import com.google.common.base.Splitter
@@ -26,6 +27,7 @@ import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.testFramework.EdtRule
@@ -91,7 +93,7 @@ class TomlErrorParserTest {
     var file: VirtualFile? = null
     var gradleDir: VirtualFile? = null
     runWriteAction {
-      gradleDir = project.baseDir?.createChildDirectory(this, "gradle")
+      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
       file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
       file?.setBinaryContent("""
         [libraries]
@@ -137,7 +139,7 @@ class TomlErrorParserTest {
     var file: VirtualFile? = null
     var gradleDir: VirtualFile? = null
     runWriteAction {
-      gradleDir = project.baseDir?.createChildDirectory(this, "gradle")
+      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
       file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
       file?.setBinaryContent("""
           [versions]
@@ -202,7 +204,7 @@ class TomlErrorParserTest {
     var file: VirtualFile? = null
     var gradleDir: VirtualFile? = null
     runWriteAction {
-      gradleDir = project.baseDir?.createChildDirectory(this, "gradle")
+      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
       file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
     }
     try {
@@ -243,7 +245,7 @@ class TomlErrorParserTest {
     var file: VirtualFile? = null
     var gradleDir: VirtualFile? = null
     runWriteAction {
-      gradleDir = project.baseDir?.createChildDirectory(this, "gradle")
+      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
       file = gradleDir?.findOrCreateChildData(this, "arbitrary.versions.toml")
     }
     try {
@@ -314,6 +316,8 @@ class TomlErrorParserTest {
     Truth.assertThat(parsed).isFalse()
     Truth.assertThat(consumer.messageEvents).isEmpty()
   }
+
+  private fun getRootFolder() = VfsUtil.findFile(Projects.getBaseDirPath(project).toPath(), true)
 
   companion object {
     fun getVersionCatalogLibsBuildOutput(absolutePath: String? = null): String = """
