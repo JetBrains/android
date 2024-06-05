@@ -23,6 +23,7 @@ import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.google.common.collect.Iterators
 import com.google.common.collect.PeekingIterator
+import java.io.BufferedReader
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
@@ -30,7 +31,10 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import kotlin.io.path.bufferedReader
+import kotlin.io.path.pathString
 
 private const val BUGREPORT_LOGCAT_END = " was the duration of 'SYSTEM LOG' ------"
 private const val BUGREPORT_LOGCAT_START = "------ SYSTEM LOG "
@@ -42,54 +46,74 @@ internal class LogcatFileParser(
 ) {
 
   fun parseLogcatFile(path: Path, isBugreport: Boolean = false): List<LogcatMessage> {
+    return path.bufferedReader().use {
+      parseLogcatFile(it, path.pathString, path.creationYear(), isBugreport)
+    }
+  }
+
+  fun parseBugreportFile(path: Path): List<LogcatMessage> {
+    val zip = ZipFile(path.pathString)
+    val entries = zip.entries().asSequence()
+    val entry =
+      entries.find { it.isBugreport() }
+        ?: throw IllegalArgumentException("Bugreport not found in $path")
+    return zip.getInputStream(entry).bufferedReader().use {
+      parseLogcatFile(it, path.pathString, path.creationYear(), true)
+    }
+  }
+
+  private fun parseLogcatFile(
+    reader: BufferedReader,
+    filename: String,
+    year: Int,
+    isBugreport: Boolean,
+  ): List<LogcatMessage> {
     val messageBacklog = MessageBacklog(maxBufferSize)
     var currentHeader: LogcatHeader? = null
     val currentMessage = StringBuilder()
-    path.bufferedReader().use { reader ->
-      val iterator = Iterators.peekingIterator(reader.lineSequence().iterator().withIndex())
-      if (isBugreport) {
-        val found = iterator.consumeUntilLogcat()
-        if (!found) {
-          throw IllegalStateException("SYSTEM LOG not found")
-        }
+    val iterator = Iterators.peekingIterator(reader.lineSequence().iterator().withIndex())
+    if (isBugreport) {
+      val found = iterator.consumeUntilLogcat()
+      if (!found) {
+        throw IllegalStateException("SYSTEM LOG not found")
       }
-      run {
-        iterator.forEach {
-          val line = it.value
-          if (isBugreport) {
-            if (line.isEndOfLogcat()) {
-              // Bugreport runs a second logcat command for logs generated during the bugreport.
-              when (iterator.consumeUntilLogcat()) {
-                true -> return@forEach
-                false -> return@run
-              }
+    }
+    run {
+      iterator.forEach {
+        val line = it.value
+        if (isBugreport) {
+          if (line.isEndOfLogcat()) {
+            // Bugreport runs a second logcat command for logs generated during the bugreport.
+            when (iterator.consumeUntilLogcat()) {
+              true -> return@forEach
+              false -> return@run
             }
           }
-          if (line.startsWith(SYSTEM_LOG_PREFIX)) {
-            messageBacklog.addAll(listOf(LogcatMessage(SYSTEM_HEADER, line)))
-            currentHeader = null
-            currentMessage.clear()
-            return@forEach
-          }
-
-          val result =
-            headerRegex.find(line)
-              ?: throw IllegalArgumentException(
-                "Error parsing [$path:${it.index + 1}]. Invalid logcat line: $line"
-              )
-          val header = result.toLogcatHeader(path.creationYear())
-          if (header != currentHeader) {
-            currentHeader?.let { logcatHeader ->
-              messageBacklog.addAll(listOf(LogcatMessage(logcatHeader, currentMessage.toString())))
-            }
-            currentHeader = header
-            currentMessage.clear()
-          }
-          if (currentMessage.isNotEmpty()) {
-            currentMessage.append('\n')
-          }
-          currentMessage.append(result.getGroup("message"))
         }
+        if (line.startsWith(SYSTEM_LOG_PREFIX)) {
+          messageBacklog.addAll(listOf(LogcatMessage(SYSTEM_HEADER, line)))
+          currentHeader = null
+          currentMessage.clear()
+          return@forEach
+        }
+
+        val result =
+          headerRegex.find(line)
+            ?: throw IllegalArgumentException(
+              "Error parsing [$filename:${it.index + 1}]. Invalid logcat line: $line"
+            )
+        val header = result.toLogcatHeader(year)
+        if (header != currentHeader) {
+          currentHeader?.let { logcatHeader ->
+            messageBacklog.addAll(listOf(LogcatMessage(logcatHeader, currentMessage.toString())))
+          }
+          currentHeader = header
+          currentMessage.clear()
+        }
+        if (currentMessage.isNotEmpty()) {
+          currentMessage.append('\n')
+        }
+        currentMessage.append(result.getGroup("message"))
       }
     }
     currentHeader?.let {
@@ -147,3 +171,5 @@ private fun PeekingIterator<IndexedValue<String>>.consumeUntilLogcat(): Boolean 
   }
   return found
 }
+
+private fun ZipEntry.isBugreport() = name.startsWith("bugreport-") && name.endsWith(".txt")
