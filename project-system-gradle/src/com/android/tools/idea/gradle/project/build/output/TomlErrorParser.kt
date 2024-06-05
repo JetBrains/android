@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.build.output
 
+import com.android.tools.idea.Projects
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.MessageEvent
 import com.intellij.build.events.impl.BuildIssueEventImpl
@@ -173,7 +174,7 @@ class TomlErrorParser : BuildOutputParser {
   }
 
   fun Project.findCatalogFile(catalog: String): VirtualFile? =
-    baseDir?.findChild("gradle")?.findChild("$catalog.versions.toml")
+    VfsUtil.findFile(Projects.getBaseDirPath(this).toPath(), true)?.findChild("gradle")?.findChild("$catalog.versions.toml")
 
   companion object {
     const val BUILD_ISSUE_TITLE: String = "Invalid TOML catalog definition."
