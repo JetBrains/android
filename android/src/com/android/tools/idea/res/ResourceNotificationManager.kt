@@ -25,6 +25,8 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.res.ResourceNotificationManager.Reason
+import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.utils.isBindingExpression
 import com.google.common.collect.ImmutableSet
 import com.intellij.openapi.Disposable
@@ -105,7 +107,8 @@ class ResourceNotificationManager private constructor(private val project: Proje
   /** Project wide observer: a single one is sufficient. */
   @GuardedBy("observerLock") private var projectPsiTreeObserver: ProjectPsiTreeObserver? = null
 
-  private val projectBuildObserver = createProjectBuildObserver()
+  private val projectBuildObserver =
+    ProjectBuildObserver(project, ::incrementModificationCount, ::notice)
 
   /** Whether we've already been notified about a change and we'll be firing it shortly. */
   private val pendingNotify = AtomicBoolean()
@@ -165,7 +168,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
         moduleToObserverMap.computeIfAbsent(module) {
           if (moduleToObserverMap.isEmpty()) {
             if (projectPsiTreeObserver == null)
-              projectPsiTreeObserver = createProjectPsiTreeObserver()
+              projectPsiTreeObserver = ProjectPsiTreeObserver(::notice, ::isRelevantFile)
             projectBuildObserver.startListening()
           }
           createModuleEventObserver(facet)
@@ -174,13 +177,13 @@ class ResourceNotificationManager private constructor(private val project: Proje
 
       if (file != null) {
         val fileEventObserver =
-          fileToObserverMap.computeIfAbsent(file) { createFileEventObserver(module) }
+          fileToObserverMap.computeIfAbsent(file) { FileEventObserver(module, ::notice) }
         fileEventObserver.addListener(listener)
 
         if (configuration != null) {
           val configurationEventObserver =
             configurationToObserverMap.computeIfAbsent(configuration) {
-              createConfigurationEventObserver(configuration)
+              ConfigurationEventObserver(configuration, ::notice)
             }
           configurationEventObserver.addListener(listener)
         }
@@ -330,398 +333,6 @@ class ResourceNotificationManager private constructor(private val project: Proje
       }
     }
 
-  /**
-   * A [ModuleEventObserver] registers listeners for various module-specific events (such as
-   * resource folder manager changes) and then notifies [notice] when it sees an event.
-   */
-  private class ModuleEventObserver(
-    private val facet: AndroidFacet,
-    private val incrementModificationCount: () -> Unit,
-    private val notice: (Reason, VirtualFile?) -> Unit,
-  ) : ModificationTracker, ResourceFolderListener, Disposable.Default {
-    private var generation = appResourcesModificationCount
-    private val listenersLock = Any()
-    private var connection: MessageBusConnection? = null
-
-    @GuardedBy("listenersLock")
-    private val listeners: MutableList<ResourceChangeListener> = ArrayList(4)
-
-    init {
-      Disposer.register(facet, this)
-    }
-
-    override fun getModificationCount() = generation
-
-    fun addListener(listener: ResourceChangeListener) {
-      synchronized(listenersLock) {
-        if (listeners.isEmpty()) registerListeners()
-        listeners.add(listener)
-      }
-    }
-
-    fun removeListener(listener: ResourceChangeListener) {
-      synchronized(listenersLock) {
-        listeners.remove(listener)
-        if (listeners.isEmpty()) unregisterListeners()
-      }
-    }
-
-    private fun registerListeners() {
-      if (AndroidModel.isRequired(facet)) {
-        // Ensure that project resources have been initialized first, since
-        // we want all repos to add their own variant listeners before ours (such that
-        // when the variant changes, the project resources get notified and updated
-        // before our own update listener attempts to re-render).
-        StudioResourceRepositoryManager.getProjectResources(facet)
-
-        require(connection == null)
-        connection =
-          requireNotNull(facet.module.project.messageBus.connect(facet)).apply {
-            subscribe(ResourceFolderManager.TOPIC, this@ModuleEventObserver)
-          }
-        ResourceFolderManager.getInstance(facet) // Make sure ResourceFolderManager is initialized.
-      }
-    }
-
-    private fun unregisterListeners() {
-      connection?.disconnect()
-    }
-
-    @RequiresEdt
-    fun notifyListeners(reason: ImmutableSet<Reason>) {
-      if (facet.isDisposed) return
-
-      val generation = appResourcesModificationCount
-      if (reason.singleOrNull() == Reason.RESOURCE_EDIT && generation == this.generation) {
-        // Notified of an edit in some file that could potentially affect the resources, but
-        // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
-        // such as a variant change, then notify regardless.)
-        return
-      }
-
-      this.generation = generation
-      val listeners = synchronized(listenersLock) { ArrayList(this.listeners) }
-      for (listener in listeners) listener.resourcesChanged(reason)
-    }
-
-    private val appResourcesModificationCount
-      get() =
-        StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount
-          ?: 0L
-
-    fun hasListeners() = synchronized(listenersLock) { listeners.isNotEmpty() }
-
-    // ---- Implements ResourceFolderManager.ResourceFolderListener ----
-    override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
-      if (facet.module === this.facet.module) {
-        incrementModificationCount()
-        notice(Reason.GRADLE_SYNC, null)
-      }
-    }
-  }
-
-  private fun createProjectBuildObserver() =
-    ProjectBuildObserver(project, ::incrementModificationCount, ::notice)
-
-  private class ProjectBuildObserver(
-    private val project: Project,
-    private val incrementModificationCount: () -> Unit,
-    private val notice: (Reason, VirtualFile?) -> Unit,
-  ) : ProjectSystemBuildManager.BuildListener {
-    private var alreadyAddedBuildListener = false
-    private var ignoreBuildEvents = false
-
-    fun startListening() {
-      if (!alreadyAddedBuildListener) { // See comment in stopListening.
-        alreadyAddedBuildListener = true
-        project.getProjectSystem().getBuildManager().addBuildListener(project, this)
-      }
-      ignoreBuildEvents = false
-    }
-
-    fun stopListening() {
-      // Unfortunately, we can't remove build tasks once they've been added.
-      //    https://youtrack.jetbrains.com/issue/IDEA-139893
-      // Therefore, we leave the listeners around, and make sure we only add
-      // them once -- and we also ignore any build events that appear when we're
-      // not intending to be actively listening
-      // ProjectBuilder.getInstance(myProject).removeAfterProjectBuildTask(this);
-      ignoreBuildEvents = true
-    }
-
-    override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {}
-
-    override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {}
-
-    override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-      if (!ignoreBuildEvents) {
-        incrementModificationCount()
-        notice(Reason.PROJECT_BUILD, null)
-      }
-    }
-  }
-
-  private fun createProjectPsiTreeObserver() = ProjectPsiTreeObserver(::notice, ::isRelevantFile)
-
-  private class ProjectPsiTreeObserver(
-    private val notice: (Reason, VirtualFile?) -> Unit,
-    private val isRelevantFile: (VirtualFile?) -> Boolean,
-  ) : PsiTreeChangeListener {
-    private var ignoreChildrenChanged = false
-
-    override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
-
-    override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
-
-    override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
-
-    override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
-
-    override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
-      ignoreChildrenChanged = false
-    }
-
-    override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
-
-    override fun childAdded(event: PsiTreeChangeEvent) {
-      ignoreChildrenChanged = true
-
-      if (isIgnorable(event)) return
-
-      val file = getVirtualFile(event)
-      if (!isRelevantFile(file)) {
-        notice(Reason.RESOURCE_EDIT, file)
-        return
-      }
-
-      val child = event.child
-      val parent = event.parent
-
-      if (child is XmlAttribute && parent is XmlTag) {
-        // Typing in a new attribute. Don't need to do any rendering until there is an actual value.
-        if (child.valueElement == null) return
-      } else if (parent is XmlAttribute && child is XmlAttributeValue) {
-        if (child.value.isEmpty())
-          return // Just added a new blank attribute; nothing to render yet.
-      } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild == null) {
-        // Just added attribute value
-        val text = child.getText()
-        // Check if this is an attribute that takes a resource.
-        if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(text)) {
-          if (text == SdkConstants.PREFIX_RESOURCE_REF || text == SdkConstants.ANDROID_PREFIX) {
-            // Using code completion to insert resource reference; not yet done.
-            return
-          }
-          val url = ResourceUrl.parse(text)
-          if (url != null && url.name.isEmpty()) {
-            // Using code completion to insert resource reference; not yet done.
-            return
-          }
-        }
-      }
-      notice(Reason.EDIT, file)
-    }
-
-    override fun childRemoved(event: PsiTreeChangeEvent) {
-      ignoreChildrenChanged = true
-
-      if (isIgnorable(event)) return
-
-      val file = getVirtualFile(event)
-      if (!isRelevantFile(file)) {
-        notice(Reason.RESOURCE_EDIT, file)
-        return
-      }
-
-      val child = event.child
-      val parent = event.parent
-      if (parent is XmlAttribute && child is XmlToken) {
-        // Typing in attribute name. Don't need to do any rendering until there is an actual
-        // value.
-        val valueElement = parent.valueElement
-        if (valueElement == null || valueElement.value.isEmpty()) {
-          return
-        }
-      }
-
-      notice(Reason.EDIT, file)
-    }
-
-    override fun childReplaced(event: PsiTreeChangeEvent) {
-      ignoreChildrenChanged = true
-
-      if (isIgnorable(event)) return
-
-      val file = getVirtualFile(event)
-      if (!isRelevantFile(file)) {
-        notice(Reason.RESOURCE_EDIT, file)
-        return
-      }
-
-      val child = event.child
-      val parent = event.parent
-      if (parent is XmlAttribute && child is XmlToken) {
-        // Typing in attribute name. Don't need to do any rendering until there is an actual value.
-        val valueElement = parent.valueElement
-        if (valueElement == null || valueElement.value.isEmpty()) return
-      } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild != null) {
-        val newText = child.getText()
-        val prevText = event.oldChild.text
-        // See if user is working on an incomplete URL, and is still not complete, e.g. typing in
-        // @string/foo manually.
-        if (newText.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(newText)) {
-          val prevUrl = ResourceUrl.parse(prevText)
-          val newUrl = ResourceUrl.parse(newText)
-          if (prevUrl?.name.isNullOrEmpty() && newUrl?.name.isNullOrEmpty()) return
-        }
-      }
-      notice(Reason.EDIT, file)
-    }
-
-    override fun childMoved(event: PsiTreeChangeEvent) {
-      check(event)
-    }
-
-    override fun childrenChanged(event: PsiTreeChangeEvent) {
-      if (ignoreChildrenChanged) return
-
-      check(event)
-    }
-
-    override fun propertyChanged(event: PsiTreeChangeEvent) {
-      // When renaming a PsiFile, if the file extension stays the same (i.e the file type stays the
-      // same) the generated PsiTreeChangeEvent will trigger "propertyChanged()" (this method) with
-      // the changed file set as the event's element. On the other hand, if the file extension is
-      // changed, a new object is created and the event will trigger "childReplaced()" instead, the
-      // parent being the file's directory and the renamed file being the new child.
-      if (PsiTreeChangeEvent.PROP_FILE_NAME != event.propertyName) return
-
-      val file = (event.element as? PsiFile)?.virtualFile
-      notice(Reason.RESOURCE_EDIT, file)
-    }
-
-    private fun getVirtualFile(event: PsiTreeChangeEvent) = event.file?.virtualFile
-
-    private fun isIgnorable(event: PsiTreeChangeEvent): Boolean {
-      // We can ignore edits in whitespace, XML error nodes, and modification in comments.
-      // (Note that editing text in an attribute value, including whitespace characters,
-      // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
-      // Moreover, We only ignore the modification of commented texts (in such case the type of
-      // parent is XmlComment), because the user may *mark* some components/attributes as comments
-      // for debugging purpose. In that case the child is instance of XmlComment but parent isn't,
-      // so we will NOT ignore the event.
-      val child = event.child
-      val parent = event.parent
-      if (child is PsiErrorElement || parent is XmlComment) return true
-
-      if (
-        (child is PsiWhiteSpace || child is XmlText || parent is XmlText) &&
-          getFolderType(event.file) != ResourceFolderType.VALUES
-      ) {
-        // Editing text or whitespace has no effect outside of values files.
-        return true
-      }
-
-      val file = event.file
-      // Spurious events from the IDE doing internal things, such as the formatter using a light
-      // virtual filesystem to process text formatting chunks etc.
-      return file != null && (file.parent == null || !file.viewProvider.isPhysical)
-    }
-
-    private fun check(event: PsiTreeChangeEvent) {
-      if (isIgnorable(event)) return
-
-      val file = getVirtualFile(event)
-      if (isRelevantFile(file)) {
-        notice(Reason.EDIT, file)
-      } else {
-        notice(Reason.RESOURCE_EDIT, file)
-      }
-    }
-  }
-
-  private fun createFileEventObserver(module: Module) = FileEventObserver(module, ::notice)
-
-  private class FileEventObserver(
-    private val module: Module,
-    private val notice: (Reason, VirtualFile?) -> Unit,
-  ) : BulkFileListener {
-    private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
-    private var messageBusConnection: MessageBusConnection? = null
-
-    fun addListener(listener: ResourceChangeListener) {
-      if (listeners.isEmpty()) registerListeners()
-      listeners.add(listener)
-    }
-
-    fun removeListener(listener: ResourceChangeListener) {
-      listeners.remove(listener)
-      if (listeners.isEmpty()) unregisterListeners()
-    }
-
-    private fun registerListeners() {
-      messageBusConnection =
-        requireNotNull(application.messageBus.connect(module)).apply {
-          subscribe(VirtualFileManager.VFS_CHANGES, this@FileEventObserver)
-        }
-    }
-
-    private fun unregisterListeners() {
-      requireNotNull(messageBusConnection).disconnect()
-    }
-
-    override fun after(events: List<VFileEvent>) {
-      events
-        .firstOrNull { event ->
-          val parent = event.file?.parent ?: return@firstOrNull false
-
-          val resType = ResourceFolderType.getFolderType(parent.name)
-          ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
-        }
-        ?.let { notice(Reason.IMAGE_RESOURCE_CHANGED, it.file) }
-    }
-
-    fun hasListeners() = listeners.isNotEmpty()
-  }
-
-  private fun createConfigurationEventObserver(configuration: Configuration) =
-    ConfigurationEventObserver(configuration, ::notice)
-
-  private class ConfigurationEventObserver(
-    private val configuration: Configuration,
-    private val notice: (Reason, VirtualFile?) -> Unit,
-  ) : ConfigurationListener {
-    private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
-
-    fun addListener(listener: ResourceChangeListener) {
-      if (listeners.isEmpty()) registerListeners()
-      listeners.add(listener)
-    }
-
-    fun removeListener(listener: ResourceChangeListener) {
-      listeners.remove(listener)
-      if (listeners.isEmpty()) unregisterListeners()
-    }
-
-    fun hasListeners() = listeners.isNotEmpty()
-
-    private fun registerListeners() {
-      configuration.addListener(this)
-    }
-
-    private fun unregisterListeners() {
-      configuration.removeListener(this)
-    }
-
-    // ---- Implements ConfigurationListener ----
-    override fun changed(flags: Int): Boolean {
-      if ((flags and ConfigurationListener.MASK_RENDERING) != 0)
-        notice(Reason.CONFIGURATION_CHANGED, null)
-
-      return true
-    }
-  }
-
   private fun incrementModificationCount() {
     modificationCount++
   }
@@ -794,5 +405,385 @@ class ResourceNotificationManager private constructor(private val project: Proje
 
   companion object {
     @JvmStatic fun getInstance(project: Project) = project.service<ResourceNotificationManager>()
+  }
+}
+
+/**
+ * A [ModuleEventObserver] registers listeners for various module-specific events (such as resource
+ * folder manager changes) and then notifies [notice] when it sees an event.
+ */
+private class ModuleEventObserver(
+  private val facet: AndroidFacet,
+  private val incrementModificationCount: () -> Unit,
+  private val notice: (Reason, VirtualFile?) -> Unit,
+) : ModificationTracker, ResourceFolderListener, Disposable.Default {
+  private var generation = appResourcesModificationCount
+  private val listenersLock = Any()
+  private var connection: MessageBusConnection? = null
+
+  @GuardedBy("listenersLock")
+  private val listeners: MutableList<ResourceChangeListener> = ArrayList(4)
+
+  init {
+    Disposer.register(facet, this)
+  }
+
+  override fun getModificationCount() = generation
+
+  fun addListener(listener: ResourceChangeListener) {
+    synchronized(listenersLock) {
+      if (listeners.isEmpty()) registerListeners()
+      listeners.add(listener)
+    }
+  }
+
+  fun removeListener(listener: ResourceChangeListener) {
+    synchronized(listenersLock) {
+      listeners.remove(listener)
+      if (listeners.isEmpty()) unregisterListeners()
+    }
+  }
+
+  private fun registerListeners() {
+    if (AndroidModel.isRequired(facet)) {
+      // Ensure that project resources have been initialized first, since
+      // we want all repos to add their own variant listeners before ours (such that
+      // when the variant changes, the project resources get notified and updated
+      // before our own update listener attempts to re-render).
+      StudioResourceRepositoryManager.getProjectResources(facet)
+
+      require(connection == null)
+      connection =
+        requireNotNull(facet.module.project.messageBus.connect(facet)).apply {
+          subscribe(ResourceFolderManager.TOPIC, this@ModuleEventObserver)
+        }
+      ResourceFolderManager.getInstance(facet) // Make sure ResourceFolderManager is initialized.
+    }
+  }
+
+  private fun unregisterListeners() {
+    connection?.disconnect()
+  }
+
+  @RequiresEdt
+  fun notifyListeners(reason: ImmutableSet<Reason>) {
+    if (facet.isDisposed) return
+
+    val generation = appResourcesModificationCount
+    if (reason.singleOrNull() == Reason.RESOURCE_EDIT && generation == this.generation) {
+      // Notified of an edit in some file that could potentially affect the resources, but
+      // it didn't cause the modification stamp to increase: ignore. (If there are other reasons,
+      // such as a variant change, then notify regardless.)
+      return
+    }
+
+    this.generation = generation
+    val listeners = synchronized(listenersLock) { ArrayList(this.listeners) }
+    for (listener in listeners) listener.resourcesChanged(reason)
+  }
+
+  private val appResourcesModificationCount
+    get() =
+      StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount ?: 0L
+
+  fun hasListeners() = synchronized(listenersLock) { listeners.isNotEmpty() }
+
+  // ---- Implements ResourceFolderManager.ResourceFolderListener ----
+  override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
+    if (facet.module === this.facet.module) {
+      incrementModificationCount()
+      notice(Reason.GRADLE_SYNC, null)
+    }
+  }
+}
+
+private class ProjectBuildObserver(
+  private val project: Project,
+  private val incrementModificationCount: () -> Unit,
+  private val notice: (Reason, VirtualFile?) -> Unit,
+) : ProjectSystemBuildManager.BuildListener {
+  private var alreadyAddedBuildListener = false
+  private var ignoreBuildEvents = false
+
+  fun startListening() {
+    if (!alreadyAddedBuildListener) { // See comment in stopListening.
+      alreadyAddedBuildListener = true
+      project.getProjectSystem().getBuildManager().addBuildListener(project, this)
+    }
+    ignoreBuildEvents = false
+  }
+
+  fun stopListening() {
+    // Unfortunately, we can't remove build tasks once they've been added.
+    //    https://youtrack.jetbrains.com/issue/IDEA-139893
+    // Therefore, we leave the listeners around, and make sure we only add
+    // them once -- and we also ignore any build events that appear when we're
+    // not intending to be actively listening
+    // ProjectBuilder.getInstance(myProject).removeAfterProjectBuildTask(this);
+    ignoreBuildEvents = true
+  }
+
+  override fun buildStarted(mode: ProjectSystemBuildManager.BuildMode) {}
+
+  override fun beforeBuildCompleted(result: ProjectSystemBuildManager.BuildResult) {}
+
+  override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+    if (!ignoreBuildEvents) {
+      incrementModificationCount()
+      notice(Reason.PROJECT_BUILD, null)
+    }
+  }
+}
+
+private class ProjectPsiTreeObserver(
+  private val notice: (Reason, VirtualFile?) -> Unit,
+  private val isRelevantFile: (VirtualFile?) -> Boolean,
+) : PsiTreeChangeListener {
+  private var ignoreChildrenChanged = false
+
+  override fun beforeChildAddition(event: PsiTreeChangeEvent) {}
+
+  override fun beforeChildRemoval(event: PsiTreeChangeEvent) {}
+
+  override fun beforeChildReplacement(event: PsiTreeChangeEvent) {}
+
+  override fun beforeChildMovement(event: PsiTreeChangeEvent) {}
+
+  override fun beforeChildrenChange(event: PsiTreeChangeEvent) {
+    ignoreChildrenChanged = false
+  }
+
+  override fun beforePropertyChange(event: PsiTreeChangeEvent) {}
+
+  override fun childAdded(event: PsiTreeChangeEvent) {
+    ignoreChildrenChanged = true
+
+    if (isIgnorable(event)) return
+
+    val file = getVirtualFile(event)
+    if (!isRelevantFile(file)) {
+      notice(Reason.RESOURCE_EDIT, file)
+      return
+    }
+
+    val child = event.child
+    val parent = event.parent
+
+    if (child is XmlAttribute && parent is XmlTag) {
+      // Typing in a new attribute. Don't need to do any rendering until there is an actual value.
+      if (child.valueElement == null) return
+    } else if (parent is XmlAttribute && child is XmlAttributeValue) {
+      if (child.value.isEmpty()) return // Just added a new blank attribute; nothing to render yet.
+    } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild == null) {
+      // Just added attribute value
+      val text = child.getText()
+      // Check if this is an attribute that takes a resource.
+      if (text.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(text)) {
+        if (text == SdkConstants.PREFIX_RESOURCE_REF || text == SdkConstants.ANDROID_PREFIX) {
+          // Using code completion to insert resource reference; not yet done.
+          return
+        }
+        val url = ResourceUrl.parse(text)
+        if (url != null && url.name.isEmpty()) {
+          // Using code completion to insert resource reference; not yet done.
+          return
+        }
+      }
+    }
+    notice(Reason.EDIT, file)
+  }
+
+  override fun childRemoved(event: PsiTreeChangeEvent) {
+    ignoreChildrenChanged = true
+
+    if (isIgnorable(event)) return
+
+    val file = getVirtualFile(event)
+    if (!isRelevantFile(file)) {
+      notice(Reason.RESOURCE_EDIT, file)
+      return
+    }
+
+    val child = event.child
+    val parent = event.parent
+    if (parent is XmlAttribute && child is XmlToken) {
+      // Typing in attribute name. Don't need to do any rendering until there is an actual
+      // value.
+      val valueElement = parent.valueElement
+      if (valueElement == null || valueElement.value.isEmpty()) {
+        return
+      }
+    }
+
+    notice(Reason.EDIT, file)
+  }
+
+  override fun childReplaced(event: PsiTreeChangeEvent) {
+    ignoreChildrenChanged = true
+
+    if (isIgnorable(event)) return
+
+    val file = getVirtualFile(event)
+    if (!isRelevantFile(file)) {
+      notice(Reason.RESOURCE_EDIT, file)
+      return
+    }
+
+    val child = event.child
+    val parent = event.parent
+    if (parent is XmlAttribute && child is XmlToken) {
+      // Typing in attribute name. Don't need to do any rendering until there is an actual value.
+      val valueElement = parent.valueElement
+      if (valueElement == null || valueElement.value.isEmpty()) return
+    } else if (parent is XmlAttributeValue && child is XmlToken && event.oldChild != null) {
+      val newText = child.getText()
+      val prevText = event.oldChild.text
+      // See if user is working on an incomplete URL, and is still not complete, e.g. typing in
+      // @string/foo manually.
+      if (newText.startsWith(SdkConstants.PREFIX_RESOURCE_REF) && !isBindingExpression(newText)) {
+        val prevUrl = ResourceUrl.parse(prevText)
+        val newUrl = ResourceUrl.parse(newText)
+        if (prevUrl?.name.isNullOrEmpty() && newUrl?.name.isNullOrEmpty()) return
+      }
+    }
+    notice(Reason.EDIT, file)
+  }
+
+  override fun childMoved(event: PsiTreeChangeEvent) {
+    check(event)
+  }
+
+  override fun childrenChanged(event: PsiTreeChangeEvent) {
+    if (ignoreChildrenChanged) return
+
+    check(event)
+  }
+
+  override fun propertyChanged(event: PsiTreeChangeEvent) {
+    // When renaming a PsiFile, if the file extension stays the same (i.e the file type stays the
+    // same) the generated PsiTreeChangeEvent will trigger "propertyChanged()" (this method) with
+    // the changed file set as the event's element. On the other hand, if the file extension is
+    // changed, a new object is created and the event will trigger "childReplaced()" instead, the
+    // parent being the file's directory and the renamed file being the new child.
+    if (PsiTreeChangeEvent.PROP_FILE_NAME != event.propertyName) return
+
+    val file = (event.element as? PsiFile)?.virtualFile
+    notice(Reason.RESOURCE_EDIT, file)
+  }
+
+  private fun getVirtualFile(event: PsiTreeChangeEvent) = event.file?.virtualFile
+
+  private fun isIgnorable(event: PsiTreeChangeEvent): Boolean {
+    // We can ignore edits in whitespace, XML error nodes, and modification in comments.
+    // (Note that editing text in an attribute value, including whitespace characters,
+    // is not a PsiWhiteSpace element; it's an XmlToken of token type XML_ATTRIBUTE_VALUE_TOKEN
+    // Moreover, We only ignore the modification of commented texts (in such case the type of
+    // parent is XmlComment), because the user may *mark* some components/attributes as comments
+    // for debugging purpose. In that case the child is instance of XmlComment but parent isn't,
+    // so we will NOT ignore the event.
+    val child = event.child
+    val parent = event.parent
+    if (child is PsiErrorElement || parent is XmlComment) return true
+
+    if (
+      (child is PsiWhiteSpace || child is XmlText || parent is XmlText) &&
+        getFolderType(event.file) != ResourceFolderType.VALUES
+    ) {
+      // Editing text or whitespace has no effect outside of values files.
+      return true
+    }
+
+    val file = event.file
+    // Spurious events from the IDE doing internal things, such as the formatter using a light
+    // virtual filesystem to process text formatting chunks etc.
+    return file != null && (file.parent == null || !file.viewProvider.isPhysical)
+  }
+
+  private fun check(event: PsiTreeChangeEvent) {
+    if (isIgnorable(event)) return
+
+    val file = getVirtualFile(event)
+    if (isRelevantFile(file)) {
+      notice(Reason.EDIT, file)
+    } else {
+      notice(Reason.RESOURCE_EDIT, file)
+    }
+  }
+}
+
+private class FileEventObserver(
+  private val module: Module,
+  private val notice: (Reason, VirtualFile?) -> Unit,
+) : BulkFileListener {
+  private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
+  private var messageBusConnection: MessageBusConnection? = null
+
+  fun addListener(listener: ResourceChangeListener) {
+    if (listeners.isEmpty()) registerListeners()
+    listeners.add(listener)
+  }
+
+  fun removeListener(listener: ResourceChangeListener) {
+    listeners.remove(listener)
+    if (listeners.isEmpty()) unregisterListeners()
+  }
+
+  private fun registerListeners() {
+    messageBusConnection =
+      requireNotNull(application.messageBus.connect(module)).apply {
+        subscribe(VirtualFileManager.VFS_CHANGES, this@FileEventObserver)
+      }
+  }
+
+  private fun unregisterListeners() {
+    requireNotNull(messageBusConnection).disconnect()
+  }
+
+  override fun after(events: List<VFileEvent>) {
+    events
+      .firstOrNull { event ->
+        val parent = event.file?.parent ?: return@firstOrNull false
+
+        val resType = ResourceFolderType.getFolderType(parent.name)
+        ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
+      }
+      ?.let { notice(Reason.IMAGE_RESOURCE_CHANGED, it.file) }
+  }
+
+  fun hasListeners() = listeners.isNotEmpty()
+}
+
+private class ConfigurationEventObserver(
+  private val configuration: Configuration,
+  private val notice: (Reason, VirtualFile?) -> Unit,
+) : ConfigurationListener {
+  private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
+
+  fun addListener(listener: ResourceChangeListener) {
+    if (listeners.isEmpty()) registerListeners()
+    listeners.add(listener)
+  }
+
+  fun removeListener(listener: ResourceChangeListener) {
+    listeners.remove(listener)
+    if (listeners.isEmpty()) unregisterListeners()
+  }
+
+  fun hasListeners() = listeners.isNotEmpty()
+
+  private fun registerListeners() {
+    configuration.addListener(this)
+  }
+
+  private fun unregisterListeners() {
+    configuration.removeListener(this)
+  }
+
+  // ---- Implements ConfigurationListener ----
+  override fun changed(flags: Int): Boolean {
+    if ((flags and ConfigurationListener.MASK_RENDERING) != 0)
+      notice(Reason.CONFIGURATION_CHANGED, null)
+
+    return true
   }
 }
