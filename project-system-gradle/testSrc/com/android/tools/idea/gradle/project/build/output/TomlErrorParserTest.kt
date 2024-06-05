@@ -135,6 +135,52 @@ class TomlErrorParserTest {
 
   @Test
   @RunsInEdt
+  fun testTomlTopLevelCatalogIssue() {
+    var file: VirtualFile? = null
+    var gradleDir: VirtualFile? = null
+    runWriteAction {
+      gradleDir = getRootFolder()?.createChildDirectory(this, "gradle")
+      file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
+      file?.setBinaryContent("""
+        [librariesa]
+        junit = { group = "junit", name = "junit", version = "4.0" }
+      """.trimIndent().toByteArray(Charsets.UTF_8))
+    }
+    try {
+      val buildOutput = getVersionCatalogTableMisspelOutput()
+
+      val parser = TomlErrorParser()
+      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+      val consumer = TestMessageEventConsumer()
+
+      val line = reader.readLine()!!
+      val parsed = parser.parse(line, reader, consumer)
+
+      Truth.assertThat(parsed).isTrue()
+      consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
+        Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+        Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
+        Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+        Truth.assertThat(it.description).isEqualTo(getVersionCatalogTableMisspelDescription())
+        Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
+        (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
+          Truth.assertThat(ofd.line).isEqualTo(0)
+          Truth.assertThat(ofd.column).isEqualTo(0)
+          Truth.assertThat(ofd.file).isEqualTo(file)
+        }
+      }
+    }
+    finally {
+      runWriteAction {
+        file?.delete(this)
+        gradleDir?.delete(this)
+      }
+    }
+
+  }
+
+  @Test
+  @RunsInEdt
   fun testTomlAliasDuplication() {
     var file: VirtualFile? = null
     var gradleDir: VirtualFile? = null
@@ -360,6 +406,33 @@ Invalid TOML catalog definition.
     Please refer to https://docs.gradle.org/7.4/userguide/version_catalog_problems.html#toml_syntax_error for more details about this problem.
       """.trimIndent()
   }
+
+  fun getVersionCatalogTableMisspelOutput() = """
+     FAILURE: Build failed with an exception.
+     
+     * What went wrong:
+     org.gradle.api.InvalidUserDataException: Invalid TOML catalog definition:
+       - Problem: In version catalog libs, unknown top level elements [librariesa]
+         
+         Reason: TOML file contains an unexpected top-level element.
+         
+         Possible solution: Make sure the top-level elements of your TOML file is one of 'bundles', 'libraries', 'metadata', 'plugins', or 'versions'.
+         
+         For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+     > Invalid TOML catalog definition:
+         - Problem: In version catalog libs, unknown top level elements [librariesa] 
+          """.trimIndent()
+
+  fun getVersionCatalogTableMisspelDescription() = """
+      Invalid TOML catalog definition.
+        - Problem: In version catalog libs, unknown top level elements [librariesa]
+          
+          Reason: TOML file contains an unexpected top-level element.
+          
+          Possible solution: Make sure the top-level elements of your TOML file is one of 'bundles', 'libraries', 'metadata', 'plugins', or 'versions'.
+          
+          For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#toml_syntax_error in the Gradle documentation.
+          """.trimIndent()
 
   fun getVersionCatalogDuplicationAliasBuildOutput(baseDir: String): String = """
     FAILURE: Build failed with an exception.
