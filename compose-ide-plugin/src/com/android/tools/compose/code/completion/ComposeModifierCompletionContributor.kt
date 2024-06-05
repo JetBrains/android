@@ -43,7 +43,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassOrObjectSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
+import org.jetbrains.kotlin.analysis.api.symbols.markers.KaSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
@@ -209,7 +209,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
       val symbolWithVisibility =
-        elementToAnalyze.getSymbol() as? KtSymbolWithVisibility ?: return true
+        elementToAnalyze.getSymbol() as? KaSymbolWithVisibility ?: return true
 
       return isVisible(
         symbolWithVisibility,
