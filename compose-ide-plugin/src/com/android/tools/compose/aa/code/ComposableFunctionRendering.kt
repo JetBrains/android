@@ -19,7 +19,7 @@ import com.android.tools.compose.code.ComposableFunctionRenderParts
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.renderer.declarations.impl.KtDeclarationRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
 
 /**
@@ -53,7 +53,7 @@ internal fun KaSession.getComposableFunctionRenderParts(
 }
 
 private fun KaSession.renderValueParameters(
-  valueParamsInParen: List<KtValueParameterSymbol>,
+  valueParamsInParen: List<KaValueParameterSymbol>,
   closingString: String
 ) = buildString {
   append("(")
@@ -64,12 +64,12 @@ private fun KaSession.renderValueParameters(
   append(")")
 }
 
-private fun KaSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Boolean {
+private fun KaSession.isRequired(valueParamSymbol: KaValueParameterSymbol): Boolean {
   if (valueParamSymbol.hasDefaultValue) return false
 
   // TODO(274145999): When we check it with a real AS instance, determine if we can drop this hacky
   // solution or not.
-  // The KtValueParameterSymbol we get when running this from [ComposableItemPresentationProvider]
+  // The KaValueParameterSymbol we get when running this from [ComposableItemPresentationProvider]
   // for some reason says that optional
   // Composable parameters don't declare a default value, which is incorrect. At the moment, the
   // only way I've found to determine that
@@ -78,7 +78,7 @@ private fun KaSession.isRequired(valueParamSymbol: KtValueParameterSymbol): Bool
 }
 
 internal fun KaSession.isRequiredTrailingLambda(
-  valueParamSymbol: KtValueParameterSymbol
+  valueParamSymbol: KaValueParameterSymbol
 ): Boolean {
   // Since vararg is not a function type parameter, we have to return false for a parameter with a
   // vararg. In FE1.0, it was simple because vararg has an array type and checking that the

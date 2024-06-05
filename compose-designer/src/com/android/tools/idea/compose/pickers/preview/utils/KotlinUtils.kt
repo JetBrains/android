@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.calls.KtFunctionCall
 import org.jetbrains.kotlin.analysis.api.symbols.KaConstructorSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaFunctionLikeSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -51,7 +51,7 @@ internal fun KaSession.containingPackage(functionSymbol: KaFunctionLikeSymbol) =
 
 internal fun KaSession.getArgumentForParameter(
   functionCall: KtFunctionCall<*>,
-  parameterSymbol: KtValueParameterSymbol
+  parameterSymbol: KaValueParameterSymbol
 ) =
   functionCall.argumentMapping.entries
     .singleOrNull { (_, parameter) -> parameter.symbol == parameterSymbol }
