@@ -42,7 +42,7 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtSymbolWithVisibility
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -289,14 +289,14 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       .lastChild as KtSimpleNameExpression
   }
 
-  private fun KtAnalysisSession.findReceiverSymbol(element: KtElement): KtClassOrObjectSymbol? {
+  private fun KtAnalysisSession.findReceiverSymbol(element: KtElement): KaClassOrObjectSymbol? {
     val namedReferenceExpression =
       when (element) {
         is KtNameReferenceExpression -> element
         else -> element.childrenOfType<KtNameReferenceExpression>().singleOrNull()
       } ?: return null
     val reference = namedReferenceExpression.mainReference as? KtSimpleNameReference ?: return null
-    return reference.resolveToSymbol() as? KtClassOrObjectSymbol
+    return reference.resolveToSymbol() as? KaClassOrObjectSymbol
   }
 
   private fun getExtensionFunctionsForModifier(
