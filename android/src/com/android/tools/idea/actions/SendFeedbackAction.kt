@@ -18,9 +18,8 @@ package com.android.tools.idea.actions
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.actions.SendFeedbackDescriptionProvider.Companion.getProviders
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.ide.IdeBundle
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.actions.ReportFeedbackService
-import com.intellij.ide.actions.SendFeedbackAction.Companion.submit
 import com.intellij.ide.plugins.PluginManagerCore.getPlugin
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -34,8 +33,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.platform.ide.progress.withBackgroundProgress
 import com.intellij.platform.util.progress.reportSequentialProgress
+import com.intellij.ui.LicensingFacade
 import com.intellij.util.io.URLUtil
 import kotlinx.coroutines.launch
+import org.jetbrains.android.util.AndroidBundle
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -52,9 +53,7 @@ class SendFeedbackAction : AnAction(), DumbAware {
     submit(e.project)
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.BGT
-  }
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -72,19 +71,23 @@ class SendFeedbackAction : AnAction(), DumbAware {
     fun submit(project: Project?, extraDescriptionDetails: String? = "") {
       if (project == null) return
       service<ReportFeedbackService>().coroutineScope.launch {
-        withBackgroundProgress(project, IdeBundle.message("progress.title.collecting.data"), true) {
+        withBackgroundProgress(project, AndroidBundle.message("progress.title.collecting.data"), true) {
           reportSequentialProgress { reporter ->
-            reporter.indeterminateStep(IdeBundle.message("progress.text.collecting.feedback.information")) {
+            reporter.indeterminateStep(AndroidBundle.message("progress.text.collecting.feedback.information")) {
               val applicationInfo = ApplicationInfoEx.getInstanceEx()
-              var feedbackUrl = if (StudioFlags.ENABLE_NEW_COLLECT_LOGS_DIALOG.get()
-              ) newFeedbackUrl
-              else applicationInfo.getFeedbackUrl()
-
-              val version = getVersion(applicationInfo)
-              feedbackUrl = feedbackUrl.replace("\$STUDIO_VERSION", version)
-
-              val description = getDescription(project)
-              submit(project, feedbackUrl, description + extraDescriptionDetails)
+              val feedbackUrl = if (StudioFlags.ENABLE_NEW_COLLECT_LOGS_DIALOG.get()) newFeedbackUrl else applicationInfo.getFeedbackUrl()
+              val description = getDescription(project) + extraDescriptionDetails
+              val appInfo = ApplicationInfoEx.getInstanceEx()
+              val eap = appInfo.isEAP
+              val la = LicensingFacade.getInstance()
+              val url = feedbackUrl
+                .replace("\$BUILD", URLUtil.encodeURIComponent(if (eap) appInfo.getBuild().asStringWithoutProductCode() else appInfo.getBuild().asString()))
+                .replace("\$TIMEZONE", URLUtil.encodeURIComponent(System.getProperty("user.timezone", "")))
+                .replace("\$STUDIO_VERSION", URLUtil.encodeURIComponent(getVersion(applicationInfo)))
+                .replace("\$VERSION", URLUtil.encodeURIComponent(appInfo.getFullVersion()))
+                .replace("\$EVAL", URLUtil.encodeURIComponent((la != null && la.isEvaluationLicense).toString()))
+                .replace("\$DESCR", URLUtil.encodeURIComponent(description))
+              BrowserUtil.browse(url, project)
             }
           }
         }
