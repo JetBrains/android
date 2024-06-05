@@ -49,6 +49,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageDialogBuilder
 import java.awt.Component
 import kotlinx.collections.immutable.ImmutableCollection
 import kotlinx.collections.immutable.toImmutableList
@@ -119,24 +120,43 @@ internal class LocalVirtualDeviceSource(
     )
 
     nextAction = WizardAction.Disabled
-    finishAction = WizardAction {
-      // TODO: http://b/342003691
-      VirtualDevices()
-        .add(configureDevicePanelState.device, systemImageTableSelectionState.selection!!)
 
-      close()
-    }
+    finishAction =
+      add(configureDevicePanelState.device, systemImageTableSelectionState.selection!!, parent)
   }
 
-  private fun downloadSystemImage(parent: Component, path: String) {
+  private fun add(device: VirtualDevice, image: SystemImage, parent: Component) = WizardAction {
+    if (image.isRemote) {
+      val yes = MessageDialogBuilder.yesNo("Confirm Download", "Download $image?").ask(parent)
+
+      if (!yes) {
+        return@WizardAction
+      }
+
+      val finish = downloadSystemImage(parent, image.path)
+
+      if (!finish) {
+        return@WizardAction
+      }
+    }
+
+    VirtualDevices().add(device, image)
+    close()
+  }
+
+  private fun downloadSystemImage(parent: Component, path: String): Boolean {
     val dialog = SdkQuickfixUtils.createDialogForPaths(parent, listOf(path), false)
 
     if (dialog == null) {
       thisLogger().warn("Could not create the SDK Quickfix Installation dialog")
-      return
+      return false
     }
 
-    dialog.show()
+    val finish = dialog.showAndGet()
+
+    if (!finish) {
+      return false
+    }
 
     val parentDisposable =
       if (project == null) {
@@ -151,6 +171,8 @@ internal class LocalVirtualDeviceSource(
           SystemImage.getSystemImages().toImmutableList()
         }
     }
+
+    return true
   }
 
   override val profiles: List<DeviceProfile> =
