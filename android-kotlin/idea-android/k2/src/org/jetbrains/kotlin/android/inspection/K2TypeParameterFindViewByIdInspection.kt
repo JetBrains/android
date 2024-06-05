@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KtTypeParameterSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaTypeParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtCapturedType
 import org.jetbrains.kotlin.analysis.api.types.KtDefinitelyNotNullType
 import org.jetbrains.kotlin.analysis.api.types.KtErrorType
@@ -63,7 +63,7 @@ class K2TypeParameterFindViewByIdInspection : TypeParameterFindViewByIdInspectio
     }
 
     companion object {
-        private tailrec fun KtAnalysisSession.unwrapToTypeParameterSymbol(type: KtType): KtTypeParameterSymbol? =
+        private tailrec fun KtAnalysisSession.unwrapToTypeParameterSymbol(type: KtType): KaTypeParameterSymbol? =
             when (val expanded = type.fullyExpandedType) {
                 is KtTypeParameterType -> expanded.symbol
                 is KtFlexibleType -> unwrapToTypeParameterSymbol(expanded.upperBound)
