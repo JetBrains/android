@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.childrenOfType
 import org.toml.lang.psi.TomlKeyValue
@@ -62,7 +63,8 @@ class TomlErrorParser : BuildOutputParser {
       val problemLine = reader.readLine() ?: return false
       val catalogName = PROBLEM_LINE_PATTERN.matchEntire(problemLine)?.groupValues?.get(1) ?: return false
       description.appendLine(problemLine)
-      val events = extractIssueInformation(catalogName, description, reader)
+      val events = extractIssueInformation(catalogName, description, reader) +
+                   extractAliasBasedIssueInformation(description,reader)
       events.forEach { messageConsumer.accept(it) }
       BuildOutputParserUtils.consumeRestOfOutput(reader)
       return events.isNotEmpty()
@@ -80,6 +82,41 @@ class TomlErrorParser : BuildOutputParser {
       return true
     }
     return false
+  }
+
+  private fun extractTopLevelAlias(catalog: String,
+                                   alias: String,
+                                   description: StringBuilder,
+                                   reader: BuildOutputInstantReader):BuildIssueEventImpl{
+    val buildIssue = object : BuildIssue {
+      override val description: String = description.toString().trimEnd()
+      override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+      override val title: String = BUILD_ISSUE_TITLE
+
+      private fun computeNavigatable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+        val fileDescriptor = OpenFileDescriptor(project, virtualFile)
+        val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
+        val element = psiFile.childrenOfType<TomlTable>()
+                        .filter { it.header.key?.text == alias }.firstOrNull() ?: return fileDescriptor
+        val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
+        return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
+      }
+
+      override fun getNavigatable(project: Project): Navigatable? {
+        val file = project.findCatalogFile(catalog) ?: return null
+        return runReadAction {
+          computeNavigatable(project, file)
+        }
+      }
+    }
+    return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
+  }
+
+  private fun getElementLineAndColumn(element: PsiElement):Pair<Int,Int>?  {
+    val document = element.containingFile.viewProvider.document ?: return null
+    val lineNumber = document.getLineNumber(element.textOffset)
+    val columnNumber = element.textOffset - document.getLineStartOffset(lineNumber)
+    return lineNumber to columnNumber
   }
 
   private fun extractAliasInformation(catalog: String,
@@ -106,9 +143,7 @@ class TomlErrorParser : BuildOutputParser {
                         .filter { it.header.key?.text == type }
                         .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
                         .find { it.key.text == alias } ?: return fileDescriptor
-        val document = psiFile.viewProvider.document ?: return fileDescriptor
-        val lineNumber = document.getLineNumber(element.textOffset)
-        val columnNumber = element.textOffset - document.getLineStartOffset(lineNumber)
+        val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
         return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
       }
 
@@ -127,6 +162,21 @@ class TomlErrorParser : BuildOutputParser {
     val line: Int?,
     val column: Int?
   )
+
+
+
+  private fun extractAliasBasedIssueInformation(description: StringBuilder,
+                                      reader: BuildOutputInstantReader): List<BuildIssueEventImpl> {
+    while (true) {
+      val descriptionLine = reader.readLine() ?: return listOf()
+      if (descriptionLine.startsWith("> Invalid TOML catalog definition")) break
+      PROBLEM_TOP_LEVEL_PATTERN.matchEntire(descriptionLine)?.let {
+        val (catalog, tableName) = it.destructured
+        return listOf(extractTopLevelAlias(catalog, tableName, description, reader))
+      }
+    }
+    return listOf()
+  }
 
   private fun extractIssueInformation(catalog: String,
                                       description: StringBuilder,
@@ -178,10 +228,10 @@ class TomlErrorParser : BuildOutputParser {
 
   companion object {
     const val BUILD_ISSUE_TITLE: String = "Invalid TOML catalog definition."
-    val PROBLEM_LINE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), parsing failed with [0-9]+ error(?:s)?.".toRegex()
+    val PROBLEM_LINE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+),.*".toRegex()
     val PROBLEM_ALIAS_PATTERN: Regex =  "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
+    val PROBLEM_TOP_LEVEL_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
     val REASON_POSITION_PATTERN: Regex = "\\s+Reason: At line ([0-9]+), column ([0-9]+):.*".toRegex()
-
     val REASON_FILE_AND_POSITION_PATTERN: Regex = "\\s+Reason: In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
     val REASON_FILE_AND_POSITION_PATTERN_CONTINUATION: Regex = "\\s+In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
 
