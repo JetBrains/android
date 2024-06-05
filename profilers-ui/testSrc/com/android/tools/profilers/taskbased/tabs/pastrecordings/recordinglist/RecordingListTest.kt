@@ -20,7 +20,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.window.singleWindowApplication
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.adtui.compose.JewelTestTheme
+import com.android.tools.adtui.compose.StudioTestTheme
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -82,7 +82,7 @@ class RecordingListTest {
     singleWindowApplication(
       title = "Testing TaskGridView",
     ) {
-      JewelTestTheme (darkMode = true) {
+      StudioTestTheme (darkMode = true) {
         RecordingList(recordingListModel = recordingListModel)
       }
     }
@@ -91,7 +91,7 @@ class RecordingListTest {
   @Test
   fun `test import file renders in UI and is reflected in data model`() {
     composeTestRule.setContent {
-      JewelTestTheme (darkMode = true) {
+      StudioTestTheme (darkMode = true) {
         RecordingList(recordingListModel)
       }
     }

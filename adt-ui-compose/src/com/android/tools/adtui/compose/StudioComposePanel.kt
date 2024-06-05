@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.profilers.taskbased.tabs
+package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.awt.ComposePanel
-import com.android.tools.adtui.compose.StudioTheme
-import com.intellij.util.ui.components.BorderLayoutPanel
+import org.jetbrains.jewel.bridge.LocalComponent
+import org.jetbrains.jewel.bridge.actionSystem.ComponentDataProviderBridge
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
-import java.awt.BorderLayout
-import javax.swing.JPanel
+import javax.swing.JComponent
 
 @OptIn(ExperimentalJewelApi::class)
-abstract class TaskTabComponent(tabContent: @Composable () -> Unit): BorderLayoutPanel() {
-  init {
-    enableNewSwingCompositing()
-    val composePanel = ComposePanel()
-    composePanel.setContent {
+fun StudioComposePanel(
+  content: @Composable () -> Unit,
+): JComponent =
+  ComposePanel().apply {
+    setContent {
       StudioTheme {
-        tabContent()
+        CompositionLocalProvider(LocalComponent provides this@apply) {
+          ComponentDataProviderBridge(this@apply, content = content)
+        }
       }
     }
-    addToCenter(composePanel)
   }
-}

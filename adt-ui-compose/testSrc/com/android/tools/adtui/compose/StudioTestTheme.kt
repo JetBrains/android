@@ -16,12 +16,15 @@
 package com.android.tools.adtui.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.theme.JewelTheme
-import org.jetbrains.jewel.intui.markdown.bridge.styling.create
+import org.jetbrains.jewel.intui.markdown.bridge.create
 import org.jetbrains.jewel.intui.markdown.standalone.ProvideMarkdownStyling
 import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import org.jetbrains.jewel.intui.standalone.theme.createDefaultTextStyle
@@ -29,12 +32,14 @@ import org.jetbrains.jewel.intui.standalone.theme.dark
 import org.jetbrains.jewel.intui.standalone.theme.darkThemeDefinition
 import org.jetbrains.jewel.intui.standalone.theme.light
 import org.jetbrains.jewel.intui.standalone.theme.lightThemeDefinition
-import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
+import org.jetbrains.jewel.markdown.processing.MarkdownProcessor
+import org.jetbrains.jewel.markdown.rendering.MarkdownBlockRenderer
 import org.jetbrains.jewel.ui.ComponentStyling
 
+@OptIn(ExperimentalJewelApi::class)
 @Suppress("TestFunctionName") // It's a composable
 @Composable
-fun JewelTestTheme(darkMode: Boolean = false, includeMarkdown: Boolean = false, content: @Composable () -> Unit) {
+fun StudioTestTheme(darkMode: Boolean = false, content: @Composable () -> Unit) {
   val fontFamily =
     FontFamily(
       Font(resource = "fonts/inter/Inter-Thin.ttf", weight = FontWeight.Thin),
@@ -51,6 +56,7 @@ fun JewelTestTheme(darkMode: Boolean = false, includeMarkdown: Boolean = false, 
 
   val textStyle = JewelTheme.createDefaultTextStyle().copy(fontFamily = fontFamily)
 
+  // TODO bring in JetBrains Mono and the editor text style, too, when Jewel 0.19.5 is available
   val themeDefinition =
     if (darkMode) {
       JewelTheme.darkThemeDefinition(defaultTextStyle = textStyle)
@@ -58,21 +64,18 @@ fun JewelTestTheme(darkMode: Boolean = false, includeMarkdown: Boolean = false, 
       JewelTheme.lightThemeDefinition(defaultTextStyle = textStyle)
     }
 
-  val componentStyling =
-    if (darkMode) {
-      ComponentStyling.dark()
-    } else {
-      ComponentStyling.light()
-    }
+  val componentStyling = if (darkMode) ComponentStyling.dark() else ComponentStyling.light()
 
   IntUiTheme(themeDefinition, componentStyling, true) {
-    if (includeMarkdown) {
-      ProvideMarkdownStyling(JewelTheme.isDark, MarkdownStyling.create(textStyle)) {
-        content()
-      }
-    }
-    else {
-      content()
+    val provider = remember(darkMode) { TestMarkdownStylingProvider(darkMode) }
+    val markdownStyling = remember(darkMode, provider) { provider.createDefault() }
+    val markdownProcessor = remember { MarkdownProcessor() }
+    val blockRenderer = remember(markdownStyling) { MarkdownBlockRenderer.create(markdownStyling) }
+
+    CompositionLocalProvider(
+      LocalMarkdownStylingProvider provides provider,
+    ) {
+      ProvideMarkdownStyling(JewelTheme.isDark, markdownStyling, markdownProcessor, blockRenderer, content)
     }
   }
 }
