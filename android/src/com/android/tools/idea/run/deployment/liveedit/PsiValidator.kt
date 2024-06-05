@@ -46,7 +46,11 @@ fun getPsiValidationState(psiFile: PsiFile): PsiState {
 }
 
 @RequiresReadLock
-fun validatePsiChanges(old: PsiState, new: PsiState): List<LiveEditUpdateException> {
+fun validatePsiChanges(old: PsiState?, new: PsiState): List<LiveEditUpdateException> {
+  if (old == null) {
+    logger.info("No PSI snapshot for ${new.psiFile.name}; it is likely a new file. Skipping PSI validation.")
+    return emptyList()
+  }
   if (old.psiFile != new.psiFile) {
     throw IllegalArgumentException("No reason to check differences between distinct PSI files")
   }
