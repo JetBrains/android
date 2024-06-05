@@ -30,8 +30,8 @@ import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
-/** Tests for [RestartLogcatAction] */
-class RestartLogcatActionTest {
+/** Tests for [RestartOrReloadLogcatAction] */
+class RestartOrReloadLogcatActionTest {
   @get:Rule val applicationRule = ApplicationRule()
 
   private val device = Device.createPhysical("device", false, "11", 30, "Google", "Pixel 2")
@@ -47,7 +47,7 @@ class RestartLogcatActionTest {
   fun update_withoutConnectedDevice_disabled() {
     fakeLogcatPresenter.attachedDevice = null
     val event = testEvent(fakeLogcatPresenter)
-    val action = RestartLogcatAction()
+    val action = RestartOrReloadLogcatAction()
 
     action.update(event)
 
@@ -57,8 +57,9 @@ class RestartLogcatActionTest {
   @Test
   fun update_withConnectedDevice_enabled() {
     fakeLogcatPresenter.attachedDevice = device
+    fakeLogcatPresenter.device = device
     val event = testEvent(fakeLogcatPresenter)
-    val action = RestartLogcatAction()
+    val action = RestartOrReloadLogcatAction()
 
     action.update(event)
 
@@ -67,8 +68,9 @@ class RestartLogcatActionTest {
 
   @Test
   fun actionPerformed_callsRestartLogcat() {
+    fakeLogcatPresenter.device = device
     val event = testEvent(fakeLogcatPresenter)
-    val action = RestartLogcatAction()
+    val action = RestartOrReloadLogcatAction()
 
     action.actionPerformed(event)
 
