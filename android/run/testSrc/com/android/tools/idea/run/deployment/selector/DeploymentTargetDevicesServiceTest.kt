@@ -85,7 +85,7 @@ class DeploymentTargetDevicesServiceTest : LightPlatformCodeInsightFixture4TestC
           device.canRun(
             AndroidVersion(31),
             MockPlatformTarget(31, 0),
-            { EnumSet.copyOf(IDevice.HardwareFeature.entries) },
+            { EnumSet.noneOf(IDevice.HardwareFeature::class.java) },
             setOf(Abi.ARM64_V8A),
           )
         }
