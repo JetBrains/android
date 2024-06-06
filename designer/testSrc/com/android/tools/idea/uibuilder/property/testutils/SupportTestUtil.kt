@@ -27,7 +27,6 @@ import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.delayUntilCondition
 import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
@@ -54,7 +53,6 @@ import java.util.Arrays
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.function.Predicate
-import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -66,6 +64,7 @@ private constructor(
   facet: AndroidFacet,
   val fixture: CodeInsightTestFixture,
   val components: MutableList<NlComponent>,
+  initResolver: Boolean = true,
 ) {
   private var updates = 0
   private val queue =
@@ -85,21 +84,25 @@ private constructor(
     resourceFolder: String = FD_RES_LAYOUT,
     fileName: String = DEFAULT_FILENAME,
     activityName: String = "",
+    initResolver: Boolean = true,
   ) : this(
     facet,
     fixture,
     createComponents(facet, fixture, activityName, parentTag, resourceFolder, fileName, *tags)
       .toMutableList(),
+    initResolver,
   )
 
   private constructor(
     facet: AndroidFacet,
     fixture: CodeInsightTestFixture,
     component: ComponentDescriptor,
+    initResolver: Boolean = true,
   ) : this(
     facet,
     fixture,
     createComponent(facet, fixture, FD_RES_LAYOUT, DEFAULT_FILENAME, component).toMutableList(),
+    initResolver,
   )
 
   constructor(
@@ -109,6 +112,7 @@ private constructor(
     resourceFolder: String = FD_RES_LAYOUT,
     fileName: String = DEFAULT_FILENAME,
     activityName: String = "",
+    initResolver: Boolean = true,
   ) : this(
     AndroidFacet.getInstance(projectRule.module)!!,
     projectRule.fixture,
@@ -117,12 +121,19 @@ private constructor(
     resourceFolder = resourceFolder,
     fileName = fileName,
     activityName = activityName,
+    initResolver = initResolver,
   )
 
   constructor(
     projectRule: AndroidProjectRule,
     component: ComponentDescriptor,
-  ) : this(AndroidFacet.getInstance(projectRule.module)!!, projectRule.fixture, component)
+    initResolver: Boolean = true,
+  ) : this(
+    AndroidFacet.getInstance(projectRule.module)!!,
+    projectRule.fixture,
+    component,
+    initResolver,
+  )
 
   init {
     model.addListener(
@@ -137,6 +148,9 @@ private constructor(
       }
     )
     model.surface = (nlModel as? SyncNlModel)?.surface
+    if (initResolver) {
+      model.setResolver(nlModel.configuration.resourceResolver)
+    }
   }
 
   fun waitForPropertiesUpdate(
@@ -154,12 +168,7 @@ private constructor(
     }
   }
 
-  suspend fun makePropertySuspend(
-    namespace: String,
-    name: String,
-    type: NlPropertyType,
-    initializeResolver: Boolean = true,
-  ): NlPropertyItem {
+  fun makeProperty(namespace: String, name: String, type: NlPropertyType): NlPropertyItem {
     val definition = findDefinition(namespace, name)
     return when {
       definition == null -> NlPropertyItem(namespace, name, type, null, "", "", model, components)
@@ -175,23 +184,8 @@ private constructor(
           components,
         )
       else -> makeProperty(namespace, definition, type)
-    }.also {
-      if (initializeResolver) {
-        delayUntilCondition(10) {
-          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
-          // asynchronously.
-          it.resolver != null
-        }
-      }
     }
   }
-
-  fun makeProperty(
-    namespace: String,
-    name: String,
-    type: NlPropertyType,
-    initializeResolver: Boolean = true,
-  ): NlPropertyItem = runBlocking { makePropertySuspend(namespace, name, type, initializeResolver) }
 
   fun makeProperty(
     namespace: String,

@@ -15,10 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_GRAVITY
+import com.android.SdkConstants.ATTR_TEXT_STYLE
+import com.android.SdkConstants.GRAVITY_VALUE_CENTER
+import com.android.SdkConstants.GRAVITY_VALUE_CENTER_HORIZONTAL
+import com.android.SdkConstants.GRAVITY_VALUE_CENTER_VERTICAL
+import com.android.SdkConstants.TEXT_VIEW
+import com.android.SdkConstants.TextStyle
+import com.android.SdkConstants.VALUE_FALSE
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
@@ -29,7 +37,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -166,14 +173,8 @@ class NlFlagsPropertyItemTest {
       frameworkResourceManager
         ?.attributeDefinitions
         ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
+    model.setResolver(components.first().model.configuration.resourceResolver)
     return NlFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", "", model, components)
-      .also {
-        runBlocking {
-          // Wait for the ResourceResolver to be initialized avoiding the first lookup to be done
-          // asynchronously.
-          delayUntilCondition(10) { it.resolver != null }
-        }
-      }
   }
 
   @Language("XML")
