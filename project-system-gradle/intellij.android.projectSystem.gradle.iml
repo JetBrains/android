@@ -144,5 +144,6 @@
     <orderEntry type="module" module-name="intellij.xml.dom.impl" />
     <orderEntry type="module" module-name="intellij.android.ml-api" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-k2" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-fe10" level="project" />
   </component>
 </module>
