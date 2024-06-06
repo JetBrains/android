@@ -43,7 +43,7 @@
     <orderEntry type="module" module-name="intellij.platform.usageView.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.util" scope="TEST" />
-    <orderEntry type="module" module-name="kotlin.idea" scope="TEST" />
+    <orderEntry type="module" module-name="kotlin.base.psi" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.dagger" />
 </module>
