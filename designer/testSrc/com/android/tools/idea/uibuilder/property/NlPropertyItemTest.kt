@@ -97,9 +97,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.android.ComponentStack
 import org.jetbrains.android.dom.navigation.NavigationSchema
-import org.junit.After
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
@@ -130,19 +128,10 @@ class NlPropertyItemTest {
         )
       )
 
-  private var componentStack: ComponentStack? = null
-
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("designer") + "/testData"
     projectRule.fixture.addFileToProject("/res/values/strings.xml", STRINGS)
-    componentStack = ComponentStack(projectRule.project)
-  }
-
-  @After
-  fun tearDown() {
-    componentStack!!.restore()
-    componentStack = null
   }
 
   @Test
@@ -247,7 +236,7 @@ class NlPropertyItemTest {
           createTextViewWithTextColor("@android:color/primary_text_dark"),
         )
       val property =
-        util.makePropertySuspend(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
+        util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
       withContext(uiThread) {
         property.model.showResolvedValues = false
         assertThat(property.name).isEqualTo(ATTR_TEXT_COLOR)
@@ -261,7 +250,7 @@ class NlPropertyItemTest {
       val updatedPropertiesDeferrable = CompletableDeferred<Unit>()
 
       // Wait for the resolver to be loaded
-      delayUntilCondition(100L) { property.resolver != null }
+      delayUntilCondition(100L) { property.model.resolver != null }
 
       property.model.addListener(
         object : PropertiesModelListener<NlPropertyItem> {
@@ -788,12 +777,11 @@ class NlPropertyItemTest {
     property.value = "@android:style/TextAppearance.Material.Display2"
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    val fileManager = mock(FileEditorManager::class.java)
+    val fileManager = projectRule.mockProjectService(FileEditorManager::class.java)
     whenever(fileManager.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileManager.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
     @Suppress("UnstableApiUsage") whenever(fileManager.openFilesWithRemotes).thenReturn(emptyList())
     whenever(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
-    componentStack!!.registerServiceInstance(FileEditorManager::class.java, fileManager)
     val file = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
     whenever(
         fileManager.openFileEditor(
@@ -816,9 +804,9 @@ class NlPropertyItemTest {
 
   @Test
   fun testSetValueIgnoredDuringUndo(): Unit = runInEdt {
-    val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
-    whenever(undoManager.isUndoInProgress).thenReturn(true)
+    val undoManager: UndoManagerImpl = mock()
+    projectRule.replaceProjectService(UndoManager::class.java, undoManager)
+    whenever(undoManager.isRedoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
@@ -828,8 +816,8 @@ class NlPropertyItemTest {
 
   @Test
   fun testSetValueIgnoredDuringRedo(): Unit = runInEdt {
-    val undoManager = mock(UndoManagerImpl::class.java)
-    componentStack!!.registerServiceInstance(UndoManager::class.java, undoManager)
+    val undoManager: UndoManagerImpl = mock()
+    projectRule.replaceProjectService(UndoManager::class.java, undoManager)
     whenever(undoManager.isRedoInProgress).thenReturn(true)
 
     val util = SupportTestUtil(projectRule, createTextView())
@@ -845,13 +833,14 @@ class NlPropertyItemTest {
         SupportTestUtil(
           projectRule,
           createTextViewWithTextColor("@android:color/primary_text_dark"),
+          initResolver = false,
         )
       val property =
-        util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST, false)
-      assertNull(property.resolver)
+        util.makeProperty(ANDROID_URI, ATTR_TEXT_COLOR, NlPropertyType.COLOR_STATE_LIST)
+      assertNull(property.model.resolver)
 
       // Wait for the resolver to be loaded
-      delayUntilCondition(100L) { property.resolver != null }
+      delayUntilCondition(100L) { property.model.resolver != null }
     }
 
   @Test
@@ -865,11 +854,7 @@ class NlPropertyItemTest {
           fileName = "navigation.xml",
         )
       val property =
-        util.makePropertySuspend(
-          ANDROID_URI,
-          NavigationSchema.ATTR_ENTER_ANIM,
-          NlPropertyType.ANIMATOR,
-        )
+        util.makeProperty(ANDROID_URI, NavigationSchema.ATTR_ENTER_ANIM, NlPropertyType.ANIMATOR)
       withContext(uiThread) {
         assertThat(property.editingSupport.validation("@android:anim/accelerate_interpolator"))
           .isEqualTo(EDITOR_NO_ERROR)

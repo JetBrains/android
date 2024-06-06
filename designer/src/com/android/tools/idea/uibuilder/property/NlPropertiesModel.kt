@@ -22,6 +22,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.TOOLS_URI
+import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlComponent
@@ -30,6 +31,8 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
@@ -65,6 +68,8 @@ import java.util.concurrent.Callable
 import java.util.function.Consumer
 import javax.swing.event.ChangeListener
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
@@ -142,6 +147,15 @@ open class NlPropertiesModel(
       firePropertyValueChangeIfNeeded()
     }
 
+  private var cachedResolver: LazyCachedValue<ResourceResolver?> = createResolverCache(null)
+  val resolver: ResourceResolver?
+    get() = cachedResolver.getCachedValueOrUpdate()
+
+  @TestOnly
+  fun setResolver(resolver: ResourceResolver) {
+    cachedResolver.setValue(resolver)
+  }
+
   @VisibleForTesting
   var updateCount = 0
     protected set
@@ -181,6 +195,22 @@ open class NlPropertiesModel(
 
   private fun logPropertyValueChanged(property: NlPropertyItem) {
     NlUsageTracker.getInstance(activeSurface).logPropertyChange(property, -1)
+  }
+
+  private fun createResolverCache(surface: DesignSurface<*>?): LazyCachedValue<ResourceResolver?> {
+    return LazyCachedValue(
+      supervisorScope,
+      loader = {
+        runInterruptible(workerThread) { surface?.model?.configuration?.resourceResolver }
+      },
+      onValueLoaded = { _ ->
+        withContext(uiThread) {
+          // Trigger refresh of all properties due to the resolver being available
+          firePropertyValueChanged()
+        }
+      },
+      null,
+    )
   }
 
   fun provideDefaultValue(property: NlPropertyItem): String? {
@@ -307,6 +337,7 @@ open class NlPropertiesModel(
     }
     (old as? NlDesignSurface)?.accessoryPanel?.removeAccessoryPanelListener(accessoryPanelListener)
     (new as? NlDesignSurface)?.accessoryPanel?.addAccessoryPanelListener(accessoryPanelListener)
+    cachedResolver = createResolverCache(new)
     useCurrentPanel(new)
   }
 
