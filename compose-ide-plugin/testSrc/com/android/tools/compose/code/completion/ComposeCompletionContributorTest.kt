@@ -84,7 +84,11 @@ class ComposeCompletionContributorTest {
         "FoobarOne(required: Int) (com.example)",
         "FoobarTwo(required: Int, ...) (com.example)",
         "FoobarThree(...) {...} (com.example)",
-        "FoobarFour {...} (children: () -> Unit) (com.example)",
+        if (KotlinPluginModeProvider.isK2Mode()) {
+          "FoobarFour {...} (children: @Composable (() -> Unit)) (com.example)"
+        } else {
+          "FoobarFour {...} (children: () -> Unit) (com.example)"
+        },
         "FoobarFive(icon: String) {...} (com.example)",
         "FoobarSix(icon: String, ...) (com.example)",
       )
