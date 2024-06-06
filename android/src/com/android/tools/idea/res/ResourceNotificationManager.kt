@@ -84,7 +84,8 @@ import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
  * * Add listener or remove listener can be done from any thread
  */
 @Service(Service.Level.PROJECT)
-class ResourceNotificationManager private constructor(private val project: Project) {
+class ResourceNotificationManager private constructor(private val project: Project) :
+  Disposable.Default {
 
   private val observerLock = Any()
 
@@ -118,7 +119,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
   private val modificationCount = AtomicLong()
 
   private val projectBuildObserver =
-    ProjectBuildObserver(project, modificationCount::incrementAndGet, ::notice)
+    ProjectBuildObserver(project, this, modificationCount::incrementAndGet, ::notice)
 
   /** Set of events we've observed since the last notification. */
   private var events: EnumSet<Reason> = EnumSet.noneOf(Reason::class.java)
@@ -507,6 +508,7 @@ private class ModuleEventObserver(
 
 private class ProjectBuildObserver(
   private val project: Project,
+  private val parentDisposable: Disposable,
   private val incrementModificationCount: () -> Unit,
   private val notice: (Reason, VirtualFile?) -> Unit,
 ) : ProjectSystemBuildManager.BuildListener {
@@ -516,7 +518,7 @@ private class ProjectBuildObserver(
   fun startListening() {
     if (!alreadyAddedBuildListener) { // See comment in stopListening.
       alreadyAddedBuildListener = true
-      project.getProjectSystem().getBuildManager().addBuildListener(project, this)
+      project.getProjectSystem().getBuildManager().addBuildListener(parentDisposable, this)
     }
     ignoreBuildEvents = false
   }
