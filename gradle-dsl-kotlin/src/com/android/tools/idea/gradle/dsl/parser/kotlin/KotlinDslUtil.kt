@@ -58,7 +58,7 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
-import org.jetbrains.kotlin.idea.intentions.branchedTransformations.isNullExpressionOrEmptyBlock
+import org.jetbrains.kotlin.idea.base.psi.isNullExpression
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.lexer.KtTokens.LPAR
 import org.jetbrains.kotlin.lexer.KtTokens.WHITESPACES
@@ -1065,3 +1065,7 @@ internal fun hasNewLineBetween(start : PsiElement, end : PsiElement) : Boolean {
 }
 
 internal fun isWhiteSpaceOrNls(element: PsiElement?) = element?.node?.let { WHITESPACES.contains(it.elementType) } ?: false
+
+private fun KtExpression?.isNullExpressionOrEmptyBlock(): Boolean =
+  this.isNullExpression()
+  || this is KtBlockExpression && this.statements.isEmpty()
