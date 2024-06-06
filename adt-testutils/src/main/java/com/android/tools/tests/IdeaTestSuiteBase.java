@@ -17,7 +17,7 @@ package com.android.tools.tests;
 
 import static com.android.test.testutils.TestUtils.resolveWorkspacePath;
 
-// TODO NOW! import com.android.repository.testframework.FakeProgressIndicator;
+import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.RepoLinker;
@@ -201,8 +201,6 @@ public class IdeaTestSuiteBase {
   }
 
   private static void unzip(File offlineRepoZip, File outDir) {
-          /* TODO NOW!
-
     try {
       InstallerUtil.unzip(
         offlineRepoZip.toPath(),
@@ -215,7 +213,5 @@ public class IdeaTestSuiteBase {
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-
-           */
   }
 }
