@@ -90,6 +90,7 @@ class ExplainSyncOrBuildOutputIntegrationTest {
                 To suppress this warning, add/update
                     android.suppressUnsupportedCompileSdk=341123
                 to this project's gradle.properties.
+                <a href="android.suppressUnsupportedCompileSdk">Update Gradle property to suppress warning</a>
                 Affected Modules: <a href="openFile:$absolutePath">app</a>
               """
         .trimIndent(),
