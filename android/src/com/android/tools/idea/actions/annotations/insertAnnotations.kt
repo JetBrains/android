@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KaAnnotatedSymbol
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
@@ -107,7 +107,7 @@ fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTar
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) {
-        val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
+        val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.getSymbol() as? KaAnnotatedSymbol
         val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(annotationFqName))
         return annotations?.firstOrNull { annoApp ->
           annoApp.useSiteTarget == useSiteTarget

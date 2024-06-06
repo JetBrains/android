@@ -43,7 +43,7 @@ import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.renderer.render
-import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KaAnnotatedSymbol
 import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
 
 /** Returns the [PsiFile] associated with a given lint [Context]. */
@@ -144,7 +144,7 @@ fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
       allowAnalysisFromWriteAction {
         analyze(this) {
           val annotatedSymbol =
-            (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
+            (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KaAnnotatedSymbol
           val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
           annotations?.singleOrNull()?.psi as? KtAnnotationEntry
         }
