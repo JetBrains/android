@@ -17,6 +17,7 @@ package com.android.tools.idea.ml.xmltocompose
 
 import com.android.tools.idea.studiobot.Content
 import com.android.tools.idea.studiobot.GenerationConfig
+import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.ModelType
 import com.android.tools.idea.studiobot.StubModel
 import com.android.tools.idea.studiobot.StudioBot
@@ -24,7 +25,6 @@ import com.android.tools.idea.studiobot.prompts.Prompt
 import com.android.tools.idea.studiobot.prompts.buildPrompt
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ApplicationServiceRule
-import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.flow.Flow
@@ -86,7 +86,7 @@ class NShotXmlToComposeConverterTest {
              </LinearLayout>
           """
               .trimIndent(),
-            XMLLanguage.INSTANCE,
+            MimeType.XML,
             emptyList(),
           )
         }
