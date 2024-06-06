@@ -463,6 +463,7 @@ private class ModuleEventObserver(
 
   private fun unregisterListeners() {
     connection?.disconnect()
+    connection = null
   }
 
   @RequiresEdt
