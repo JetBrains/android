@@ -58,6 +58,7 @@ import com.intellij.util.messages.MessageBusConnection
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
@@ -107,9 +108,6 @@ class ResourceNotificationManager private constructor(private val project: Proje
   /** Project wide observer: a single one is sufficient. */
   @GuardedBy("observerLock") private var projectPsiTreeObserver: ProjectPsiTreeObserver? = null
 
-  private val projectBuildObserver =
-    ProjectBuildObserver(project, ::incrementModificationCount, ::notice)
-
   /** Whether we've already been notified about a change and we'll be firing it shortly. */
   private val pendingNotify = AtomicBoolean()
 
@@ -117,7 +115,10 @@ class ResourceNotificationManager private constructor(private val project: Proje
    * Counter for events other than resource repository, configuration or file events. For example,
    * this counts project builds.
    */
-  private var modificationCount: Long = 0
+  private val modificationCount = AtomicLong()
+
+  private val projectBuildObserver =
+    ProjectBuildObserver(project, modificationCount::incrementAndGet, ::notice)
 
   /** Set of events we've observed since the last notification. */
   private var events: EnumSet<Reason> = EnumSet.noneOf(Reason::class.java)
@@ -129,18 +130,24 @@ class ResourceNotificationManager private constructor(private val project: Proje
   ): ResourceVersion {
     val repository = StudioResourceRepositoryManager.getAppResources(facet)
     if (file == null)
-      return ResourceVersion(repository.modificationCount, 0L, 0L, 0L, modificationCount)
+      return ResourceVersion(repository.modificationCount, 0L, 0L, 0L, modificationCount.get())
 
     val fileStamp = file.modificationStamp
     if (configuration == null)
-      return ResourceVersion(repository.modificationCount, fileStamp, 0L, 0L, modificationCount)
+      return ResourceVersion(
+        repository.modificationCount,
+        fileStamp,
+        0L,
+        0L,
+        modificationCount.get(),
+      )
 
     return ResourceVersion(
       repository.modificationCount,
       fileStamp,
       configuration.modificationCount,
       configuration.settings.stateVersion.toLong(),
-      modificationCount,
+      modificationCount.get(),
     )
   }
 
@@ -331,15 +338,11 @@ class ResourceNotificationManager private constructor(private val project: Proje
   }
 
   private fun createModuleEventObserver(facet: AndroidFacet) =
-    ModuleEventObserver(facet, ::incrementModificationCount, ::notice).also { observer ->
+    ModuleEventObserver(facet, modificationCount::incrementAndGet, ::notice).also { observer ->
       Disposer.register(observer) {
         synchronized(observerLock) { moduleToObserverMap.remove(facet.module) }
       }
     }
-
-  private fun incrementModificationCount() {
-    modificationCount++
-  }
 
   /** Checks if the file is present in [fileToObserverMap]. */
   private fun isRelevantFile(virtualFile: VirtualFile?) =
