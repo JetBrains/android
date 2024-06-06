@@ -16,7 +16,7 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.intellij.psi.PsiMethod
-import org.jetbrains.kotlin.idea.quickfix.createFromUsage.callableBuilder.getReturnTypeReference
+import org.jetbrains.kotlin.idea.base.psi.getReturnTypeReference
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
