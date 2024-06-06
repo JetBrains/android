@@ -57,6 +57,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
@@ -86,6 +87,7 @@ class GradleConnectedAndroidTestInvoker(
     const val RETENTION_ENABLE_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.maxSnapshotsForTestFailures"
     const val RETENTION_COMPRESS_SNAPSHOT_PROPERTY = "android.experimental.testOptions.emulatorSnapshots.compressSnapshots"
     const val UNINSTALL_INCOMPATIBLE_APKS_PROPERTY = "android.experimental.testOptions.uninstallIncompatibleApks"
+    val TEST_LISTENER_KEY: Key<List<AndroidTestResultListener>> = Key.create("android.testartifacts.instrumented.AndroidTestResultListener")
   }
 
   /**
@@ -107,9 +109,11 @@ class GradleConnectedAndroidTestInvoker(
   ) {
     androidTestSuiteView.println("Running tests")
 
-    val adapters = devices.associate {
-      val adapter = gradleTestResultAdapterFactory(it, taskId, gradleAndroidModel.getArtifactForAndroidTest(), androidTestSuiteView)
-      adapter.device.id to adapter
+    val listeners = mutableListOf<AndroidTestResultListener>(androidTestSuiteView)
+    TEST_LISTENER_KEY[executionEnvironment]?.let { listeners.addAll(it) }
+    val adapters: Map<String, List<GradleTestResultAdapter>> = devices.associate { device ->
+      val adapterList = listeners.map { gradleTestResultAdapterFactory(device, taskId, gradleAndroidModel.getArtifactForAndroidTest(), it) }
+      adapterList.first().device.id to adapterList
     }
 
     val path: File = Projects.getBaseDirPath(project)
@@ -152,16 +156,17 @@ class GradleConnectedAndroidTestInvoker(
 
         super.onEnd(id)
 
-        val testSuiteStartedOnAnyDevice = adapters.values.any(GradleTestResultAdapter::testSuiteStarted)
+        val allAdapters = adapters.values.flatten()
+        val testSuiteStartedOnAnyDevice = allAdapters.any(GradleTestResultAdapter::testSuiteStarted)
 
         outputLineProcessor.close()
-        adapters.values.forEach(GradleTestResultAdapter::onGradleTaskFinished)
+        allAdapters.forEach(GradleTestResultAdapter::onGradleTaskFinished)
 
         // If there is an APK installation error due to incompatible APKs installed on device,
         // display a popup and ask a user to rerun the Gradle task with UNINSTALL_INCOMPATIBLE_APKS
         // option.
         var isRerunRequested = false
-        val rerunDevices = adapters.values.filter {
+        val rerunDevices = allAdapters.filter {
           it.needRerunWithUninstallIncompatibleApkOption().needRerunWithUninstallIncompatibleApkOption
         }
         if (rerunDevices.isNotEmpty()) {
