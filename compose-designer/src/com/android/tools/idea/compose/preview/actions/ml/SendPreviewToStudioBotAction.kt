@@ -41,7 +41,6 @@ import com.intellij.psi.util.parentOfType
 import icons.StudioIcons
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtFunction
 
 // TODO: create a second class to send only a portion of the preview as the image context, e.g.
@@ -145,7 +144,7 @@ class SendPreviewToStudioBotAction : AnAction(message("action.send.preview.to.ge
         text(defaultPrompt, listOf())
         text("This is the code corresponding to the following Compose Preview:", listOf())
         filePointer.element?.let {
-          code(previewFunctionCode, KotlinLanguage.INSTANCE, listOf(it.virtualFile))
+          code(previewFunctionCode, MimeType.KOTLIN, listOf(it.virtualFile))
         }
         blob?.let { blob(data = it.data, mimeType = it.mimeType, filesUsed = emptyList()) }
         text(

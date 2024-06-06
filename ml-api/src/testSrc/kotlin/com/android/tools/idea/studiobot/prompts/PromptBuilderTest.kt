@@ -24,14 +24,12 @@ import com.android.tools.idea.studiobot.MimeType
 import com.android.tools.idea.studiobot.StudioBot
 import com.android.tools.idea.studiobot.prompts.impl.PromptImpl
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.replaceService
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.test.assertFailsWith
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
@@ -114,7 +112,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
             }
             """
               .trimIndent(),
-            KotlinLanguage.INSTANCE,
+            MimeType.KOTLIN,
             emptyList(),
           )
         }
@@ -127,7 +125,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
             }
             """
               .trimIndent(),
-            JavaLanguage.INSTANCE,
+            MimeType.JAVA,
             emptyList(),
           )
         }
@@ -148,7 +146,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
                   }
                   """
                     .trimIndent(),
-                  KotlinLanguage.INSTANCE,
+                  MimeType.KOTLIN,
                   emptyList(),
                 )
               )
@@ -163,7 +161,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
                   }
                   """
                     .trimIndent(),
-                  JavaLanguage.INSTANCE,
+                  MimeType.JAVA,
                   emptyList(),
                 ),
               )
@@ -362,7 +360,7 @@ class PromptBuilderTest : BasePlatformTestCase() {
             println(x)
           """
               .trimIndent(),
-            KotlinLanguage.INSTANCE,
+            MimeType.KOTLIN,
             emptyList(),
           )
           functions {
