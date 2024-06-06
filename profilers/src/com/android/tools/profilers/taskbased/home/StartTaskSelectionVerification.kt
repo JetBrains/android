@@ -117,16 +117,24 @@ object TaskSelectionVerificationUtils {
       else -> false
     }
 
+  private fun areSelectionsValid(selectedTaskType: ProfilerTaskType,
+                                 selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+                                 selectedProcess: Common.Process) = isDeviceSelectionValid(selectedDevice) && isProcessSelectionValid(
+    selectedProcess) && isTaskSelectionValid(selectedTaskType)
+
   /**
    * Assuming an error with starting a task from 'process start', this method returns an error indicating which selection is causing such
    * failure. If the reason is not caught by the conditions outlined, null is returned, allowing the caller to handle such result.
+   *
+   * Also assumes/asserts that by the time this method is called, all selections (i.e. device, process, and task type) made are valid.
    */
-  fun getStartTaskFromProcessStartError(selectedTaskType: ProfilerTaskType,
-                                        selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
-                                        selectedProcess: Common.Process,
-                                        profilers: StudioProfilers): StartTaskSelectionError {
+  private fun getStartTaskFromProcessStartError(selectedTaskType: ProfilerTaskType,
+                                                selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
+                                                selectedProcess: Common.Process,
+                                                profilers: StudioProfilers): StartTaskSelectionError {
     assert(!canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers))
-    return if (!isSelectedProcessPreferred(selectedProcess, profilers)){
+    assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
+    return if (!isSelectedProcessPreferred(selectedProcess, profilers)) {
       StartTaskSelectionError.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK
     }
     else if (!profilers.ideServices.isTaskSupportedOnStartup(selectedTaskType)) {
@@ -143,12 +151,15 @@ object TaskSelectionVerificationUtils {
   /**
    * Assuming an error with starting a task from 'now', this method returns an error indicating which selection is causing such
    * failure. If the reason is not caught by the conditions outlined, null is returned, allowing the caller to handle such result.
+   *
+   * Also assumes/asserts that by the time this method is called, all selections (i.e. device, process, and task type) made are valid.
    */
   private fun getStartTaskFromNowStartError(selectedTaskType: ProfilerTaskType,
                                             selectedDevice: ProcessListModel.ProfilerDeviceSelection?,
                                             selectedProcess: Common.Process,
                                             taskHandlers: Map<ProfilerTaskType, ProfilerTaskHandler>): StartTaskSelectionError {
     assert(!canTaskStartFromNow(selectedTaskType, selectedDevice, selectedProcess, taskHandlers))
+    assert(areSelectionsValid(selectedTaskType, selectedDevice, selectedProcess))
     return if (!isDeviceSelectionOnline(selectedDevice!!)) {
       StartTaskSelectionError.DEVICE_SELECTION_IS_OFFLINE
     }
@@ -195,6 +206,10 @@ object TaskSelectionVerificationUtils {
       StartTaskSelectionError.GENERAL_ERROR
     }
   }
+
+  val STARTUP_TASK_ERRORS = listOf(StartTaskSelectionError.PREFERRED_PROCESS_NOT_SELECTED_FOR_STARTUP_TASK,
+                                   StartTaskSelectionError.TASK_UNSUPPORTED_ON_STARTUP,
+                                   StartTaskSelectionError.STARTUP_TASK_USING_UNSUPPORTED_DEVICE)
 }
 
 enum class StartTaskSelectionError {
