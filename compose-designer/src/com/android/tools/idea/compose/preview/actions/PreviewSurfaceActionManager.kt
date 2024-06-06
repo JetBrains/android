@@ -19,9 +19,9 @@ import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.InteractiveLabelPanel
-import com.android.tools.idea.common.surface.LabelPanel
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.common.surface.sceneview.InteractiveLabelPanel
+import com.android.tools.idea.common.surface.sceneview.LabelPanel
 import com.android.tools.idea.compose.preview.actions.ml.SendPreviewToStudioBotAction
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
