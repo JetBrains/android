@@ -1158,7 +1158,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne()
+        ${if (KotlinPluginModeProvider.isK2Mode()) "FoobarOne {  }" else "FoobarOne()"}
       }
       """
         .trimIndent(),
