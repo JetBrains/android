@@ -40,6 +40,7 @@ import com.android.tools.profilers.taskbased.common.constants.strings.TaskBasedU
 import com.android.tools.profilers.taskbased.home.StartTaskSelectionError
 import com.android.tools.profilers.taskbased.home.TaskHomeTabModel
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils
+import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.STARTUP_TASK_ERRORS
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canStartTask
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.canTaskStartFromProcessStart
 import com.android.tools.profilers.taskbased.home.TaskSelectionVerificationUtils.getStartTaskError
@@ -110,9 +111,9 @@ fun TaskActionBar(taskHomeTabModel: TaskHomeTabModel) {
       val canStartTaskFromProcessStart = canTaskStartFromProcessStart(selectedTaskType, selectedDevice, selectedProcess, profilers)
       val processStartDisabledReason =
         if (canStartTaskFromProcessStart) null else {
-          // Only show start task from process start error message if it's a non-general error.
-          TaskSelectionVerificationUtils.getStartTaskFromProcessStartError(selectedTaskType, selectedDevice, selectedProcess, profilers)
-            .takeIf { it != StartTaskSelectionError.GENERAL_ERROR }
+          // Only show start task from process start error message if it's a startup task error.
+          getStartTaskError(selectedTaskType, selectedDevice, selectedProcess, TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START,
+                            profilers).takeIf { STARTUP_TASK_ERRORS.contains(it) }
         }
       TaskStartingPointDropdown(profilingProcessStartingPoint, taskHomeTabModel::setProfilingProcessStartingPoint,
                                 isProfilingProcessFromNowEnabled, isProfilingProcessFromProcessStartEnabled, processStartDisabledReason)
