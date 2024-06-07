@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.interactive.analytics
+package com.android.tools.idea.preview.analytics
 
 class InteractiveNopTracker : InteractivePreviewUsageTracker {
   override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {}
