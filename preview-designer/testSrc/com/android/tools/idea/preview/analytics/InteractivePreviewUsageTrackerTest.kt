@@ -24,7 +24,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 
-class InteractivePreviewUsageTrackerImplTest {
+class InteractivePreviewUsageTrackerTest {
   private lateinit var myInteractivePreviewUsageTracker: InteractivePreviewUsageTracker
 
   private var myLastEventBuilder: AndroidStudioEvent.Builder? = null
