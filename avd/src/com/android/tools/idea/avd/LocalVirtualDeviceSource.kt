@@ -42,7 +42,6 @@ import com.android.tools.idea.avdmanager.skincombobox.SkinCollector
 import com.android.tools.idea.avdmanager.skincombobox.SkinComboBoxModel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.google.common.collect.Range
 import com.intellij.openapi.diagnostic.thisLogger
@@ -77,8 +76,6 @@ internal class LocalVirtualDeviceSource(
       return LocalVirtualDeviceSource(project, images, skins)
     }
   }
-
-  val sdk = AndroidSdks.getInstance().tryToChooseSdkHandler().location.toString()
 
   override fun WizardPageScope.selectionUpdated(profile: DeviceProfile) {
     nextAction = WizardAction { pushPage { ConfigurationPage(profile) } }
