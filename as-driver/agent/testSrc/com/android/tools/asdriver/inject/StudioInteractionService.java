@@ -55,6 +55,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
@@ -96,7 +97,7 @@ public class StudioInteractionService {
     Consumer<Component> invoke = this::invokeComponent;
     long startTime = System.currentTimeMillis();
     filterAndExecuteComponent(matchers, timeoutMillis, filter, invoke);
-    log(String.format("Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
+    log(String.format(Locale.getDefault(), "Found and invoked the component in %dms", System.currentTimeMillis() - startTime));
   }
 
   public void waitForComponent(List<ASDriver.ComponentMatcher> matchers, boolean waitForEnabled)
@@ -191,7 +192,7 @@ public class StudioInteractionService {
       for (Component component : componentsFound) {
         // Some components override toString(), which means the class isn't guaranteed to show.
         // Given that most searches for components rely on the class name, we explicitly print it.
-        sb.append(String.format("\t#%d: class: [%s] toString: %s%n", index++, component.getClass(), component));
+        sb.append(String.format(Locale.getDefault(), "\t#%d: class: [%s] toString: %s%n", index++, component.getClass(), component));
       }
       throw new IllegalStateException(String.format("Found %s component(s) but expected exactly one:%n%s%n\tPlease construct more specific match criteria.",
                                                     numComponentsFound, sb));
