@@ -343,7 +343,9 @@ constructor(
       installPopupHandler(
         object : ContextMenuPopupHandler() {
           override fun getActionGroup(event: EditorMouseEvent): ActionGroup =
-            getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
+            getPopupActionGroup(
+              splitterPopupActionGroup.getChildren(null, ActionManager.getInstance())
+            )
         }
       )
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
@@ -1002,9 +1004,9 @@ constructor(
   private sealed class LogcatServiceEvent {
     class StartLogcat(val device: Device) : LogcatServiceEvent()
 
-    object StopLogcat : LogcatServiceEvent()
+    data object StopLogcat : LogcatServiceEvent()
 
-    object PauseLogcat : LogcatServiceEvent()
+    data object PauseLogcat : LogcatServiceEvent()
 
     class LoadLogcatFile(val logcatFileData: LogcatFileData?) : LogcatServiceEvent()
   }

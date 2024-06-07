@@ -75,7 +75,7 @@ internal class MessageFormatter(
 
         val msg =
           when {
-            StudioBot.getInstance()?.isAvailable() != true -> message.message
+            !StudioBot.getInstance().isAvailable() -> message.message
             exceptionLinePattern.containsMatchIn(message.message) ->
               insertStudioBotText(message.message)
             else -> message.message
