@@ -25,6 +25,7 @@ import com.android.tools.deployer.InstallOptions
 import com.android.tools.deployer.UIService
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.tasks.Canceller
+import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.DeploymentService
 import com.android.utils.ILogger
@@ -101,6 +102,7 @@ class DeployTaskTest {
   fun testDeployTaskRunUsesDynamicUIServiceWhichThrowsExceptionOnInit() {
     val deployTask = DeployTask(project, listOf(), null, true, false, installPathProvider)
     project.registerService(UIService::class.java, ThrowingUIService::class.java)
+    project.registerService(AdbLibService::class.java, mock<AdbLibService>())
 
     val throwable = assertThrows(RuntimeException::class.java) {
       deployTask.run(device, EmptyProgressIndicator())
