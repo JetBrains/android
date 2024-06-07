@@ -38,11 +38,10 @@ class K10KtsAndroidReferenceProviderContributor : KotlinReferenceProviderContrib
 // Wrapper for reference provider contributor to add reference provider for Kts to Catalog
 @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")   // TODO AS Koala Canary 8 merge
 class FirKtsAndroidReferenceProviderContributor : KotlinReferenceProviderContributor {
-  // TODO AS Koala Canary 8 merge
-  //internal val contributor = org.jetbrains.kotlin.idea.referencesKotlinFirReferenceContributor()
+  private val contributor = org.jetbrains.kotlin.idea.references.KotlinFirReferenceContributor()
   override fun registerReferenceProviders(registrar: KotlinPsiReferenceRegistrar) {
-    //contributor.registerReferenceProviders(registrar)
-    //registerProvider(registrar)
+    contributor.registerReferenceProviders(registrar)
+    registerProvider(registrar)
   }
 }
 
