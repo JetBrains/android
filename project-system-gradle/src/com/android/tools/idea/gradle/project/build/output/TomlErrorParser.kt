@@ -184,54 +184,78 @@ class TomlErrorParser : BuildOutputParser {
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
 
+  private enum class ReferenceSource { LIBRARY, PLUGIN }
+
   private fun extractReferenceInformation(catalog: String,
                                       reference: String,
                                       description: StringBuilder,
                                       reader: BuildOutputInstantReader): BuildIssueEventImpl? {
 
-    var dependency: String? = null
+    var dependency: Pair<String, ReferenceSource>? = null
     while (true) {
       val descriptionLine = reader.readLine() ?: return null
       if (descriptionLine.startsWith("> Invalid catalog definition")) break
       if (dependency == null) {
         REASON_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
           val (dep, _) = destructured
-          dependency = dep
+          dependency = dep to ReferenceSource.LIBRARY
+        }
+        REASON_PLUGIN_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
+          val (dep, _) = destructured
+          dependency = dep to ReferenceSource.PLUGIN
         }
       }
       description.appendLine(descriptionLine)
     }
     if(dependency == null) return null
+    val dependencyName = dependency!!.first
     val buildIssue = object : BuildIssue {
       override val description: String = description.toString().trimEnd()
       override val quickFixes: List<BuildIssueQuickFix> = emptyList()
       override val title: String = BUILD_ISSUE_TITLE
 
-      private fun computeNavigable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+      private fun computeNavigable(project: Project,
+                                   virtualFile: VirtualFile,
+                                   tableHeader: String,
+                                   predicate: (TomlKeyValue) -> Boolean): OpenFileDescriptor {
         val fileDescriptor = OpenFileDescriptor(project, virtualFile)
         val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
         val element = psiFile.childrenOfType<TomlTable>()
-                        .filter { it.header.key?.text == "libraries" }
+                        .filter { it.header.key?.text == tableHeader }
                         .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
-                        .find { e ->
-                          val content = e.value
-                          val (group, name) = dependency!!.split(":")
-                          if (content is TomlInlineTable) {
-                            (
-                              content.findKeyValue("module", dependency!!) ||
-                              (content.findKeyValue("group", group) && content.findKeyValue("name", name))
-                            ) && content.findKeyValue("version.ref", reference)
-                          } else
-                          false
-                        } ?: return fileDescriptor
+                        .find ( predicate ) ?: return fileDescriptor
         val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
         return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
+      }
+
+      fun isLibraryAliasDeclaration(element: TomlKeyValue):Boolean{
+        val content = element.value
+        val (group, name) = dependencyName.split(":")
+        return if (content is TomlInlineTable) {
+          (
+            content.findKeyValue("module", dependencyName) ||
+            (content.findKeyValue("group", group) && content.findKeyValue("name", name))
+          ) && content.findKeyValue("version.ref", reference)
+        } else
+          false
+      }
+
+      fun isPluginAliasDeclaration(element: TomlKeyValue): Boolean {
+        val content = element.value
+        return if (content is TomlInlineTable) {
+          content.findKeyValue("id", dependencyName) && content.findKeyValue("version.ref", reference)
+        }
+        else
+          false
       }
 
       override fun getNavigatable(project: Project): Navigatable? {
         val file = project.findCatalogFile(catalog) ?: return null
         return runReadAction {
-          computeNavigable(project, file)
+          when(dependency!!.second) {
+            ReferenceSource.LIBRARY -> computeNavigable(project, file, "libraries", ::isLibraryAliasDeclaration)
+            ReferenceSource.PLUGIN -> computeNavigable(project, file, "plugins", ::isPluginAliasDeclaration)
+          }
         }
       }
     }
@@ -304,6 +328,7 @@ class TomlErrorParser : BuildOutputParser {
     val REASON_POSITION_PATTERN: Regex = "\\s+Reason: At line ([0-9]+), column ([0-9]+):.*".toRegex()
     val REASON_FILE_AND_POSITION_PATTERN: Regex = "\\s+Reason: In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
     val REASON_REFERENCE_PATTERN: Regex = "\\s+Reason: Dependency '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
+    val REASON_PLUGIN_REFERENCE_PATTERN: Regex = "\\s+Reason: Plugin '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
     val REASON_FILE_AND_POSITION_PATTERN_CONTINUATION: Regex = "\\s+In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
 
     private val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
