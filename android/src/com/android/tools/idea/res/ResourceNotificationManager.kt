@@ -16,7 +16,6 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
-import com.android.annotations.concurrency.GuardedBy
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.android.tools.configurations.Configuration
@@ -53,7 +52,7 @@ import com.intellij.psi.xml.XmlToken
 import com.intellij.util.application
 import com.intellij.util.concurrency.SameThreadExecutor
 import com.intellij.util.concurrency.annotations.RequiresEdt
-import com.intellij.util.messages.MessageBusConnection
+import java.util.Collections
 import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -87,24 +86,18 @@ import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener
 class ResourceNotificationManager private constructor(private val project: Project) :
   Disposable.Default {
 
-  private val observerLock = Any()
-
   /**
    * Module observers: one per observed module in the project, with potentially multiple listeners.
    */
-  @GuardedBy("observerLock")
-  private val moduleToObserverMap: MutableMap<Module, ModuleEventObserver> = mutableMapOf()
+  private val moduleToObserverMap = ListenerMap<Module, ModuleEventObserver>()
 
   /** File observers: one per observed file, with potentially multiple listeners. */
-  @GuardedBy("observerLock")
-  private val fileToObserverMap: MutableMap<VirtualFile, FileEventObserver> = mutableMapOf()
+  private val fileToObserverMap = ListenerMap<VirtualFile, FileEventObserver>()
 
   /**
    * Configuration observers: one per observed configuration, with potentially multiple listeners.
    */
-  @GuardedBy("observerLock")
-  private val configurationToObserverMap: MutableMap<Configuration, ConfigurationEventObserver> =
-    mutableMapOf()
+  private val configurationToObserverMap = ListenerMap<Configuration, ConfigurationEventObserver>()
 
   /** Whether we've already been notified about a change and we'll be firing it shortly. */
   private val pendingNotify = AtomicBoolean()
@@ -172,8 +165,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
 
     val module = facet.module
 
-    // Whenever we're adding a listener, we want to ensure we're getting build events. Doing this
-    // outside the lock below helps prevent any potential deadlocks.
+    // Whenever we're adding a listener, ensure we're getting build events.
     requireNotNull(
         projectBuildObserver.updateAndGet {
           it ?: ProjectBuildObserver(project, this, modificationCount::incrementAndGet, ::notice)
@@ -190,23 +182,17 @@ class ResourceNotificationManager private constructor(private val project: Proje
       StudioResourceRepositoryManager.getProjectResources(facet)
     }
 
-    synchronized(observerLock) {
-      val moduleEventObserver =
-        moduleToObserverMap.computeIfAbsent(module) { createModuleEventObserver(facet) }
-      moduleEventObserver.addListener(listener)
+    moduleToObserverMap.addListener(module, listener) {
+      ModuleEventObserver(facet, modificationCount::incrementAndGet, ::notice)
+    }
 
-      if (file != null) {
-        val fileEventObserver =
-          fileToObserverMap.computeIfAbsent(file) { FileEventObserver(module, ::notice) }
-        fileEventObserver.addListener(listener)
-      }
+    if (file != null) {
+      fileToObserverMap.addListener(file, listener) { FileEventObserver(facet, ::notice) }
+    }
 
-      if (configuration != null) {
-        val configurationEventObserver =
-          configurationToObserverMap.computeIfAbsent(configuration) {
-            ConfigurationEventObserver(configuration, ::notice)
-          }
-        configurationEventObserver.addListener(listener)
+    if (configuration != null) {
+      configurationToObserverMap.addListener(configuration, listener) {
+        ConfigurationEventObserver(this, configuration, ::notice)
       }
     }
 
@@ -239,47 +225,14 @@ class ResourceNotificationManager private constructor(private val project: Proje
       "If configuration is specified, file must be as well. $configuration $file"
     }
 
-    val toDispose: MutableList<Disposable> = mutableListOf()
+    if (configuration != null) configurationToObserverMap.removeListener(configuration, listener)
 
-    synchronized(observerLock) {
-      if (configuration != null) {
-        val configurationEventObserver = configurationToObserverMap[configuration]
-        if (configurationEventObserver != null) {
-          configurationEventObserver.removeListener(listener)
-          if (!configurationEventObserver.hasListeners()) {
-            configurationToObserverMap.remove(configuration)
-          }
-        }
-      }
+    if (file != null) fileToObserverMap.removeListener(file, listener)
 
-      if (file != null) {
-        val fileEventObserver = fileToObserverMap[file]
-        if (fileEventObserver != null) {
-          fileEventObserver.removeListener(listener)
-          if (!fileEventObserver.hasListeners()) {
-            fileToObserverMap.remove(file)
-          }
-        }
-      }
-
-      val moduleEventObserver = moduleToObserverMap[facet.module]
-      if (moduleEventObserver != null) {
-        moduleEventObserver.removeListener(listener)
-        if (!moduleEventObserver.hasListeners()) {
-          Disposer.dispose(moduleEventObserver)
-          if (moduleToObserverMap.isEmpty()) {
-            val oldProjectBuildObserver = projectBuildObserver.getAndSet(null)
-            if (oldProjectBuildObserver != null) {
-              oldProjectBuildObserver.stopListening()
-              toDispose.add(oldProjectBuildObserver)
-            }
-          }
-        }
-      }
-    }
-
-    for (disposable in toDispose) {
-      Disposer.dispose(disposable)
+    moduleToObserverMap.removeListener(facet.module, listener)
+    if (moduleToObserverMap.isEmpty()) {
+      val oldProjectBuildObserver = projectBuildObserver.getAndSet(null)
+      oldProjectBuildObserver?.let(Disposer::dispose)
     }
   }
 
@@ -290,7 +243,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
      *
      * If no listener has been added to the [ResourceNotificationManager], this method returns null.
      */
-    get() = field.takeIf { synchronized(observerLock) { moduleToObserverMap.isNotEmpty() } }
+    get() = field.takeIf { moduleToObserverMap.isNotEmpty() }
 
   /**
    * Something happened. Either schedule a notification or if one is already pending, do nothing.
@@ -353,22 +306,13 @@ class ResourceNotificationManager private constructor(private val project: Proje
   private fun notifyListeners(reason: ImmutableSet<Reason>) {
     application.assertIsDispatchThread()
 
-    val observers = synchronized(observerLock) { ArrayList(moduleToObserverMap.values) }
-
     // Not every module may have pending changes; each one will check.
-    for (observer in observers) observer.notifyListeners(reason)
+    moduleToObserverMap.invokeOnObservers { notifyListeners(reason) }
   }
-
-  private fun createModuleEventObserver(facet: AndroidFacet) =
-    ModuleEventObserver(facet, modificationCount::incrementAndGet, ::notice).also { observer ->
-      Disposer.register(observer) {
-        synchronized(observerLock) { moduleToObserverMap.remove(facet.module) }
-      }
-    }
 
   /** Checks if the file is present in [fileToObserverMap]. */
   private fun isRelevantFile(virtualFile: VirtualFile?) =
-    virtualFile != null && synchronized(observerLock) { fileToObserverMap.containsKey(virtualFile) }
+    virtualFile != null && fileToObserverMap.containsKey(virtualFile)
 
   /**
    * Interface that should be implemented by clients interested in resource edits and events that
@@ -438,6 +382,131 @@ class ResourceNotificationManager private constructor(private val project: Proje
 }
 
 /**
+ * Represents an object the [ResourceNotificationManager] will use to listen for various platform
+ * events. This super class provides basic functionality around ensuring event listeners are
+ * registered exactly once, and are appropriately torn down on disposal.
+ */
+private abstract class Observer(parentDisposable: Disposable) : Disposable {
+
+  @Volatile private var isListening = false
+  @Volatile private var isDisposed = false
+
+  init {
+    Disposer.register(parentDisposable, this)
+  }
+
+  /**
+   * Registration method that ensures this objects listeners are correctly wired up. This method
+   * will never be called more than once.
+   */
+  protected abstract fun registerListeners()
+
+  @Synchronized
+  fun ensureListening() {
+    if (!isListening && !isDisposed) {
+      isListening = true
+      registerListeners()
+    }
+  }
+
+  fun isDisposed(): Boolean =
+    // This read doesn't need to be synchronized - the locks are only needed to ensure registration
+    // and disposal don't happen concurrently.
+    isDisposed
+
+  @Synchronized
+  override fun dispose() {
+    isDisposed = true
+  }
+}
+
+/**
+ * An extension of [Observer] for classes which need to maintain a list of
+ * [ResourceChangeListener]s.
+ */
+private abstract class ObserverWithListeners(parentDisposable: Disposable) :
+  Observer(parentDisposable) {
+
+  private val listeners: MutableList<ResourceChangeListener> =
+    Collections.synchronizedList(ArrayList(2))
+
+  fun addListener(listener: ResourceChangeListener) {
+    listeners.add(listener)
+  }
+
+  fun removeListener(listener: ResourceChangeListener) {
+    listeners.remove(listener)
+  }
+
+  fun hasListeners() = listeners.isNotEmpty()
+
+  fun invokeOnListeners(handler: ResourceChangeListener.() -> Unit) {
+    val listenersCopy = synchronized(listeners) { ArrayList(listeners) }
+    for (listener in listenersCopy) listener.handler()
+  }
+}
+
+/**
+ * Custom collection similar to a multimap, where a [TKey] may map to multiple
+ * [ResourceChangeListener] objects. The [TObserver] type is used as an intermediary to store all
+ * the [ResourceChangeListener]s associated with a single key.
+ */
+private class ListenerMap<TKey, TObserver : ObserverWithListeners> {
+  private val map: MutableMap<TKey, TObserver> = mutableMapOf()
+
+  fun addListener(
+    key: TKey,
+    listener: ResourceChangeListener,
+    createObserver: (TKey) -> TObserver,
+  ) {
+    val observer =
+      synchronized(map) {
+        map
+          .computeIfAbsent(key) { createObserver(key).apply { removeOnDisposal(key) } }
+          .apply { addListener(listener) }
+      }
+
+    observer.ensureListening()
+  }
+
+  private fun TObserver.removeOnDisposal(key: TKey) {
+    Disposer.register(this@removeOnDisposal) {
+      // The observer is being disposed. If it's still in the map, go ahead and remove it.
+      synchronized(map) {
+        val storedObserver = map[key]
+        if (storedObserver === this@removeOnDisposal) map.remove(key)
+      }
+    }
+  }
+
+  fun removeListener(key: TKey, listener: ResourceChangeListener) {
+    val observer: TObserver
+    synchronized(map) {
+      observer = map[key] ?: return
+
+      observer.removeListener(listener)
+      if (observer.hasListeners()) return
+
+      map.remove(key)
+    }
+
+    // Since we didn't return early, the observer has no listeners and has been removed from the
+    // map. It now needs to be disposed.
+    Disposer.dispose(observer)
+  }
+
+  fun isEmpty() = synchronized(map) { map.isEmpty() }
+
+  fun isNotEmpty() = synchronized(map) { map.isNotEmpty() }
+
+  fun containsKey(key: TKey) = synchronized(map) { map.containsKey(key) }
+
+  fun invokeOnObservers(lambda: TObserver.() -> Unit) {
+    synchronized(map) { ArrayList(map.values) }.forEach { it.lambda() }
+  }
+}
+
+/**
  * A [ModuleEventObserver] registers listeners for various module-specific events (such as resource
  * folder manager changes) and then notifies [notice] when it sees an event.
  */
@@ -445,53 +514,22 @@ private class ModuleEventObserver(
   private val facet: AndroidFacet,
   private val incrementModificationCount: () -> Unit,
   private val notice: (Reason, VirtualFile?) -> Unit,
-) : ResourceFolderListener, Disposable.Default {
+) : ObserverWithListeners(facet) {
 
   // Does not require locking/volatile, since it's only accessed on the EDT.
   private var generation = appResourcesModificationCount
 
-  private val listenersLock = Any()
-  private var connection: MessageBusConnection? = null
-
-  @GuardedBy("listenersLock")
-  private val listeners: MutableList<ResourceChangeListener> = ArrayList(4)
-
-  init {
-    Disposer.register(facet, this)
-  }
-
-  fun addListener(listener: ResourceChangeListener) {
-    synchronized(listenersLock) {
-      if (listeners.isEmpty()) registerListeners()
-      listeners.add(listener)
-    }
-  }
-
-  fun removeListener(listener: ResourceChangeListener) {
-    synchronized(listenersLock) {
-      listeners.remove(listener)
-      if (listeners.isEmpty()) unregisterListeners()
-    }
-  }
-
-  private fun registerListeners() {
+  override fun registerListeners() {
     if (AndroidModel.isRequired(facet)) {
-      require(connection == null)
-      connection =
-        requireNotNull(facet.module.project.messageBus.connect(facet)).apply {
-          subscribe(ResourceFolderManager.TOPIC, this@ModuleEventObserver)
-        }
+      facet.module.project.messageBus
+        .connect(this)
+        .subscribe(ResourceFolderManager.TOPIC, Listener())
     }
-  }
-
-  private fun unregisterListeners() {
-    connection?.disconnect()
-    connection = null
   }
 
   @RequiresEdt
   fun notifyListeners(reason: ImmutableSet<Reason>) {
-    if (facet.isDisposed) return
+    if (this.isDisposed()) return
 
     val generation = appResourcesModificationCount
     if (reason.singleOrNull() == Reason.RESOURCE_EDIT && generation == this.generation) {
@@ -502,21 +540,19 @@ private class ModuleEventObserver(
     }
 
     this.generation = generation
-    val listeners = synchronized(listenersLock) { ArrayList(this.listeners) }
-    for (listener in listeners) listener.resourcesChanged(reason)
+    invokeOnListeners { resourcesChanged(reason) }
   }
 
   private val appResourcesModificationCount
     get() =
       StudioResourceRepositoryManager.getInstance(facet).cachedAppResources?.modificationCount ?: 0L
 
-  fun hasListeners() = synchronized(listenersLock) { listeners.isNotEmpty() }
-
-  // ---- Implements ResourceFolderManager.ResourceFolderListener ----
-  override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
-    if (facet.module === this.facet.module) {
-      incrementModificationCount()
-      notice(Reason.GRADLE_SYNC, null)
+  inner class Listener : ResourceFolderListener {
+    override fun foldersChanged(facet: AndroidFacet, folders: List<VirtualFile>) {
+      if (facet.module === this@ModuleEventObserver.facet.module) {
+        incrementModificationCount()
+        notice(Reason.GRADLE_SYNC, null)
+      }
     }
   }
 }
@@ -526,35 +562,18 @@ private class ProjectBuildObserver(
   parentDisposable: Disposable,
   private val incrementModificationCount: () -> Unit,
   private val notice: (Reason, VirtualFile?) -> Unit,
-) : Disposable.Default {
+) : Observer(parentDisposable) {
 
-  private val isListening = AtomicBoolean(false)
-  private val hasStopped = AtomicBoolean(false)
-
-  init {
-    Disposer.register(parentDisposable, this)
-  }
-
-  fun ensureListening() {
-    if (!isListening.getAndSet(true) && !hasStopped.get()) {
-      project.getProjectSystem().getBuildManager().addBuildListener(this, BuildListener())
-    }
-  }
-
-  fun stopListening() {
-    hasStopped.set(true)
-  }
-
-  override fun dispose() {
-    stopListening()
+  override fun registerListeners() {
+    project.getProjectSystem().getBuildManager().addBuildListener(this, BuildListener())
   }
 
   inner class BuildListener : ProjectSystemBuildManager.BuildListener {
     override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
-      if (!hasStopped.get()) {
-        incrementModificationCount()
-        notice(Reason.PROJECT_BUILD, null)
-      }
+      if (isDisposed()) return
+
+      incrementModificationCount()
+      notice(Reason.PROJECT_BUILD, null)
     }
   }
 }
@@ -736,78 +755,55 @@ private class ProjectPsiTreeObserver(
 }
 
 private class FileEventObserver(
-  private val module: Module,
+  parentDisposable: Disposable,
   private val notice: (Reason, VirtualFile?) -> Unit,
-) : BulkFileListener {
-  private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
-  private var messageBusConnection: MessageBusConnection? = null
+) : ObserverWithListeners(parentDisposable) {
 
-  fun addListener(listener: ResourceChangeListener) {
-    if (listeners.isEmpty()) registerListeners()
-    listeners.add(listener)
+  override fun registerListeners() {
+    application.messageBus.connect(this).subscribe(VirtualFileManager.VFS_CHANGES, Listener())
   }
 
-  fun removeListener(listener: ResourceChangeListener) {
-    listeners.remove(listener)
-    if (listeners.isEmpty()) unregisterListeners()
+  inner class Listener : BulkFileListener {
+    override fun after(events: List<VFileEvent>) {
+      if (isDisposed()) return
+
+      events
+        .firstOrNull { event ->
+          val parent = event.file?.parent ?: return@firstOrNull false
+
+          val resType = ResourceFolderType.getFolderType(parent.name)
+          ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
+        }
+        ?.let { notice(Reason.IMAGE_RESOURCE_CHANGED, it.file) }
+    }
   }
-
-  private fun registerListeners() {
-    messageBusConnection =
-      requireNotNull(application.messageBus.connect(module)).apply {
-        subscribe(VirtualFileManager.VFS_CHANGES, this@FileEventObserver)
-      }
-  }
-
-  private fun unregisterListeners() {
-    requireNotNull(messageBusConnection).disconnect()
-  }
-
-  override fun after(events: List<VFileEvent>) {
-    events
-      .firstOrNull { event ->
-        val parent = event.file?.parent ?: return@firstOrNull false
-
-        val resType = ResourceFolderType.getFolderType(parent.name)
-        ResourceFolderType.DRAWABLE == resType || ResourceFolderType.MIPMAP == resType
-      }
-      ?.let { notice(Reason.IMAGE_RESOURCE_CHANGED, it.file) }
-  }
-
-  fun hasListeners() = listeners.isNotEmpty()
 }
 
 private class ConfigurationEventObserver(
+  parentDisposable: Disposable,
   private val configuration: Configuration,
   private val notice: (Reason, VirtualFile?) -> Unit,
-) : ConfigurationListener {
-  private val listeners: MutableList<ResourceChangeListener> = ArrayList(2)
+) : ObserverWithListeners(parentDisposable) {
 
-  fun addListener(listener: ResourceChangeListener) {
-    if (listeners.isEmpty()) registerListeners()
-    listeners.add(listener)
+  private val configurationListener = Listener()
+
+  override fun registerListeners() {
+    configuration.addListener(configurationListener)
   }
 
-  fun removeListener(listener: ResourceChangeListener) {
-    listeners.remove(listener)
-    if (listeners.isEmpty()) unregisterListeners()
+  override fun dispose() {
+    super.dispose()
+    configuration.removeListener(configurationListener)
   }
 
-  fun hasListeners() = listeners.isNotEmpty()
+  inner class Listener : ConfigurationListener {
+    override fun changed(flags: Int): Boolean {
+      if (isDisposed()) return true
 
-  private fun registerListeners() {
-    configuration.addListener(this)
-  }
+      if ((flags and ConfigurationListener.MASK_RENDERING) != 0)
+        notice(Reason.CONFIGURATION_CHANGED, null)
 
-  private fun unregisterListeners() {
-    configuration.removeListener(this)
-  }
-
-  // ---- Implements ConfigurationListener ----
-  override fun changed(flags: Int): Boolean {
-    if ((flags and ConfigurationListener.MASK_RENDERING) != 0)
-      notice(Reason.CONFIGURATION_CHANGED, null)
-
-    return true
+      return true
+    }
   }
 }
