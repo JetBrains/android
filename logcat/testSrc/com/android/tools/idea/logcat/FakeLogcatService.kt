@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.service.LogcatService
+import com.jetbrains.rd.util.AtomicInteger
 import java.time.Duration
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +25,8 @@ import kotlinx.coroutines.flow.consumeAsFlow
 
 internal class FakeLogcatService : LogcatService {
   private var channel: Channel<List<LogcatMessage>>? = null
+
+  var invocations = AtomicInteger()
 
   val clearRequests = mutableListOf<String>()
 
@@ -38,7 +41,12 @@ internal class FakeLogcatService : LogcatService {
     duration: Duration,
     newMessagesOnly: Boolean,
   ): Flow<List<LogcatMessage>> {
-    return Channel<List<LogcatMessage>>(1).also { channel = it }.consumeAsFlow()
+    return Channel<List<LogcatMessage>>(1)
+      .also {
+        channel = it
+        invocations.incrementAndGet()
+      }
+      .consumeAsFlow()
   }
 
   override suspend fun clearLogcat(serialNumber: String) {
