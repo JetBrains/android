@@ -35,7 +35,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
@@ -446,8 +445,11 @@ private class ModuleEventObserver(
   private val facet: AndroidFacet,
   private val incrementModificationCount: () -> Unit,
   private val notice: (Reason, VirtualFile?) -> Unit,
-) : ModificationTracker, ResourceFolderListener, Disposable.Default {
+) : ResourceFolderListener, Disposable.Default {
+
+  // Does not require locking/volatile, since it's only accessed on the EDT.
   private var generation = appResourcesModificationCount
+
   private val listenersLock = Any()
   private var connection: MessageBusConnection? = null
 
@@ -457,8 +459,6 @@ private class ModuleEventObserver(
   init {
     Disposer.register(facet, this)
   }
-
-  override fun getModificationCount() = generation
 
   fun addListener(listener: ResourceChangeListener) {
     synchronized(listenersLock) {
