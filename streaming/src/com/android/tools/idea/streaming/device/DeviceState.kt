@@ -59,7 +59,7 @@ internal data class DeviceState(
 
     private fun maskToProperties(mask: UInt): Set<Property> {
       val result = EnumSet.noneOf(Property::class.java)
-      for (property in Property.values()) {
+      for (property in Property.entries) {
         if ((mask and property.mask) != 0u) {
           result.add(property)
         }
