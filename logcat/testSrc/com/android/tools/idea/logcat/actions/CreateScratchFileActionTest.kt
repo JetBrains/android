@@ -24,9 +24,9 @@ import com.intellij.json.JsonLanguage
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -124,10 +124,7 @@ class CreateScratchFileActionTest {
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {
     return TestActionEvent.createTestEvent(
-      MapDataContext().apply {
-        put(PROJECT, project)
-        put(EDITOR, editor)
-      }
+      SimpleDataContext.builder().add(PROJECT, project).add(EDITOR, editor).build()
     )
   }
 }

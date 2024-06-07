@@ -27,7 +27,7 @@ import org.junit.Test
 class LogcatPanelConfigTest {
   @Test
   fun formattingConfig_serializePreset() {
-    for (style in FormattingOptions.Style.values()) {
+    for (style in FormattingOptions.Style.entries) {
       val preset = FormattingConfig.Preset(style)
       val config = logcatPanelConfig(formattingConfig = preset)
 

@@ -31,11 +31,11 @@ import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -124,9 +124,9 @@ class IgnoreTagActionTest {
 
 private fun testActionEvent(editor: EditorEx): AnActionEvent {
   return TestActionEvent.createTestEvent(
-    MapDataContext().apply {
-      put(LogcatPresenter.EDITOR, editor)
-      put(LOGCAT_PRESENTER_ACTION, FakeLogcatPresenter())
-    }
+    SimpleDataContext.builder()
+      .add(LogcatPresenter.EDITOR, editor)
+      .add(LOGCAT_PRESENTER_ACTION, FakeLogcatPresenter())
+      .build()
   )
 }
