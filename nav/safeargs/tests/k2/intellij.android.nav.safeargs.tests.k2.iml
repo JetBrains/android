@@ -34,7 +34,6 @@
     <orderEntry type="module" module-name="intellij.platform.util.rt" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.nav.safeargs.common" scope="TEST" />
-    <orderEntry type="library" scope="PROVIDED" name="kotlinc.high-level-api" level="project" />
     <orderEntry type="module" module-name="kotlin.base.plugin" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.uast.uast-kotlin-base" scope="TEST" />
     <orderEntry type="module" module-name="kotlin.base.fe10.analysis" scope="TEST" />
