@@ -15,24 +15,28 @@
  */
 package com.android.tools.idea.gradle.dsl.api.settings;
 
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
+import com.android.tools.idea.gradle.dsl.model.settings.FromCatalogResolvedProperty;
 import org.jetbrains.annotations.NotNull;
 
 public interface VersionCatalogModel extends GradleBlockModel {
   String DEFAULT_CATALOG_NAME = "libs";
   String DEFAULT_CATALOG_FILE_NAME = "libs.versions.toml";
   String DEFAULT_CATALOG_FILE = "gradle/" + DEFAULT_CATALOG_FILE_NAME;
+  enum VersionCatalogSource {
+    FILES, IMPORTED
+  }
 
   @NotNull
   String getName();
 
   /**
-   * Strictly speaking, from() takes a Dependency, rather than (as currently modelled) a string specification within a call to
-   * `files()`.  At some point this interface method may change its signature to reflect that.
+   * Returns instance of FromCatalogResolvedProperty that is child of ResolvedProperty.
+   * It can be literal for imported catalog, or files("...") for catalog location.
+   * For new catalog model and for libs - it has `files` type
    *
    * @return a resolved property model
    */
   @NotNull
-  ResolvedPropertyModel from();
+  FromCatalogResolvedProperty from();
 }

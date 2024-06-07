@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.dsl.model.settings;
 
-import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.IMPORTED;
+
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
@@ -27,9 +29,11 @@ import org.jetbrains.annotations.NotNull;
 public class VersionCatalogModelImpl extends GradleDslBlockModel implements VersionCatalogModel {
   public static String FROM = "mFrom";
   private DependencyResolutionManagementModel _dependencyResolutionManagement;
+  private VersionCatalogDslElement catalogDslElement;
 
   public VersionCatalogModelImpl(VersionCatalogDslElement element, DependencyResolutionManagementModel dependencyResolutionManagement) {
     super(element);
+    catalogDslElement = element;
     _dependencyResolutionManagement = dependencyResolutionManagement;
   }
 
@@ -39,12 +43,24 @@ public class VersionCatalogModelImpl extends GradleDslBlockModel implements Vers
   }
 
   @Override
-  public @NotNull ResolvedPropertyModel from() {
+  public @NotNull FromCatalogResolvedProperty from() {
     GradlePropertyModelBuilder builder = GradlePropertyModelBuilder.create(myDslElement, FROM);
+    builder = getBuilderForDefaultCatalog(builder);
+    if (catalogDslElement.isFile() || catalogDslElement.getPropertyElement(FROM) == null) {
+      return new FromCatalogResolvedProperty(catalogDslElement,
+                                             builder.addTransform(new SingleArgumentMethodTransform("files")).buildResolved(),
+                                             FILES);
+    }
+    else {
+      return new FromCatalogResolvedProperty(catalogDslElement, builder.buildResolved(), IMPORTED);
+    }
+  }
+
+  private GradlePropertyModelBuilder getBuilderForDefaultCatalog(GradlePropertyModelBuilder builder){
     String name = _dependencyResolutionManagement.catalogDefaultName();
     if (myDslElement.getName().equals(name)) {
-      builder = builder.withDefault(DEFAULT_CATALOG_FILE);
+      return builder.withDefault(DEFAULT_CATALOG_FILE);
     }
-    return builder.addTransform(new SingleArgumentMethodTransform("files")).buildResolved();
+    return builder;
   }
 }
