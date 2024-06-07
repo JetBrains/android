@@ -36,6 +36,7 @@ internal class PreviousOccurrenceToolbarAction(private val navigator: OccurenceN
   PreviousOccurenceAction() {
   init {
     ActionUtil.copyFrom(this, ACTION_PREVIOUS_OCCURENCE)
+    @Suppress("UnstableApiUsage")
     shortcutSet = EMPTY
   }
 

@@ -23,6 +23,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import icons.StudioIcons
 
@@ -53,7 +54,8 @@ internal class AskStudioBotAction : DumbAwareAction(StudioIcons.StudioBot.ASK) {
 
     val label = getLabel(selection, message) ?: return
     e.presentation.isVisible = true
-    e.presentation.text = LogcatBundle.message("logcat.studio.bot.action.label", label)
+    e.presentation.text =
+      StringUtil.toTitleCase(LogcatBundle.message("logcat.studio.bot.action.label", label))
   }
 
   override fun actionPerformed(e: AnActionEvent) {
