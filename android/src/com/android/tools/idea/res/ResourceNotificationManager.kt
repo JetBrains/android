@@ -182,6 +182,15 @@ class ResourceNotificationManager private constructor(private val project: Proje
       )
       .ensureListening()
 
+    val isAndroidFacet = AndroidModel.isRequired(facet)
+    if (isAndroidFacet) {
+      // Ensure that project resources have been initialized first, since
+      // we want all repos to add their own variant listeners before ours (such that
+      // when the variant changes, the project resources get notified and updated
+      // before our own update listener attempts to re-render).
+      StudioResourceRepositoryManager.getProjectResources(facet)
+    }
+
     synchronized(observerLock) {
       val moduleEventObserver =
         moduleToObserverMap.computeIfAbsent(module) { createModuleEventObserver(facet) }
@@ -200,6 +209,10 @@ class ResourceNotificationManager private constructor(private val project: Proje
           }
         configurationEventObserver.addListener(listener)
       }
+    }
+
+    if (isAndroidFacet) {
+      ResourceFolderManager.getInstance(facet) // Make sure ResourceFolderManager is initialized.
     }
 
     return getCurrentVersion(
@@ -463,18 +476,11 @@ private class ModuleEventObserver(
 
   private fun registerListeners() {
     if (AndroidModel.isRequired(facet)) {
-      // Ensure that project resources have been initialized first, since
-      // we want all repos to add their own variant listeners before ours (such that
-      // when the variant changes, the project resources get notified and updated
-      // before our own update listener attempts to re-render).
-      StudioResourceRepositoryManager.getProjectResources(facet)
-
       require(connection == null)
       connection =
         requireNotNull(facet.module.project.messageBus.connect(facet)).apply {
           subscribe(ResourceFolderManager.TOPIC, this@ModuleEventObserver)
         }
-      ResourceFolderManager.getInstance(facet) // Make sure ResourceFolderManager is initialized.
     }
   }
 
