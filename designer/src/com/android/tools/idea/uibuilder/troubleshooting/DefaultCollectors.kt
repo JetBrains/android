@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.troubleshooting
 
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.LibraryDependenciesTroubleInfoCollectorToken
@@ -88,5 +89,5 @@ internal class FastPreviewTroubleInfoCollector : TroubleInfoCollector {
 /** [TroubleInfoCollector] for [PsiCodeFileChangeDetectorService] status. */
 internal class PsiCodeFileChangeDetectorServiceTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String =
-    "PsiCodeFileChangeDetectorService: outOfDateFiles=[${PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.joinToString(",")}]"
+    "PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[${PsiCodeFileOutOfDateStatusReporter.getInstance(project).outOfDateFiles.joinToString(",")}]"
 }

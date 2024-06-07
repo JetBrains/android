@@ -122,18 +122,82 @@ private class CodePsiTreeChangeAdapter(
 private fun PsiFile.isFakeFile(): Boolean =
   virtualFile?.fileSystem is NonPhysicalFileSystem
 
-@Service(Service.Level.PROJECT)
-class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManager) : Disposable {
-  private val isDisposed = AtomicBoolean(false)
-  private val _fileUpdatesFlow = MutableStateFlow(setOf<PsiFile>())
-
+/**
+ * A service that knows which sources files are currently out-of-date.
+ *
+ * Files become out-of-date on any meaningful code change and are marked as up-to-date via [PsiCodeFileUpToDateStatusRecorder] in response
+ * to build and fast source compilation events.
+ */
+interface PsiCodeFileOutOfDateStatusReporter {
   val fileUpdatesFlow: StateFlow<Set<PsiFile>>
-    get() = _fileUpdatesFlow
 
   /**
    * Set of files that are currently out of date.
    */
   val outOfDateFiles: Set<PsiFile>
+
+  companion object {
+    fun getInstance(project: Project): PsiCodeFileOutOfDateStatusReporter = project.getService(PsiCodeFileChangeDetectorService::class.java)
+  }
+}
+
+/**
+ * A service that knows how to remove source files recently built for the purpose of "rendering" from the set of currently out-of-date files,
+ * which is accessible via [PsiCodeFileOutOfDateStatusReporter].
+ */
+interface PsiCodeFileUpToDateStatusRecorder {
+  // TODO: b/331381702 - This method should accept a scope (probably [GlobalSearchScope]) that defines the scope of the build that is being
+  // started. Note, that currently any completed build (of type compile and assemble) marks all out-of-date files as up-to-date, which is
+  // often incorrect (unless the whole project is being built).
+
+  /**
+   * An action that knows the set of out-of-date files at the moment of its instantiation and can be used to mark them as up-to-date.
+   */
+  fun interface MarkUpToDateAction {
+    /**
+     * Marks files that were out-of-date when the action was created as up-to-date.
+     */
+    fun markUpToDate()
+  }
+  /**
+   * Returns an action (a callback) that marks currently out-of-date files as being up-to-date
+   *
+   * This method is supposed to be invoked when a new build starts to record the current set of out-of-date files and the returned action
+   * is supposed to be invoked when the build completes successfully.
+   *
+   * The files marked as up-to-date will remain as up-to-date until the next change.
+   */
+  fun prepareMarkUpToDate(): MarkUpToDateAction
+
+  /**
+   * Marks the given [files] as being up-to-date. They will remain as up to date until the next change.
+   */
+  fun markAsUpToDate(files: Collection<PsiFile>)
+
+  /**
+   * Mark one file as out of date. This method is only meant to be used during testing.
+   */
+  @TestOnly
+  fun markFileAsOutOfDateForTests(file: PsiFile)
+
+  companion object {
+    fun getInstance(project: Project): PsiCodeFileUpToDateStatusRecorder = project.getService(PsiCodeFileChangeDetectorService::class.java)
+  }
+}
+
+@Service(Service.Level.PROJECT)
+class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManager) : Disposable, PsiCodeFileOutOfDateStatusReporter,
+                                                                                     PsiCodeFileUpToDateStatusRecorder {
+  private val isDisposed = AtomicBoolean(false)
+  private val _fileUpdatesFlow = MutableStateFlow(setOf<PsiFile>())
+
+  override val fileUpdatesFlow: StateFlow<Set<PsiFile>>
+    get() = _fileUpdatesFlow
+
+  /**
+   * Set of files that are currently out of date.
+   */
+  override val outOfDateFiles: Set<PsiFile>
     get() = fileUpdatesFlow.value
 
   @Suppress("unused")
@@ -160,10 +224,15 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
     _fileUpdatesFlow.value = setOf()
   }
 
+  override fun prepareMarkUpToDate(): PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction {
+    val changed = outOfDateFiles
+    return PsiCodeFileUpToDateStatusRecorder.MarkUpToDateAction{ markAsUpToDate(changed) }
+  }
+
   /**
    * Marks the given [files] as being up to date. They will remain as up to date until the next change.
    */
-  fun markAsUpToDate(files: Collection<PsiFile>) {
+  override fun markAsUpToDate(files: Collection<PsiFile>) {
     _fileUpdatesFlow.value -= files
   }
 
@@ -171,7 +240,7 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
    * Mark one file as out of date. This method is only meant to be used during testing.
    */
   @TestOnly
-  fun markFileAsOutOfDate(file: PsiFile) {
+  override fun markFileAsOutOfDateForTests(file: PsiFile) {
     onCodeChange(file)
   }
 
@@ -179,11 +248,7 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
     isDisposed.set(true)
     markAllAsUpToDate()
   }
-
-  companion object {
-    fun getInstance(project: Project): PsiCodeFileChangeDetectorService = project.getService(PsiCodeFileChangeDetectorService::class.java)
-  }
 }
 
-val PsiCodeFileChangeDetectorService.outOfDateKtFiles: Set<PsiFile>
+val PsiCodeFileOutOfDateStatusReporter.outOfDateKtFiles: Set<PsiFile>
   get() = outOfDateFiles.filter { it.language == KotlinLanguage.INSTANCE }.toSet()

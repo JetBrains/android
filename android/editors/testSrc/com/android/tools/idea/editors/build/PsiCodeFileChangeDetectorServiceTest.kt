@@ -25,7 +25,8 @@ class PsiCodeFileChangeDetectorServiceTest {
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
 
-  private lateinit var psiCodeFileChangeDetectorService: PsiCodeFileChangeDetectorService
+  private lateinit var myPsiCodeFileOutOfDateStatusReporter: PsiCodeFileOutOfDateStatusReporter
+  private lateinit var myPsiCodeFileUpToDateStatusRecorder: PsiCodeFileUpToDateStatusRecorder
   private lateinit var kotlinFile: PsiFile
   private lateinit var secondKotlinFile: PsiFile
   private lateinit var javaFile: PsiFile
@@ -33,8 +34,11 @@ class PsiCodeFileChangeDetectorServiceTest {
 
   @Before
   fun setUp() {
-    psiCodeFileChangeDetectorService =
-      PsiCodeFileChangeDetectorService.getInstance(projectRule.project)
+    myPsiCodeFileOutOfDateStatusReporter =
+      PsiCodeFileOutOfDateStatusReporter.getInstance(projectRule.project)
+
+    myPsiCodeFileUpToDateStatusRecorder =
+      PsiCodeFileUpToDateStatusRecorder.getInstance(projectRule.project)
 
     kotlinFile =
       fixture.addFileToProject(
@@ -119,7 +123,7 @@ class PsiCodeFileChangeDetectorServiceTest {
     // previews. Because of this, we do not want
     // to mark them as out of date until the user modifies them.
 
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles).isEmpty()
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
   }
 
   @Test
@@ -132,7 +136,7 @@ class PsiCodeFileChangeDetectorServiceTest {
 
     val flowJob =
       launch(workerThread) {
-        psiCodeFileChangeDetectorService.fileUpdatesFlow
+        myPsiCodeFileOutOfDateStatusReporter.fileUpdatesFlow
           .take(6) // We expect 6 changes
           .collect {
             flowUpdates.add(it.map(PsiFile::toString))
@@ -154,12 +158,12 @@ class PsiCodeFileChangeDetectorServiceTest {
         )
       }
     }
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles.map { it.name })
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.map { it.name })
       .containsExactly("test.kt")
 
     semaphore.acquire()
-    psiCodeFileChangeDetectorService.markAsUpToDate(setOf(kotlinFile))
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles).isEmpty()
+    myPsiCodeFileUpToDateStatusRecorder.markAsUpToDate(setOf(kotlinFile))
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
 
     // The XML file should not trigger an update, since only Java and Kotlin files are tracked.
     // Don't acquire the semaphore, since it won't
@@ -187,7 +191,7 @@ class PsiCodeFileChangeDetectorServiceTest {
       fixture.editor.executeAndSave { replaceText("// INSERT METHOD", "public void test() {}") }
     }
 
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles.map { it.name })
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.map { it.name })
       .containsExactly("MyClass.java", "otherFile.kt", "test.kt")
 
     // Wait for all the changes to have been collected
@@ -215,7 +219,7 @@ class PsiCodeFileChangeDetectorServiceTest {
         replaceText("// INSERT METHOD", "// INSERT METHOD MORE COMMENT")
       }
     }
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles).isEmpty()
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
   }
 
   @Test
@@ -224,7 +228,7 @@ class PsiCodeFileChangeDetectorServiceTest {
       fixture.openFileInEditor(kotlinFile.virtualFile)
       fixture.editor.executeAndSave { replaceText("primary = 1", "primary = 2") }
     }
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles.map { it.name })
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.map { it.name })
       .containsExactly("test.kt")
   }
 
@@ -234,7 +238,7 @@ class PsiCodeFileChangeDetectorServiceTest {
       fixture.openFileInEditor(kotlinFile.virtualFile)
       fixture.editor.executeAndSave { replaceText("AnnotationContent", "AnnotationContent2") }
     }
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles).isEmpty()
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
   }
 
   @Test
@@ -250,6 +254,6 @@ class PsiCodeFileChangeDetectorServiceTest {
     val methodToAdd = runReadAction { psiFactory.createFunction("fun second() {}") }
     WriteCommandAction.runWriteCommandAction(projectRule.project) { file.add(methodToAdd) }
 
-    assertThat(psiCodeFileChangeDetectorService.outOfDateFiles).isEmpty()
+    assertThat(myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles).isEmpty()
   }
 }

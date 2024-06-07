@@ -43,7 +43,7 @@ class DesignToolsTroubleInfoCollectorTest {
           libDepCount=0
 
 
-        PsiCodeFileChangeDetectorService: outOfDateFiles=[]
+        PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
 
         IssuePanelService: nIssues=0
 
@@ -70,7 +70,7 @@ class DesignToolsTroubleInfoCollectorTest {
           libDepCount=0
 
 
-        PsiCodeFileChangeDetectorService: outOfDateFiles=[]
+        PsiCodeFileOutOfDateStatusReporter: outOfDateFiles=[]
 
         IssuePanelService: nIssues=0
 

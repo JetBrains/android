@@ -29,7 +29,7 @@ import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
@@ -320,8 +320,8 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
 
-  private val psiCodeFileChangeDetectorService =
-    PsiCodeFileChangeDetectorService.getInstance(project)
+  private val myPsiCodeFileOutOfDateStatusReporter =
+    PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
   private var renderedElementsFlow =
     MutableStateFlow<FlowableCollection<T>>(FlowableCollection.Uninitialized)
@@ -702,8 +702,9 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
     //   enabled, and then a full refresh will happen.
     // - Re-activation and any non-kotlin file out of date: manual invalidation done here and then
     //   a full refresh will happen
-    if (psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()) invalidate()
-    val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
+    if (myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()) invalidate()
+    val anyKtFilesOutOfDate =
+      myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.any { it is KtFile }
     if (isFastPreviewAvailable() && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
@@ -724,7 +725,7 @@ open class CommonPreviewRepresentation<T : PsiPreviewElementInstance>(
         initializeFlows(
           disposable = this@CommonPreviewRepresentation,
           previewModeManager = previewModeManager,
-          psiCodeFileChangeDetectorService = psiCodeFileChangeDetectorService,
+          psiCodeFileOutOfDateStatusReporter = myPsiCodeFileOutOfDateStatusReporter,
           psiFilePointer = psiFilePointer,
           invalidate = ::invalidate,
           requestRefresh = ::requestRefresh,
