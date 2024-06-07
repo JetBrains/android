@@ -17,6 +17,12 @@ package com.android.tools.idea.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.surface.DesignSurface
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.InteractivePreviewEvent
+import com.intellij.openapi.diagnostic.Logger
+import java.util.concurrent.Executor
+import java.util.concurrent.RejectedExecutionException
+import java.util.function.Consumer
 
 /** Interface for usage tracking in the interactive preview. */
 interface InteractivePreviewUsageTracker {
@@ -41,5 +47,63 @@ interface InteractivePreviewUsageTracker {
       )
 
     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
+  }
+}
+
+class InteractiveNopTracker : InteractivePreviewUsageTracker {
+  override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {}
+
+  override fun logStartupTime(timeMs: Int, peers: Int) {}
+}
+
+private val LOG: Logger
+  get() = Logger.getInstance(InteractivePreviewUsageTrackerImpl::class.java)
+
+/** Usage tracking implementation for interactive previews */
+class InteractivePreviewUsageTrackerImpl(
+  private val myExecutor: Executor,
+  private val myEventLogger: Consumer<AndroidStudioEvent.Builder>,
+) : InteractivePreviewUsageTracker {
+
+  override fun logInteractiveSession(fps: Int, durationMs: Int, userInteractions: Int) {
+    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.REPORT_FPS) {
+      it.fps = fps
+      it.durationMs = durationMs
+      it.actions = userInteractions
+    }
+  }
+
+  override fun logStartupTime(timeMs: Int, peers: Int) {
+    logInteractiveEvent(InteractivePreviewEvent.InteractivePreviewEventType.REPORT_STARTUP_TIME) {
+      it.startupTimeMs = timeMs
+      it.peerPreviews = peers
+    }
+  }
+
+  /**
+   * A generic method to log any [InteractivePreviewEvent]. Accepts [type] of the event and a
+   * [consumer] to customize the event fileds based on its [type].
+   */
+  private fun logInteractiveEvent(
+    type: InteractivePreviewEvent.InteractivePreviewEventType,
+    consumer: (InteractivePreviewEvent.Builder) -> Unit,
+  ) {
+    try {
+      myExecutor.execute {
+        val builder = InteractivePreviewEvent.newBuilder().setType(type)
+
+        consumer(builder)
+
+        val event =
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.INTERACTIVE_PREVIEW_EVENT)
+            .setInteractivePreviewEvent(builder.build())
+
+        myEventLogger.accept(event)
+      }
+    } catch (e: RejectedExecutionException) {
+      // We are hitting the throttling limit
+      LOG.debug("Failed to report interactive preview metrics", e)
+    }
   }
 }
