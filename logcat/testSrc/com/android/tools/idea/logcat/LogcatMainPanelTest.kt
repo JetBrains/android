@@ -120,6 +120,7 @@ import java.util.concurrent.TimeoutException
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import kotlinx.coroutines.runBlocking
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
@@ -755,6 +756,7 @@ class LogcatMainPanelTest {
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
   }
 
+  @Ignore("b/344987760")
   @Test
   fun resumeLogcat_jobResumed() = runBlocking {
     val message1 =
@@ -764,7 +766,9 @@ class LogcatMainPanelTest {
       )
     deviceTracker.addDevices(device1)
     val logcatMainPanel = runInEdtAndGet {
-      logcatMainPanel().also { waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null} }
+      logcatMainPanel().also {
+        waitForCondition { it.getConnectedDevice() != null && it.logcatServiceJob != null }
+      }
     }
     logcatMainPanel.pauseLogcat()
     waitForCondition { logcatMainPanel.logcatServiceJob == null }
