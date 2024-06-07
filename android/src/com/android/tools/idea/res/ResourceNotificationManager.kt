@@ -107,9 +107,6 @@ class ResourceNotificationManager private constructor(private val project: Proje
   private val configurationToObserverMap: MutableMap<Configuration, ConfigurationEventObserver> =
     mutableMapOf()
 
-  /** Project wide observer: a single one is sufficient. */
-  @GuardedBy("observerLock") private var projectPsiTreeObserver: ProjectPsiTreeObserver? = null
-
   /** Whether we've already been notified about a change and we'll be firing it shortly. */
   private val pendingNotify = AtomicBoolean()
 
@@ -187,13 +184,7 @@ class ResourceNotificationManager private constructor(private val project: Proje
 
     synchronized(observerLock) {
       val moduleEventObserver =
-        moduleToObserverMap.computeIfAbsent(module) {
-          if (moduleToObserverMap.isEmpty()) {
-            if (projectPsiTreeObserver == null)
-              projectPsiTreeObserver = ProjectPsiTreeObserver(::notice, ::isRelevantFile)
-          }
-          createModuleEventObserver(facet)
-        }
+        moduleToObserverMap.computeIfAbsent(module) { createModuleEventObserver(facet) }
       moduleEventObserver.addListener(listener)
 
       if (file != null) {
@@ -264,14 +255,12 @@ class ResourceNotificationManager private constructor(private val project: Proje
         moduleEventObserver.removeListener(listener)
         if (!moduleEventObserver.hasListeners()) {
           Disposer.dispose(moduleEventObserver)
-          if (moduleToObserverMap.isEmpty() && projectPsiTreeObserver != null) {
+          if (moduleToObserverMap.isEmpty()) {
             val oldProjectBuildObserver = projectBuildObserver.getAndSet(null)
             if (oldProjectBuildObserver != null) {
               oldProjectBuildObserver.stopListening()
               toDispose.add(oldProjectBuildObserver)
             }
-
-            projectPsiTreeObserver = null
           }
         }
       }
@@ -282,14 +271,14 @@ class ResourceNotificationManager private constructor(private val project: Proje
     }
   }
 
-  val psiListener: PsiTreeChangeListener?
+  val psiListener: PsiTreeChangeListener? = ProjectPsiTreeObserver(::notice, ::isRelevantFile)
     /**
      * Returns an implementation of [PsiTreeChangeListener] that is not registered and is used as a
      * delegate (e.g in [AndroidPsiTreeChangeListener]).
      *
      * If no listener has been added to the [ResourceNotificationManager], this method returns null.
      */
-    get() = synchronized(observerLock) { projectPsiTreeObserver }
+    get() = field.takeIf { synchronized(observerLock) { moduleToObserverMap.isNotEmpty() } }
 
   /**
    * Something happened. Either schedule a notification or if one is already pending, do nothing.
