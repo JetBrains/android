@@ -295,7 +295,7 @@ private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KaSession.(KaDe
     allowAnalysisFromWriteAction {
       analyze(this) {
         val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
-        declaration?.getSymbol()?.let { block(it) }
+        declaration?.symbol?.let { block(it) }
       }
     }
   }

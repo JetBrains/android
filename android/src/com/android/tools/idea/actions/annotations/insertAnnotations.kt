@@ -107,7 +107,7 @@ fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTar
   if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {
       analyze(this) {
-        val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.getSymbol() as? KaAnnotatedSymbol
+        val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.symbol as? KaAnnotatedSymbol
         val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(annotationFqName))
         return annotations?.firstOrNull { annoApp ->
           annoApp.useSiteTarget == useSiteTarget

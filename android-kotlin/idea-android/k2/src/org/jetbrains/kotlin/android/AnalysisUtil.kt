@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.android
 
 import org.jetbrains.kotlin.analysis.api.KaSession
-import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassLikeSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtErrorType
 import org.jetbrains.kotlin.analysis.api.types.KtType
@@ -26,7 +25,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 
 
 fun KaSession.isSubclassOf(subClass: KtClassOrObject, superClassId: ClassId, strict: Boolean = false): Boolean {
-    val classSymbol = subClass.getSymbol() as? KaClassLikeSymbol ?: return false
+    val classSymbol = subClass.symbol as? KaClassLikeSymbol ?: return false
     return isSubclassOf(classSymbol, superClassId, strict)
 }
 

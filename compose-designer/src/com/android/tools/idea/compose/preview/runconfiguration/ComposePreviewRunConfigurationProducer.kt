@@ -154,7 +154,7 @@ private fun KtAnnotationEntry.providerClassName(): String? {
 private fun KtParameter.providerClassNameK2(): String? {
   allowAnalysisOnEdt {
     return analyze(this) {
-      val annotatedSymbol = this@providerClassNameK2.getSymbol()
+      val annotatedSymbol = this@providerClassNameK2.symbol
       val annotationClassId = ClassId.topLevel(FqName(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN))
       val annotation = annotatedSymbol.annotationsByClassId(annotationClassId).singleOrNull()
       annotation?.let(::findProviderClassId)?.asFqNameString()

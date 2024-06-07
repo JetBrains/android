@@ -42,7 +42,7 @@ fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderPa
     allowAnalysisOnEdt {
       analyze(this) {
         val functionLikeSymbol =
-          this@getComposableFunctionRenderParts.getSymbol() as? KaFunctionLikeSymbol ?: return null
+          this@getComposableFunctionRenderParts.symbol as? KaFunctionLikeSymbol ?: return null
         getComposableFunctionRenderParts(functionLikeSymbol)
       }
     }

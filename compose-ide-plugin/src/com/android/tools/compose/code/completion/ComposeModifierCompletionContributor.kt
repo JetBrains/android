@@ -286,7 +286,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     val elementToAnalyze = this.containingClassOrObject ?: this
     analyze(elementToAnalyze) {
       val symbolWithVisibility =
-        elementToAnalyze.getSymbol() as? KaSymbolWithVisibility ?: return true
+        elementToAnalyze.symbol as? KaSymbolWithVisibility ?: return true
 
       return isVisible(
         symbolWithVisibility,
