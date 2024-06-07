@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS_800_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING;
 import static com.android.tools.idea.gradle.dsl.TestFileNameImpl.VIEW_BINDING_MODEL_ADD_ELEMENTS_FROM_EXISTING_EXPECTED;
@@ -28,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ViewBindingModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import org.junit.Test;
 
 /**
@@ -43,6 +45,19 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
     ViewBindingModel viewBinding = android.viewBinding();
     assertEquals("enabled", Boolean.FALSE, viewBinding.enabled());
+  }
+
+  @Test
+  public void testParseElements800() throws Exception {
+    writeToBuildFile(VIEW_BINDING_MODEL_PARSE_ELEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0"));
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    ViewBindingModel viewBinding = android.viewBinding();
+    assertEquals("enabled", (Boolean) null, viewBinding.enabled());
   }
 
   @Test
@@ -83,6 +98,30 @@ public class ViewBindingModelTest extends GradleFileModelTestCase {
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_ADD_ELEMENTS_EXPECTED);
+
+    android = buildModel.android();
+    assertNotNull(android);
+
+    viewBinding = android.viewBinding();
+    assertEquals("enabled", Boolean.FALSE, viewBinding.enabled());
+  }
+
+  @Test
+  public void testAddElements800() throws Exception {
+    writeToBuildFile(VIEW_BINDING_MODEL_ADD_ELEMENTS);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    buildModel.getContext().setAgpVersion(AndroidGradlePluginVersion.Companion.parse("8.0.0"));
+    AndroidModel android = buildModel.android();
+    assertNotNull(android);
+
+    ViewBindingModel viewBinding = android.viewBinding();
+    assertMissingProperty("enabled", viewBinding.enabled());
+
+    viewBinding.enabled().setValue(false);
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, VIEW_BINDING_MODEL_ADD_ELEMENTS_800_EXPECTED);
 
     android = buildModel.android();
     assertNotNull(android);
