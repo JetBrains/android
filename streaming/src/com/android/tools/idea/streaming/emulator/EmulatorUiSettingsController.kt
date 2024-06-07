@@ -21,8 +21,8 @@ import com.android.adblib.shellAsLines
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.projectsystem.ApplicationProjectContextProvider.RunningApplicationIdentity
 import com.android.tools.idea.res.AppLanguageService
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.idea.streaming.uisettings.data.AppLanguage
@@ -96,7 +96,7 @@ internal const val POPULATE_LANGUAGE_COMMAND =
 
 internal const val FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE =
   "cmd uimode night no; " +
-  "cmd locale set-app-locales %s --locales null; " +
+  "cmd locale set-app-locales %s --locales; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " // Parameters: applicationId
@@ -104,7 +104,7 @@ internal const val FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE =
 internal const val FACTORY_RESET_COMMAND =
   "cmd uimode night no; " +
   "cmd overlay enable $GESTURES_OVERLAY; " +
-  "cmd locale set-app-locales %s --locales null; " +
+  "cmd locale set-app-locales %s --locales; " +
   "settings delete secure $ENABLED_ACCESSIBILITY_SERVICES; " +
   "settings delete secure $ACCESSIBILITY_BUTTON_TARGETS; " +
   "settings put system font_scale 1; " +
