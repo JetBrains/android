@@ -102,6 +102,19 @@ class TomlErrorParserTest {
 
   @Test
   @RunsInEdt
+  fun testTomlWrongReference() {
+    doTest("libs", 1, 0,
+           """
+           [libraries]
+           androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "reference" }
+           """.trimIndent(),
+           { getVersionCatalogReferenceIssueBuildOutput() },
+           { getVersionCatalogReferenceIssueDescription() }
+    )
+  }
+
+  @Test
+  @RunsInEdt
   fun testTomlTopLevelCatalogIssue() {
     doTest("libs", 0, 0,
            """
@@ -458,6 +471,45 @@ Invalid catalog definition.
     Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\-])+ regular expression.
     
     For more information, please refer to https://docs.gradle.org/8.2/userguide/version_catalog_problems.html#invalid_alias_notation in the Gradle documentation.
+      """.trimIndent()
+
+
+  fun getVersionCatalogReferenceIssueBuildOutput(): String = """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+org.gradle.api.InvalidUserDataException: Invalid catalog definition:
+  - Problem: In version catalog libs, version reference 'reference' doesn't exist.
+    
+    Reason: Dependency 'androidx.core:core-ktx' references version 'reference' which doesn't exist.
+    
+    Possible solution: Declare 'reference' in the catalog.
+    
+    For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#undefined_version_reference in the Gradle documentation.
+> Invalid catalog definition:
+    - Problem: In version catalog libs, version reference 'reference' doesn't exist.
+      
+      Reason: Dependency 'androidx.core:core-ktx' references version 'reference' which doesn't exist.
+      
+      Possible solution: Declare 'reference' in the catalog.
+      
+      For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#undefined_version_reference in the Gradle documentation.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+  """.trimIndent()
+
+  fun getVersionCatalogReferenceIssueDescription(): String = """
+Invalid catalog definition.
+  - Problem: In version catalog libs, version reference 'reference' doesn't exist.
+    
+    Reason: Dependency 'androidx.core:core-ktx' references version 'reference' which doesn't exist.
+    
+    Possible solution: Declare 'reference' in the catalog.
+    
+    For more information, please refer to https://docs.gradle.org/8.7/userguide/version_catalog_problems.html#undefined_version_reference in the Gradle documentation.
       """.trimIndent()
 
 }

@@ -32,6 +32,7 @@ import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.childrenOfType
+import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlTable
 import java.nio.file.Paths
@@ -59,7 +60,7 @@ class TomlErrorParser : BuildOutputParser {
 
     // Check if it is a TOML parse error.
     if (firstDescriptionLine.endsWith("Invalid TOML catalog definition:")) {
-      val description = StringBuilder().appendLine("Invalid TOML catalog definition.")
+      val description = StringBuilder().appendLine(BUILD_ISSUE_TITLE)
       val problemLine = reader.readLine() ?: return false
 
       PROBLEM_TOP_LEVEL_PATTERN.matchEntire(problemLine)?.let {
@@ -87,14 +88,25 @@ class TomlErrorParser : BuildOutputParser {
       val description = StringBuilder().appendLine("Invalid catalog definition.")
       val problemLine = reader.readLine() ?: return false
       description.appendLine(problemLine)
-      val (catalog, type, alias) = PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.destructured ?: return false
-      val tomlTableName = TYPE_NAMING_PARSING[type] ?: return false
-      val event = extractAliasInformation(
-        catalog, tomlTableName, alias, description, reader
-      ) ?: return false
-      messageConsumer.accept(event)
-      BuildOutputParserUtils.consumeRestOfOutput(reader)
-      return true
+      PROBLEM_ALIAS_PATTERN.matchEntire(problemLine)?.let {
+        val (catalog, type, alias) = it.destructured
+        val tomlTableName = TYPE_NAMING_PARSING[type] ?: return false
+        val event = extractAliasInformation(
+          catalog, tomlTableName, alias, description, reader
+        ) ?: return false
+        messageConsumer.accept(event)
+        BuildOutputParserUtils.consumeRestOfOutput(reader)
+        return true
+      }
+      PROBLEM_REFERENCE_PATTERN.matchEntire(problemLine)?.let{
+        val (catalog, reference) = it.destructured
+        val event = extractReferenceInformation(
+          catalog, reference, description, reader
+        ) ?: return false
+        messageConsumer.accept(event)
+        BuildOutputParserUtils.consumeRestOfOutput(reader)
+        return true
+      }
     }
     return false
   }
@@ -172,6 +184,63 @@ class TomlErrorParser : BuildOutputParser {
     return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
   }
 
+  private fun extractReferenceInformation(catalog: String,
+                                      reference: String,
+                                      description: StringBuilder,
+                                      reader: BuildOutputInstantReader): BuildIssueEventImpl? {
+
+    var dependency: String? = null
+    while (true) {
+      val descriptionLine = reader.readLine() ?: return null
+      if (descriptionLine.startsWith("> Invalid catalog definition")) break
+      if (dependency == null) {
+        REASON_REFERENCE_PATTERN.matchEntire(descriptionLine)?.run {
+          val (dep, _) = destructured
+          dependency = dep
+        }
+      }
+      description.appendLine(descriptionLine)
+    }
+    if(dependency == null) return null
+    val buildIssue = object : BuildIssue {
+      override val description: String = description.toString().trimEnd()
+      override val quickFixes: List<BuildIssueQuickFix> = emptyList()
+      override val title: String = BUILD_ISSUE_TITLE
+
+      private fun computeNavigable(project: Project, virtualFile: VirtualFile): OpenFileDescriptor {
+        val fileDescriptor = OpenFileDescriptor(project, virtualFile)
+        val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return fileDescriptor
+        val element = psiFile.childrenOfType<TomlTable>()
+                        .filter { it.header.key?.text == "libraries" }
+                        .flatMap { table -> table.childrenOfType<TomlKeyValue>() }
+                        .find { e ->
+                          val content = e.value
+                          val (group, name) = dependency!!.split(":")
+                          if (content is TomlInlineTable) {
+                            (
+                              content.findKeyValue("module", dependency!!) ||
+                              (content.findKeyValue("group", group) && content.findKeyValue("name", name))
+                            ) && content.findKeyValue("version.ref", reference)
+                          } else
+                          false
+                        } ?: return fileDescriptor
+        val (lineNumber, columnNumber) = getElementLineAndColumn(element) ?: return fileDescriptor
+        return OpenFileDescriptor(project, virtualFile, lineNumber, columnNumber)
+      }
+
+      override fun getNavigatable(project: Project): Navigatable? {
+        val file = project.findCatalogFile(catalog) ?: return null
+        return runReadAction {
+          computeNavigable(project, file)
+        }
+      }
+    }
+    return BuildIssueEventImpl(reader.parentEventId, buildIssue, MessageEvent.Kind.ERROR)
+  }
+
+  private fun TomlInlineTable.findKeyValue(key: String, value: String):Boolean =
+    entries.any { it.key.text == key && it.value?.text == "\"$value\"" }
+
   private data class ErrorDescription(
     val absolutePath: String?,
     val line: Int?,
@@ -230,9 +299,11 @@ class TomlErrorParser : BuildOutputParser {
     const val BUILD_ISSUE_TITLE: String = "Invalid TOML catalog definition."
     val PROBLEM_LINE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+),.*".toRegex()
     val PROBLEM_ALIAS_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), invalid ([^ ]+) alias '([^ ]+)'.".toRegex()
+    val PROBLEM_REFERENCE_PATTERN: Regex = "  - Problem: In version catalog ([^ ]+), version reference '([^']+)' doesn't exist.".toRegex()
     val PROBLEM_TOP_LEVEL_PATTERN: Regex = "\\s+- Problem: In version catalog ([^ ]+), unknown top level elements \\[([^ ]+)\\].*".toRegex()
     val REASON_POSITION_PATTERN: Regex = "\\s+Reason: At line ([0-9]+), column ([0-9]+):.*".toRegex()
     val REASON_FILE_AND_POSITION_PATTERN: Regex = "\\s+Reason: In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
+    val REASON_REFERENCE_PATTERN: Regex = "\\s+Reason: Dependency '([^']+)' references version '([^']+)' which doesn't exist.".toRegex()
     val REASON_FILE_AND_POSITION_PATTERN_CONTINUATION: Regex = "\\s+In file '([^']+)' at line ([0-9]+), column ([0-9]+):.*".toRegex()
 
     private val TYPE_NAMING_PARSING = mapOf("bundle" to "bundles",
