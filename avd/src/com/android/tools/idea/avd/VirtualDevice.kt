@@ -99,6 +99,7 @@ internal constructor(
 
   override fun toBuilder(): Builder = Builder().apply { copyFrom(this@VirtualDevice) }
 
+  @Suppress("MemberVisibilityCanBePrivate")
   class Builder : DeviceProfile.Builder() {
     lateinit var deviceId: String
     lateinit var sdkExtensionLevel: AndroidVersion
