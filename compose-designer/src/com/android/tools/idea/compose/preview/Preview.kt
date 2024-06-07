@@ -60,6 +60,7 @@ import com.android.tools.idea.preview.PreviewRefreshManager
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
+import com.android.tools.idea.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.analytics.PreviewRefreshEventBuilder
 import com.android.tools.idea.preview.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
@@ -72,7 +73,6 @@ import com.android.tools.idea.preview.gallery.GalleryMode
 import com.android.tools.idea.preview.getDefaultPreviewQuality
 import com.android.tools.idea.preview.groups.PreviewGroupManager
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
-import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.interactive.fpsLimitFlow
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
