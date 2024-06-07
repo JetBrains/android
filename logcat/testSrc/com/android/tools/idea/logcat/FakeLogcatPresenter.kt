@@ -40,7 +40,7 @@ import java.nio.file.Path
  * limitations under the License.
  */
 internal class FakeLogcatPresenter : LogcatPresenter {
-  var reloadedMessages = 0
+  private var reloadedMessages = 0
   var logcatRestartedCount = 0
   var attachedDevice: Device? = null
   var device: Device? = null

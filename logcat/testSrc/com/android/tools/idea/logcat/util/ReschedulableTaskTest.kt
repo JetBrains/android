@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.testutils.MockitoKt.mock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.Mockito.never
@@ -27,7 +28,7 @@ class ReschedulableTaskTest {
 
   @Test
   fun runsDelayed() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val reschedulableTask = ReschedulableTask(this)
       val mockTask = mock<Runnable>()
 
@@ -42,7 +43,7 @@ class ReschedulableTaskTest {
 
   @Test
   fun rescheduled_runsOnce() =
-    runTest(dispatchTimeoutMs = 5_000) {
+    runTest(timeout = 5.seconds) {
       val reschedulableTask = ReschedulableTask(this)
       val mockTask = mock<Runnable>()
 

@@ -52,6 +52,7 @@ import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -90,8 +91,8 @@ class LogcatToolWindowFactoryTest {
   }
 
   @Test
-  fun isApplicable() {
-    assertThat(logcatToolWindowFactory().isApplicable(project)).isTrue()
+  fun isApplicable() = runBlocking {
+    assertThat(logcatToolWindowFactory().isApplicableAsync(project)).isTrue()
   }
 
   @Test

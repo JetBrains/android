@@ -20,14 +20,13 @@ import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserDialog
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
@@ -63,12 +62,10 @@ class ImportLogcatActionTest {
 
   private fun testEvent(logcatPresenter: LogcatPresenter) =
     TestActionEvent.createTestEvent(
-      MapDataContext(
-        mapOf(
-          CommonDataKeys.PROJECT to projectRule.project,
-          LogcatPresenter.LOGCAT_PRESENTER_ACTION to logcatPresenter,
-        )
-      )
+      SimpleDataContext.builder()
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .add(LogcatPresenter.LOGCAT_PRESENTER_ACTION, logcatPresenter)
+        .build()
     )
 
   private class FakeFileChooserFactory : FileChooserFactoryImpl() {
@@ -85,14 +82,7 @@ class ImportLogcatActionTest {
       project: Project?,
       parent: Component?,
     ): FileChooserDialog {
-      return object : FileChooserDialog {
-        @Deprecated("Deprecated in Java", ReplaceWith("NA"))
-        override fun choose(toSelect: VirtualFile?, project: Project?) = TODO("Not yet implemented")
-
-        override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> {
-          return arrayOf(virtualFile)
-        }
-      }
+      return FileChooserDialog { _, _ -> arrayOf(virtualFile) }
     }
   }
 }

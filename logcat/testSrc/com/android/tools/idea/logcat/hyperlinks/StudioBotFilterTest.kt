@@ -120,7 +120,7 @@ class StudioBotFilterTest {
 }
 
 private fun LogcatMessage.formatMessage(): String =
-  message.toString().replace("Exception", "Exception  (Ask Gemini)")
+  message.replace("Exception", "Exception  (Ask Gemini)")
 
 private fun ResultItem.getText(line: String) =
   line.substring(highlightStartOffset, highlightEndOffset)

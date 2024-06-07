@@ -25,11 +25,11 @@ import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
@@ -236,11 +236,12 @@ class AskStudioBotActionTest {
   }
 
   private fun testActionEvent(editor: EditorEx): AnActionEvent {
+    TestActionEvent.createTestEvent {}
     return TestActionEvent.createTestEvent(
-      MapDataContext().apply {
-        put(LogcatPresenter.EDITOR, editor)
-        put(CommonDataKeys.PROJECT, projectRule.project)
-      }
+      SimpleDataContext.builder()
+        .add(LogcatPresenter.EDITOR, editor)
+        .add(CommonDataKeys.PROJECT, projectRule.project)
+        .build()
     )
   }
 }
