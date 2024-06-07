@@ -80,7 +80,6 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
-import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelDataImpl
@@ -147,6 +146,7 @@ import com.intellij.externalSystem.JavaProjectData
 import com.intellij.gradle.toolingExtension.impl.model.sourceSetModel.DefaultGradleSourceSetModel
 import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.impl.ProjectUtil
+import com.intellij.ide.impl.runUnderModalProgressIfIsEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
@@ -2261,22 +2261,14 @@ private fun <T> openPreparedProject(
           fixDummySyncViewManager(project, project, options.syncViewEventHandler)
         }
 
-        // NOTE: `::afterCreate` is passed to both `withAfterCreate` and `openOrImport` because, unfortunately, `openOrImport` does not
-        // pass it down to `ProjectOpenProcessor`s.
-
-        val project = GradleProjectImporter.withAfterCreate(afterCreate = { project -> afterCreate(project) }) {
-          ProjectUtil.openOrImport(
+        val project = runUnderModalProgressIfIsEdt {
+          ProjectUtil.openOrImportAsync(
             projectPath.toPath(),
-            OpenProjectTask{
-              beforeOpen =
-                {
-                  afterCreate(it)
-                  true
-                }
+            OpenProjectTask {
               projectToClose = null
               forceOpenInNewFrame = true
             }
-          )!!
+          )?.also { afterCreate(it) } ?: error("Failed to open or import project")
         }
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
         emulateStartupActivityForTest(project)
