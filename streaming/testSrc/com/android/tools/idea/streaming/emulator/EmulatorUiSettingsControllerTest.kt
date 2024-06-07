@@ -192,6 +192,7 @@ class EmulatorUiSettingsControllerTest {
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales da" }
     assertThat(model.differentFromDefault.value).isTrue()
     appLanguage.selection.setFromUi(appLanguage.getElementAt(0))
+    // The command for resetting app language should not specify a null locale:
     waitForCondition(10.seconds) { lastIssuedChangeCommand == "cmd locale set-app-locales $APPLICATION_ID1 --locales " }
     assertThat(model.differentFromDefault.value).isFalse()
     assertUsageEvent(OperationKind.APP_LANGUAGE, OperationKind.APP_LANGUAGE)
@@ -362,6 +363,18 @@ class EmulatorUiSettingsControllerTest {
     assertThat(commands[2]).isEqualTo(POPULATE_LANGUAGE_COMMAND.format(APPLICATION_ID1))
     assertUsageEvent(OperationKind.RESET)
     waitForCondition(10.seconds) { !model.differentFromDefault.value }
+  }
+
+  @Test
+  fun resetAppLanguageShouldNotUseNull() {
+    appLanguageResetCommandDoesNotContainNull(FACTORY_RESET_COMMAND)
+    appLanguageResetCommandDoesNotContainNull(FACTORY_RESET_COMMAND_FOR_LIMITED_DEVICE)
+  }
+
+  private fun appLanguageResetCommandDoesNotContainNull(commands: String) {
+    val command = commands.split("; ", ";").single { it.contains("set-app-locales") }
+    assertThat(command).startsWith("cmd locale set-app-locales ")
+    assertThat(command).endsWith("--locales") // There should not be a null at the end for specifying the missing language
   }
 
   private fun createController() =
