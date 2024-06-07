@@ -44,7 +44,7 @@ import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT
@@ -728,8 +728,8 @@ class ComposePreviewRepresentation(
    */
   private var onRestoreState: (() -> Unit)? = null
 
-  private val psiCodeFileChangeDetectorService =
-    PsiCodeFileChangeDetectorService.getInstance(project)
+  private val myPsiCodeFileOutOfDateStatusReporter =
+    PsiCodeFileOutOfDateStatusReporter.getInstance(project)
 
   private val previewModeManager: PreviewModeManager = CommonPreviewModeManager()
 
@@ -842,7 +842,7 @@ class ComposePreviewRepresentation(
       this@activate.initializeFlows(
         this@ComposePreviewRepresentation,
         previewModeManager,
-        psiCodeFileChangeDetectorService,
+        myPsiCodeFileOutOfDateStatusReporter,
         psiFilePointer,
         ::invalidate,
         ::requestRefresh,
@@ -872,8 +872,9 @@ class ComposePreviewRepresentation(
     //   enabled, and then a full refresh will happen.
     // - Re-activation and any non-kotlin file out of date: manual invalidation done here and then
     //   a full refresh will happen
-    if (psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()) invalidate()
-    val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
+    if (myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.isNotEmpty()) invalidate()
+    val anyKtFilesOutOfDate =
+      myPsiCodeFileOutOfDateStatusReporter.outOfDateFiles.any { it is KtFile }
     if (isFastPreviewAvailable(project) && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case

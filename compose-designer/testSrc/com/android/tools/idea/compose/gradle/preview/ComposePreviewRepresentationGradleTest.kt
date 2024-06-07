@@ -30,7 +30,8 @@ import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.waitForAllRefreshesToFinish
 import com.android.tools.idea.compose.preview.waitForSmartMode
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
+import com.android.tools.idea.editors.build.PsiCodeFileOutOfDateStatusReporter
+import com.android.tools.idea.editors.build.PsiCodeFileUpToDateStatusRecorder
 import com.android.tools.idea.editors.fast.DisableReason
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewTrackerManager
@@ -432,7 +433,8 @@ class ComposePreviewRepresentationGradleTest {
     runAndWaitForFastRefresh {
       // Mark the file as invalid so the fast preview triggers a compilation when the problems
       // disappear
-      PsiCodeFileChangeDetectorService.getInstance(project).markFileAsOutOfDate(psiMainFile)
+      PsiCodeFileUpToDateStatusRecorder.getInstance(project)
+        .markFileAsOutOfDateForTests(psiMainFile)
       project.messageBus
         .syncPublisher(ProblemListener.TOPIC)
         .problemsDisappeared(psiMainFile.virtualFile)
@@ -491,7 +493,7 @@ class ComposePreviewRepresentationGradleTest {
 
       // Change above should have marked that file as outdated
       delayUntilCondition(delayPerIterationMs = 500, timeout = 5.seconds) {
-        PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.isNotEmpty()
+        PsiCodeFileOutOfDateStatusReporter.getInstance(project).outOfDateFiles.isNotEmpty()
       }
 
       // When reactivating, a full refresh should happen due to the modification of
