@@ -175,19 +175,20 @@ internal class LocalVirtualDeviceSource(
     DeviceManagerConnection.getDefaultDeviceManagerConnection().devices.map { it.toVirtualDevice() }
 }
 
-internal fun Device.toVirtualDevice(): VirtualDevice =
+internal fun Device.toVirtualDevice(): VirtualDevice {
   // TODO: Check that these are appropriate defaults
-  VirtualDevice(
+  val screen = defaultHardware.screen
+
+  return VirtualDevice(
     deviceId = id,
     apiRange = this.apiRange,
     sdkExtensionLevel = AndroidVersion(apiRange.upperEndpoint()),
     manufacturer = this.manufacturer,
     name = this.displayName,
-    resolution =
-      Resolution(this.defaultHardware.screen.xDimension, this.defaultHardware.screen.yDimension),
-    displayDensity = this.defaultHardware.screen.pixelDensity.dpiValue,
-    displayDiagonalLength = this.defaultHardware.screen.diagonalLength,
-    isRound = this.defaultHardware.screen.screenRound == ScreenRound.ROUND,
+    resolution = Resolution(screen.xDimension, screen.yDimension),
+    displayDensity = screen.pixelDensity.dpiValue,
+    displayDiagonalLength = screen.diagonalLength,
+    isRound = screen.screenRound == ScreenRound.ROUND,
     abis = this.defaultHardware.supportedAbis + this.defaultHardware.translatedAbis,
     formFactor = this.formFactor,
     // TODO(b/335267252): Set the skin appropriately.
@@ -205,7 +206,9 @@ internal fun Device.toVirtualDevice(): VirtualDevice =
     graphicAcceleration = GpuMode.AUTO,
     simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
     vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
+    isFoldable = screen.isFoldable,
   )
+}
 
 private val Device.apiRange: Range<Int>
   get() =

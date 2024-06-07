@@ -46,8 +46,20 @@ internal constructor(
   internal val translatedAbis: ImmutableCollection<Abi>,
   private val size: Storage,
 ) {
-  internal fun matches(device: VirtualDevice) =
-    androidVersion.apiLevel == device.apiRange.upperEndpoint()
+  internal fun matches(device: VirtualDevice): Boolean {
+    if (androidVersion.apiLevel != device.apiRange.upperEndpoint()) {
+      return false
+    }
+
+    if (
+      androidVersion.featureLevel < AndroidVersion.MIN_EMULATOR_FOLDABLE_DEVICE_API &&
+        device.isFoldable
+    ) {
+      return false
+    }
+
+    return true
+  }
 
   override fun toString() = if (isRemote) "$name (${size.toUiString()})" else name
 

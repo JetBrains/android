@@ -68,6 +68,32 @@ class SystemImageTest {
   }
 
   @Test
+  fun matchesDeviceIsFoldableEtc() {
+    // Arrange
+    val image =
+      SystemImage(
+        true,
+        "system-images;android-33-ext4;google_apis_playstore;arm64-v8a",
+        "Google Play ARM 64 v8a System Image",
+        AndroidVersion(33, null, 4, false),
+        Services.GOOGLE_PLAY_STORE,
+        setOf(Abi.ARM64_V8A).toImmutableSet(),
+        setOf<Abi>().toImmutableSet(),
+        Storage(1_474_557_980),
+      )
+
+    val device = MockitoKt.mock<VirtualDevice>()
+    MockitoKt.whenever(device.apiRange).thenReturn(Range.closed(33, 33))
+    MockitoKt.whenever(device.isFoldable).thenReturn(true)
+
+    // Act
+    val matches = image.matches(device)
+
+    // Assert
+    assertFalse(matches)
+  }
+
+  @Test
   fun matches() {
     // Arrange
     val image =

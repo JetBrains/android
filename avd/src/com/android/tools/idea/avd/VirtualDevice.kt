@@ -64,6 +64,7 @@ internal constructor(
   internal val graphicAcceleration: GpuMode,
   internal val simulatedRam: StorageCapacity,
   internal val vmHeapSize: StorageCapacity,
+  internal val isFoldable: Boolean = false,
 ) : DeviceProfile {
   override val source: Class<out DeviceSource>
     get() = LocalVirtualDeviceSource::class.java
@@ -116,6 +117,7 @@ internal constructor(
     lateinit var graphicAcceleration: GpuMode
     lateinit var simulatedRam: StorageCapacity
     lateinit var vmHeapSize: StorageCapacity
+    var isFoldable = false
 
     fun copyFrom(profile: VirtualDevice) {
       super.copyFrom(profile)
@@ -162,6 +164,7 @@ internal constructor(
         graphicAcceleration = graphicAcceleration,
         simulatedRam = simulatedRam,
         vmHeapSize = vmHeapSize,
+        isFoldable = isFoldable,
       )
   }
 }
