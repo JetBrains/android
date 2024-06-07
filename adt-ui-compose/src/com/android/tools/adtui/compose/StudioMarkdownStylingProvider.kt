@@ -15,13 +15,19 @@
  */
 package com.android.tools.adtui.compose
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.intellij.ui.JBColor
+import org.jetbrains.jewel.bridge.retrieveEditorColorScheme
+import org.jetbrains.jewel.bridge.theme.retrieveDefaultTextStyle
 import org.jetbrains.jewel.bridge.theme.retrieveEditorTextStyle
+import org.jetbrains.jewel.bridge.toComposeColor
 import org.jetbrains.jewel.intui.markdown.bridge.styling.create
+import org.jetbrains.jewel.intui.markdown.bridge.styling.default
 import org.jetbrains.jewel.markdown.rendering.InlinesStyling
 import org.jetbrains.jewel.markdown.rendering.MarkdownStyling
-import org.jetbrains.jewel.ui.component.Typography
 
 internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
 
@@ -39,39 +45,51 @@ internal object StudioMarkdownStylingProvider : MarkdownStylingProvider {
     thematicBreak: MarkdownStyling.ThematicBreak?,
     htmlBlock: MarkdownStyling.HtmlBlock?,
   ): MarkdownStyling {
-    val defaults = createDefault()
-    val defaultInlinesStyling = defaults.paragraph.inlinesStyling
-    val defaultEditorTextStyle = retrieveEditorTextStyle()
+    val actualEditorTextStyle =
+      editorTextStyle
+        ?: retrieveEditorTextStyle()
+          .copy(color = retrieveEditorColorScheme().defaultForeground.toComposeColor())
+
+    val actualBaseTextStyle =
+      baseTextStyle ?: retrieveDefaultTextStyle().copy(color = Color.Unspecified)
+
+    val actualInlinesStyling =
+      inlinesStyling
+        ?: InlinesStyling.create(
+          actualBaseTextStyle,
+          actualEditorTextStyle
+            .copy(
+              fontSize = actualBaseTextStyle.fontSize * .85,
+              background = inlineCodeBackgroundColor,
+            )
+            .toSpanStyle(),
+        )
 
     return MarkdownStyling.create(
-      baseTextStyle = defaultInlinesStyling.textStyle.merge(baseTextStyle),
-      editorTextStyle = defaultEditorTextStyle.merge(editorTextStyle),
-      inlinesStyling = defaultInlinesStyling.merge(inlinesStyling),
-      blockVerticalSpacing = blockVerticalSpacing ?: defaults.blockVerticalSpacing,
-      paragraph = paragraph ?: defaults.paragraph,
-      heading = heading ?: defaults.heading,
-      blockQuote = blockQuote ?: defaults.blockQuote,
-      code = code ?: defaults.code,
-      list = list ?: defaults.list,
-      image = image ?: defaults.image,
-      thematicBreak = thematicBreak ?: defaults.thematicBreak,
-      htmlBlock = htmlBlock ?: defaults.htmlBlock,
-    )
-  }
-
-  private fun InlinesStyling.merge(other: InlinesStyling?): InlinesStyling {
-    if (other == null) return this
-
-    return InlinesStyling(
-      textStyle = textStyle.merge(other.textStyle),
-      inlineCode = inlineCode.merge(other.inlineCode),
-      link = link.merge(other.link),
-      emphasis = emphasis.merge(other.emphasis),
-      strongEmphasis = strongEmphasis.merge(other.strongEmphasis),
-      inlineHtml = inlineHtml.merge(other.inlineHtml),
-      renderInlineHtml = renderInlineHtml,
+      baseTextStyle = actualBaseTextStyle,
+      editorTextStyle = actualEditorTextStyle,
+      inlinesStyling = actualInlinesStyling,
+      blockVerticalSpacing = blockVerticalSpacing ?: 16.dp,
+      paragraph = paragraph ?: MarkdownStyling.Paragraph.create(actualInlinesStyling),
+      heading = heading ?: MarkdownStyling.Heading.create(actualBaseTextStyle),
+      blockQuote =
+        blockQuote ?: MarkdownStyling.BlockQuote.create(textColor = actualBaseTextStyle.color),
+      code = code ?: MarkdownStyling.Code.create(actualEditorTextStyle),
+      list = list ?: MarkdownStyling.List.create(actualBaseTextStyle),
+      image = image ?: MarkdownStyling.Image.default(),
+      thematicBreak = thematicBreak ?: MarkdownStyling.ThematicBreak.create(),
+      htmlBlock = htmlBlock ?: MarkdownStyling.HtmlBlock.create(actualEditorTextStyle),
     )
   }
 
   override fun createDefault(): MarkdownStyling = MarkdownStyling.create()
 }
+
+// Copied from org.intellij.plugins.markdown.ui.preview.PreviewLAFThemeStyles#createStylesheet
+private val inlineCodeBackgroundColor
+  get() =
+    if (JBColor.isBright()) {
+      Color(red = 212, green = 222, blue = 231, alpha = 255 / 4)
+    } else {
+      Color(red = 212, green = 222, blue = 231, alpha = 25)
+    }
