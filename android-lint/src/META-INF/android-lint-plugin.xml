@@ -418,6 +418,7 @@
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWrongThreadInterprocedural" groupName="Android Lint: Correctness" displayName="Wrong Thread (Interprocedural)" bundle="messages.AndroidLintBundle" enabledByDefault="false" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWrongThreadInterproceduralInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintWrongViewCast" groupName="Android Lint: Correctness" displayName="Mismatched view type" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspection"/>
     <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintXmlEscapeNeeded" groupName="Android Lint: Correctness" displayName="Missing XML Escape" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintXmlEscapeNeededInspection"/>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintChildInNonViewGroup" groupName="Android Lint: Correctness" displayName="Only view groups can have children" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintChildInNonViewGroupInspection"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
