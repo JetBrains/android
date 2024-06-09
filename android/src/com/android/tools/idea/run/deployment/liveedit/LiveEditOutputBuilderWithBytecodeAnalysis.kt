@@ -128,11 +128,11 @@ internal class LiveEditOutputBuilderWithBytecodeAnalysis(private val apkClassPro
 
       val group = groupTable.getComposeGroup(method)
 
-      // Changes to non-composable methods require activity restart to ensure we re-run the changes. The ComposableSingletons class is not
-      // directly associated with a group but is a special case.
+      // Changes to non-composable methods require a full state invalidation to ensure we re-run the changes. The ComposableSingletons class
+      // is not directly associated with a group but is a special case.
       if (group == null && !method.clazz.name.contains("ComposableSingletons$")) {
-        logger.info("LiveEdit will restart activity due to non-Compose changes in $method")
-        outputs.invalidateMode = InvalidateMode.RESTART_ACTIVITY
+        logger.info("LiveEdit will fully invalidate the tree due to non-Compose changes in $method")
+        outputs.invalidateMode = InvalidateMode.SAVE_AND_LOAD
         outputs.hasNonComposeChanges = true
         break
       }
