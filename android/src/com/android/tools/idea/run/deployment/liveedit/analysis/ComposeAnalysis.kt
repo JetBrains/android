@@ -171,6 +171,8 @@ private data class IntValue(val value: Int) : BasicValue(Type.INT_TYPE)
 private data class ComposableLambdaValue(val key: Int, val block: Type) : BasicValue(COMPOSABLE_LAMBDA_TYPE)
 
 private val COMPOSABLE_LAMBDA_TYPE = Type.getObjectType("androidx/compose/runtime/internal/ComposableLambda")
+private val COMPOSABLE_LAMBDA_N_TYPE = Type.getObjectType("androidx/compose/runtime/internal/ComposableLambdaN")
+private val COMPOSABLE_LAMBDA_TYPES = setOf(COMPOSABLE_LAMBDA_TYPE, COMPOSABLE_LAMBDA_N_TYPE)
 private val GROUP_START_METHOD_NAMES = setOf("startRestartGroup", "startReplaceableGroup", "startReplaceGroup", "startMovableGroup",
                                              "startReusableGroup")
 
@@ -206,11 +208,11 @@ private fun analyzeMethod(
 
       INVOKESTATIC -> {
         val methodInstr = instr as MethodInsnNode
-        if (methodInstr.owner == "androidx/compose/runtime/internal/ComposableLambdaKt" && Type.getReturnType(methodInstr.desc) == COMPOSABLE_LAMBDA_TYPE) {
-          val key = (frame.getStackValue(2) as IntValue).value
-          val block = frame.getStackValue(0)?.type
-          val clazz = classesByName[block?.internalName] ?: throw RuntimeException("Unknown class type in ComposableLambda: $block")
-          val group = groupsByKey[key] ?: throw RuntimeException("Unknown group key in ComposableLambda: $key")
+        if (methodInstr.owner == "androidx/compose/runtime/internal/ComposableLambdaKt" && Type.getReturnType(
+            methodInstr.desc) in COMPOSABLE_LAMBDA_TYPES) {
+          val lambda = frames[i + 1].getStackValue(0) as ComposableLambdaValue
+          val clazz = classesByName[lambda.block.internalName] ?: throw RuntimeException("Unknown class type in ComposableLambda: ${lambda.block}")
+          val group = groupsByKey[lambda.key] ?: throw RuntimeException("Unknown group key in ComposableLambda: ${lambda.key}")
           groupTable.lambdaGroups[clazz] = group
           groupTable.lambdaParents[clazz] = method
         }
@@ -303,11 +305,42 @@ private class ComposeInterpreter : BasicInterpreter(ASM9) {
   override fun naryOperation(instr: AbstractInsnNode, values: List<BasicValue?>): BasicValue? {
     when (instr.opcode) {
       INVOKESTATIC -> {
-        if ((instr as MethodInsnNode).owner == "androidx/compose/runtime/internal/ComposableLambdaKt" &&
-            Type.getReturnType(instr.desc) == COMPOSABLE_LAMBDA_TYPE) {
-          val key = (values[values.size - 3] as IntValue).value
-          val block = values[values.size - 1]?.type!!
-          return ComposableLambdaValue(key, block)
+        if ((instr as MethodInsnNode).owner == "androidx/compose/runtime/internal/ComposableLambdaKt") {
+          when (instr.name) {
+            "composableLambda" -> {
+              // fun composableLambda(composer: Composer, key: Int, tracked: Boolean, block: Any)
+              val key = (values[1] as IntValue).value
+              val block = values[3]!!.type
+              return ComposableLambdaValue(key, block)
+            }
+
+            "composableLambdaInstance", "rememberComposableLambda" -> {
+              // fun composableLambdaInstance(key: Int, tracked: Boolean, block: Any)
+              // @Composable fun rememberComposableLambda(key: Int, tracked: Boolean, block: Any)
+              val key = (values[0] as IntValue).value
+              val block = values[2]!!.type
+              return ComposableLambdaValue(key, block)
+            }
+          }
+        }
+
+        if (instr.owner == "androidx/compose/runtime/internal/ComposableLambdaNKt") {
+          when (instr.name) {
+            "composableLambdaN" -> {
+              // fun composableLambdaN(composer: Composer, key: Int, tracked: Boolean, arity: Int, block: Any)
+              val key = (values[1] as IntValue).value
+              val block = values[3]!!.type
+              return ComposableLambdaValue(key, block)
+            }
+
+            "composableLambdaNInstance", "rememberComposableLambdaN" -> {
+              // fun composableLambdaInstance(key: Int, tracked: Boolean, arity: Int, block: Any)
+              // @Composable fun rememberComposableLambda(key: Int, tracked: Boolean, arity: Int, block: Any)
+              val key = (values[0] as IntValue).value
+              val block = values[2]!!.type
+              return ComposableLambdaValue(key, block)
+            }
+          }
         }
       }
 
