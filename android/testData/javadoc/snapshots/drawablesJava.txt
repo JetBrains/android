@@ -1,6 +1,6 @@
 <html>
 <body>
-<table><tr><th valign="top">Flavor/Library</th><th valign="top">Configuration</th><th valign="top">Value</th></tr>
+<table style="white-space: nowrap;"><tr><th valign="top">Flavor/Library</th><th valign="top">Configuration</th><th valign="top">Value</th></tr>
 <tr><td valign="top"><b> (app)</b></td>
 <td valign="top">drawable</td>
 <td valign="top"><div style="background-color:gray;padding:10px"><img src='file:{PROJECT}/res/drawable/ic_launcher.png' alt="{PROJECT}/res/drawable/ic_launcher.png" /></div>12&#xd7;12 px (12&#xd7;12 dp @ mdpi)<BR/>
