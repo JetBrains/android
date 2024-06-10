@@ -81,8 +81,12 @@ interface AiExcludeService {
     ALLOWED,
     /** The status could not be determined (e.g. we are in dumb mode). */
     INDETERMINATE,
-    /** The file does not belong to the project. */
-    NOT_IN_PROJECT,
+    /**
+     * The file does not belong to the project and is not under any VCS roots attached to the
+     * project. In this case it should be excluded by default, as .aiexclude rules do not apply to
+     * it.
+     */
+    NOT_IN_PROJECT_OR_VCS,
     /** The file is not allowed to be used with AI features. */
     EXCLUDED,
   }
