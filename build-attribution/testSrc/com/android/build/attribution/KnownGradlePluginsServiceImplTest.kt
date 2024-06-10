@@ -43,7 +43,7 @@ class KnownGradlePluginsServiceImplTest {
     val data = LocalKnownGradlePluginsServiceImpl().gradlePluginsData
 
     assertThat(data).isNotEqualTo(GradlePluginsData.emptyData)
-    assertThat(data.pluginsInfo).hasSize(38)
+    assertThat(data.pluginsInfo).hasSize(40)
     assertThat(data.pluginsInfo.filter { it.configurationCachingCompatibleFrom == null }).hasSize(8)
     assertThat(data.pluginsInfo.filter { it.pluginArtifact == null }).isEmpty()
   }
