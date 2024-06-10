@@ -39,6 +39,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.IndexingTestUtil
 import kotlinx.coroutines.test.TestScope
 import org.junit.After
 import org.junit.Before
@@ -82,6 +83,10 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   @After
   fun tearDown() {
     AndroidSdks.getInstance().setSdkData(originalAndroidSdkData)
+
+    // Workaround for https://youtrack.jetbrains.com/issue/IJPL-149706:
+    // test tear-down during indexing triggers flaky "already disposed" exceptions.
+    IndexingTestUtil.waitUntilIndexesAreReady(projectRule.project)
   }
 
   @Test
