@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<module version="4">
-  <component name="NewModuleRootManager" inherit-compiler-output="true">
-    <exclude-output />
-    <orderEntry type="library" scope="PROVIDED" name="studio-platform" level="project" />
-    <orderEntry type="library" scope="TEST" name="studio-test-platform" level="project" />
-    <orderEntry type="sourceFolder" forTests="false" />
-  </component>
-</module>
