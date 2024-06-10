@@ -38,7 +38,8 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.text.nullize
-import org.jetbrains.kotlin.asJava.LightClassUtil
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
@@ -174,22 +175,48 @@ private fun UMethod.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph 
  */
 @RequiresReadLock
 internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
-  return when (this) {
-    is PsiMethod -> hasTilePreviewSignature()
-    is KtNamedFunction ->
-      LightClassUtil.getLightClassMethod(this)?.hasTilePreviewSignature() ?: false
-    else -> false
+  val hasValidReturnType =
+    when (val sourcePsi = this) {
+      is PsiMethod -> sourcePsi.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) == true
+      is KtNamedFunction -> {
+        analyze(sourcePsi) {
+          val symbol = sourcePsi.getFunctionLikeSymbol()
+          val returnType = symbol.returnType as? KtNonErrorClassType
+          returnType?.classId?.asSingleFqName()?.asString() == TILE_PREVIEW_DATA_FQ_NAME
+        }
+      }
+      else -> false
+    }
+
+  if (!hasValidReturnType) {
+    return false
   }
-}
 
-@RequiresReadLock
-private fun PsiMethod.hasTilePreviewSignature(): Boolean {
-  if (returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) != true) return false
+  val hasNoParameters =
+    when (this) {
+      is PsiMethod -> !hasParameters()
+      is KtNamedFunction -> getValueParameters().isEmpty()
+      else -> false
+    }
+  if (hasNoParameters) {
+    return true
+  }
 
-  val hasNoParameters = !hasParameters()
   val hasSingleContextParameter =
-    parameterList.parametersCount == 1 &&
-      parameterList.getParameter(0)?.type?.equalsToText(SdkConstants.CLASS_CONTEXT) == true
-
-  return hasNoParameters || hasSingleContextParameter
+    when (this) {
+      is PsiMethod ->
+        parameterList.parametersCount == 1 &&
+          parameterList.getParameter(0)?.type?.equalsToText(SdkConstants.CLASS_CONTEXT) == true
+      is KtNamedFunction -> {
+        val typeReference = valueParameters.singleOrNull()?.typeReference
+        if (typeReference != null) {
+          analyze(typeReference) {
+            val ktType = typeReference.getKtType() as? KtNonErrorClassType
+            ktType?.classId?.asSingleFqName()?.asString() == SdkConstants.CLASS_CONTEXT
+          }
+        } else false
+      }
+      else -> false
+    }
+  return hasSingleContextParameter
 }
