@@ -206,7 +206,7 @@ internal fun Device.toVirtualDevice(): VirtualDevice {
     graphicAcceleration = GpuMode.AUTO,
     simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
     vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
-    isFoldable = screen.isFoldable,
+    device = this,
   )
 }
 

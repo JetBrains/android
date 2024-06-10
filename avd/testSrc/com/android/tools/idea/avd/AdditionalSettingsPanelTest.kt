@@ -25,6 +25,7 @@ import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.devices.Abi
+import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
@@ -102,6 +103,7 @@ class AdditionalSettingsPanelTest {
         displayDiagonalLength = 6.2,
         isRound = false,
         formFactor = FormFactors.PHONE,
+        device = MockitoKt.mock<Device>(),
       )
 
     val state = ConfigureDevicePanelState(emptyList<Skin>().toImmutableList(), device)
