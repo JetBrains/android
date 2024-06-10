@@ -87,13 +87,15 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     deviceName: String = testDeviceName,
     manufacturer: String = testBrand,
     software: Software = Software(),
-    state: State = testDeviceState()
+    state: State = testDeviceState(),
+    deprecated: Boolean = false,
   ): Device {
     val deviceBuilder = Device.Builder()
     deviceBuilder.setName(deviceName)
     deviceBuilder.setManufacturer(manufacturer)
     deviceBuilder.addSoftware(software)
     deviceBuilder.addState(state)
+    deviceBuilder.setDeprecated(deprecated)
     return deviceBuilder.build()
   }
 
@@ -110,8 +112,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
 
   fun testDeprecatedDevice() {
     managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;android;armeabi-v7a", 23) {
-      val deprecatedDevice = buildTestDevice()
-      deprecatedDevice.isDeprecated = true
+      val deprecatedDevice = buildTestDevice(deprecated = true)
       whenever(mockDeviceManager.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR)))
         .thenReturn(listOf(deprecatedDevice))
       val deviceCatalog = ManagedVirtualDeviceCatalogService.syncDeviceCatalog()

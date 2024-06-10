@@ -85,8 +85,7 @@ public class DensityMenuAction extends DropDownAction {
         if (original == null) {
           return;
         }
-        Device.Builder deviceBuilder = new Device.Builder(original); // doesn't copy tag id
-        deviceBuilder.setTagId(original.getTagId());
+        Device.Builder deviceBuilder = new Device.Builder(original);
         deviceBuilder.setName("Custom");
         deviceBuilder.setId(CUSTOM_DENSITY_ID);
         Device device = deviceBuilder.build();
