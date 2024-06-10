@@ -16,6 +16,8 @@
 package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.filters.LogcatFilter
 import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
@@ -91,6 +93,14 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   }
 
   override fun getSelectedDevice(): Device? = device
+
+  override fun getSelectedItem(): DeviceComboItem? {
+    return device?.let { DeviceItem(it) }
+  }
+
+  override fun reloadFile() {
+    TODO("Not yet implemented")
+  }
 
   override fun applyFilter(logcatFilter: LogcatFilter?) {
     TODO("Not yet implemented")
