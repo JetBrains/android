@@ -43,10 +43,8 @@ class PsProjectImpl(
   override val descriptor by PsProjectDescriptors
   override var parsedModel: ProjectBuildModel = GradleModelProvider.getInstance().getProjectModel(ideProject).withAgpVersionContext(ideProject)
     private set
-  @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
-  final override val buildScriptVariables: PsVariables
-  @Suppress("RedundantModalityModifier")  // Kotlin compiler bug (KT-24833)?
-  final override val variables: PsVariables
+  override val buildScriptVariables: PsVariables
+  override val variables: PsVariables
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies(ideProject)
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
