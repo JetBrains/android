@@ -226,7 +226,10 @@ private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
   val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
       PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
-        .map { pointerManager.createSmartPsiElementPointer(it) }
+        .map {
+          ProgressManager.checkCanceled()
+          pointerManager.createSmartPsiElementPointer(it)
+        }
     }
     .filter { smartReadAction(project) { it.element?.isMethodWithTilePreviewSignature() } ?: false }
     .mapNotNull { smartReadAction(project) { it.element.toUElement(UMethod::class.java) } }
@@ -246,6 +249,7 @@ private fun UMethod.findAllTilePreviewAnnotations() = findAllAnnotationsInGraph 
  */
 @RequiresReadLock
 internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
+  ProgressManager.checkCanceled()
   val hasValidReturnType =
     when (val sourcePsi = this) {
       is PsiMethod -> sourcePsi.returnType?.equalsToText(TILE_PREVIEW_DATA_FQ_NAME) == true
@@ -263,6 +267,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
     return false
   }
 
+  ProgressManager.checkCanceled()
   val hasNoParameters =
     when (this) {
       is PsiMethod -> !hasParameters()
@@ -273,6 +278,7 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
     return true
   }
 
+  ProgressManager.checkCanceled()
   val hasSingleContextParameter =
     when (this) {
       is PsiMethod ->
