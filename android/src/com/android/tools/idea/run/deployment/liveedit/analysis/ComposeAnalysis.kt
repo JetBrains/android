@@ -211,8 +211,9 @@ private fun analyzeMethod(
         if (methodInstr.owner == "androidx/compose/runtime/internal/ComposableLambdaKt" && Type.getReturnType(
             methodInstr.desc) in COMPOSABLE_LAMBDA_TYPES) {
           val lambda = frames[i + 1].getStackValue(0) as ComposableLambdaValue
-          val clazz = classesByName[lambda.block.internalName] ?: throw RuntimeException("Unknown class type in ComposableLambda: ${lambda.block}")
-          val group = groupsByKey[lambda.key] ?: throw RuntimeException("Unknown group key in ComposableLambda: ${lambda.key}")
+          val group = groupsByKey[lambda.key] ?: continue
+          val clazz = classesByName[lambda.block.internalName] ?: throw RuntimeException(
+            "Unknown class type in ComposableLambda in $method: ${lambda.block} associated with key ${lambda.key}")
           groupTable.lambdaGroups[clazz] = group
           groupTable.lambdaParents[clazz] = method
         }
