@@ -25,10 +25,8 @@
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.device" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" />
-    <orderEntry type="module" module-name="intellij.android.device-file-explorer-toolwindow" />
     <orderEntry type="module" module-name="intellij.android.device-manager" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" />
-    <orderEntry type="module" module-name="intellij.android.explainer" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" />
     <orderEntry type="module" module-name="intellij.android.lang" />
@@ -51,7 +49,6 @@
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.streaming" />
     <orderEntry type="module" module-name="intellij.android.templates" />
-    <orderEntry type="module" module-name="intellij.android.testRetention" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="module" module-name="intellij.android.wear-pairing" />
     <orderEntry type="module" module-name="intellij.android.wear-whs" />

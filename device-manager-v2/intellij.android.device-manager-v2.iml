@@ -27,7 +27,6 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.device-explorer" />
-    <orderEntry type="module" module-name="intellij.android.device-file-explorer-toolwindow" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.wear-pairing" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
