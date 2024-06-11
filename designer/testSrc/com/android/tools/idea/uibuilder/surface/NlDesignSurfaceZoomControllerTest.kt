@@ -126,7 +126,8 @@ class NlDesignSurfaceZoomControllerTest {
       Assert.assertTrue(zoomController.zoom(ZoomType.OUT, 2, 3))
     } while (zoomController.canZoomOut())
 
-    Assert.assertEquals(0.0, zoomController.scale, 0.0)
+    // Min zoom level is
+    Assert.assertEquals(0.03, zoomController.scale, 0.0)
   }
 
   @Test
