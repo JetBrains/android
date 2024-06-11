@@ -23,20 +23,15 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.deviceprovisioner.Resolution
-import com.android.sdklib.devices.Abi
-import com.android.sdklib.devices.Device
 import com.android.sdklib.internal.avd.AvdCamera
 import com.android.sdklib.internal.avd.EmulatedProperties
 import com.android.sdklib.internal.avd.GpuMode
 import com.android.testutils.MockitoKt
 import com.android.testutils.file.createInMemoryFileSystem
-import com.android.tools.idea.adddevicedialog.FormFactors
 import com.android.tools.idea.adddevicedialog.LocalFileSystem
 import com.android.tools.idea.adddevicedialog.LocalProject
 import com.android.tools.idea.avdmanager.skincombobox.DefaultSkin
 import com.android.tools.idea.avdmanager.skincombobox.Skin
-import com.google.common.collect.Range
 import java.nio.file.Files
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.jewel.bridge.LocalComponent
@@ -79,12 +74,10 @@ class AdditionalSettingsPanelTest {
 
     val device =
       VirtualDevice(
-        deviceId = "pixel_6",
-        name = "Pixel 6 API 34",
-        manufacturer = "Google",
-        apiRange = Range.closed(21, 34),
-        sdkExtensionLevel = AndroidVersion(34, null, 7, true),
-        skin = DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_6")),
+        device = readTestDevices().first { it.id == "pixel_8" },
+        name = "Pixel 8 API 34",
+        androidVersion = AndroidVersion(34, null, 7, true),
+        skin = DefaultSkin(fileSystem.getPath(home, "Android", "Sdk", "skins", "pixel_8")),
         frontCamera = AvdCamera.EMULATED,
         rearCamera = AvdCamera.VIRTUAL_SCENE,
         speed = EmulatedProperties.DEFAULT_NETWORK_SPEED,
@@ -97,13 +90,6 @@ class AdditionalSettingsPanelTest {
         graphicAcceleration = GpuMode.AUTO,
         simulatedRam = StorageCapacity(2_048, StorageCapacity.Unit.MB),
         vmHeapSize = StorageCapacity(256, StorageCapacity.Unit.MB),
-        abis = listOf(Abi.ARM64_V8A),
-        resolution = Resolution(1200, 800),
-        displayDensity = 200,
-        displayDiagonalLength = 6.2,
-        isRound = false,
-        formFactor = FormFactors.PHONE,
-        device = MockitoKt.mock<Device>(),
       )
 
     val state = ConfigureDevicePanelState(emptyList<Skin>().toImmutableList(), device)
