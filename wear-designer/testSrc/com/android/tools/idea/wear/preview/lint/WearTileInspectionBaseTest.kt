@@ -17,6 +17,8 @@ package com.android.tools.idea.wear.preview.lint
 
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.ide.highlighter.HtmlFileType
@@ -25,7 +27,6 @@ import com.intellij.ide.highlighter.XmlFileType
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,7 +39,13 @@ class WearTileInspectionBaseTest(private val isUnitTestInspection: Boolean) {
     @JvmStatic @Parameterized.Parameters fun data() = listOf(false, true)
   }
 
-  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
+  @get:Rule
+  val projectRule =
+    WearTileProjectRule(
+      AndroidProjectRule.withAndroidModels(
+        AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())
+      )
+    )
 
   @get:Rule val wearTilePreviewFlagRule = FlagRule(StudioFlags.WEAR_TILE_PREVIEW, true)
 
@@ -47,11 +54,6 @@ class WearTileInspectionBaseTest(private val isUnitTestInspection: Boolean) {
 
   private val inspection =
     object : WearTilePreviewInspectionBase(isUnitTestInspection = isUnitTestInspection) {}
-
-  @Before
-  fun setUp() {
-    fixture.addUnitTestSourceRoot()
-  }
 
   @Test
   fun isAvailableForKotlinAndJavaFiles() {
