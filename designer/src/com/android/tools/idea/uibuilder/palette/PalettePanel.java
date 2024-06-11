@@ -32,7 +32,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.NlTreeWriter;
 import com.android.tools.idea.common.model.NlTreeWriterKt;
-import com.android.tools.idea.common.model.UtilsKt;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
@@ -363,6 +362,10 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   @AnyThread
   public ItemList getItemList() {
     return myItemList;
+  }
+
+  public LayoutEditorFileType getLayoutEditorFileType() {
+    return myLayoutType;
   }
 
   @Override

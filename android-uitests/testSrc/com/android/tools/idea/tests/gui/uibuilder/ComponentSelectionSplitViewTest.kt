@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.uibuilder
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture
+import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
@@ -75,6 +76,9 @@ class ComponentSelectionSplitViewTest {
       .waitForSurfaceToLoad()
 
     assertThat(nlEditorFixture.canInteractWithSurface()).isTrue()
+
+    nlEditorFixture.palette.waitForInitialization(30, LayoutFileType)
+
     nlEditorFixture
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish()
