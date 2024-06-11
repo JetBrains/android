@@ -31,7 +31,6 @@ import com.android.sdklib.repository.generated.common.v3.ApiDetailsType
 import com.android.sdklib.repository.generated.common.v3.IdDisplayType
 import com.android.sdklib.repository.generated.sysimg.v4.SysImgDetailsType
 import com.android.testutils.MockitoKt
-import com.google.common.collect.Range
 import kotlinx.collections.immutable.toImmutableSet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -58,7 +57,7 @@ class SystemImageTest {
       )
 
     val device = MockitoKt.mock<VirtualDevice>()
-    MockitoKt.whenever(device.apiRange).thenReturn(Range.closed(34, 34))
+    MockitoKt.whenever(device.androidVersion).thenReturn(AndroidVersion(34))
 
     // Act
     val matches = image.matches(device)
@@ -83,7 +82,7 @@ class SystemImageTest {
       )
 
     val device = MockitoKt.mock<VirtualDevice>()
-    MockitoKt.whenever(device.apiRange).thenReturn(Range.closed(33, 33))
+    MockitoKt.whenever(device.androidVersion).thenReturn(AndroidVersion(33))
     MockitoKt.whenever(device.isFoldable).thenReturn(true)
 
     // Act
@@ -109,7 +108,7 @@ class SystemImageTest {
       )
 
     val device = MockitoKt.mock<VirtualDevice>()
-    MockitoKt.whenever(device.apiRange).thenReturn(Range.closed(34, 34))
+    MockitoKt.whenever(device.androidVersion).thenReturn(AndroidVersion(34))
 
     // Act
     val matches = image.matches(device)

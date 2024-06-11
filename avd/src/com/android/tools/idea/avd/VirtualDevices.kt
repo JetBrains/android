@@ -38,9 +38,7 @@ internal class VirtualDevices(
     val properties =
       mutableMapOf("hw.keyboard" to "no", "skin.dynamic" to "yes", "showDeviceFrame" to "yes")
 
-    val definition =
-      devices.firstOrNull { it.id == device.deviceId }
-        ?: throw IllegalArgumentException("Device ${device.deviceId} does not exist")
+    val definition = device.device
 
     val id = AvdWizardUtils.cleanAvdName(avdManagerConnection, device.name, /* uniquify= */ true)
     val skin = device.skin.path()
