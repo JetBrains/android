@@ -67,6 +67,16 @@ internal object PreviewAnnotationCheck {
   private fun failedCheck(description: String) = CheckResult(listOf(Failure(description)), null)
 
   /**
+   * Checks if a [KtAnnotationEntry] element that should correspond to a reference of
+   * Compose @Preview annotation has any issues.
+   *
+   * @see checkPreviewAnnotationIfNeeded
+   */
+  fun KtAnnotationEntry.hasIssues(): Boolean {
+    return checkPreviewAnnotationIfNeeded(this).hasIssues
+  }
+
+  /**
    * Takes a [KtAnnotationEntry] element that should correspond to a reference of Compose @Preview
    * annotation.
    *
