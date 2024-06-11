@@ -86,6 +86,7 @@ class OpenWearHealthServicesPanelAction :
         .setShadow(true)
         .setHideOnAction(false)
         .setBlockClicksThroughBalloon(true)
+        .setRequestFocus(true)
         .setAnimationCycle(200)
         .setFillColor(secondaryPanelBackground)
         .createBalloon()
