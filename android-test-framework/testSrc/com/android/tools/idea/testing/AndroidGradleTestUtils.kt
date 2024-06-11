@@ -661,29 +661,24 @@ fun AndroidProjectStubBuilder.createMainSourceProviderForDefaultTestProjectStruc
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub(): IdeSourceProviderImpl =
   sourceProvider(ARTIFACT_NAME_MAIN, moduleBasePath.resolve("src/main"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
 
-fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
+fun AndroidProjectStubBuilder.extraSourceProvider(name: String, relative: String): IdeExtraSourceProviderImpl =
   IdeExtraSourceProviderImpl(
-    artifactName = ARTIFACT_NAME_ANDROID_TEST,
+    artifactName = name,
     sourceProvider = sourceProvider(
-      ARTIFACT_NAME_ANDROID_TEST, moduleBasePath.resolve("src/androidTest"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
+      name, moduleBasePath.resolve(relative), includeRenderScriptSources, includeAidlSources, includeShadersSources)
+  )
+
+fun AndroidProjectStubBuilder.buildAndroidTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
+  extraSourceProvider(ARTIFACT_NAME_ANDROID_TEST, "src/androidTest")
 
 fun AndroidProjectStubBuilder.buildTestFixturesSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
-  IdeExtraSourceProviderImpl(
-    artifactName = ARTIFACT_NAME_TEST_FIXTURES,
-    sourceProvider = sourceProvider(
-      ARTIFACT_NAME_TEST_FIXTURES, moduleBasePath.resolve("src/testFixtures"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
+  extraSourceProvider(ARTIFACT_NAME_TEST_FIXTURES, "src/testFixtures")
 
 fun AndroidProjectStubBuilder.buildUnitTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
-  IdeExtraSourceProviderImpl(
-    artifactName = ARTIFACT_NAME_UNIT_TEST,
-    sourceProvider = sourceProvider(
-      ARTIFACT_NAME_UNIT_TEST, moduleBasePath.resolve("src/test"), includeRenderScriptSources, includeAidlSources, includeShadersSources))
+  extraSourceProvider(ARTIFACT_NAME_UNIT_TEST, "src/test")
 
 fun AndroidProjectStubBuilder.buildScreenshotTestSourceProviderContainerStub(): IdeExtraSourceProviderImpl =
-  IdeExtraSourceProviderImpl(
-    artifactName = ARTIFACT_NAME_SCREENSHOT_TEST,
-    sourceProvider = sourceProvider(
-      ARTIFACT_NAME_SCREENSHOT_TEST, moduleBasePath.resolve("src/screenshotTest"), includeRenderScriptSources, includeAidlSources))
+  extraSourceProvider(ARTIFACT_NAME_SCREENSHOT_TEST, "src/screenshotTest")
 
 fun AndroidProjectStubBuilder.buildDebugSourceProviderStub(): IdeSourceProviderImpl =
   sourceProvider("debug", moduleBasePath.resolve("src/debug"), includeRenderScriptSources, includeAidlSources, includeShadersSources)
