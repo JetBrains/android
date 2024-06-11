@@ -316,6 +316,7 @@ filegroup(
     name = "deploy-artifacts",
     srcs = select({
         "@platforms//os:windows": [
+            "//tools/base/deploy/installer:android-installer",
             "//tools/base/deploy/installer/tests:fake_device_proto",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
@@ -389,6 +390,7 @@ filegroup(
         ":directaccess-artifacts",
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
+        ":transport-artifacts",
         "//tools/adt/idea/.idea/libraries:agp-version",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
@@ -432,7 +434,6 @@ filegroup(
     ] + select({
         "@platforms//os:windows": [],
         "//conditions:default": [
-            ":transport-artifacts",
             "//tools/adt/idea/bleak/src/com/android/tools/idea/bleak/agents:jnibleakhelper",
         ],
     }),
