@@ -15,22 +15,13 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
-import com.android.tools.idea.projectsystem.isAndroidTestModule
-import com.android.tools.idea.projectsystem.isUnitTestModule
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.modules
-import com.intellij.openapi.roots.SourceFolder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.util.parentOfType
-import com.intellij.testFramework.PsiTestUtil
-import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.elementsInRange
 
@@ -49,31 +40,3 @@ internal fun PsiFile.containingMethodName(highlightInfo: HighlightInfo) =
       }
     }
     .single()
-
-/**
- * Adds the "src/test" source root to the project. The project rule must use
- * [AndroidProjectRule.withAndroidModel] for the unit test module to be available.
- */
-internal fun CodeInsightTestFixture.addUnitTestSourceRoot() {
-  val unitTestModule = project.modules.single { it.isUnitTestModule() }
-  val unitTestRoot = tempDirFixture.findOrCreateDir("src/test")
-  runInEdt {
-    ApplicationManager.getApplication().runWriteAction<SourceFolder> {
-      PsiTestUtil.addSourceRoot(unitTestModule, unitTestRoot, true)
-    }
-  }
-}
-
-/**
- * Adds the "src/androidTest" source root to the project. The project rule must use
- * [AndroidProjectRule.withAndroidModel] for the android test module to be available.
- */
-internal fun CodeInsightTestFixture.addAndroidTestSourceRoot() {
-  val androidTestModule = project.modules.single { it.isAndroidTestModule() }
-  val androidTestSourceRoot = tempDirFixture.findOrCreateDir("src/androidTest")
-  runInEdt {
-    ApplicationManager.getApplication().runWriteAction<SourceFolder> {
-      PsiTestUtil.addSourceRoot(androidTestModule, androidTestSourceRoot, true)
-    }
-  }
-}
