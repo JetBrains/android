@@ -170,7 +170,7 @@ class UiSettingsPanelTest {
     assertThat(slider.accessibleContext.accessibleName).isEqualTo(FONT_SCALE_TITLE)
     assertThat(slider.value).isEqualTo(FontScale.NORMAL.ordinal)
 
-    slider.value = FontScale.values().size - 1
+    slider.value = FontScale.entries.size - 1
     waitForCondition(1.seconds) { lastCommand == "fontScale=200" }
 
     slider.value = 0
