@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.wear.preview.lint
 
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wear.preview.WearTileProjectRule
 import com.intellij.lang.annotation.HighlightSeverity
@@ -25,7 +27,13 @@ import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewNotSupportedInUnitTestFilesTest {
-  @get:Rule val projectRule = WearTileProjectRule(AndroidProjectRule.withAndroidModel())
+  @get:Rule
+  val projectRule =
+    WearTileProjectRule(
+      AndroidProjectRule.withAndroidModels(
+        AndroidModuleModelBuilder(":", "debug", AndroidProjectBuilder())
+      )
+    )
 
   private val fixture
     get() = projectRule.fixture
@@ -36,11 +44,8 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
   fun setUp() {
     fixture.enableInspections(inspection)
 
-    fixture.addUnitTestSourceRoot()
-    fixture.addAndroidTestSourceRoot()
-
     fixture.addFileToProject(
-      "src/main/test/multipreview.kt",
+      "src/main/java/test/multipreview.kt",
       // language=kotlin
       """
       package test
@@ -58,7 +63,7 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
   fun previewAnnotationsAreNotSupportedInUnitTestFilesKotlin() {
     val unitTestFile =
       fixture.addFileToProject(
-        "src/test/Test.kt",
+        "src/test/java/Test.kt",
         // language=kotlin
         """
       import androidx.wear.tiles.tooling.preview.Preview
@@ -113,7 +118,7 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
   fun previewAnnotationsAreNotSupportedInUnitTestFilesJava() {
     val unitTestFile =
       fixture.addFileToProject(
-        "src/test/Test.java",
+        "src/test/java/Test.java",
         // language=java
         """
       import androidx.wear.tiles.tooling.preview.Preview;
@@ -218,13 +223,13 @@ class WearTilePreviewNotSupportedInUnitTestFilesTest {
 
     val mainFiles =
       listOf(
-        fixture.addFileToProject("src/main/test.kt", kotlinFileContent),
-        fixture.addFileToProject("src/main/Test.java", javaFileContent),
+        fixture.addFileToProject("src/main/java/test.kt", kotlinFileContent),
+        fixture.addFileToProject("src/main/java/Test.java", javaFileContent),
       )
     val androidTestFiles =
       listOf(
-        fixture.addFileToProject("src/androidTest/test.kt", kotlinFileContent),
-        fixture.addFileToProject("src/androidTest/Test.java", javaFileContent),
+        fixture.addFileToProject("src/androidTest/java/test.kt", kotlinFileContent),
+        fixture.addFileToProject("src/androidTest/java/Test.java", javaFileContent),
       )
 
     for (file in mainFiles + androidTestFiles) {
