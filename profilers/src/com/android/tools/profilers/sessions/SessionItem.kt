@@ -99,7 +99,8 @@ class SessionItem(
       val targetStageClass =
         if (profilers.ideServices.featureConfig.isTaskBasedUxEnabled) LiveStage(profilers) else StudioMonitorStage(profilers)
 
-      if (profilers.stageClass != targetStageClass::class.java) {
+      if (profilers.stageClass != targetStageClass::class.java
+          || profilers.sessionsManager.selectedSession != profilers.sessionsManager.profilingSession) {
         profilers.stage = targetStageClass
       }
     }
