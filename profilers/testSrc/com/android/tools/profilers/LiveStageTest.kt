@@ -23,6 +23,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent
 import org.junit.Before
 import org.junit.Test
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.Mockito
 import kotlin.test.assertFalse
 
@@ -84,11 +85,25 @@ class LiveStageTest {
   }
 
   @Test
-  fun testEventMonitorDebuggable() {
+  fun testEventMonitorDebuggablePostO() {
+    val device = Common.Device.newBuilder().setFeatureLevel(26).build()
+    val stream = Common.Stream.newBuilder().setStreamId(123).setDevice(device).setType(Common.Stream.Type.DEVICE).build()
+    Mockito.`when`(myProfilers.device).thenReturn(device)
+    Mockito.`when`(myProfilers.getStream(anyLong())).thenReturn(stream)
+
     myLiveStage.enter()
     val result = myLiveStage.eventMonitor
     assertThat(result.isPresent).isTrue()
     assertThat(result.get()).isInstanceOf(EventMonitor::class.java)
+  }
+
+  @Test
+  fun testEventMonitorDebuggablePreO() {
+    val device = Common.Device.newBuilder().setFeatureLevel(25).build()
+    Mockito.`when`(myProfilers.device).thenReturn(device)
+    myLiveStage.enter()
+    val result = myLiveStage.eventMonitor
+    assertThat(result.isPresent).isFalse()
   }
 
   @Test
