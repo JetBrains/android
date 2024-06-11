@@ -140,20 +140,27 @@ internal class SceneViewPanel(
     }
   }
 
+  private var organizationWasEnabled = false
+
   @UiThread
   private fun revalidateSceneViews() {
     // Check if the SceneViews are still valid
     val designSurfaceSceneViews = sceneViewProvider()
     val currentSceneViews = findSceneViews()
 
-    if (designSurfaceSceneViews == currentSceneViews) return // No updates
+    if (
+      designSurfaceSceneViews == currentSceneViews &&
+        organizationWasEnabled == organizationIsEnabled()
+    )
+      return // No updates
 
     // Invalidate the current components
     removeAll()
 
     // Headers to be added.
+    organizationWasEnabled = organizationIsEnabled()
     val headers =
-      if (organizationIsEnabled()) designSurfaceSceneViews.createOrganizationHeaders(this)
+      if (organizationWasEnabled) designSurfaceSceneViews.createOrganizationHeaders(this)
       else mutableMapOf()
 
     groups.clear()
