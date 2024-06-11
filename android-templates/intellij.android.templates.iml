@@ -63,6 +63,7 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.testutils" scope="TEST" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.analysis-api-platform-interface" level="project" />
   </component>
 </module>
