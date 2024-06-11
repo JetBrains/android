@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.annotator.check.device
 import com.android.tools.idea.compose.annotator.check.common.ExpectedValueType
 import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
 import com.android.tools.idea.compose.annotator.check.common.ParameterRule
-import com.android.tools.idea.compose.pickers.preview.model.AvailableDevicesKey
+import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.preview.config.DEFAULT_DEVICE_ID
 import com.intellij.openapi.actionSystem.DataProvider
 
