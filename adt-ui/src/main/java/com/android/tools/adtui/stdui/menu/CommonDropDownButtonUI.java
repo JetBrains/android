@@ -18,6 +18,7 @@ package com.android.tools.adtui.stdui.menu;
 import com.android.tools.adtui.stdui.GraphicsUtilKt;
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.StandardDimensions;
+import com.intellij.ide.ui.laf.darcula.DarculaUIUtil;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -124,6 +125,10 @@ public class CommonDropDownButtonUI extends BasicButtonUI {
       triangle.lineTo(x, y + arrowHeight);
       GraphicsUtilKt.setColorAndAlpha(g2d, StandardColors.DROPDOWN_ARROW_COLOR);
       g2d.fill(triangle);
+    }
+
+    if (button.hasFocus()) {
+      DarculaUIUtil.paintFocusBorder(g2d, component.getWidth(), component.getHeight(), 0f, true);
     }
   }
 
