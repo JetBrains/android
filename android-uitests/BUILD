@@ -796,7 +796,6 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.gradle.GradleBuildTest"],
     tags = COMMON_TAGS + [
-        "no_windows",
         "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1198,7 +1197,6 @@ java_test(
         "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LinkProjectWithKotlinTest",
     ],
     tags = COMMON_TAGS + [
-        "no_windows",
         "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
