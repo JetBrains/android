@@ -27,19 +27,28 @@ import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
+import com.android.utils.cache.ChangeTracker
+import com.android.utils.cache.ChangeTrackerCachedValue
+import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.uast.UAnnotation
@@ -53,26 +62,68 @@ const val TILE_PREVIEW_ANNOTATION_FQ_NAME =
   "androidx.wear.tiles.tooling.preview.$TILE_PREVIEW_ANNOTATION_NAME"
 const val TILE_PREVIEW_DATA_FQ_NAME = "androidx.wear.tiles.tooling.preview.TilePreviewData"
 
+private val hasPreviewElementsCacheKey =
+  Key<ChangeTrackerCachedValue<Boolean>>("hasPreviewElements")
+private val previewElementsCacheKey =
+  Key<ChangeTrackerCachedValue<Collection<PsiWearTilePreviewElement>>>("previewElements")
+private val uMethodsWithTilePreviewSignatureCacheKey =
+  Key<ChangeTrackerCachedValue<List<UMethod>>>("uMethodsWithTilePreviewSignature")
+
 /** Object that can detect wear tile preview elements in a file. */
 internal object WearTilePreviewElementFinder : FilePreviewElementFinder<PsiWearTilePreviewElement> {
+
+  /**
+   * Checks if a given [vFile] contains any [PsiWearTilePreviewElement]s. Results of this method
+   * will be cached until there are changes to any java or kotlin files in the given [project] or
+   * when there are smart mode changes to the [project]. It's also possible for the cached value to
+   * be garbage collected, in which case the results will be recomputed.
+   */
   override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
-    return findUMethodsWithTilePreviewSignature(project, vFile).any {
-      it.findAllTilePreviewAnnotations().any()
-    }
+    val psiFile = readAction { vFile.toPsiFile(project) } ?: return false
+    val cachedValue =
+      psiFile.getOrCreateCachedValue(hasPreviewElementsCacheKey) {
+        ChangeTrackerCachedValue.softReference()
+      }
+    return ChangeTrackerCachedValue.get(
+      cachedValue,
+      {
+        findUMethodsWithTilePreviewSignature(project, psiFile).any {
+          it.findAllTilePreviewAnnotations().any()
+        }
+      },
+      project.javaKotlinAndDumbChangeTrackers(),
+    )
   }
 
+  /**
+   * Retrieves all [PsiWearTilePreviewElement] in a given [vFile]. Results of this method will be
+   * cached until there are changes to any java or kotlin files in the given [project] or when there
+   * are smart mode changes to the [project]. It's also possible for the cached value to be garbage
+   * collected, in which case the results will be recomputed.
+   */
   override suspend fun findPreviewElements(
     project: Project,
     vFile: VirtualFile,
   ): Collection<PsiWearTilePreviewElement> {
-    return findUMethodsWithTilePreviewSignature(project, vFile)
-      .flatMap { method ->
-        ProgressManager.checkCanceled()
-        method
-          .findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
-          .mapNotNull { it.asTilePreviewNode(method) }
+    val psiFile = readAction { vFile.toPsiFile(project) } ?: return emptyList()
+    val cachedValue =
+      psiFile.getOrCreateCachedValue(previewElementsCacheKey) {
+        ChangeTrackerCachedValue.weakReference()
       }
-      .distinct()
+    return ChangeTrackerCachedValue.get(
+      cachedValue,
+      {
+        findUMethodsWithTilePreviewSignature(project, psiFile)
+          .flatMap { method ->
+            ProgressManager.checkCanceled()
+            method
+              .findAllAnnotationsInGraph { it.isTilePreviewAnnotation() }
+              .mapNotNull { it.asTilePreviewNode(method) }
+          }
+          .distinct()
+      },
+      project.javaKotlinAndDumbChangeTrackers(),
+    )
   }
 }
 
@@ -143,18 +194,38 @@ private fun NodeInfo<UAnnotationSubtreeInfo>.asTilePreviewNode(
   )
 }
 
+/**
+ * Retrieves all [UMethod]s in a given [psiFile] that have a Tile Preview signature. Results of this
+ * method will be cached until there are changes to any java or kotlin files in the given [project]
+ * or when there are smart mode changes to the [project]. It's also possible for the cached value to
+ * be garbage collected, in which case the results will be recomputed.
+ *
+ * @see isMethodWithTilePreviewSignature for details on what a tile preview signature should be
+ */
 @Slow
 private suspend fun findUMethodsWithTilePreviewSignature(
   project: Project,
-  vFile: VirtualFile,
+  psiFile: PsiFile,
+): List<UMethod> {
+  val cachedValue =
+    psiFile.getOrCreateCachedValue(uMethodsWithTilePreviewSignatureCacheKey) {
+      ChangeTrackerCachedValue.weakReference()
+    }
+  return ChangeTrackerCachedValue.get(
+    cachedValue,
+    { findUMethodsWithTilePreviewSignatureNonCached(project, psiFile) },
+    project.javaKotlinAndDumbChangeTrackers(),
+  )
+}
+
+@Slow
+private suspend fun findUMethodsWithTilePreviewSignatureNonCached(
+  project: Project,
+  psiFile: PsiFile,
 ): List<UMethod> {
   val pointerManager = SmartPointerManager.getInstance(project)
   return smartReadAction(project) {
-      PsiTreeUtil.findChildrenOfAnyType(
-          vFile.toPsiFile(project),
-          PsiMethod::class.java,
-          KtNamedFunction::class.java,
-        )
+      PsiTreeUtil.findChildrenOfAnyType(psiFile, PsiMethod::class.java, KtNamedFunction::class.java)
         .map { pointerManager.createSmartPsiElementPointer(it) }
     }
     .filter { smartReadAction(project) { it.element?.isMethodWithTilePreviewSignature() } ?: false }
@@ -220,3 +291,20 @@ internal fun PsiElement?.isMethodWithTilePreviewSignature(): Boolean {
     }
   return hasSingleContextParameter
 }
+
+private fun <T> PsiFile.getOrCreateCachedValue(
+  key: Key<ChangeTrackerCachedValue<T>>,
+  create: () -> ChangeTrackerCachedValue<T>,
+) = getUserData(key) ?: create().also { putUserData(key, it) }
+
+private fun Project.javaKotlinAndDumbChangeTrackers() =
+  ChangeTracker(
+    ChangeTracker {
+      PsiModificationTracker.getInstance(this)
+        .forLanguages { lang ->
+          lang.`is`(KotlinLanguage.INSTANCE) || lang.`is`(JavaLanguage.INSTANCE)
+        }
+        .modificationCount
+    },
+    ChangeTracker { DumbService.getInstance(this).modificationTracker.modificationCount },
+  )
