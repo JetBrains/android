@@ -329,6 +329,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD,
     TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
     TemplateRenderer.ANDROID_NATIVE_MODULE,
+    TemplateRenderer.KOTLIN_MULTIPLATFORM_LIBRARY_MODULE,
     TemplateRenderer.BASELINE_PROFILES_MODULE -> throw RuntimeException("Invalid Template Title")
   }
 }
