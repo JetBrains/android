@@ -36,10 +36,7 @@ class GradleAndroidProjectResolverExtension : AbstractProjectResolverExtension()
 
   private val LOG by lazy { Logger.getInstance(GradleAndroidProjectResolverExtension::class.java) }
 
-  override fun enhanceTaskProcessing(
-    taskNames: MutableList<String>,
-    initScriptConsumer: Consumer<String>,
-    parameters: MutableMap<String, String>) {
+  override fun enhanceTaskProcessing(taskNames: MutableList<String>, jvmParametersSetup: String?, initScriptConsumer: Consumer<String>) {
     try {
       val addTestListenerScript = ResourceUtil.getResource(
         GradleAndroidProjectResolverExtension::class.java, "utp", "addGradleAndroidTestListener.gradle")
