@@ -39,9 +39,9 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JLabel
-import javax.swing.JPanel
 import javax.swing.JTextField
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Ignore
@@ -64,7 +64,7 @@ class WearHealthServicesContentPanelTest {
 
   private lateinit var deviceManager: FakeDeviceManager
   private lateinit var stateManager: WearHealthServicesStateManagerImpl
-  private lateinit var whsPanel: JPanel
+  private lateinit var whsPanel: WearHealthServicesPanel
 
   @Before
   fun setUp() {
@@ -86,7 +86,7 @@ class WearHealthServicesContentPanelTest {
 
   @Test
   fun `test panel screenshot matches expectation for current platform`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.setCapabilities(
       mapOf(
@@ -126,7 +126,7 @@ class WearHealthServicesContentPanelTest {
       stateManager.setOverrideValue(deviceManager.capabilities[2], 5f)
       stateManager.applyChanges()
 
-      val fakeUi = FakeUi(whsPanel)
+      val fakeUi = FakeUi(whsPanel.component)
 
       fakeUi.waitForCheckbox("Heart rate", true)
       fakeUi.waitForCheckbox("Location", false)
@@ -145,7 +145,7 @@ class WearHealthServicesContentPanelTest {
 
   @Test
   fun `test override value doesn't get reformatted from int to float`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.activeExercise = true
 
@@ -163,7 +163,7 @@ class WearHealthServicesContentPanelTest {
 
   @Test
   fun `test override value allows numbers and decimals and rejects invalid text`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
     deviceManager.activeExercise = true
 
@@ -224,7 +224,7 @@ class WearHealthServicesContentPanelTest {
 
   @Test
   fun `test panel displays the dropdown for event triggers`() = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
     val dropDownButton = fakeUi.waitForDescendant<CommonDropDownButton>()
     assertThat(dropDownButton).isNotNull()
     assertThat(dropDownButton.action.childrenActions).hasSize(EVENT_TRIGGER_GROUPS.size)
@@ -239,7 +239,7 @@ class WearHealthServicesContentPanelTest {
   @Test
   fun `test panel disables checkboxes and dropdown during an exercise`() =
     runBlocking<Unit> {
-      val fakeUi = FakeUi(whsPanel)
+      val fakeUi = FakeUi(whsPanel.component)
 
       fakeUi.waitForDescendant<ComboBox<Preset>> { it.isEnabled }
       fakeUi.waitForDescendant<JCheckBox> { it.hasLabel("Heart rate") && it.isEnabled }
@@ -254,7 +254,7 @@ class WearHealthServicesContentPanelTest {
 
   @Test
   fun `test star is only visible when changes are pending`(): Unit = runBlocking {
-    val fakeUi = FakeUi(whsPanel)
+    val fakeUi = FakeUi(whsPanel.component)
 
     // TODO: Remove this apply when ag/26161198 is merged
     val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
@@ -284,7 +284,7 @@ class WearHealthServicesContentPanelTest {
   @Test
   fun `test enabled sensors have enabled override value fields and units during exercise`() =
     runBlocking<Unit> {
-      val fakeUi = FakeUi(whsPanel)
+      val fakeUi = FakeUi(whsPanel.component)
 
       // Heart Rate
       stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], true)
@@ -302,7 +302,7 @@ class WearHealthServicesContentPanelTest {
   @Test
   fun `test disabled sensors have disabled override value fields and units during exercise`() =
     runBlocking<Unit> {
-      val fakeUi = FakeUi(whsPanel)
+      val fakeUi = FakeUi(whsPanel.component)
 
       // Heart Rate
       stateManager.setCapabilityEnabled(WHS_CAPABILITIES[0], false)
@@ -315,6 +315,22 @@ class WearHealthServicesContentPanelTest {
       fakeUi.waitForDescendant<JTextField> { it.text == "50.0" && it.isVisible && !it.isEnabled }
       fakeUi.waitForDescendant<JLabel> { it.text == "bpm" && !it.isEnabled }
     }
+
+  @Test
+  fun `test apply button flow notification`(): Unit = runBlocking {
+    val fakeUi = FakeUi(whsPanel.component)
+    val userApplyChanges = whsPanel.onUserApplyChangesFlow
+
+    deviceManager.activeExercise = true
+
+    val textField = fakeUi.waitForDescendant<JTextField> { it.isVisible }
+    textField.text = "50"
+
+    val applyButton = fakeUi.waitForDescendant<JButton> { it.text == "Apply" }
+    applyButton.doClick()
+
+    userApplyChanges.take(1).collect {}
+  }
 
   private fun FakeUi.waitForCheckbox(text: String, selected: Boolean) =
     waitForDescendant<JCheckBox> { checkbox ->
