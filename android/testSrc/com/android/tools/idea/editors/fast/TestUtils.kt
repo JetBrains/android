@@ -41,7 +41,7 @@ fun Path.toFileNameSet(): Set<String> {
   return generatedFilesSet
 }
 
-fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: ProjectSystemBuildManager.BuildMode = ProjectSystemBuildManager.BuildMode.COMPILE,
+fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: ProjectSystemBuildManager.BuildMode = ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE,
                                                                          buildStatus: ProjectSystemBuildManager.BuildStatus) {
   getBuildListenerForTest().buildStarted(buildMode)
   getBuildListenerForTest().buildCompleted(
