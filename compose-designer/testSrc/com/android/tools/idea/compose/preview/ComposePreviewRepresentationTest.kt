@@ -37,6 +37,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.asCollection
 import com.android.tools.idea.concurrency.awaitStatus
+import com.android.tools.idea.concurrency.coroutineScope
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
@@ -735,7 +736,7 @@ class ComposePreviewRepresentationTest {
     project.putUserData(FileEditorManagerImpl.ALLOW_IN_LIGHT_PROJECT, true)
     project.replaceService(
       FileEditorManager::class.java,
-      FileEditorManagerImpl(project, project.coroutineScope),
+      FileEditorManagerImpl(project, project.coroutineScope()),
       projectRule.fixture.testRootDisposable,
     )
     HeadlessDataManager.fallbackToProductionDataManager(projectRule.fixture.testRootDisposable)
