@@ -56,8 +56,8 @@ public class ClipboardAdapter {
         setPrimaryClipMethod = findMethodAndMakeAccessible(methods, "setPrimaryClip");
         addPrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "addPrimaryClipChangedListener");
         removePrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "removePrimaryClipChangedListener");
-        if (checkNumberOfParameters(getPrimaryClipMethod, 0, 4) &&
-            checkNumberOfParameters(setPrimaryClipMethod, 1, 5) &&
+        if (checkNumberOfParameters(getPrimaryClipMethod, 0, 5) &&
+            checkNumberOfParameters(setPrimaryClipMethod, 1, 6) &&
             checkNumberOfParameters(addPrimaryClipChangedListenerMethod, 1, 5) &&
             checkNumberOfParameters(removePrimaryClipChangedListenerMethod, 1, 5)) {
           clipboardListener = new ClipboardListener();
@@ -93,6 +93,8 @@ public class ClipboardAdapter {
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID) :
                         numberOfParameters == 4 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
+                        numberOfParameters == 5 ?
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, true) :
                         null;
     if (clipData == null || clipData.getItemCount() == 0) {
       return "";
@@ -136,6 +138,11 @@ public class ClipboardAdapter {
       Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ", " +
                              PACKAGE_NAME + ", " + ATTRIBUTION_TAG + ", " + USER_ID + ", " + DEVICE_ID_DEFAULT + ")");
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
+    }
+    else if (numberOfParameters == 6) {
+      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: Calling IClipboard.setPrimaryClip(" + clipboard + ", " + clipData + ", " +
+                             PACKAGE_NAME + ", " + ATTRIBUTION_TAG + ", " + USER_ID + ", " + DEVICE_ID_DEFAULT + ", true)");
+      setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT, true);
     }
   }
 
@@ -198,10 +205,21 @@ public class ClipboardAdapter {
 
   private static boolean checkNumberOfParameters(Method method, int minParam, int maxParam) {
     int parameterCount = method.getParameterCount();
+    Class<?>[] parameterTypes = method.getParameterTypes();
+    StringBuilder types = new StringBuilder();
+    for (Class<?> parameterType : parameterTypes) {
+      if (types.length() > 0) {
+        types.append(", ");
+      }
+      types.append(parameterType.getName());
+    }
     if (minParam <= parameterCount && parameterCount <= maxParam) {
+      Log.d(ATTRIBUTION_TAG, "ClipboardAdapter: IClipboard." + method.getName() + '(' + types + ')');
       return true;
     }
-    Log.e(ATTRIBUTION_TAG, "Unexpected number of IClipboard." + method.getName() + " parameters: " + parameterCount);
+
+    Log.e(ATTRIBUTION_TAG, "Unexpected number of IClipboard." + method.getName() + " parameters: " + parameterCount +
+                           " types: " + types);
     return false;
   }
 }
