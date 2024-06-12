@@ -227,7 +227,7 @@ abstract class SupportedAnimationManager(
               if (tabInfo == null) {
                 tabInfo =
                   TabInfo(tab.component).apply {
-                    text = this@SupportedAnimationManager.tabTitle
+                    setText(this@SupportedAnimationManager.tabTitle)
                     tabbedPane.addTabWithCloseButton(this) { tabInfo = null }
                   }
               }

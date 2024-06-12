@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
-import com.intellij.ide.logsUploader.LogsPacker.packLogs
+import com.intellij.ide.logsUploader.LogPacker.packLogs
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import kotlinx.coroutines.runBlocking

@@ -111,7 +111,7 @@ internal class DirectionsClassResolveExtensionFile(
   private fun KtAnalysisSession.getTagForValueParameterSymbol(
     symbol: KtValueParameterSymbol
   ): XmlTag? {
-    val declaringFunctionSymbol = symbol.getContainingSymbol() as? KtFunctionSymbol ?: return null
+    val declaringFunctionSymbol = symbol.containingSymbol as? KtFunctionSymbol ?: return null
     val matchingAction = findMatchingAction(declaringFunctionSymbol) ?: return null
     val actionTag = matchingAction.actionTag
 
