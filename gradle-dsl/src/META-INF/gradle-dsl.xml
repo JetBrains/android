@@ -8,6 +8,8 @@
     <extensionPoint qualifiedName="com.android.tools.idea.gradle.dsl.blockModelProvider"
                     interface="com.android.tools.idea.gradle.dsl.model.BlockModelProvider"
                     dynamic="true" />
+    <extensionPoint qualifiedName="com.android.tools.idea.versionCatalogFilesGradleModel"
+                    interface="com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModel"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.tools.idea.gradle.dsl">

@@ -81,6 +81,7 @@ public final class TestProjectPaths {
   public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
   public static final String PSD_SAMPLE_KOTLIN = "projects/psdSample/Kotlin";
   public static final String PSD_VERSION_CATALOG_SAMPLE_GROOVY = "projects/simpleApplicationVersionCatalog";
+  public static final String PSD_IMPORTED_VERSION_CATALOG_SAMPLE_GROOVY = "projects/simpleApplicationImportedVersionCatalog";
   public static final String PSD_SAMPLE_REPO = "projects/psdSampleRepo";
   public static final String PSD_UPGRADE = "projects/psdUpgrade";
   public static final String PSD_VARIANT_COLLISIONS = "projects/psdVariantCollisions";
