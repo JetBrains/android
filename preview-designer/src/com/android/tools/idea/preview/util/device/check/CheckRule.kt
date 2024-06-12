@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.annotator.check.common
+package com.android.tools.idea.preview.util.device.check
 
 /**
- * Contains any Issues found by the check, if the issues can be resolved, [proposedFix] will be a
- * not-null string that can be applied to resolve the issues.
+ * A [CheckRule] is a set of required and optional [ParameterRule]s. All parameters will be checked
+ * against these rules for correctness.
  *
- * So when [issues] is empty, the check completed successfully and [proposedFix] should be null.
+ * Required parameters are those that need to be present.
+ *
+ * Optional parameters may not be present. This means that missing parameters from this list will
+ * not generate a [Missing] issue.
  */
-internal data class CheckResult(val issues: List<IssueReason>, val proposedFix: String?) {
-  val hasIssues: Boolean = issues.isNotEmpty()
+internal interface CheckRule {
+  val requiredParameters: List<ParameterRule>
+  val optionalParameters: List<ParameterRule>
 }

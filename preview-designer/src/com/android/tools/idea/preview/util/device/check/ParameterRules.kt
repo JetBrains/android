@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2024 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.annotator.check.device
+package com.android.tools.idea.preview.util.device.check
 
 import com.android.ide.common.util.enumValueOfOrNull
-import com.android.tools.idea.compose.annotator.check.common.OpenEndedValueType
-import com.android.tools.idea.compose.annotator.check.common.ParameterRule.Companion.simpleParameterRule
+import com.android.tools.idea.preview.util.device.check.ParameterRule.Companion.simpleParameterRule
 import com.android.tools.preview.config.DimUnit
 import com.android.tools.preview.config.Orientation
 import com.android.tools.preview.config.Preview.DeviceSpec
