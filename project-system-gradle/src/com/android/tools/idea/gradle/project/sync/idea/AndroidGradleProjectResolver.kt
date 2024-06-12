@@ -124,7 +124,6 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptModelBuilderService
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptSourceSetModel
-import org.jetbrains.plugins.gradle.model.Build
 import org.jetbrains.plugins.gradle.model.DefaultExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.GradleBuildScriptClasspathModel
@@ -591,7 +590,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     // We also need to process composite builds
     val models = resolverCtx.models
     val compositeProjects: Collection<IdeaProject?> =
-      models.includedBuilds.map { build: Build -> models.getModel(build, IdeaProject::class.java) }
+      models.includedBuilds.map { build -> models.getModel(build, IdeaProject::class.java) }
     val gradleProjects =
       compositeProjects.flatMap { gradleBuild: IdeaProject? -> gradleBuild!!.modules } +
       mainGradleBuild.modules
