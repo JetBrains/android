@@ -50,10 +50,14 @@ fun TaskRecordingTypeDropdown(taskRecordingType: TaskHomeTabModel.TaskRecordingT
 
 @Composable
 private fun TaskRecordingTypeOption(taskRecordingType: TaskHomeTabModel.TaskRecordingType, modifier: Modifier = Modifier) {
-  val optionText = when (taskRecordingType) {
-    TaskHomeTabModel.TaskRecordingType.SAMPLED -> TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION
-    TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> TaskBasedUxStrings.ART_INSTRUMENTED_RECORDING_TYPE_OPTION
-  }
+  when (taskRecordingType) {
+    TaskHomeTabModel.TaskRecordingType.SAMPLED -> DropdownOptionText(modifier,
+                                                                     TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_PRIMARY_TEXT,
+                                                                     TaskBasedUxStrings.ART_SAMPLED_RECORDING_TYPE_OPTION_SECONDARY_TEXT,
+                                                                     true)
 
-  DropdownOptionText(optionText)
+    TaskHomeTabModel.TaskRecordingType.INSTRUMENTED -> DropdownOptionText(modifier,
+                                                                          TaskBasedUxStrings.ART_INSTRUMENTED_RECORDING_TYPE_OPTION, null,
+                                                                          true)
+  }
 }

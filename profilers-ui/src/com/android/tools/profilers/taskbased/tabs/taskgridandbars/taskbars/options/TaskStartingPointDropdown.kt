@@ -47,7 +47,7 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
       selectableItem(enabled = isProfilingProcessFromNowEnabled,
                      selected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.NOW,
                      onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.NOW) }) {
-        TaskStartingPointFromNowOption()
+        TaskStartingPointFromNowOption(isProfilingProcessFromNowEnabled, Modifier.testTag("TaskStartingPointOption"))
       }
       val isProcessStartSelected = profilingProcessStartingPoint == TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START
       selectableItem(enabled = isProfilingProcessFromProcessStartEnabled,
@@ -55,38 +55,40 @@ fun TaskStartingPointDropdown(profilingProcessStartingPoint: TaskHomeTabModel.Pr
                      onClick = { setProfilingProcessStartingPoint(TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START) }) {
         // In the case where the process start option is disabled and not selected, a tooltip explaining why is provided.
         if (isProfilingProcessFromProcessStartEnabled || isProcessStartSelected) {
-          TaskStartingFromProcessStartOption()
+          TaskStartingFromProcessStartOption(isProfilingProcessFromProcessStartEnabled, Modifier.testTag("TaskStartingPointOption"))
         }
         else {
           Tooltip(tooltip = {
             Text(processStartDisabledReason?.let { TaskBasedUxStrings.getStartTaskErrorMessage(it) } ?: "Option unavailable")
           }) {
-            TaskStartingFromProcessStartOption()
+            TaskStartingFromProcessStartOption(false, Modifier.testTag("TaskStartingPointOption"))
           }
         }
       }
     }) {
-      val selectionText = when (profilingProcessStartingPoint) {
-        TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED -> "Please select a starting point"
-        TaskHomeTabModel.ProfilingProcessStartingPoint.NOW -> TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION
-        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START -> TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION
+      when (profilingProcessStartingPoint) {
+        TaskHomeTabModel.ProfilingProcessStartingPoint.UNSPECIFIED -> DropdownOptionText(primaryText = "Please select a starting point",
+                                                                                         secondaryText = null, isEnabled = false)
+        TaskHomeTabModel.ProfilingProcessStartingPoint.NOW -> TaskStartingPointFromNowOption(isProfilingProcessFromNowEnabled)
+        TaskHomeTabModel.ProfilingProcessStartingPoint.PROCESS_START -> TaskStartingFromProcessStartOption(
+          isProfilingProcessFromProcessStartEnabled)
       }
-      TaskStartingPointOption(selectionText)
     }
   }
 }
 
 @Composable
-private fun TaskStartingPointFromNowOption() {
-  TaskStartingPointOption(TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION, Modifier.testTag("TaskStartingPointOption"))
+private fun TaskStartingPointFromNowOption(isEnabled: Boolean, modifier: Modifier = Modifier) {
+  DropdownOptionText(modifier,
+                     TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT,
+                     TaskBasedUxStrings.NOW_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT,
+                     isEnabled)
 }
 
 @Composable
-private fun TaskStartingFromProcessStartOption() {
-  TaskStartingPointOption(TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION, Modifier.testTag("TaskStartingPointOption"))
-}
-
-@Composable
-private fun TaskStartingPointOption(optionText: String, modifier: Modifier = Modifier) {
-  DropdownOptionText(optionText, modifier)
+private fun TaskStartingFromProcessStartOption(isEnabled: Boolean, modifier: Modifier = Modifier) {
+  DropdownOptionText(modifier,
+                     TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_PRIMARY_TEXT,
+                     TaskBasedUxStrings.STARTUP_STARTING_POINT_DROPDOWN_OPTION_SECONDARY_TEXT,
+                     isEnabled)
 }
