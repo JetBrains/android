@@ -400,7 +400,7 @@ abstract class AnimationPreview<T : AnimationManager>(
         hideNoAnimationPanel()
         tabbedPane.addTab(
           TabInfo(coordinationTab).apply {
-            text = "${message("animation.inspector.tab.all.title")}  "
+            setText("${message("animation.inspector.tab.all.title")}  ")
           },
           0,
         )

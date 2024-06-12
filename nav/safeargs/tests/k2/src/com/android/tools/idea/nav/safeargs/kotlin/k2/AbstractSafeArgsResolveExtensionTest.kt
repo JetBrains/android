@@ -114,7 +114,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
     renderer: KtDeclarationRenderer = RENDERER,
   ): List<String> =
     symbol
-      .getDeclaredMemberScope()
+      .declaredMemberScope
       .getCallableSymbols()
       .filterIsInstance<KtFunctionSymbol>()
       .filter { it.origin != KtSymbolOrigin.SOURCE_MEMBER_GENERATED }
@@ -123,7 +123,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
 
   protected fun KtAnalysisSession.getPrimaryConstructorSymbol(
     symbol: KtClassOrObjectSymbol
-  ): KtConstructorSymbol = symbol.getDeclaredMemberScope().getConstructors().single { it.isPrimary }
+  ): KtConstructorSymbol = symbol.declaredMemberScope.constructors.single { it.isPrimary }
 
   protected fun KtAnalysisSession.getResolveExtensionPsiNavigationTargets(
     symbol: KtSymbol
@@ -131,7 +131,7 @@ abstract class AbstractSafeArgsResolveExtensionTest {
     assertThat(symbol.psi).isInstanceOf(KtElement::class.java)
     val ktElement = symbol.psi as KtElement
     assertThat(ktElement.isFromResolveExtension).isTrue()
-    return ktElement.getResolveExtensionNavigationElements()
+    return ktElement.resolveExtensionNavigationElements
   }
 
   companion object {

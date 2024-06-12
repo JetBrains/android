@@ -141,8 +141,8 @@ class AddSuperCallFix(element: PsiElement, private val superMethod: PsiMethod) :
 
   private fun buildSuperStatement(method: KtNamedFunction, superMethod: PsiMethod): String {
     val qualifiedClass = analyze(method) {
-      val ktCallableSymbol = method.getSymbol() as? KtCallableSymbol ?: return@analyze null
-      val choices = ktCallableSymbol.getDirectlyOverriddenSymbols()
+      val ktCallableSymbol = method.symbol as? KtCallableSymbol ?: return@analyze null
+      val choices = ktCallableSymbol.directlyOverriddenSymbols.toList()
       if (choices.size > 1) {
         // We need to disambiguate the call
         superMethod.containingClass?.let {

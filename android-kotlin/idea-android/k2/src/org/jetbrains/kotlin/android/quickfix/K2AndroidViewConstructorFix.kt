@@ -61,7 +61,7 @@ class K2AndroidViewConstructorFix(
                 return null
             }
 
-            val superConstructors = superType.getTypeScope()?.getConstructors() ?: return null
+            val superConstructors = superType.scope?.getConstructors() ?: return null
             val superConstructorClassSignatures = superConstructors.map { constructor ->
                 constructor.valueParameters.map { param ->
                     classId(param.returnType)

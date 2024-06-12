@@ -17,17 +17,15 @@
 package org.jetbrains.kotlin.android
 
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
-import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassLikeSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtErrorType
-import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
 
 fun KtAnalysisSession.isSubclassOf(subClass: KtClassOrObject, superClassId: ClassId, strict: Boolean = false): Boolean {
-    val classSymbol = subClass.getSymbol() as? KtClassLikeSymbol ?: return false
+    val classSymbol = subClass.symbol as? KtClassLikeSymbol ?: return false
     return isSubclassOf(classSymbol, superClassId, strict)
 }
 
