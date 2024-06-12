@@ -660,7 +660,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
 
     @Override
     public @NotNull ActionUpdateThread getActionUpdateThread() {
-      return ActionUpdateThread.BGT;
+      return ActionUpdateThread.EDT;
     }
 
     @Override
