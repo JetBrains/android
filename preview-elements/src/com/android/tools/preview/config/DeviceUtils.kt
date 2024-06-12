@@ -43,9 +43,6 @@ const val DEVICE_BY_SPEC_PREFIX = "spec:"
 /** id for the default device when no device is specified by the user. */
 const val DEFAULT_DEVICE_ID = "pixel_5"
 
-/** Full declaration for the default device. */
-const val DEFAULT_DEVICE_ID_WITH_PREFIX = DEVICE_BY_ID_PREFIX + DEFAULT_DEVICE_ID
-
 /** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
 const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
@@ -134,7 +131,8 @@ fun DeviceConfig.createDeviceInstance(): Device {
             size = ScreenSize.getScreenSize(diagonalLength)
             ratio = ScreenRatio.create(xDimension, yDimension)
           }
-        buttonType = ButtonType.SOFT  // needed for displaying nav bar when showing device decorations
+        buttonType =
+          ButtonType.SOFT // needed for displaying nav bar when showing device decorations
       }
   }
   return customDevice
@@ -155,7 +153,7 @@ fun ConfigurationSettings.getDefaultPreviewDevice(): Device? =
  */
 fun Collection<Device>.findOrParseFromDefinition(
   deviceDefinition: String,
-  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
+  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java),
 ): Device? {
   return when {
     deviceDefinition.isBlank() -> null
@@ -173,7 +171,7 @@ fun Collection<Device>.findOrParseFromDefinition(
 
 fun Collection<Device>.findByIdOrName(
   deviceDefinition: String,
-  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
+  logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java),
 ): Device? {
   val availableDevices = this
   return when {

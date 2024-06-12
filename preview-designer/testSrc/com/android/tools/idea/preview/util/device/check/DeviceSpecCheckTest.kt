@@ -19,6 +19,7 @@ import com.android.tools.idea.preview.util.device.check.DeviceSpecCheck.hasIssue
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.moveCaret
+import com.android.tools.preview.config.DEFAULT_DEVICE_ID
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.ide.highlighter.JavaFileType
@@ -283,7 +284,7 @@ internal class DeviceSpecCheckTest {
     }
     assertNotNull(annotation)
 
-    val result = DeviceSpecCheck.checkDeviceSpec(annotation)
+    val result = DeviceSpecCheck.checkDeviceSpec(annotation, DEFAULT_DEVICE_ID)
     assertEquals(1, result.issues.size)
     assertEquals(Failure::class, result.issues[0]::class)
     assertEquals("No read access", (result.issues[0] as Failure).failureMessage)
@@ -339,6 +340,28 @@ internal class DeviceSpecCheckTest {
           .trimIndent()
       )
     assertFalse(result.hasIssues)
+  }
+
+  @Test
+  fun testDeviceIdCheckWithDefaultDeviceIdOverride() {
+    runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
+    val defaultDeviceId = "wearos_large_round"
+
+    val result =
+      addKotlinFileAndCheckPreviewAnnotation(
+        """
+        package example
+        import test.Preview
+
+        @Preview(device = "id:device_1")
+        fun myFun() {}
+"""
+          .trimIndent(),
+        defaultDeviceId = defaultDeviceId,
+      )
+    assertEquals(1, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals("id:${defaultDeviceId}", result.proposedFix)
   }
 
   @Test
@@ -629,7 +652,8 @@ internal class DeviceSpecCheckTest {
    * Preview annotation found.
    */
   private fun addKotlinFileAndCheckPreviewAnnotation(
-    @Language("kotlin") fileContents: String
+    @Language("kotlin") fileContents: String,
+    defaultDeviceId: String = DEFAULT_DEVICE_ID,
   ): CheckResult {
     rule.fixture.configureByText(KotlinFileType.INSTANCE, fileContents)
 
@@ -641,7 +665,7 @@ internal class DeviceSpecCheckTest {
     }
     assertNotNull(annotation)
 
-    return runReadAction { DeviceSpecCheck.checkDeviceSpec(annotation) }
+    return runReadAction { DeviceSpecCheck.checkDeviceSpec(annotation, defaultDeviceId) }
   }
 
   /**
@@ -661,6 +685,6 @@ internal class DeviceSpecCheckTest {
     }
     assertNotNull(annotation)
 
-    return runReadAction { DeviceSpecCheck.checkDeviceSpec(annotation) }
+    return runReadAction { DeviceSpecCheck.checkDeviceSpec(annotation, DEFAULT_DEVICE_ID) }
   }
 }
