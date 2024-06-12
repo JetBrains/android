@@ -23,8 +23,12 @@ import com.intellij.openapi.actionSystem.AnAction
  * [ComposeAnimationState] for animations where initial and target states should be selected with a
  * picker.
  */
-class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  ComposeAnimationState(callback) {
+class PickerState(tracker: ComposeAnimationTracker, callback: () -> Unit) : ComposeAnimationState {
+
+  override var callbackEnabled = false
+
+  /** [stateCallback] should be enabled or disabled with [callbackEnabled]. */
+  protected val stateCallback = { if (callbackEnabled) callback() }
 
   private val buttonAction = PickerButtonAction(tracker, stateCallback)
 

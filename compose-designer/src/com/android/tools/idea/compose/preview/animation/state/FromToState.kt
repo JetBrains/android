@@ -25,8 +25,12 @@ import com.android.tools.idea.preview.animation.state.ToolbarLabel
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */
-class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  ComposeAnimationState(callback) {
+class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) : ComposeAnimationState {
+
+  override var callbackEnabled = false
+
+  /** [stateCallback] should be enabled or disabled with [callbackEnabled]. */
+  private val stateCallback = { if (callbackEnabled) callback() }
 
   private val fromState = EnumStateAction {
     stateCallback()
