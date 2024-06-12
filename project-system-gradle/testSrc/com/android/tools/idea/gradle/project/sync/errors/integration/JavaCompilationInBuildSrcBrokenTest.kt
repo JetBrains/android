@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildErrorMessage
+import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.events.BuildIssueEvent
 import com.intellij.build.events.MessageEvent
 import org.junit.Test
@@ -51,6 +52,13 @@ class JavaCompilationInBuildSrcBrokenTest: AbstractSyncFailureIntegrationTest() 
         expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.JAVA_COMPILATION_ERROR)
         expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
           .containsExactly(BuildErrorMessage.ErrorType.JAVA_COMPILER)
+
+        expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
+          SUCCESS : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_CONFIGURE_BUILD
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD/GRADLE_RUN_WORK
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent())
       },
     )
   }
