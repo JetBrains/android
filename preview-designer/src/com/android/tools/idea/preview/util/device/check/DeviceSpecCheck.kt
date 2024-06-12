@@ -31,16 +31,22 @@ import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalQuickFixOnPsiElement
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiLiteral
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.findParentOfType
 import com.intellij.util.IncorrectOperationException
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtOperationExpression
@@ -123,17 +129,22 @@ object DeviceSpecCheck {
 
       val deviceValueExpression =
         annotation.findDeclaredAttributeValue("device")?.sourcePsiElement ?: return null
+
       val deviceValueElement =
-        if (deviceValueExpression is KtOperationExpression) {
-          // If the expression is a string concatenation, highlight the entire expression
-          deviceValueExpression
-        } else {
-          // Otherwise, highlight the string literal itself.
-          PsiTreeUtil.findChildOfType(
-            deviceValueExpression,
-            KtLiteralStringTemplateEntry::class.java,
-            false,
-          ) ?: return null
+        when (deviceValueExpression) {
+          is KtOperationExpression -> {
+            // If the expression is a string concatenation, highlight the entire expression
+            deviceValueExpression
+          }
+          is PsiLiteral -> deviceValueExpression
+          else -> {
+            // Otherwise, highlight the string literal itself.
+            PsiTreeUtil.findChildOfType(
+              deviceValueExpression,
+              KtLiteralStringTemplateEntry::class.java,
+              false,
+            ) ?: return null
+          }
         }
 
       return inspectionManager.createProblemDescriptor(
@@ -456,17 +467,28 @@ private class DeviceParameterQuickFix(
     endElement: PsiElement,
   ) {
     try {
-      // Find the element that corresponds to the Argument value, this is needed in case the
-      // original expression is composed by more than
-      // one element. E.g: device = "spec:width=100dp," + "height=" + heightDp
-      var replaceableElement = startElement
-      while (replaceableElement.parent !is KtValueArgument) {
-        replaceableElement = replaceableElement.parent
+      when (startElement.language) {
+        is KotlinLanguage -> {
+          // Find the element that corresponds to the Argument value, this is needed in case the
+          // original expression is composed by more than
+          // one element. E.g: device = "spec:width=100dp," + "height=" + heightDp
+          var replaceableElement = startElement
+          while (replaceableElement.parent !is KtValueArgument) {
+            replaceableElement = replaceableElement.parent
+          }
+          replaceableElement.replace(
+            KtPsiFactory(project = project, markGenerated = true)
+              .createExpression("\"$resultingString\"")
+          )
+        }
+        is JavaLanguage -> {
+          val annotation = startElement.findParentOfType<PsiAnnotation>()
+          val factory = JavaPsiFacade.getElementFactory(project)
+          val expression = factory.createExpressionFromText("\"$resultingString\"", annotation)
+          startElement.replace(expression)
+        }
+        else -> throw IllegalArgumentException("Language ${startElement.language} not supported.")
       }
-      replaceableElement.replace(
-        KtPsiFactory(project = project, markGenerated = true)
-          .createExpression("\"$resultingString\"")
-      )
     } catch (e: IncorrectOperationException) {
       Logger.getInstance(DeviceParameterQuickFix::class.java)
         .error("Unable to apply fix to @Preview 'device' parameter", e)

@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.preview.util.device.check
 
+import com.android.tools.idea.preview.util.device.check.DeviceSpecCheck.hasIssues
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Sdks
 import com.android.tools.idea.testing.moveCaret
+import com.intellij.codeInspection.InspectionManager
+import com.intellij.codeInspection.LocalQuickFixOnPsiElement
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.runInEdtAndGet
 import kotlin.test.assertNotNull
@@ -42,6 +48,8 @@ internal class DeviceSpecCheckTest {
   val fixture
     get() = rule.fixture
 
+  private lateinit var inspectionManager: InspectionManager
+
   @Before
   fun setup() {
     fixture.addFileToProject(
@@ -57,6 +65,7 @@ internal class DeviceSpecCheckTest {
     """
         .trimIndent(),
     )
+    inspectionManager = InspectionManager.getInstance(fixture.project)
   }
 
   @Test
@@ -82,6 +91,35 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = "   ")
         fun myFun() {}
+      """
+          .trimIndent()
+      )
+    assertTrue(result.issues.isEmpty())
+  }
+
+  @Test
+  fun testValidDeviceSpecs_java() {
+    var result =
+      addJavaFileAndCheckPreviewAnnotation(
+        """
+        package example;
+        import test.Preview;
+
+        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320,id=fooBar 123")
+        void myFun() {}
+      """
+          .trimIndent()
+      )
+    assertTrue(result.issues.isEmpty())
+
+    result =
+      addJavaFileAndCheckPreviewAnnotation(
+        """
+        package example;
+        import test.Preview;
+
+        @Preview(device = "   ")
+        void myFun() {}
       """
           .trimIndent()
       )
@@ -123,6 +161,53 @@ internal class DeviceSpecCheckTest {
 
         @Preview(device = " abc ")
         fun myFun() {}
+"""
+          .trimIndent()
+      )
+    assertEquals(1, result.issues.size)
+    assertEquals(Unknown::class, result.issues[0]::class)
+    assertEquals(
+      "Must be a Device ID or a Device specification: \"id:...\", \"spec:...\".",
+      result.issues[0].parameterName,
+    )
+    assertEquals("id:pixel_5", result.proposedFix)
+  }
+
+  @Test
+  fun testDeviceSpecWithIssues_java() {
+    var result =
+      addJavaFileAndCheckPreviewAnnotation(
+        """
+        package example;
+        import test.Preview;
+
+        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        void myFun() {}
+"""
+          .trimIndent()
+      )
+    assertEquals(6, result.issues.size)
+    assertEquals(
+      listOf(
+        BadType::class,
+        BadType::class,
+        BadType::class,
+        Unknown::class,
+        Repeated::class,
+        Missing::class,
+      ),
+      result.issues.map { it::class },
+    )
+    assertEquals("spec:shape=Normal,width=411,unit=dp,dpi=320,height=891", result.proposedFix)
+
+    result =
+      addJavaFileAndCheckPreviewAnnotation(
+        """
+        package example;
+        import test.Preview;
+
+        @Preview(device = " abc ")
+        void myFun() {}
 """
           .trimIndent()
       )
@@ -411,6 +496,134 @@ internal class DeviceSpecCheckTest {
     assertEquals("spec:parent=pixel_4_xl", result.proposedFix)
   }
 
+  @Test
+  fun testCheckAnnotation() {
+    rule.fixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+        package example
+        import test.Preview
+
+        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        fun myFun() {}
+"""
+        .trimIndent(),
+    )
+
+    val annotation = runInEdtAndGet {
+      rule.fixture
+        .moveCaret("@Prev|iew")
+        .parentOfType<KtAnnotationEntry>()
+        ?.toUElement(UAnnotation::class.java)
+    }
+    assertNotNull(annotation)
+
+    val problem = runReadAction {
+      DeviceSpecCheck.checkAnnotation(annotation, inspectionManager, true)
+    }
+
+    assertNotNull(problem)
+    assertEquals(
+      """
+      Bad value type for: shape, width, unit.
+
+      Parameter: shape should be one of: Normal, Square, Round, Chin.
+      Parameter: width should have Integer value.
+      Parameter: unit should be one of: px, dp.
+
+      Unknown parameter: madeUpParam.
+
+
+      Parameters should not be repeated: shape.
+
+
+      Missing parameter: height.
+    """
+        .trimIndent(),
+      problem.descriptionTemplate,
+    )
+    val fix = problem.fixes?.singleOrNull()
+    assertNotNull(fix)
+
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      (fix as LocalQuickFixOnPsiElement).applyFix()
+    }
+    val fixedAnnotationEntry = runInEdtAndGet {
+      rule.fixture
+        .moveCaret("@Prev|iew")
+        .parentOfType<KtAnnotationEntry>()
+        ?.toUElement(UAnnotation::class.java)
+    }
+    assertNotNull(fixedAnnotationEntry)
+    val hasIssues = runReadAction { fixedAnnotationEntry.hasIssues() }
+    assertFalse(hasIssues)
+  }
+
+  @Test
+  fun testCheckAnnotation_java() {
+    rule.fixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+        package example;
+        import test.Preview;
+
+        @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
+        void myFun() {}
+"""
+        .trimIndent(),
+    )
+
+    val annotation = runInEdtAndGet {
+      rule.fixture
+        .moveCaret("@Prev|iew")
+        .parentOfType<PsiAnnotation>()
+        ?.toUElement(UAnnotation::class.java)
+    }
+    assertNotNull(annotation)
+
+    val problem = runReadAction {
+      DeviceSpecCheck.checkAnnotation(annotation, inspectionManager, true)
+    }
+
+    assertNotNull(problem)
+    assertEquals(
+      """
+      Bad value type for: shape, width, unit.
+
+      Parameter: shape should be one of: Normal, Square, Round, Chin.
+      Parameter: width should have Integer value.
+      Parameter: unit should be one of: px, dp.
+
+      Unknown parameter: madeUpParam.
+
+
+      Parameters should not be repeated: shape.
+
+
+      Missing parameter: height.
+    """
+        .trimIndent(),
+      problem.descriptionTemplate,
+    )
+    val fix = problem.fixes?.singleOrNull()
+    assertNotNull(fix)
+
+    WriteCommandAction.runWriteCommandAction(fixture.project) {
+      (fix as LocalQuickFixOnPsiElement).applyFix()
+    }
+    val fixedAnnotation = runInEdtAndGet {
+      rule.fixture
+        .moveCaret("@Prev|iew")
+        .parentOfType<PsiAnnotation>()
+        ?.toUElement(UAnnotation::class.java)
+    }
+    assertNotNull(fixedAnnotation)
+    val hasIssues = runReadAction { fixedAnnotation.hasIssues() }
+    assertFalse(hasIssues)
+  }
+
   /**
    * Adds file with the given [fileContents] and runs [DeviceSpecCheck.checkDeviceSpec] on the first
    * Preview annotation found.
@@ -424,6 +637,26 @@ internal class DeviceSpecCheckTest {
       rule.fixture
         .moveCaret("@Prev|iew")
         .parentOfType<KtAnnotationEntry>()
+        ?.toUElement(UAnnotation::class.java)
+    }
+    assertNotNull(annotation)
+
+    return runReadAction { DeviceSpecCheck.checkDeviceSpec(annotation) }
+  }
+
+  /**
+   * Adds file with the given [fileContents] and runs [DeviceSpecCheck.checkDeviceSpec] on the first
+   * Preview annotation found.
+   */
+  private fun addJavaFileAndCheckPreviewAnnotation(
+    @Language("JAVA") fileContents: String
+  ): CheckResult {
+    rule.fixture.configureByText(JavaFileType.INSTANCE, fileContents)
+
+    val annotation = runInEdtAndGet {
+      rule.fixture
+        .moveCaret("@Prev|iew")
+        .parentOfType<PsiAnnotation>()
         ?.toUElement(UAnnotation::class.java)
     }
     assertNotNull(annotation)
