@@ -39,8 +39,8 @@ import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBas
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.RECORDING_TIME_COL_WIDTH_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TABLE_ROW_HEIGHT_DP
 import com.android.tools.profilers.taskbased.common.constants.dimensions.TaskBasedUxDimensions.TABLE_ROW_HORIZONTAL_PADDING_DP
-import com.android.tools.profilers.taskbased.common.table.leftAlignedColumnText
-import com.android.tools.profilers.taskbased.common.table.rightAlignedColumnText
+import com.android.tools.profilers.taskbased.common.table.LeftAlignedColumnText
+import com.android.tools.profilers.taskbased.common.table.RightAlignedColumnText
 import org.jetbrains.jewel.foundation.lazy.SelectableLazyColumn
 import org.jetbrains.jewel.foundation.lazy.SelectionMode
 import org.jetbrains.jewel.foundation.lazy.items
@@ -63,10 +63,10 @@ fun RecordingListRow(selectedRecording: SessionItem?, recording: SessionItem) {
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
       .testTag("RecordingListRow")
   ) {
-    leftAlignedColumnText(recording.name, rowScope = this)
-    rightAlignedColumnText(text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
+    LeftAlignedColumnText(recording.name, rowScope = this)
+    RightAlignedColumnText(text = TimeFormatter.getLocalizedDateTime(recording.sessionMetaData.startTimestampEpochMs),
                            colWidth = RECORDING_TIME_COL_WIDTH_DP)
-    rightAlignedColumnText(text = recording.getTaskType().description, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
+    RightAlignedColumnText(text = recording.getTaskType().description, colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
 
@@ -79,11 +79,11 @@ fun RecordingListHeader() {
       .background(TABLE_HEADER_BACKGROUND_COLOR)
       .padding(horizontal = TABLE_ROW_HORIZONTAL_PADDING_DP)
   ) {
-    leftAlignedColumnText(text = "Recording name", rowScope = this)
+    LeftAlignedColumnText(text = "Recording name", rowScope = this)
     Divider(thickness = 1.dp, orientation = Orientation.Vertical)
-    rightAlignedColumnText(text = "Recording time", colWidth = RECORDING_TIME_COL_WIDTH_DP)
+    RightAlignedColumnText(text = "Recording time", colWidth = RECORDING_TIME_COL_WIDTH_DP)
     Divider(thickness = 1.dp, orientation = Orientation.Vertical)
-    rightAlignedColumnText(text = "Recorded tasks", colWidth = RECORDING_TASKS_COL_WIDTH_DP)
+    RightAlignedColumnText(text = "Recorded tasks", colWidth = RECORDING_TASKS_COL_WIDTH_DP)
   }
 }
 
