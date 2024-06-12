@@ -517,7 +517,7 @@ class TaskHomeTabTest {
 
     // Select startup from task starting point dropdown
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").performClick()
-    composeTestRule.onNodeWithText("Process start (restarts process)").performClick()
+    composeTestRule.onNodeWithText("Process start").onParent().performClick()
 
     // Under startup, the start profiler task button should still be enabled
     composeTestRule.onNodeWithTag("EnterTaskButton").assertExists().assertIsEnabled()
@@ -532,15 +532,16 @@ class TaskHomeTabTest {
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").assertHasClickAction()
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").performClick()
     composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).assertCountEquals(2)
-    val nowDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption",
-                                                              useUnmergedTree = true).onFirst().assertTextContains(
-      "Now (attaches to selected process)").onParent()
-    if (isNowOptionEnabled) nowDropdownOption.assertIsEnabled() else nowDropdownOption.assertIsNotEnabled()
 
-    val processStartDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption",
-                                                                       useUnmergedTree = true).onLast().assertTextContains(
-      "Process start (restarts process)").onParent()
-    if (isProcessStartOptionEnabled) processStartDropdownOption.assertIsEnabled() else processStartDropdownOption.assertIsNotEnabled()
+    val nowDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).onFirst()
+    nowDropdownOption.onChildAt(0).assertTextContains("Now").onParent()
+    nowDropdownOption.onChildAt(1).assertTextContains("(attaches to selected process)").onParent()
+    nowDropdownOption.onParent().let { if (isNowOptionEnabled) it.assertIsEnabled() else it.assertIsNotEnabled()  }
+
+    val processStartDropdownOption = composeTestRule.onAllNodesWithTag("TaskStartingPointOption", useUnmergedTree = true).onLast()
+    processStartDropdownOption.onChildAt(0).assertTextContains("Process start").onParent()
+    processStartDropdownOption.onChildAt(1).assertTextContains("(restarts process)").onParent()
+    processStartDropdownOption.onParent().let { if (isProcessStartOptionEnabled) it.assertIsEnabled() else it.assertIsNotEnabled() }
 
     // Re-click dropdown to collapse it again
     composeTestRule.onNodeWithTag("TaskStartingPointDropdown").performClick()
