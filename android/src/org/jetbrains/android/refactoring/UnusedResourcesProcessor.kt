@@ -54,7 +54,6 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.IncorrectOperationException
-import org.jetbrains.kotlin.ir.types.impl.IrErrorClassImpl.startOffset
 import java.io.File
 
 class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
@@ -236,15 +235,13 @@ class UnusedResourcesProcessor(project: Project, filter: Filter? = null) :
       }
       .map { problem -> problem.textRange.startOffset }
       .sortedDescending()
-      .map { startOffset ->
-        PsiTreeUtil.findElementOfClassAtOffset(
+      .mapNotNull { startOffset ->
+        val attribute = PsiTreeUtil.findElementOfClassAtOffset(
           psiFile,
           startOffset,
           XmlAttribute::class.java,
           false
         )
-      }
-      .mapNotNull { attribute ->
         when {
           attribute == null ->
             PsiTreeUtil.findElementOfClassAtOffset(psiFile, startOffset, XmlTag::class.java, false)
