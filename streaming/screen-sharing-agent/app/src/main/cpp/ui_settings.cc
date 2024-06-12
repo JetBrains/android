@@ -57,6 +57,10 @@ namespace {
 #define PHYSICAL_DENSITY_PATTERN "Physical density: %d"
 #define OVERRIDE_DENSITY_PATTERN "Override density: %d"
 
+#define GOOGLE "Google"
+#define SAMSUNG "samsung"
+#define MOTOROLA "motorola"
+
 #define SYSPROPS_TRANSACTION 1599295570 // from frameworks/base/core/java/android/os/IBinder.java
 
 struct CommandContext {
@@ -357,7 +361,24 @@ string CreateSetSelectToSpeakCommand(bool on, CommandContext* context) {
 string CreateSetGestureNavigationCommand(bool gesture_navigation) {
   auto operation = gesture_navigation ? "enable" : "disable";
   auto opposite = !gesture_navigation ? "enable" : "disable";
-  return StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
+  auto commands = StringPrintf("cmd overlay %s " GESTURES_OVERLAY "; cmd overlay %s " THREE_BUTTON_OVERLAY ";\n", operation, opposite);
+  if (Agent::device_manufacturer() != GOOGLE && Agent::device_manufacturer() != SAMSUNG && Agent::device_manufacturer() != MOTOROLA) {
+    // Changing the overlays did not properly change from gesture navigation to 3 button navigation on these devices:
+    // - OnePlus 12 with API 14
+    // - OnePlus 8T with API 14
+    // - Oppo Reno2 (PCKM00) with API 11
+
+    // On these devices changing the value of the secure setting: "hide_navigationbar_enable" between 0 and 3 would
+    // cause the device to change the overlays and update the display properly. If the user is on the device settings
+    // for gesture navigation, the settings page would also update correctly.
+
+    // If we change this setting on a phone that is not using the "hide_navigationbar_enable" it would not cause any harm
+    // since it would simply be ignored: this is the case on Google, Samsung, and Motorola.
+    // The only risk is that some manufacturers may require a different value than 0 and 3, or use this setting for something
+    // else.
+    commands += StringPrintf("settings put secure hide_navigationbar_enable %d;\n", gesture_navigation ? 3 : 0);
+  }
+  return commands;
 }
 
 string CreateSetDebugLayoutCommand(bool debug_layout) {
