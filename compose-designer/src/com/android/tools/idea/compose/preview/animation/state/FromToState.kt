@@ -20,13 +20,13 @@ import com.android.tools.idea.preview.animation.state.SwapAction
 import com.android.tools.idea.preview.animation.state.ToolbarLabel
 
 /**
- * [AnimationState] to control comboBoxes for animations like updateTransition.
+ * [ComposeAnimationState] to control comboBoxes for animations like updateTransition.
  *
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */
 class FromToState(tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  AnimationState(callback) {
+  ComposeAnimationState(callback) {
 
   private val fromState = EnumStateAction {
     stateCallback()
