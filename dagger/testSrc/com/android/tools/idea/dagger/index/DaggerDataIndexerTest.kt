@@ -632,6 +632,7 @@ class DaggerDataIndexerTest {
       whenever(this.fileType).thenReturn(fileType)
       whenever(this.contentAsText).thenReturn(text)
       whenever(this.psiFile).thenReturn(psiFile)
+      whenever(this.file).thenReturn(psiFile.viewProvider.virtualFile)
     }
   }
 }

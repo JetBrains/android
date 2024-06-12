@@ -25,8 +25,10 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.impl.source.JavaFileElementType
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.FileContent
 import org.jetbrains.annotations.VisibleForTesting
@@ -59,16 +61,29 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
     if (!DAGGER_FILE_PATTERN.containsMatchIn(inputData.contentAsText)) return emptyMap()
 
     val results: IndexEntries = mutableMapOf()
-    val visitor =
+    val (psiFile, visitor) =
       when (inputData.fileType) {
         KotlinFileType.INSTANCE ->
-          KotlinVisitor(results, conceptIndexers, inputData.psiFile as KtFile)
-        JavaFileType.INSTANCE ->
-          JavaVisitor(results, conceptIndexers, inputData.psiFile as PsiJavaFile)
+          inputData.psiFile to KotlinVisitor(results, conceptIndexers, inputData.psiFile as KtFile)
+        JavaFileType.INSTANCE -> {
+          if (JavaFileElementType.isInSourceContent(inputData.file)) {
+            inputData.psiFile to
+              JavaVisitor(results, conceptIndexers, inputData.psiFile as PsiJavaFile)
+          } else {
+            // The incoming psiFile is lazily parsed. When it's not parsed and the file is in a
+            // library, doing the parsing can cause calls which cause reentrant indexing of the same
+            // file. This can be avoided by running our indexing on a copy instead.
+            val psiFile =
+              PsiFileFactory.getInstance(inputData.psiFile.project)
+                .createFileFromText(JavaFileType.INSTANCE.language, inputData.contentAsText)
+                as PsiJavaFile
+            psiFile to JavaVisitor(results, conceptIndexers, psiFile)
+          }
+        }
         else -> return emptyMap()
       }
 
-    inputData.psiFile.accept(visitor)
+    psiFile.accept(visitor)
     return results
   }
 

@@ -35,7 +35,7 @@ import com.intellij.psi.util.PsiModificationTracker
 import kotlin.reflect.KClass
 import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
-import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.idea.base.util.allScope
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
@@ -88,7 +88,7 @@ sealed class DaggerElement {
     indexKeys: List<String>,
   ): List<DaggerElement> {
     val project = psiElement.project
-    val scope = project.projectScope()
+    val scope = project.allScope()
 
     return indexKeys
       .asSequence()
@@ -123,7 +123,7 @@ sealed class DaggerElement {
    * from the current [DaggerElement]'s [PsiElement].
    */
   protected fun PsiType.getIndexKeys() =
-    getIndexKeys(this, psiElement.project, psiElement.project.projectScope())
+    getIndexKeys(this, psiElement.project, psiElement.project.allScope())
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {
