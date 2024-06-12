@@ -29,9 +29,9 @@ import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.util.SlowOperations
 import com.intellij.util.text.nullize
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.core.deleteElementAndCleanParent
@@ -81,7 +81,7 @@ internal open class PsiCallParameterPropertyItem(
 
   override val editingSupport: EditingSupport = PsiEditingSupport(validation)
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
+  @OptIn(KaAllowAnalysisOnEdt::class)
   override var value: String?
     get() =
       SlowOperations.allowSlowOperations(

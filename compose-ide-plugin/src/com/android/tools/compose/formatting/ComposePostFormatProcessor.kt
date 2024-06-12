@@ -28,8 +28,8 @@ import com.intellij.psi.codeStyle.CommonCodeStyleSettings
 import com.intellij.psi.impl.source.codeStyle.CodeFormatterFacade
 import com.intellij.psi.impl.source.codeStyle.PostFormatProcessor
 import com.intellij.psi.impl.source.codeStyle.PostFormatProcessorHelper
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.idea.formatter.kotlinCommonSettings
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
@@ -108,7 +108,7 @@ class ComposeModifierProcessor(private val settings: CodeStyleSettings) : KtTree
  *   will run after final PSI is determined by the template, so it looks impossible to drop analysis
  *   here though).
  */
-@OptIn(KtAllowAnalysisFromWriteAction::class)
+@OptIn(KaAllowAnalysisFromWriteAction::class)
 private fun isModifierChainThatNeedToBeWrapped(element: KtElement): Boolean {
   // Take very top KtDotQualifiedExpression, e.g for `Modifier.adjust1().adjust2()` take whole
   // expression, not only `Modifier.adjust1()`.
