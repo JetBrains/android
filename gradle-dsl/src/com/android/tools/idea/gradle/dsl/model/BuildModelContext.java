@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.VersionCatalogSource.FILES;
+import static com.android.tools.idea.gradle.dsl.model.VersionCatalogFilesModelKt.getGradleVersionCatalogFiles;
 import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.utils.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
@@ -50,7 +52,9 @@ import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileSystem;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,10 +81,12 @@ public final class BuildModelContext {
     VirtualFile getGradleBuildFile(@NotNull Module module);
 
     @Nullable
-    @SystemIndependent String getGradleProjectRootPath(@NotNull Module module);
+    @SystemIndependent
+    String getGradleProjectRootPath(@NotNull Module module);
 
     @Nullable
-    @SystemIndependent String getGradleProjectRootPath(@NotNull Project project);
+    @SystemIndependent
+    String getGradleProjectRootPath(@NotNull Project project);
   }
 
   @NotNull
@@ -283,7 +289,12 @@ public final class BuildModelContext {
     for (VersionCatalogModel versionCatalogModel : gradleSettingsModel.dependencyResolutionManagement().versionCatalogs()) {
       String from = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE);
       if (from == null) continue;
-      checkVersionCatalog(from, versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+      if (versionCatalogModel.from().getType() == FILES) {
+        checkVersionCatalog(from, versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+      }
+      else {
+        checkImportedVersionCatalog(versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
+      }
     }
   }
 
@@ -295,6 +306,19 @@ public final class BuildModelContext {
     VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
     if (versionCatalogFile == null) return Optional.empty();
     return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
+  }
+
+  private Optional<GradleVersionCatalogFile> checkImportedVersionCatalog(String name) {
+    Map<String, String> map = getGradleVersionCatalogFiles(myProject);
+    String catalogPath = map.get(name);
+    if (catalogPath != null) {
+      VirtualFileSystem fileSystem = StandardFileSystems.local();
+      VirtualFile versionCatalogFile = fileSystem.findFileByPath(catalogPath);
+      if (versionCatalogFile == null) return Optional.empty();
+      return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
+    }
+
+    return Optional.empty();
   }
 
   private void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile) {
@@ -451,5 +475,4 @@ public final class BuildModelContext {
     if (rootPath == null) return null;
     return getGradleSettingsFile(new File(toSystemDependentName(rootPath)));
   }
-
 }
