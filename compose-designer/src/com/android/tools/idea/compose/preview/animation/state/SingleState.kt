@@ -25,7 +25,11 @@ import com.android.tools.idea.preview.animation.state.SwapAction
  * @param callback when state has changed
  */
 class SingleState(private val tracker: ComposeAnimationTracker, callback: () -> Unit) :
-  ComposeAnimationState(callback) {
+  ComposeAnimationState {
+  override var callbackEnabled = false
+
+  /** [stateCallback] should be enabled or disabled with [callbackEnabled]. */
+  private val stateCallback = { if (callbackEnabled) callback() }
 
   private val enumState = EnumStateAction(stateCallback)
 

@@ -21,15 +21,13 @@ import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.state.AnimationState
-import com.intellij.openapi.actionSystem.AnAction
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /** Compose animation state. */
-abstract class ComposeAnimationState(callback: () -> Unit = {}) : AnimationState {
+interface ComposeAnimationState : AnimationState {
 
   companion object {
-
     /** Create an [ComposeAnimationState] based on [ComposeAnimationType] and type of state. */
     fun ComposeAnimation.createState(
       tracker: ComposeAnimationTracker,
@@ -59,25 +57,19 @@ abstract class ComposeAnimationState(callback: () -> Unit = {}) : AnimationState
     }
   }
 
-  var callbackEnabled = false
-
-  /** [stateCallback] should be enabled or disabled with [callbackEnabled]. */
-  protected val stateCallback = { if (callbackEnabled) callback() }
+  var callbackEnabled: Boolean
 
   /** Set list of available states. */
-  abstract fun updateStates(states: Set<Any>)
+  fun updateStates(states: Set<Any>)
 
   /** Hash code of selected state. */
-  abstract fun stateHashCode(): Int
+  fun stateHashCode(): Int
 
   /** Get selected state for the [index]. */
-  abstract fun getState(index: Int = 0): Any?
+  fun getState(index: Int = 0): Any?
 
   /** Set a start state. */
-  abstract fun setStartState(state: Any?)
-
-  override val changeStateActions: List<AnAction>
-    get() = emptyList()
+  fun setStartState(state: Any?)
 
   override val stateHashCode
     get() = MutableStateFlow(stateHashCode()).asStateFlow()
