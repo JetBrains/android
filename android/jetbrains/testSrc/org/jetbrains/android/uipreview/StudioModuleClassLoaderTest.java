@@ -435,6 +435,6 @@ public class StudioModuleClassLoaderTest extends AndroidTestCase {
     JavaCompiler javac = getJavac();
     javac.run(null, System.out, System.err, javaFilePath);
     project.getMessageBus().syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC).buildCompleted(new ProjectSystemBuildManager.BuildResult(
-      ProjectSystemBuildManager.BuildMode.COMPILE, ProjectSystemBuildManager.BuildStatus.SUCCESS, System.currentTimeMillis()));
+      ProjectSystemBuildManager.BuildMode.COMPILE_OR_ASSEMBLE, ProjectSystemBuildManager.BuildStatus.SUCCESS, System.currentTimeMillis()));
   }
 }
