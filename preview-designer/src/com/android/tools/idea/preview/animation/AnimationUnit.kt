@@ -17,109 +17,106 @@ package com.android.tools.idea.preview.animation
 
 import com.android.tools.idea.preview.PreviewBundle.message
 
-/** Units represented as multi-dimensional properties. */
+/** Units represented as multi-dimensional properties for animation inspection. */
 object AnimationUnit {
 
   /**
-   * Parses and creates a [NumberUnit]
+   * Parses a given value and creates a corresponding [NumberUnit].
    *
-   * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
-   *   [Unit3D], [Unit4D] respectively.
+   * @param value The value to parse, which can be an Int, Double, or Float.
+   * @return The parsed [NumberUnit] or null if the value type is not supported.
    */
   fun parseNumberUnit(value: Any?): NumberUnit<*>? {
-    if (value == null) return null
-    return when (value.javaClass.kotlin.qualifiedName) {
-      "kotlin.Int" -> if (value is Int) IntUnit(value) else null
-      "kotlin.Double" -> if (value is Double) DoubleUnit(value) else null
-      "kotlin.Float" -> if (value is Float) FloatUnit(value) else null
-      else -> UnknownNumberUnit(value)
+    return when (value) {
+      is Int -> IntUnit(value)
+      is Double -> DoubleUnit(value)
+      is Float -> FloatUnit(value)
+      else -> null
     }
   }
 
   /**
-   * Represents a single unit of property information within an animation inspection context.
+   * Represents a single property value at a specific time point in an animation.
    *
    * @property propertyLabel The name or label of the animated property.
-   * @property unit The core unit representing the property's value at a specific time point in the
-   *   animation. This could be a number, a color, or other custom types.
+   * @property unit The unit representing the property's value.
    */
-  class TimelineUnit(val propertyLabel: String, val unit: NumberUnit<*>?)
+  class TimelineUnit(val propertyLabel: String, val unit: Unit<*>)
 
-  /** Multidimensional property with each dimension of the type [A]. */
+  /**
+   * Interface representing a multi-dimensional property.
+   *
+   * @param A The type of the components in the property.
+   */
   interface Unit<A> {
+    /** The components of the multi-dimensional property. */
     val components: List<A>
 
+    /**
+     * Returns a string representation of the component at the specified index. If the index is out
+     * of bounds, returns an underscore ("_").
+     *
+     * @param componentId The index of the component.
+     */
     fun toString(componentId: Int): String
 
+    /** Returns a string representation of the entire property. */
     override fun toString(): String
 
+    /**
+     * Parses a string representation of a unit into a corresponding [Unit] object.
+     *
+     * @param getValue A function to get the string value for each component index.
+     * @return The parsed [Unit] or null if parsing fails.
+     */
     fun parseUnit(getValue: (Int) -> String?): Unit<*>?
 
+    /** Returns a title suitable for a picker for this type of unit. */
     fun getPickerTitle(): String
   }
 
-  /** Multidimensional property with each dimension of the type [A]. */
-  interface NumberUnit<A> : Unit<A> where A : Number, A : Comparable<A> {
-    /**
-     * Transforms a component to a [Double]. It unifies painting of the curves in [InspectorPainter]
-     * .
-     */
+  /**
+   * Interface representing a multi-dimensional property with numeric components.
+   *
+   * @param A The type of the numeric components.
+   */
+  interface NumberUnit<A : Number> : Unit<A> {
     fun componentAsDouble(componentId: Int) = components[componentId].toDouble()
   }
 
-  abstract class Unit1D<A>(val component1: A) : Unit<A> {
-    override val components = listOf(component1)
-
-    override fun toString(componentId: Int) = component1.toString()
-
-    override fun toString(): String = components.joinToString { it.toString() }
-  }
-
-  abstract class Unit2D<A>(val component1: A, val component2: A) : Unit<A> {
-    override val components = listOf(component1, component2)
-
-    override fun toString(componentId: Int) =
-      "( " +
-        "${if (componentId == 0) component1 else "_"} , " +
-        "${if (componentId == 1) component2 else "_"} )"
+  /**
+   * Abstract base class for multi-dimensional units.
+   *
+   * @param A The type of the components in the property.
+   * @param components The component values of the property.
+   */
+  abstract class BaseUnit<A>(vararg components: A) : Unit<A> {
+    override val components = components.toList()
 
     override fun toString(): String =
-      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
+      if (components.size == 1) components[0].toString()
+      else
+        components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
+
+    override fun toString(componentId: Int): String {
+      return buildString {
+        append("( ")
+        for (i in components.indices) {
+          if (i == componentId) {
+            append(components[i])
+          } else {
+            append("_")
+          }
+          if (i < components.size - 1) {
+            append(" , ")
+          }
+        }
+        append(" )")
+      }
+    }
   }
 
-  abstract class Unit3D<A>(val component1: A, val component2: A, val component3: A) : Unit<A> {
-    override val components = listOf(component1, component2, component3)
-
-    override fun toString(componentId: Int) =
-      "( " +
-        "${if (componentId == 0) component1 else "_"} , " +
-        "${if (componentId == 1) component2 else "_"} , " +
-        "${if (componentId == 2) component3 else "_"} )"
-
-    override fun toString(): String =
-      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
-  }
-
-  abstract class Unit4D<A>(
-    val component1: A,
-    val component2: A,
-    val component3: A,
-    val component4: A,
-  ) : Unit<A> {
-    override val components = listOf(component1, component2, component3, component4)
-
-    override fun toString(componentId: Int) =
-      "( " +
-        "${if (componentId == 0) component1 else "_"} , " +
-        "${if (componentId == 1) component2 else "_"} , " +
-        "${if (componentId == 2) component3 else "_"} , " +
-        "${if (componentId == 3) component4 else "_"} )"
-
-    override fun toString(): String =
-      components.joinToString(prefix = "( ", postfix = " )", separator = " , ") { it.toString() }
-  }
-
-  class IntUnit(value: Int) : Unit1D<Int>(value), NumberUnit<Int> {
+  class IntUnit(value: Int) : BaseUnit<Int>(value), NumberUnit<Int> {
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
@@ -132,7 +129,7 @@ object AnimationUnit {
     override fun getPickerTitle() = message("animation.inspector.picker.int")
   }
 
-  class DoubleUnit(value: Double) : Unit1D<Double>(value), NumberUnit<Double> {
+  class DoubleUnit(value: Double) : BaseUnit<Double>(value), NumberUnit<Double> {
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
@@ -145,7 +142,7 @@ object AnimationUnit {
     override fun getPickerTitle() = message("animation.inspector.picker.double")
   }
 
-  class FloatUnit(value: Float) : Unit1D<Float>(value), NumberUnit<Float> {
+  class FloatUnit(value: Float) : BaseUnit<Float>(value), NumberUnit<Float> {
 
     override fun parseUnit(getValue: (Int) -> String?): Unit<*>? {
       return try {
@@ -158,15 +155,15 @@ object AnimationUnit {
     override fun getPickerTitle() = message("animation.inspector.picker.float")
   }
 
-  class StringUnit(value: String) : Unit1D<String>(value) {
+  class StringUnit(value: String) : BaseUnit<String>(value) {
 
     override fun parseUnit(getValue: (Int) -> String?) = getValue(0)?.let { StringUnit(it) }
 
     override fun getPickerTitle() = message("animation.inspector.picker.string")
   }
 
-  open class UnitUnknown(val any: Any) : Unit1D<Int>(0) {
-    override val components = listOf(0)
+  open class UnitUnknown(val any: Any?) : Unit<Any?> {
+    override val components = listOf(any)
 
     override fun toString(componentId: Int) = any.toString()
 
@@ -178,8 +175,6 @@ object AnimationUnit {
 
     override fun getPickerTitle() = message("animation.inspector.picker.value")
   }
-
-  class UnknownNumberUnit(any: Any) : UnitUnknown(any), NumberUnit<Int>
 
   interface Color {
     val color: java.awt.Color?
