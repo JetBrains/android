@@ -21,7 +21,6 @@ import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.util.AvailableDevicesKey
 import com.android.tools.idea.preview.util.getSdkDevices
 import com.android.tools.preview.config.DEFAULT_DEVICE_ID
-import com.android.tools.preview.config.DEFAULT_DEVICE_ID_WITH_PREFIX
 import com.android.tools.preview.config.DEVICE_BY_ID_PREFIX
 import com.android.tools.preview.config.DEVICE_BY_NAME_PREFIX
 import com.android.tools.preview.config.DEVICE_BY_SPEC_PREFIX
@@ -86,14 +85,16 @@ object DeviceSpecCheck {
    * Takes a [UAnnotation] element that has a `device` attribute and returns a [ProblemDescriptor]
    * if any issue is found.
    *
+   * @param defaultDeviceId the device id to suggest to the user in case of an issue
    * @see checkDeviceSpec
    */
   fun checkAnnotation(
     annotation: UAnnotation,
     inspectionManager: InspectionManager,
     isOnTheFly: Boolean,
+    defaultDeviceId: String = DEFAULT_DEVICE_ID,
   ): ProblemDescriptor? {
-    val result = checkDeviceSpec(annotation)
+    val result = checkDeviceSpec(annotation, defaultDeviceId)
 
     if (!result.hasIssues) return null
 
@@ -164,9 +165,17 @@ object DeviceSpecCheck {
    * Returns a [CheckResult] that contains a list of issues found in the parameter, so an empty list
    * means that the annotation is syntactically correct. The [CheckResult] is cached into the
    * PsiElement given, and it's refreshed based on the contents of the annotation.
+   *
+   * If the `device` attribute has a `name` or an `id` that is invalid, then the [defaultDeviceId]
+   * will be used to generate a fix for the user.
+   *
+   * @param defaultDeviceId the device id to suggest to the user in case of an issue
    */
   @TestOnly
-  internal fun checkDeviceSpec(annotation: UAnnotation): CheckResult {
+  internal fun checkDeviceSpec(
+    annotation: UAnnotation,
+    defaultDeviceId: String = DEFAULT_DEVICE_ID,
+  ): CheckResult {
     if (!ApplicationManager.getApplication().isReadAccessAllowed)
       return failedCheck("No read access")
 
@@ -191,7 +200,7 @@ object DeviceSpecCheck {
     }
 
     return synchronized(DeviceSpecCheck) {
-      checkDeviceParameter(deviceValue, sourcePsi.module).also { checkResult ->
+      checkDeviceParameter(deviceValue, sourcePsi.module, defaultDeviceId).also { checkResult ->
         sourcePsi.putUserData(PreviewCheckResultKey, Pair(deviceValue, checkResult))
       }
     }
@@ -202,15 +211,25 @@ object DeviceSpecCheck {
    *
    * Looks for issues in the syntax that'll result in failure or unexpected behavior when defining
    * the Device for the Preview panel.
+   *
+   * @param defaultDeviceId the device id to suggest to the user in case of an issue
    */
-  private fun checkDeviceParameter(deviceParameterValue: String, module: Module?): CheckResult =
+  private fun checkDeviceParameter(
+    deviceParameterValue: String,
+    module: Module?,
+    defaultDeviceId: String,
+  ): CheckResult =
     when {
       // Check the device_id in "id:<device_id>
       deviceParameterValue.startsWith(DEVICE_BY_ID_PREFIX) -> {
         if (module == null) {
           failedCheck("Couldn't obtain Module")
         } else {
-          checkDeviceId(deviceParameterValue.substringAfter(DEVICE_BY_ID_PREFIX), module)
+          checkDeviceId(
+            deviceParameterValue.substringAfter(DEVICE_BY_ID_PREFIX),
+            module,
+            defaultDeviceId,
+          )
         }
       }
       // Check the device_id in "name:<device_name>
@@ -218,7 +237,11 @@ object DeviceSpecCheck {
         if (module == null) {
           failedCheck("Couldn't obtain Module")
         } else {
-          checkDeviceName(deviceParameterValue.substringAfter(DEVICE_BY_NAME_PREFIX), module)
+          checkDeviceName(
+            deviceParameterValue.substringAfter(DEVICE_BY_NAME_PREFIX),
+            module,
+            defaultDeviceId,
+          )
         }
       }
       // Check the DeviceSpec parameters in "spec:..."
@@ -250,7 +273,7 @@ object DeviceSpecCheck {
         //  parameter
         CheckResult(
           issues = listOf(Unknown(message("preview.device.spec.lint.error.unsupported"))),
-          proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX,
+          proposedFix = "$DEVICE_BY_ID_PREFIX$defaultDeviceId",
         )
     }
 
@@ -369,38 +392,61 @@ object DeviceSpecCheck {
 
   /**
    * Finds the default device in the list and, if found, returns a [CheckResult], flagging the given
-   * [unknownParameterValue] as the error and the default device as proposed fix.
+   * [unknownParameterValue] as the error and the [defaultDeviceId] as a proposed fix.
+   *
+   * @param defaultDeviceId the device id to suggest to the user
    */
   private fun List<Device>.findDefaultDeviceAndReturnFix(
-    unknownParameterValue: String
+    unknownParameterValue: String,
+    defaultDeviceId: String,
   ): CheckResult =
-    if (any { it.id == DEFAULT_DEVICE_ID }) {
+    if (any { it.id == defaultDeviceId }) {
       // TODO(b/236383162): Improve the messaging for issues in the DeviceId
       CheckResult(
         issues = listOf(Unknown(unknownParameterValue)),
-        proposedFix = DEFAULT_DEVICE_ID_WITH_PREFIX,
+        proposedFix = "$DEVICE_BY_ID_PREFIX$defaultDeviceId",
       )
     } else {
       // Expected default device not in Sdk
-      failedCheck("Default Device: $DEFAULT_DEVICE_ID not found")
+      failedCheck("Default Device: $defaultDeviceId not found")
     }
 
-  /** Check that the given [deviceId] is the ID of an actual device in the Sdk. */
-  private fun checkDeviceId(deviceId: String, module: Module): CheckResult {
+  /**
+   * Check that the given [deviceId] is the ID of an actual device in the SDK. If it's not, use
+   * [defaultDeviceId] as a proposed fix.
+   *
+   * @param defaultDeviceId the device id to suggest to the user if there are no devices with the ID
+   *   [deviceId] in the SDK
+   */
+  private fun checkDeviceId(
+    deviceId: String,
+    module: Module,
+    defaultDeviceId: String,
+  ): CheckResult {
     val sdkDevices = getSdkDevices(module)
     val isValid = sdkDevices.any { it.id == deviceId }
     return if (isValid) {
       Passed
-    } else sdkDevices.findDefaultDeviceAndReturnFix(deviceId)
+    } else sdkDevices.findDefaultDeviceAndReturnFix(deviceId, defaultDeviceId)
   }
 
-  /** Check that the given [deviceName] is the name of an actual device in the Sdk. */
-  private fun checkDeviceName(deviceName: String, module: Module): CheckResult {
+  /**
+   * Check that the given [deviceName] is the name of an actual device in the SDK. If it's not, use
+   * [defaultDeviceId] as a proposed fix.
+   *
+   * @param defaultDeviceId the device id to suggest to the user if there are no devices with
+   *   [deviceName] in the SDK.
+   */
+  private fun checkDeviceName(
+    deviceName: String,
+    module: Module,
+    defaultDeviceId: String,
+  ): CheckResult {
     val sdkDevices = getSdkDevices(module)
     val isValid = sdkDevices.any { it.name == deviceName }
     return if (isValid) {
       Passed
-    } else sdkDevices.findDefaultDeviceAndReturnFix(deviceName)
+    } else sdkDevices.findDefaultDeviceAndReturnFix(deviceName, defaultDeviceId)
   }
 }
 
