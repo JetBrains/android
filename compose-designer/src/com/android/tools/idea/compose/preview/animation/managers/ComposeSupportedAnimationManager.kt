@@ -74,7 +74,7 @@ open class ComposeSupportedAnimationManager(
     updateTimelineElementsCallback,
   ) {
 
-  override val animationStateManager: ComposeAnimationState =
+  override val animationState: ComposeAnimationState =
     animation.createState(tracker, animation.findCallback())
 
   override suspend fun resetCallback(longTimeout: Boolean) {
@@ -95,14 +95,14 @@ open class ComposeSupportedAnimationManager(
 
   /** Initializes the state of the Compose animation before it starts */
   final override suspend fun setupStateManager() {
-    animationStateManager.updateStates(handleKnownStateTypes(animation.states))
+    animationState.updateStates(handleKnownStateTypes(animation.states))
     syncStateComboBoxWithAnimationStateInLibrary()
-    animationStateManager.callbackEnabled = true
+    animationState.callbackEnabled = true
   }
 
   protected open suspend fun syncStateComboBoxWithAnimationStateInLibrary() {
     val finalState = animation.getCurrentState()
-    animationStateManager.setStartState(finalState)
+    animationState.setStartState(finalState)
     updateAnimationStartAndEndStates()
   }
 
@@ -142,8 +142,8 @@ open class ComposeSupportedAnimationManager(
    */
   private suspend fun updateAnimationStartAndEndStates(longTimeout: Boolean = false) {
     animationClock.apply {
-      val startState = animationStateManager.getState(0) ?: return
-      val toState = animationStateManager.getState(1) ?: return
+      val startState = animationState.getState(0) ?: return
+      val toState = animationState.getState(1) ?: return
 
       executeInRenderSession(longTimeout) { updateFromAndToStates(animation, startState, toState) }
       resetCallback(longTimeout)
@@ -152,11 +152,11 @@ open class ComposeSupportedAnimationManager(
 
   /**
    * Updates the actual animation in Compose to set its state based on the selected value of
-   * [animationStateManager].
+   * [animationState].
    */
   suspend fun updateAnimatedVisibility(longTimeout: Boolean = false) {
     animationClock.apply {
-      val state = animationStateManager.getState(0) ?: return
+      val state = animationState.getState(0) ?: return
       executeInRenderSession(longTimeout) { updateAnimatedVisibilityState(animation, state) }
       resetCallback(longTimeout)
     }

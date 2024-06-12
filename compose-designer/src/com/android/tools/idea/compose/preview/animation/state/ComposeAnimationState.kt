@@ -20,11 +20,13 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
 import com.android.tools.idea.preview.animation.AnimationUnit
-import com.android.tools.idea.preview.animation.state.AnimationStateManager
+import com.android.tools.idea.preview.animation.state.AnimationState
 import com.intellij.openapi.actionSystem.AnAction
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /** Compose animation state. */
-abstract class ComposeAnimationState(callback: () -> Unit = {}) : AnimationStateManager {
+abstract class ComposeAnimationState(callback: () -> Unit = {}) : AnimationState {
 
   companion object {
 
@@ -66,7 +68,7 @@ abstract class ComposeAnimationState(callback: () -> Unit = {}) : AnimationState
   abstract fun updateStates(states: Set<Any>)
 
   /** Hash code of selected state. */
-  abstract override fun stateHashCode(): Int
+  abstract fun stateHashCode(): Int
 
   /** Get selected state for the [index]. */
   abstract fun getState(index: Int = 0): Any?
@@ -76,4 +78,7 @@ abstract class ComposeAnimationState(callback: () -> Unit = {}) : AnimationState
 
   override val changeStateActions: List<AnAction>
     get() = emptyList()
+
+  override val stateHashCode
+    get() = MutableStateFlow(stateHashCode()).asStateFlow()
 }

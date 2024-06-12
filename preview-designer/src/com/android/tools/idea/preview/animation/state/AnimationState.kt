@@ -16,6 +16,7 @@
 package com.android.tools.idea.preview.animation.state
 
 import com.intellij.openapi.actionSystem.AnAction
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Interface for managing the states of an animation.
@@ -23,12 +24,12 @@ import com.intellij.openapi.actionSystem.AnAction
  * State can be a single state, like visibility or most commonly initial and target state (from
  * color A to B, from int A to B, from Compose state A to B, etc)
  */
-interface AnimationStateManager {
+interface AnimationState {
   /**
-   * Calculates a hash code that uniquely identifies the current state of the animation. Primarily
-   * used to compare animation states for equality.
+   * Hash code that uniquely identifies the current state of the animation. Primarily used to
+   * compare animation states for equality.
    */
-  fun stateHashCode(): Int
+  val stateHashCode: StateFlow<Int>
 
   /** A list of actions that can be performed to change the state of the animation. */
   val changeStateActions: List<AnAction>
