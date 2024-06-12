@@ -308,6 +308,7 @@ public final class TransportFileManager implements TransportFileCopier {
         boolean isFileOnDevice = isFileOnDevice(deviceFilePath);
 
         if (hasSameHash && isFileOnDevice) {
+          getLogger().info(String.format("Identical copy of %s is already on the device, no need to push it", deviceFilePath));
           // The hash stored on the device is the same as the hash of the new file - we don't need to push it again.
           return deviceFilePath;
         }
