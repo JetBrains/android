@@ -77,5 +77,13 @@
                      key="inspection.top.level.function"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.wear.preview.lint.WearTilePreviewDeviceSpecInspection"
+                     language="UAST"
+                     enabledByDefault="true"
+                     bundle="bundle.wear.WearBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.device.spec"
+                     level="ERROR"/>
+
   </extensions>
 </idea-plugin>
