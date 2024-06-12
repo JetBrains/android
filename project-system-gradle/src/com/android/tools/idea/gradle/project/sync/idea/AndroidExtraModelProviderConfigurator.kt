@@ -33,6 +33,7 @@ import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.Fet
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.FetchNativeVariantsMode
 import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.SingleVariantSyncProjectMode
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 private const val STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debug.mode"
@@ -40,7 +41,7 @@ private const val STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debu
 fun studioProjectSyncDebugModeEnabled(): Boolean = java.lang.Boolean.getBoolean(STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY)
 
 fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraModelProvider? {
-  checkCancelled()
+  ProgressManager.checkCanceled()
   val project = this.externalSystemTaskId.findProject() ?: let {
     thisLogger().error("Cannot find a project for $externalSystemTaskId", Throwable())
     return null // We can't be helpful if the current project is not available.
