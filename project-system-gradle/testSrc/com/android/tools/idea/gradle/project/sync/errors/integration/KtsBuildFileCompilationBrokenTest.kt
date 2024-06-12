@@ -49,6 +49,10 @@ class KtsBuildFileCompilationBrokenTest: AbstractSyncFailureIntegrationTest() {
       expect.that(it.gradleSyncFailure).isEqualTo(AndroidStudioEvent.GradleSyncFailure.KTS_COMPILATION_ERROR)
       expect.that(it.buildOutputWindowStats.buildErrorMessagesList.map { it.errorShownType })
         .containsExactly(BuildErrorMessage.ErrorType.KOTLIN_COMPILER)
+      expect.that(it.gradleSyncStats.printPhases()).isEqualTo("""
+          FAILURE : SYNC_TOTAL/GRADLE_CONFIGURE_ROOT_BUILD
+          FAILURE : SYNC_TOTAL
+        """.trimIndent())
     }
 
   )
