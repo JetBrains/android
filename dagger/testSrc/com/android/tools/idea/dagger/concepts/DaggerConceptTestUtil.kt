@@ -61,6 +61,7 @@ private fun DaggerConceptIndexers.runIndexerOn(
   whenever(fileContent.psiFile).thenReturn(psiFile)
   whenever(fileContent.contentAsText).thenReturn(psiFile.text)
   whenever(fileContent.fileType).thenReturn(fileType)
+  whenever(fileContent.file).thenReturn(psiFile.viewProvider.virtualFile)
 
   return DaggerDataIndexer(this).map(fileContent)
 }
