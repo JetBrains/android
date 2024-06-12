@@ -32,7 +32,6 @@ import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.kotlin.analysis.api.impl.base.references.HLApiReferenceProviderService
 import org.jetbrains.kotlin.psi.KotlinReferenceProvidersService
 import org.junit.Before
 import org.junit.Test
