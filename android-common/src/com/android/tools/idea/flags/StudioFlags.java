@@ -1404,7 +1404,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = new BooleanFlag(
     COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
     "If enabled, multiple previews associated with composable will be grouped. Please invalidates file caches after " +
-    "enabling or disabling (File -> Invalidate Caches...)", false);
+    "enabling or disabling (File -> Invalidate Caches...)", ChannelDefault.enabledUpTo(CANARY));
 
   public static final Flag<Boolean> PREVIEW_DYNAMIC_ZOOM_TO_FIT = new BooleanFlag(
     COMPOSE, "preview.dynamic.zoom.to.fit", "Enable dynamic Zoom to Fit in preview",
