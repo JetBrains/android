@@ -37,6 +37,6 @@ fun KtAnalysisSession.isSubclassOf(classSymbol: KtClassLikeSymbol, superClassId:
 fun KtAnalysisSession.isSubclassOf(classType: KtType, superClassId: ClassId, strict: Boolean = false): Boolean {
     val superClassType = buildClassType(superClassId)
     if (superClassType is KtErrorType) return false
-    if (!strict && classType isEqualTo superClassType) return true
-    return classType isSubTypeOf superClassType
+    if (!strict && classType.isEqualTo(superClassType)) return true
+    return classType.isSubTypeOf(superClassType)
 }
