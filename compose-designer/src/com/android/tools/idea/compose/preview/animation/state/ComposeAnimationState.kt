@@ -23,16 +23,16 @@ import com.android.tools.idea.preview.animation.AnimationUnit
 import com.android.tools.idea.preview.animation.state.AnimationStateManager
 import com.intellij.openapi.actionSystem.AnAction
 
-/** Animation state. */
-abstract class AnimationState(callback: () -> Unit = {}) : AnimationStateManager {
+/** Compose animation state. */
+abstract class ComposeAnimationState(callback: () -> Unit = {}) : AnimationStateManager {
 
   companion object {
 
-    /** Create an [AnimationState] based on [ComposeAnimationType] and type of state. */
+    /** Create an [ComposeAnimationState] based on [ComposeAnimationType] and type of state. */
     fun ComposeAnimation.createState(
       tracker: ComposeAnimationTracker,
       callback: () -> Unit,
-    ): AnimationState {
+    ): ComposeAnimationState {
       val unit = ComposeUnit.parseStateUnit(this.states.firstOrNull())
       return when (this.type) {
         ComposeAnimationType.ANIMATED_VISIBILITY -> SingleState(tracker, callback)

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.compose.preview.animation.state
 
-/** [AnimationState] when selection of the state is not available for the animation. */
-class EmptyState : AnimationState() {
+/** [ComposeAnimationState] when selection of the state is not available for the animation. */
+class EmptyState : ComposeAnimationState() {
   override fun stateHashCode() = 0
 
   override fun updateStates(states: Set<Any>) {}
