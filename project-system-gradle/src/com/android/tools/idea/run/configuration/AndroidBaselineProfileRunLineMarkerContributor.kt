@@ -47,11 +47,11 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.isUnderKotlinSourceRootTypes
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -121,7 +121,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
              AnnotationUtil.findAnnotation(e.parent as PsiMethod, "org.junit.Test") != null
     }
 
-    @OptIn(KtAllowAnalysisOnEdt::class)
+    @OptIn(KaAllowAnalysisOnEdt::class)
     internal fun anyTopLevelKtRule(psiElement: PsiElement): String? {
       // Find class body
       val topLevelClass = if (psiElement is KtClass) {
@@ -139,7 +139,7 @@ class BaselineProfileRunLineMarkerContributor : RunLineMarkerContributor() {
 
       // Analyzes the class to check each property to see if there is at least a BaselineProfileRule applied.
       return allowAnalysisOnEdt {
-        @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+        @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
         allowAnalysisFromWriteAction {
           analyze(topLevelClass) {
             ktProperties

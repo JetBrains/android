@@ -16,9 +16,9 @@
 package com.android.tools.compose.code
 
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -40,7 +40,7 @@ data class ComposableFunctionRenderParts(
   val tail: String?,
 )
 
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderParts? {
   return if (KotlinPluginModeProvider.isK2Mode()) {
     allowAnalysisOnEdt {

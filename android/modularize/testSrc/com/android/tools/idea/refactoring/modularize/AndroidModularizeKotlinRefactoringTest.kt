@@ -22,8 +22,8 @@ import com.intellij.refactoring.util.RefactoringUtil
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.base.plugin.KotlinPluginModeProvider
 import org.jetbrains.kotlin.idea.k2.refactoring.move.processor.K2MoveFilesHandler
 import org.jetbrains.kotlin.idea.refactoring.move.moveFilesOrDirectories.MoveKotlinFileHandler
@@ -67,7 +67,7 @@ class AndroidModularizeKotlinRefactoringTest : AndroidTestCase() {
 
     val moveHandler = if (KotlinPluginModeProvider.isK2Mode()) K2MoveFilesHandler() else MoveKotlinFileHandler()
 
-    @OptIn(KtAllowAnalysisOnEdt::class)
+    @OptIn(KaAllowAnalysisOnEdt::class)
     allowAnalysisOnEdt {
       runWriteAction {
         val psiDirectory = RefactoringUtil.createPackageDirectoryInSourceRoot(

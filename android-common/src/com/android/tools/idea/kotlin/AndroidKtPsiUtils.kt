@@ -22,20 +22,20 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisFromWriteAction
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.KaAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.annotations.hasAnnotation
-import org.jetbrains.kotlin.analysis.api.base.KtConstantValue.KtErrorConstantValue
+import org.jetbrains.kotlin.analysis.api.base.KaConstantValue.KaErrorConstantValue
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.analysis.api.calls.singleConstructorCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisFromWriteAction
+import org.jetbrains.kotlin.analysis.api.permissions.allowAnalysisFromWriteAction
 import org.jetbrains.kotlin.analysis.api.symbols.KtDeclarationSymbol
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.findFacadeClass
@@ -77,7 +77,7 @@ import org.jetbrains.kotlin.types.TypeUtils
 fun KtClass.insideBody(offset: Int): Boolean = (body as? PsiElement)?.textRange?.contains(offset) ?: false
 
 // TODO(b/269691940): Require callers to provide their own [KtAnalysisSession], and remove this function.
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 inline fun <T> KtAnalysisSession?.applyOrAnalyze(element: KtElement, block: KtAnalysisSession.() -> T): T =
   if (this != null) {
     block()
@@ -126,7 +126,7 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = nul
  * a template execution, and it needs the reference shortening), which means we have to run the analysis APIs for
  * code-format and reference-shortener on a write-action.
  */
-@OptIn(KtAllowAnalysisFromWriteAction::class, KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisFromWriteAction::class, KaAllowAnalysisOnEdt::class)
 fun KtAnnotationEntry.getFullyQualifiedNameOnWriteActionForK2(analysisSession: KtAnalysisSession): String? =
   allowAnalysisFromWriteAction {
     allowAnalysisOnEdt {
@@ -230,7 +230,7 @@ inline fun <reified T> KtExpression.evaluateConstant(analysisSession: KtAnalysis
   if (KotlinPluginModeProvider.isK2Mode()) {
     analysisSession.applyOrAnalyze(this) {
       evaluate(KtConstantEvaluationMode.CONSTANT_LIKE_EXPRESSION_EVALUATION)
-        ?.takeUnless { it is KtErrorConstantValue }
+        ?.takeUnless { it is KaErrorConstantValue }
         ?.value as? T
     }
   } else {
@@ -309,10 +309,10 @@ private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
   it.annotationsByClassId(classId).singleOrNull()?.psi as? KtAnnotationEntry
 } ?: findAnnotationEntryByClassId(classId)
 
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSession.(KtDeclarationSymbol) -> T?): T? =
   allowAnalysisOnEdt {
-    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
     allowAnalysisFromWriteAction {
       analyze(this) {
         val declaration = this@mapOnDeclarationSymbol as? KtDeclaration
@@ -326,10 +326,10 @@ private inline fun <T> KtAnnotated.mapOnDeclarationSymbol(block: KtAnalysisSessi
  * This function resolves [annotationEntries] and finds a symbol (a constructor symbol in the [KtTypeReference] case) whose class symbol
  * is [classId].
  */
-@OptIn(KtAllowAnalysisOnEdt::class)
+@OptIn(KaAllowAnalysisOnEdt::class)
 private inline fun KtAnnotated.findAnnotationEntryByClassId(classId: ClassId): KtAnnotationEntry? =
   allowAnalysisOnEdt {
-    @OptIn(KtAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
+    @OptIn(KaAllowAnalysisFromWriteAction::class) // TODO(b/310045274)
     allowAnalysisFromWriteAction {
       analyze(this) {
         annotationEntries.find { annotationEntry ->

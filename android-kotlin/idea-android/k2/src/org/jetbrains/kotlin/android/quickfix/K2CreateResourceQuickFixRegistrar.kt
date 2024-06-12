@@ -16,7 +16,7 @@
 package org.jetbrains.kotlin.android.quickfix
 
 import com.intellij.codeInsight.intention.IntentionAction
-import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KtFirDiagnostic.UnresolvedReference
+import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic.UnresolvedReference
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixesList
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KtQuickFixesListBuilder

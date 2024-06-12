@@ -31,8 +31,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.components.KtCompilationResult
-import org.jetbrains.kotlin.analysis.api.components.KtCompilerTarget
+import org.jetbrains.kotlin.analysis.api.components.KaCompilationResult
+import org.jetbrains.kotlin.analysis.api.components.KaCompilerTarget
 import org.jetbrains.kotlin.analysis.api.diagnostics.getDefaultMessageWithFactoryName
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
@@ -64,7 +64,7 @@ internal class LiveEditCompilerForK2(
   }
 }
 
-fun backendCodeGenForK2(file: KtFile, module: Module?): KtCompilationResult.Success {
+fun backendCodeGenForK2(file: KtFile, module: Module?): KaCompilationResult.Success {
   module?.let {
     if (file.module != it) {
       throw LiveEditUpdateException.internalErrorFileOutsideModule(file)
@@ -86,15 +86,15 @@ fun backendCodeGenForK2(file: KtFile, module: Module?): KtCompilationResult.Succ
   ProgressManager.checkCanceled()
 
   analyze(file) {
-    val result = this@analyze.compile(file, configuration, KtCompilerTarget.Jvm(ClassBuilderFactories.BINARIES)) {
+    val result = this@analyze.compile(file, configuration, KaCompilerTarget.Jvm(ClassBuilderFactories.BINARIES)) {
       // This is a lambda for `allowedErrorFilter` parameter. `compiler` API internally filters diagnostic errors with
       // `allowedErrorFilter`. If `allowedErrorFilter(diagnosticError)` is true, the error will not be reported.
       // Since we want to always report the diagnostic errors, we just return `false` here.
       false
     }
     when (result) {
-      is KtCompilationResult.Success -> return result
-      is KtCompilationResult.Failure -> throw compilationError(result.errors.joinToString { it.getDefaultMessageWithFactoryName() })
+      is KaCompilationResult.Success -> return result
+      is KaCompilationResult.Failure -> throw compilationError(result.errors.joinToString { it.getDefaultMessageWithFactoryName() })
     }
   }
 }
