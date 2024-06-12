@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor.navigation
 
+import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl
@@ -29,7 +30,7 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
     super.setUp()
     project.replaceService(
       FileEditorManager::class.java,
-      FileEditorManagerImpl(project, project.coroutineScope),
+      FileEditorManagerImpl(project, project.coroutineScope()),
       testRootDisposable,
     )
   }
