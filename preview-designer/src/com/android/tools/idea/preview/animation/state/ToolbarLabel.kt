@@ -13,30 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview.animation.actions
+package com.android.tools.idea.preview.animation.state
 
-import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.preview.animation.AnimationTracker
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.project.DumbAwareAction
-import icons.StudioIcons
+import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
 
-/** A button to swap current animation states. */
-class SwapAction(val tracker: AnimationTracker, val swapStates: () -> Unit) :
-  DumbAwareAction(
-    message("animation.inspector.action.swap.states"),
-    null,
-    StudioIcons.LayoutEditor.Motion.PLAY_YOYO,
-  ) {
-
-  private var isSwappingStates = false
-
-  override fun actionPerformed(e: AnActionEvent) {
-    isSwappingStates = true
-    swapStates()
-    isSwappingStates = false
-    tracker.triggerSwapStatesAction()
+/** A label displayed in toolbar. */
+class ToolbarLabel(label: String) : ToolbarLabelAction() {
+  init {
+    templatePresentation.text = label
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {

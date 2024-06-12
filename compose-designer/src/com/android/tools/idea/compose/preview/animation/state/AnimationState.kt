@@ -19,8 +19,8 @@ import androidx.compose.animation.tooling.ComposeAnimation
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.ComposeAnimationTracker
 import com.android.tools.idea.compose.preview.animation.ComposeUnit
-import com.android.tools.idea.preview.animation.AnimationStateManager
 import com.android.tools.idea.preview.animation.AnimationUnit
+import com.android.tools.idea.preview.animation.state.AnimationStateManager
 import com.intellij.openapi.actionSystem.AnAction
 
 /** Animation state. */
