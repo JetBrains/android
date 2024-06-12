@@ -62,10 +62,6 @@ cc_binary(
     linkopts = ["-Wl,--strip-all"],
     linkshared = True,
     stamp = 0,
-    tags = [
-        "no_mac",
-        "no_windows",
-    ],
     target_compatible_with = ["@platforms//os:linux"],
     visibility = ["//visibility:public"],
     deps = [
@@ -77,10 +73,6 @@ cc_binary(
     name = "libjni_object_tagger.dylib",
     linkshared = True,
     stamp = 0,
-    tags = [
-        "no_linux",
-        "no_windows",
-    ],
     target_compatible_with = ["@platforms//os:macos"],
     visibility = ["//visibility:public"],
     deps = [
@@ -92,10 +84,6 @@ cc_binary(
     name = "jni_object_tagger.dll",
     linkshared = True,
     stamp = 0,
-    tags = [
-        "no_linux",
-        "no_mac",
-    ],
     target_compatible_with = ["@platforms//os:windows"],
     visibility = ["//visibility:public"],
     deps = [
