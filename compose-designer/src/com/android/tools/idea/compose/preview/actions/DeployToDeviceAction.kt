@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRun
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.compose.preview.util.previewElement
 import com.android.tools.idea.preview.essentials.PreviewEssentialsModeManager
+import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.preview.ComposePreviewElement
 import com.android.tools.preview.ParametrizedComposePreviewElementInstance
@@ -85,7 +86,9 @@ internal class DeployToDeviceAction :
           providerClassFqn = it.first
           providerIndex = it.second
         }
-        setModule(module)
+        // Use the container module to make sure we also compile the androidTest module when
+        // running this configuration.
+        setModule(module.getHolderModule())
       }
 
     val configurationAndSettings =
