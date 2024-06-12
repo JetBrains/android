@@ -17,7 +17,7 @@ package com.android.tools.idea.preview.animation
 
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.preview.animation.actions.FreezeAction
-import com.android.tools.idea.preview.animation.state.AnimationStateManager
+import com.android.tools.idea.preview.animation.state.AnimationState
 import com.android.tools.idea.preview.animation.timeline.PositionProxy
 import com.android.tools.idea.preview.animation.timeline.TimelineElement
 import com.android.tools.idea.preview.animation.timeline.TimelineLine
@@ -87,7 +87,7 @@ abstract class SupportedAnimationManager(
   private val freezeAction = FreezeAction(timelinePanel, frozenState, tracker)
 
   /** Abstract property representing the state manager for this animation type. */
-  abstract val animationStateManager: AnimationStateManager
+  abstract val animationState: AnimationState
 
   /** Animation [Transition]. Could be empty for unsupported or not yet loaded transitions. */
   private var currentTransition = Transition()
@@ -127,12 +127,7 @@ abstract class SupportedAnimationManager(
   private val tabTimelineParent = JPanel(BorderLayout())
 
   val tab by lazy {
-    AnimationTab(
-      rootComponent,
-      playbackControls,
-      animationStateManager.changeStateActions,
-      freezeAction,
-    )
+    AnimationTab(rootComponent, playbackControls, animationState.changeStateActions, freezeAction)
   }
   override val timelineMaximumMs: Int
     get() = currentTransition.endMillis?.let { max(it + offset.value, it) } ?: 0
@@ -192,7 +187,7 @@ abstract class SupportedAnimationManager(
    * is used.
    */
   suspend fun loadTransition(longTimeout: Boolean = false) {
-    val stateHash = animationStateManager.stateHashCode()
+    val stateHash = animationState.stateHashCode.value
     if (!cachedTransitions.containsKey(stateHash)) {
       executeInRenderSession(longTimeout) {
         loadTransitionFromLibrary()?.let { transition -> cachedTransitions[stateHash] = transition }
@@ -221,7 +216,7 @@ abstract class SupportedAnimationManager(
         AnimationCard(
             rootComponent,
             tabTitle,
-            listOf(freezeAction) + animationStateManager.changeStateActions,
+            listOf(freezeAction) + animationState.changeStateActions,
             tracker,
           )
           .apply {
