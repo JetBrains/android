@@ -58,11 +58,16 @@ val uiCheckBenchmark = Benchmark.Builder("UI Check Benchmark")
 data class ExtendedPreviewConfiguration(val configuration: PreviewConfiguration, val showDecorations: Boolean)
 
 internal val UiCheckConfigurations = listOf(
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420"), true),
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:id=reference_phone-landscape,shape=Normal,width=411,height=891,unit=dp,dpi=420,orientation=landscape"), true),
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:id=reference_foldable,shape=Normal,width=673,height=841,unit=dp,dpi=420"), true),
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:id=reference_tablet,shape=Normal,width=1280,height=800,unit=dp,dpi=240"), true),
-  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:id=reference_desktop,shape=Normal,width=1920,height=1080,unit=dp,dpi=160"), true),
+  // Reference Phone
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=411dp,height=891dp"), true),
+  // Reference Phone Landscape
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=411dp,height=891dp,orientation=landscape"), true),
+  // Reference Foldable
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=673dp,height=841dp"), true),
+  // Reference Tablet
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=1280dp,height=800dp,dpi=240"), true),
+  // Reference Desktop
+  ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(device = "spec:width=1920dp,height=1080dp,dpi=160"), true),
   ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 0.85f), false),
   ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1f), false),
   ExtendedPreviewConfiguration(PreviewConfiguration.cleanAndGet(fontScale = 1.15f), false),
